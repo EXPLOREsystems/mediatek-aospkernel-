@@ -1178,8 +1178,8 @@ static ssize_t fm_ops_read(struct file *filp, char *buf, size_t len, loff_t *off
 	}
 	/* return if FM is resetting */
     if (fm_sys_state_get(fm) != FM_SUBSYS_RST_OFF) {
-        WCN_DBG(FM_ALT | MAIN, "fm subsys underring reset\n");
-        return 0;
+	WCN_DBG(FM_ALT | MAIN, "fm subsys underring reset\n");
+	return 0;
     }
 
 	copy_len = sizeof(rds_t);
@@ -1344,7 +1344,7 @@ static ssize_t fm_proc_write(struct file *file, const char *buffer, size_t count
 	return count;
 }
 
-//#define FM_DEV_STATIC_ALLOC
+#define FM_DEV_STATIC_ALLOC
 #define FM_DEV_MAJOR    193
 static int FM_major = FM_DEV_MAJOR;	/* dynamic allocation */
 

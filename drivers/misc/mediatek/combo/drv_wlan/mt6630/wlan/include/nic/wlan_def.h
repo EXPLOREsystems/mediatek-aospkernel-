@@ -3,14 +3,17 @@
 */
 
 /*! \file   "wlan_def.h"
-    \brief  This file includes the basic definition of WLAN
-
-*/
+ *  \brief  This file includes the basic definition of WLAN
+ *
+ */
 
 
 
 /*
 ** $Log: wlan_def.h $
+**
+** 07 25 2014 eason.tsai
+** AOSP
 **
 ** 08 05 2013 terry.wu
 ** [BORA00002207] [MT6630 Wi-Fi] TXM & MQM Implementation
@@ -85,169 +88,172 @@
 ** [BORA00002149] [MT6630 Wi-Fi] Initial software development
 ** Duplicate source from MT6620 v2.3 driver branch
 ** (Davinci label: MT6620_WIFI_Driver_V2_3_120913_1942_As_MT6630_Base)
- *
- * 12 05 2011 cp.wu
- * [WCXRP00001131] [MT6620 Wi-Fi][Driver][AIS] Implement connect-by-BSSID path
- * add CONNECT_BY_BSSID policy
- *
- * 10 12 2011 wh.su
- * [WCXRP00001036] [MT6620 Wi-Fi][Driver][FW] Adding the 802.11w code for MFP
- * adding the 802.11w related function and define .
- *
- * 06 22 2011 wh.su
- * [WCXRP00000806] [MT6620 Wi-Fi][Driver] Move the WPA/RSN IE and WAPI IE structure to mac.h and let the sw structure not align at byte
- * Move the WAPI/RSN IE to mac.h and SW structure not align to byte,
- * Notice needed update P2P.ko.
- *
- * 04 08 2011 eddie.chen
- * [WCXRP00000617] [MT6620 Wi-Fi][DRV/FW] Fix for sigma
- * Fix for sigma
- *
- * 03 17 2011 yuche.tsai
- * NULL
- * Resize the Secondary Device Type array when WiFi Direct is enabled.
- *
- * 01 25 2011 yuche.tsai
- * [WCXRP00000388] [Volunteer Patch][MT6620][Driver/Fw] change Station Type in station record.
- * Change Station Type in Station Record, Modify MACRO definition for getting station type & network type index & Role.
- *
- * 01 25 2011 yuche.tsai
- * [WCXRP00000388] [Volunteer Patch][MT6620][Driver/Fw] change Station Type in station record.
- * Add new station type MACRO.
- *
- * 12 07 2010 cm.chang
- * [WCXRP00000238] MT6620 Wi-Fi][Driver][FW] Support regulation domain setting from NVRAM and supplicant
- * 1. Country code is from NVRAM or supplicant
- * 2. Change band definition in CMD/EVENT.
- *
- * 10 11 2010 kevin.huang
- * [WCXRP00000068] [MT6620 Wi-Fi][Driver][FW] Fix STA RECORD sync issue and remove unused code
- * Update ENUM_STA_ROLE_INDEX_T by using a fixed base value
- *
- * 10 04 2010 cp.wu
- * [WCXRP00000077] [MT6620 Wi-Fi][Driver][FW] Eliminate use of ENUM_NETWORK_TYPE_T and replaced by ENUM_NETWORK_TYPE_INDEX_T only
- * remove ENUM_NETWORK_TYPE_T definitions
- *
- * 09 14 2010 chinghwa.yu
- * NULL
- * Update OP_MODE_BOW and include bow_fsm.h.
- *
- * 09 03 2010 kevin.huang
- * NULL
- * Refine #include sequence and solve recursive/nested #include issue
- *
- * 08 31 2010 kevin.huang
- * NULL
- * Use LINK LIST operation to process SCAN result
- *
- * 08 29 2010 yuche.tsai
- * NULL
- * Change P2P Descriptor List to a pointer and allocate it dynamically to avoid structure corrupt by BssDescriptor free.
- *
- * 08 16 2010 kevin.huang
- * NULL
- * Refine AAA functions
- *
- * 08 12 2010 kevin.huang
- * NULL
- * Refine bssProcessProbeRequest() and bssSendBeaconProbeResponse()
- *
- * 08 12 2010 yuche.tsai
- * NULL
- * Add a pointer in BSS Descriptor for P2P Descriptor.
- *
- * 08 11 2010 yuche.tsai
- * NULL
- * Add an Interface in BSS Descriptor.
- *
- * 08 05 2010 yuche.tsai
- * NULL
- * Modify data structure for P2P Scan result.
- *
- * 07 26 2010 yuche.tsai
- *
- * Add an operation mode for P2P device.
- *
- * 07 23 2010 cp.wu
- *
- * P2P/RSN/WAPI IEs need to be declared with compact structure.
- *
- * 07 21 2010 yuche.tsai
- *
- * Add for P2P Scan Result Parsing & Saving.
- *
- * 07 20 2010 wh.su
- *
- * adding the wapi code.
- *
- * 07 09 2010 cp.wu
- *
- * 1) separate AIS_FSM state for two kinds of scanning. (OID triggered scan, and scan-for-connection)
- * 2) eliminate PRE_BSS_DESC_T, Beacon/PrebResp is now parsed in single pass
- * 3) implment DRV-SCN module, currently only accepts single scan request, other request will be directly dropped by returning BUSY
- *
- * 07 08 2010 cp.wu
- *
- * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
- *
- * 06 28 2010 cm.chang
- * [WPD00003841][LITE Driver] Migrate RLM/CNM to host driver
- * 1st draft code for RLM module
- *
- * 06 25 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration
- * modify Beacon/ProbeResp to complete parsing,
- * because host software has looser memory usage restriction
- *
- * 06 21 2010 yuche.tsai
- * [WPD00003839][MT6620 5931][P2P] Feature migration
- * Add P2P present boolean flag in BSS & Pre-BSS descriptor.
- *
- * 06 18 2010 wh.su
- * [WPD00003840][MT6620 5931] Security migration
- * migration the security related function from firmware.
- *
- * 06 11 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration
- * auth.c is migrated.
- *
- * 06 11 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration
- * 1) migrate assoc.c.
- * 2) add ucTxSeqNum for tracking frames which needs TX-DONE awareness
- * 3) add configuration options for CNM_MEM and RSN modules
- * 4) add data path for management frames
- * 5) eliminate rPacketInfo of MSDU_INFO_T
- *
- * 06 10 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration
- * add buildable & linkable ais_fsm.c
- *
- * related reference are still waiting to be resolved
- *
- * 06 09 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration
- * add definitions for module migration.
- *
- * 06 07 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration
- * move bss related data types to wlan_def.h to avoid recursive dependency.
- *
- * 06 07 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration
- * merge wlan_def.h.
- *
- * 06 07 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration
- * merge cnm_scan.h and hem_mbox.h
- *
- * 06 07 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration
- * merge wifi_var.h, precomp.h, cnm_timer.h (data type only)
- *
- * 06 06 2010 kevin.huang
- * [WPD00003832][MT6620 5931] Create driver base
- * [MT6620 5931] Create driver base
+*
+* 12 05 2011 cp.wu
+* [WCXRP00001131] [MT6620 Wi-Fi][Driver][AIS] Implement connect-by-BSSID path
+* add CONNECT_BY_BSSID policy
+*
+* 10 12 2011 wh.su
+* [WCXRP00001036] [MT6620 Wi-Fi][Driver][FW] Adding the 802.11w code for MFP
+* adding the 802.11w related function and define .
+*
+* 06 22 2011 wh.su
+* [WCXRP00000806] [MT6620 Wi-Fi][Driver] Move the WPA/RSN IE and WAPI IE structure to mac.h and let the sw structure not
+*align at byte
+* Move the WAPI/RSN IE to mac.h and SW structure not align to byte,
+* Notice needed update P2P.ko.
+*
+* 04 08 2011 eddie.chen
+* [WCXRP00000617] [MT6620 Wi-Fi][DRV/FW] Fix for sigma
+* Fix for sigma
+*
+* 03 17 2011 yuche.tsai
+* NULL
+* Resize the Secondary Device Type array when WiFi Direct is enabled.
+*
+* 01 25 2011 yuche.tsai
+* [WCXRP00000388] [Volunteer Patch][MT6620][Driver/Fw] change Station Type in station record.
+* Change Station Type in Station Record, Modify MACRO definition for getting station type & network type index & Role.
+*
+* 01 25 2011 yuche.tsai
+* [WCXRP00000388] [Volunteer Patch][MT6620][Driver/Fw] change Station Type in station record.
+* Add new station type MACRO.
+*
+* 12 07 2010 cm.chang
+* [WCXRP00000238] MT6620 Wi-Fi][Driver][FW] Support regulation domain setting from NVRAM and supplicant
+* 1. Country code is from NVRAM or supplicant
+* 2. Change band definition in CMD/EVENT.
+*
+* 10 11 2010 kevin.huang
+* [WCXRP00000068] [MT6620 Wi-Fi][Driver][FW] Fix STA RECORD sync issue and remove unused code
+* Update ENUM_STA_ROLE_INDEX_T by using a fixed base value
+*
+* 10 04 2010 cp.wu
+* [WCXRP00000077] [MT6620 Wi-Fi][Driver][FW] Eliminate use of ENUM_NETWORK_TYPE_T and replaced by
+*ENUM_NETWORK_TYPE_INDEX_T only
+* remove ENUM_NETWORK_TYPE_T definitions
+*
+* 09 14 2010 chinghwa.yu
+* NULL
+* Update OP_MODE_BOW and include bow_fsm.h.
+*
+* 09 03 2010 kevin.huang
+* NULL
+* Refine #include sequence and solve recursive/nested #include issue
+*
+* 08 31 2010 kevin.huang
+* NULL
+* Use LINK LIST operation to process SCAN result
+*
+* 08 29 2010 yuche.tsai
+* NULL
+* Change P2P Descriptor List to a pointer and allocate it dynamically to avoid structure corrupt by BssDescriptor free.
+*
+* 08 16 2010 kevin.huang
+* NULL
+* Refine AAA functions
+*
+* 08 12 2010 kevin.huang
+* NULL
+* Refine bssProcessProbeRequest() and bssSendBeaconProbeResponse()
+*
+* 08 12 2010 yuche.tsai
+* NULL
+* Add a pointer in BSS Descriptor for P2P Descriptor.
+*
+* 08 11 2010 yuche.tsai
+* NULL
+* Add an Interface in BSS Descriptor.
+*
+* 08 05 2010 yuche.tsai
+* NULL
+* Modify data structure for P2P Scan result.
+*
+* 07 26 2010 yuche.tsai
+*
+* Add an operation mode for P2P device.
+*
+* 07 23 2010 cp.wu
+*
+* P2P/RSN/WAPI IEs need to be declared with compact structure.
+*
+* 07 21 2010 yuche.tsai
+*
+* Add for P2P Scan Result Parsing & Saving.
+*
+* 07 20 2010 wh.su
+*
+* adding the wapi code.
+*
+* 07 09 2010 cp.wu
+*
+* 1) separate AIS_FSM state for two kinds of scanning. (OID triggered scan, and scan-for-connection)
+* 2) eliminate PRE_BSS_DESC_T, Beacon/PrebResp is now parsed in single pass
+* 3) implment DRV-SCN module, currently only accepts single scan request, other request will be directly dropped by
+*returning BUSY
+*
+* 07 08 2010 cp.wu
+*
+* [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
+*
+* 06 28 2010 cm.chang
+* [WPD00003841][LITE Driver] Migrate RLM/CNM to host driver
+* 1st draft code for RLM module
+*
+* 06 25 2010 cp.wu
+* [WPD00003833][MT6620 and MT5931] Driver migration
+* modify Beacon/ProbeResp to complete parsing,
+* because host software has looser memory usage restriction
+*
+* 06 21 2010 yuche.tsai
+* [WPD00003839][MT6620 5931][P2P] Feature migration
+* Add P2P present boolean flag in BSS & Pre-BSS descriptor.
+*
+* 06 18 2010 wh.su
+* [WPD00003840][MT6620 5931] Security migration
+* migration the security related function from firmware.
+*
+* 06 11 2010 cp.wu
+* [WPD00003833][MT6620 and MT5931] Driver migration
+* auth.c is migrated.
+*
+* 06 11 2010 cp.wu
+* [WPD00003833][MT6620 and MT5931] Driver migration
+* 1) migrate assoc.c.
+* 2) add ucTxSeqNum for tracking frames which needs TX-DONE awareness
+* 3) add configuration options for CNM_MEM and RSN modules
+* 4) add data path for management frames
+* 5) eliminate rPacketInfo of MSDU_INFO_T
+*
+* 06 10 2010 cp.wu
+* [WPD00003833][MT6620 and MT5931] Driver migration
+* add buildable & linkable ais_fsm.c
+*
+* related reference are still waiting to be resolved
+*
+* 06 09 2010 cp.wu
+* [WPD00003833][MT6620 and MT5931] Driver migration
+* add definitions for module migration.
+*
+* 06 07 2010 cp.wu
+* [WPD00003833][MT6620 and MT5931] Driver migration
+* move bss related data types to wlan_def.h to avoid recursive dependency.
+*
+* 06 07 2010 cp.wu
+* [WPD00003833][MT6620 and MT5931] Driver migration
+* merge wlan_def.h.
+*
+* 06 07 2010 cp.wu
+* [WPD00003833][MT6620 and MT5931] Driver migration
+* merge cnm_scan.h and hem_mbox.h
+*
+* 06 07 2010 cp.wu
+* [WPD00003833][MT6620 and MT5931] Driver migration
+* merge wifi_var.h, precomp.h, cnm_timer.h (data type only)
+*
+* 06 06 2010 kevin.huang
+* [WPD00003832][MT6620 5931] Create driver base
+* [MT6620 5931] Create driver base
 **  \main\maintrunk.MT6620WiFiDriver_Prj\2 2009-03-10 20:16:40 GMT mtk01426
 **  Init for develop
 **
@@ -257,25 +263,26 @@
 #define _WLAN_DEF_H
 
 /*******************************************************************************
-*                         C O M P I L E R   F L A G S
-********************************************************************************
-*/
+ *                         C O M P I L E R   F L A G S
+ ********************************************************************************
+ */
 
 /*******************************************************************************
-*                    E X T E R N A L   R E F E R E N C E S
-********************************************************************************
-*/
+ *                    E X T E R N A L   R E F E R E N C E S
+ ********************************************************************************
+ */
 
 /*******************************************************************************
-*                              C O N S T A N T S
-********************************************************************************
-*/
+ *                              C O N S T A N T S
+ ********************************************************************************
+ */
 /* disconnect reason */
 #define DISCONNECT_REASON_CODE_RESERVED         0
 #define DISCONNECT_REASON_CODE_RADIO_LOST       1
 #define DISCONNECT_REASON_CODE_DEAUTHENTICATED  2
 #define DISCONNECT_REASON_CODE_DISASSOCIATED    3
 #define DISCONNECT_REASON_CODE_NEW_CONNECTION   4
+#define DISCONNECT_REASON_CODE_REASSOCIATION    5
 
 /* The rate definitions */
 #define TX_MODE_CCK             0x00
@@ -365,7 +372,7 @@
 #define RATE_PHY_RATE_OFFSET                        0
 #define RATE_CODE_GET_PHY_RATE(_ucRateCode)         ((_ucRateCode & RATE_PHY_RATE_MASK) >> RATE_PHY_RATE_OFFSET)
 #define RATE_PHY_RATE_SHORT_PREAMBLE                BIT(2)
-#define RATE_CODE_IS_SHORT_PREAMBLE(_ucRateCode)    ((_ucRateCode & RATE_PHY_RATE_SHORT_PREAMBLE)?TRUE:FALSE)
+#define RATE_CODE_IS_SHORT_PREAMBLE(_ucRateCode)    ((_ucRateCode & RATE_PHY_RATE_SHORT_PREAMBLE) ? TRUE : FALSE)
 
 
 #define CHNL_LIST_SZ_2G         14
@@ -376,10 +383,10 @@
 
 /* PHY TYPE bit definitions */
 #define PHY_TYPE_BIT_HR_DSSS    BIT(PHY_TYPE_HR_DSSS_INDEX)	/* HR/DSSS PHY (clause 18) */
-#define PHY_TYPE_BIT_ERP        BIT(PHY_TYPE_ERP_INDEX)	/* ERP PHY (clause 19) */
+#define PHY_TYPE_BIT_ERP        BIT(PHY_TYPE_ERP_INDEX)		/* ERP PHY (clause 19) */
 #define PHY_TYPE_BIT_OFDM       BIT(PHY_TYPE_OFDM_INDEX)	/* OFDM 5 GHz PHY (clause 17) */
-#define PHY_TYPE_BIT_HT         BIT(PHY_TYPE_HT_INDEX)	/* HT PHY (clause 20) */
-#define PHY_TYPE_BIT_VHT        BIT(PHY_TYPE_VHT_INDEX)	/* HT PHY (clause 22) */
+#define PHY_TYPE_BIT_HT         BIT(PHY_TYPE_HT_INDEX)		/* HT PHY (clause 20) */
+#define PHY_TYPE_BIT_VHT        BIT(PHY_TYPE_VHT_INDEX)		/* HT PHY (clause 22) */
 
 /* PHY TYPE set definitions */
 #define PHY_TYPE_SET_802_11ABGN (PHY_TYPE_BIT_OFDM | \
@@ -419,26 +426,26 @@
 				 PHY_TYPE_BIT_VHT)
 
 #define PHY_TYPE_SET_802_11ABGNAC (PHY_TYPE_BIT_OFDM | \
-				 PHY_TYPE_BIT_HR_DSSS | \
-				 PHY_TYPE_BIT_ERP | \
-				 PHY_TYPE_BIT_HT | \
-				 PHY_TYPE_BIT_VHT)
+				   PHY_TYPE_BIT_HR_DSSS | \
+				   PHY_TYPE_BIT_ERP | \
+				   PHY_TYPE_BIT_HT | \
+				   PHY_TYPE_BIT_VHT)
 
 /* Rate set bit definitions */
-#define RATE_SET_BIT_1M         BIT(RATE_1M_SW_INDEX)	/* Bit 0: 1M */
-#define RATE_SET_BIT_2M         BIT(RATE_2M_SW_INDEX)	/* Bit 1: 2M */
-#define RATE_SET_BIT_5_5M       BIT(RATE_5_5M_SW_INDEX)	/* Bit 2: 5.5M */
-#define RATE_SET_BIT_11M        BIT(RATE_11M_SW_INDEX)	/* Bit 3: 11M */
-#define RATE_SET_BIT_22M        BIT(RATE_22M_SW_INDEX)	/* Bit 4: 22M */
-#define RATE_SET_BIT_33M        BIT(RATE_33M_SW_INDEX)	/* Bit 5: 33M */
-#define RATE_SET_BIT_6M         BIT(RATE_6M_SW_INDEX)	/* Bit 6: 6M */
-#define RATE_SET_BIT_9M         BIT(RATE_9M_SW_INDEX)	/* Bit 7: 9M */
-#define RATE_SET_BIT_12M        BIT(RATE_12M_SW_INDEX)	/* Bit 8: 12M */
-#define RATE_SET_BIT_18M        BIT(RATE_18M_SW_INDEX)	/* Bit 9: 18M */
-#define RATE_SET_BIT_24M        BIT(RATE_24M_SW_INDEX)	/* Bit 10: 24M */
-#define RATE_SET_BIT_36M        BIT(RATE_36M_SW_INDEX)	/* Bit 11: 36M */
-#define RATE_SET_BIT_48M        BIT(RATE_48M_SW_INDEX)	/* Bit 12: 48M */
-#define RATE_SET_BIT_54M        BIT(RATE_54M_SW_INDEX)	/* Bit 13: 54M */
+#define RATE_SET_BIT_1M         BIT(RATE_1M_SW_INDEX)		/* Bit 0: 1M */
+#define RATE_SET_BIT_2M         BIT(RATE_2M_SW_INDEX)		/* Bit 1: 2M */
+#define RATE_SET_BIT_5_5M       BIT(RATE_5_5M_SW_INDEX)		/* Bit 2: 5.5M */
+#define RATE_SET_BIT_11M        BIT(RATE_11M_SW_INDEX)		/* Bit 3: 11M */
+#define RATE_SET_BIT_22M        BIT(RATE_22M_SW_INDEX)		/* Bit 4: 22M */
+#define RATE_SET_BIT_33M        BIT(RATE_33M_SW_INDEX)		/* Bit 5: 33M */
+#define RATE_SET_BIT_6M         BIT(RATE_6M_SW_INDEX)		/* Bit 6: 6M */
+#define RATE_SET_BIT_9M         BIT(RATE_9M_SW_INDEX)		/* Bit 7: 9M */
+#define RATE_SET_BIT_12M        BIT(RATE_12M_SW_INDEX)		/* Bit 8: 12M */
+#define RATE_SET_BIT_18M        BIT(RATE_18M_SW_INDEX)		/* Bit 9: 18M */
+#define RATE_SET_BIT_24M        BIT(RATE_24M_SW_INDEX)		/* Bit 10: 24M */
+#define RATE_SET_BIT_36M        BIT(RATE_36M_SW_INDEX)		/* Bit 11: 36M */
+#define RATE_SET_BIT_48M        BIT(RATE_48M_SW_INDEX)		/* Bit 12: 48M */
+#define RATE_SET_BIT_54M        BIT(RATE_54M_SW_INDEX)		/* Bit 13: 54M */
 #define RATE_SET_BIT_HT_PHY     BIT(RATE_HT_PHY_SW_INDEX)	/* Bit 14: BSS Selector */
 
 
@@ -560,9 +567,9 @@
 #define ELEM_MAX_LEN_WMM_INFO       7
 
 /*******************************************************************************
-*                             D A T A   T Y P E S
-********************************************************************************
-*/
+ *                             D A T A   T Y P E S
+ ********************************************************************************
+ */
 typedef UINT_16 PHY_TYPE, *P_PHY_TYPE;
 typedef UINT_8 RCPI, *P_RCPI;
 typedef UINT_8 ALC_VAL, *P_ALC_VAL;
@@ -649,14 +656,14 @@ typedef enum _ENUM_PWR_STATE_T {
 } ENUM_PWR_STATE_T;
 
 typedef enum _ENUM_PHY_TYPE_INDEX_T {
-	/* PHY_TYPE_DSSS_INDEX,      */ /* DSSS PHY (clause 15) -- Not used anymore */
+	/* PHY_TYPE_DSSS_INDEX, */ /* DSSS PHY (clause 15) -- Not used anymore */
 	PHY_TYPE_HR_DSSS_INDEX = 0,	/* HR/DSSS PHY (clause 18) */
-	PHY_TYPE_ERP_INDEX,	/* ERP PHY (clause 19) */
-	PHY_TYPE_ERP_P2P_INDEX,	/* ERP PHY (clause 19) w/o HR/DSSS */
-	PHY_TYPE_OFDM_INDEX,	/* OFDM 5 GHz PHY (clause 17) */
-	PHY_TYPE_HT_INDEX,	/* HT PHY (clause 20) */
-	PHY_TYPE_VHT_INDEX,	/* HT PHY (clause 22) */
-	PHY_TYPE_INDEX_NUM	/* 6 */
+	PHY_TYPE_ERP_INDEX,		/* ERP PHY (clause 19) */
+	PHY_TYPE_ERP_P2P_INDEX,		/* ERP PHY (clause 19) w/o HR/DSSS */
+	PHY_TYPE_OFDM_INDEX,		/* OFDM 5 GHz PHY (clause 17) */
+	PHY_TYPE_HT_INDEX,		/* HT PHY (clause 20) */
+	PHY_TYPE_VHT_INDEX,		/* HT PHY (clause 22) */
+	PHY_TYPE_INDEX_NUM		/* 6 */
 } ENUM_PHY_TYPE_INDEX_T, *P_ENUM_PHY_TYPE_INDEX_T;
 
 typedef enum _ENUM_SW_RATE_INDEX_T {
@@ -727,7 +734,7 @@ typedef enum _ENUM_VHT_RATE_INDEX_T {
 
 typedef enum _ENUM_PREMABLE_OPTION_T {
 	PREAMBLE_DEFAULT_LONG_NONE = 0,	/* LONG for PHY_TYPE_HR_DSSS, NONE for PHY_TYPE_OFDM */
-	PREAMBLE_OPTION_SHORT,	/* SHORT mandatory for PHY_TYPE_ERP, SHORT option for PHY_TYPE_HR_DSSS */
+	PREAMBLE_OPTION_SHORT,		/* SHORT mandatory for PHY_TYPE_ERP, SHORT option for PHY_TYPE_HR_DSSS */
 	PREAMBLE_OFDM_MODE,
 	PREAMBLE_HT_MIXED_MODE,
 	PREAMBLE_HT_GREEN_FIELD,
@@ -761,9 +768,9 @@ typedef enum _ENUM_ACPI_STATE_T {
 /* The operation mode of a specific Network */
 typedef enum _ENUM_OP_MODE_T {
 	OP_MODE_INFRASTRUCTURE = 0,	/* Infrastructure/GC */
-	OP_MODE_IBSS,		/* AdHoc */
-	OP_MODE_ACCESS_POINT,	/* For GO */
-	OP_MODE_P2P_DEVICE,	/* P2P Device */
+	OP_MODE_IBSS,			/* AdHoc */
+	OP_MODE_ACCESS_POINT,		/* For GO */
+	OP_MODE_P2P_DEVICE,		/* P2P Device */
 	OP_MODE_BOW,
 	OP_MODE_NUM
 } ENUM_OP_MODE_T, *P_ENUM_OP_MODE_T;
@@ -792,8 +799,8 @@ typedef enum _ENUM_BAND_T {
 
 /* Provide supported channel list to other components in array format */
 typedef struct _RF_CHANNEL_INFO_T {
-	ENUM_BAND_T eBand;
-	UINT_8 ucChannelNum;
+	ENUM_BAND_T	eBand;
+	UINT_8		ucChannelNum;
 } RF_CHANNEL_INFO_T, *P_RF_CHANNEL_INFO_T;
 
 typedef enum _ENUM_PS_FORWARDING_TYPE_T {
@@ -805,8 +812,8 @@ typedef enum _ENUM_PS_FORWARDING_TYPE_T {
 } ENUM_PS_FORWARDING_TYPE_T, *P_ENUM_PS_FORWARDING_TYPE_T;
 
 typedef struct _DEAUTH_INFO_T {
-	UINT_8 aucRxAddr[MAC_ADDR_LEN];
-	OS_SYSTIME rLastSendTime;
+	UINT_8		aucRxAddr[MAC_ADDR_LEN];
+	OS_SYSTIME	rLastSendTime;
 } DEAUTH_INFO_T, *P_DEAUTH_INFO_T;
 
 /*----------------------------------------------------------------------------*/
@@ -815,28 +822,27 @@ typedef struct _DEAUTH_INFO_T {
 typedef VOID(*PFN_APPEND_IE_FUNC) (P_ADAPTER_T, P_MSDU_INFO_T);
 typedef VOID(*PFN_HANDLE_IE_FUNC) (P_ADAPTER_T, P_SW_RFB_T, P_IE_HDR_T);
 typedef VOID(*PFN_VERIFY_IE_FUNC) (P_ADAPTER_T, P_SW_RFB_T, P_IE_HDR_T, PUINT_16);
-typedef UINT_32(*PFN_CALCULATE_VAR_IE_LEN_FUNC)
-(P_ADAPTER_T, UINT_8, P_STA_RECORD_T);
+typedef UINT_32(*PFN_CALCULATE_VAR_IE_LEN_FUNC)(P_ADAPTER_T, UINT_8, P_STA_RECORD_T);
 
 typedef struct _APPEND_IE_ENTRY_T {
-	UINT_16 u2EstimatedIELen;
-	PFN_APPEND_IE_FUNC pfnAppendIE;
+	UINT_16			u2EstimatedIELen;
+	PFN_APPEND_IE_FUNC	pfnAppendIE;
 } APPEND_IE_ENTRY_T, *P_APPEND_IE_ENTRY_T;
 
 typedef struct _APPEND_VAR_IE_ENTRY_T {
-	UINT_16 u2EstimatedFixedIELen;	/* For Fixed Length */
-	PFN_CALCULATE_VAR_IE_LEN_FUNC pfnCalculateVariableIELen;
-	PFN_APPEND_IE_FUNC pfnAppendIE;
+	UINT_16				u2EstimatedFixedIELen;	/* For Fixed Length */
+	PFN_CALCULATE_VAR_IE_LEN_FUNC	pfnCalculateVariableIELen;
+	PFN_APPEND_IE_FUNC		pfnAppendIE;
 } APPEND_VAR_IE_ENTRY_T, *P_APPEND_VAR_IE_ENTRY_T;
 
 typedef struct _HANDLE_IE_ENTRY_T {
-	UINT_8 ucElemID;
-	PFN_HANDLE_IE_FUNC pfnHandleIE;
+	UINT_8			ucElemID;
+	PFN_HANDLE_IE_FUNC	pfnHandleIE;
 } HANDLE_IE_ENTRY_T, *P_HANDLE_IE_ENTRY_T;
 
 typedef struct _VERIFY_IE_ENTRY_T {
-	UINT_8 ucElemID;
-	PFN_VERIFY_IE_FUNC pfnVarifyIE;
+	UINT_8			ucElemID;
+	PFN_VERIFY_IE_FUNC	pfnVarifyIE;
 } VERIFY_IE_ENTRY_T, *P_VERIFY_IE_ENTRY_T;
 
 /*----------------------------------------------------------------------------*/
@@ -845,7 +851,7 @@ typedef struct _VERIFY_IE_ENTRY_T {
 typedef enum _ENUM_PARAM_CONNECTION_POLICY_T {
 	CONNECT_BY_SSID_BEST_RSSI = 0,
 	CONNECT_BY_SSID_GOOD_RSSI_MIN_CH_LOAD,
-	CONNECT_BY_SSID_ANY,	/* NOTE(Kevin): Needed by WHQL */
+	CONNECT_BY_SSID_ANY,		/* NOTE(Kevin): Needed by WHQL */
 	CONNECT_BY_BSSID,
 	CONNECT_BY_CUSTOMIZED_RULE	/* NOTE(Kevin): TBD */
 } ENUM_PARAM_CONNECTION_POLICY_T, *P_ENUM_PARAM_CONNECTION_POLICY_T;
@@ -858,15 +864,23 @@ typedef enum _ENUM_PARAM_PREAMBLE_TYPE_T {
 
 /* This is enum defined for user to select a phy config listed in combo box */
 typedef enum _ENUM_PARAM_PHY_CONFIG_T {
-	PHY_CONFIG_802_11ABG = 0,	/*!< Can associated with 802.11abg AP but without n capability, Scan dual band. */
-	PHY_CONFIG_802_11BG,	/*!< Can associated with 802_11bg AP, Scan single band and not report 5G BSSs. */
-	PHY_CONFIG_802_11G,	/*!< Can associated with 802_11g only AP, Scan single band and not report 5G BSSs. */
-	PHY_CONFIG_802_11A,	/*!< Can associated with 802_11a only AP, Scan single band and not report 2.4G BSSs. */
-	PHY_CONFIG_802_11B,	/*!< Can associated with 802_11b only AP, Scan single band and not report 5G BSSs. */
-	PHY_CONFIG_802_11ABGN,	/*!< Can associated with 802.11abgn AP, Scan dual band. */
-	PHY_CONFIG_802_11BGN,	/*!< Can associated with 802_11bgn AP, Scan single band and not report 5G BSSs. */
-	PHY_CONFIG_802_11AN,	/*!< Can associated with 802_11an AP, Scan single band and not report 2.4G BSSs. */
-	PHY_CONFIG_802_11GN,	/*!< Can associated with 802_11gn AP, Scan single band and not report 5G BSSs. */
+	PHY_CONFIG_802_11ABG = 0,	/*!< Can associated with 802.11abg AP but without n capability, Scan dual band.
+					 **/
+	PHY_CONFIG_802_11BG,		/*!< Can associated with 802_11bg AP, Scan single band and not report 5G BSSs.
+					 **/
+	PHY_CONFIG_802_11G,		/*!< Can associated with 802_11g only AP, Scan single band and not report 5G
+					 *BSSs. */
+	PHY_CONFIG_802_11A,		/*!< Can associated with 802_11a only AP, Scan single band and not report 2.4G
+					 *BSSs. */
+	PHY_CONFIG_802_11B,		/*!< Can associated with 802_11b only AP, Scan single band and not report 5G
+					 *BSSs. */
+	PHY_CONFIG_802_11ABGN,		/*!< Can associated with 802.11abgn AP, Scan dual band. */
+	PHY_CONFIG_802_11BGN,		/*!< Can associated with 802_11bgn AP, Scan single band and not report 5G BSSs.
+					 **/
+	PHY_CONFIG_802_11AN,		/*!< Can associated with 802_11an AP, Scan single band and not report 2.4G BSSs.
+					 **/
+	PHY_CONFIG_802_11GN,		/*!< Can associated with 802_11gn AP, Scan single band and not report 5G BSSs.
+					 **/
 	PHY_CONFIG_802_11AC,
 	PHY_CONFIG_802_11ANAC,
 	PHY_CONFIG_802_11ABGNAC,
@@ -896,7 +910,8 @@ typedef enum _ENUM_PARAM_AP_MODE_T {
 
 /* Macros for obtaining the Network Type or the Station Role, given the ENUM_STA_TYPE_T */
 #define IS_STA_IN_AIS(_prStaRec)        ((_prStaRec)->ucBssIndex == prAdapter->prAisBssInfo->ucBssIndex)
-#define IS_STA_IN_P2P(_prStaRec)        (prAdapter->aprBssInfo[(_prStaRec)->ucBssIndex]->eNetworkType == NETWORK_TYPE_P2P)
+#define IS_STA_IN_P2P(_prStaRec)        (prAdapter->aprBssInfo[(_prStaRec)->ucBssIndex]->eNetworkType == \
+					 NETWORK_TYPE_P2P)
 #define IS_STA_LEGACY_TYPE(_prStaRec)   ((_prStaRec->eStaType) & STA_TYPE_LEGACY_MASK)
 #define IS_STA_P2P_TYPE(_prStaRec)      ((_prStaRec->eStaType) & STA_TYPE_P2P_MASK)
 #define IS_STA_BOW_TYPE(_prStaRec)      ((_prStaRec->eStaType) & STA_TYPE_BOW_MASK)
@@ -922,8 +937,6 @@ typedef enum _ENUM_STA_TYPE_T {
 	STA_TYPE_BOW_CLIENT = (STA_TYPE_BOW_MASK | STA_TYPE_CLIENT_MASK),
 #endif
 	STA_TYPE_DLS_PEER = (STA_TYPE_LEGACY_MASK | STA_TYPE_DLS_MASK),
-
-
 } ENUM_STA_TYPE_T, *P_ENUM_STA_TYPE_T;
 
 /* The type of BSS we discovered */
@@ -951,7 +964,7 @@ typedef enum _ENUM_BSS_TYPE_T {
 
 /* Structure of RSN Information */
 typedef struct _RSN_INFO_T {
-	UINT_8 ucElemId;
+	UINT_8	ucElemId;
 	UINT_16 u2Version;
 	UINT_32 u4GroupKeyCipherSuite;
 	UINT_32 u4PairwiseKeyCipherSuiteCount;
@@ -967,8 +980,8 @@ typedef struct _RSN_INFO_T {
 
 /* Structure of WAPI Information */
 typedef struct _WAPI_INFO_T {
-	UINT_8 ucElemId;
-	UCHAR ucLength;
+	UINT_8	ucElemId;
+	UCHAR	ucLength;
 	UINT_16 u2Version;
 	UINT_32 u4AuthKeyMgtSuiteCount;
 	UINT_32 au4AuthKeyMgtSuite[MAX_NUM_SUPPORTED_WAPI_AKM_SUITES];
@@ -977,7 +990,7 @@ typedef struct _WAPI_INFO_T {
 	UINT_32 u4GroupKeyCipherSuite;
 	UINT_16 u2WapiCap;
 	UINT_16 u2Bkid;
-	UINT_8 aucBkid[1][16];
+	UINT_8	aucBkid[1][16];
 } /* __KAL_ATTRIB_PACKED__ */ WAPI_INFO_T, *P_WAPI_INFO_T;
 
 /* #if defined(WINDOWS_DDK) || defined(WINDOWS_CE) */
@@ -993,18 +1006,18 @@ typedef struct _P2P_DEVICE_TYPE_T {
 } P2P_DEVICE_TYPE_T, *P_P2P_DEVICE_TYPE_T;
 
 typedef struct _P2P_DEVICE_DESC_T {
-	LINK_ENTRY_T rLinkEntry;
-	BOOLEAN fgDevInfoValid;
-	UINT_8 aucDeviceAddr[MAC_ADDR_LEN];	/* Device Address. */
-	UINT_8 aucInterfaceAddr[MAC_ADDR_LEN];	/* Interface Address. */
-	UINT_8 ucDeviceCapabilityBitmap;
-	UINT_8 ucGroupCapabilityBitmap;
-	UINT_16 u2ConfigMethod;	/* Configure Method support. */
-	P2P_DEVICE_TYPE_T rPriDevType;
-	UINT_8 ucSecDevTypeNum;
-	P2P_DEVICE_TYPE_T arSecDevType[8];	/* Reference to P2P_GC_MAX_CACHED_SEC_DEV_TYPE_COUNT */
-	UINT_16 u2NameLength;
-	UINT_8 aucName[32];	/* Reference to WPS_ATTRI_MAX_LEN_DEVICE_NAME */
+	LINK_ENTRY_T		rLinkEntry;
+	BOOLEAN			fgDevInfoValid;
+	UINT_8			aucDeviceAddr[MAC_ADDR_LEN];	/* Device Address. */
+	UINT_8			aucInterfaceAddr[MAC_ADDR_LEN];	/* Interface Address. */
+	UINT_8			ucDeviceCapabilityBitmap;
+	UINT_8			ucGroupCapabilityBitmap;
+	UINT_16			u2ConfigMethod;	/* Configure Method support. */
+	P2P_DEVICE_TYPE_T	rPriDevType;
+	UINT_8			ucSecDevTypeNum;
+	P2P_DEVICE_TYPE_T	arSecDevType[8];	/* Reference to P2P_GC_MAX_CACHED_SEC_DEV_TYPE_COUNT */
+	UINT_16			u2NameLength;
+	UINT_8			aucName[32];		/* Reference to WPS_ATTRI_MAX_LEN_DEVICE_NAME */
 	/* TODO: Service Information or PasswordID valid? */
 } P2P_DEVICE_DESC_T, *P_P2P_DEVICE_DESC_T;
 
@@ -1012,84 +1025,100 @@ typedef struct _P2P_DEVICE_DESC_T {
 
 
 /*******************************************************************************
-*                            P U B L I C   D A T A
-********************************************************************************
-*/
+ *                            P U B L I C   D A T A
+ ********************************************************************************
+ */
 
 /*******************************************************************************
-*                           P R I V A T E   D A T A
-********************************************************************************
-*/
+ *                           P R I V A T E   D A T A
+ ********************************************************************************
+ */
 
 /*******************************************************************************
-*                                 M A C R O S
-********************************************************************************
-*/
+ *                                 M A C R O S
+ ********************************************************************************
+ */
 /* Macros to get and set the wireless LAN frame fields those are 16/32 bits in
-   length. */
+ * length. */
 #define WLAN_GET_FIELD_16(_memAddr_p, _value_p) \
 	{ \
-	    PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
-	    *(PUINT_16)(_value_p) = ((UINT_16) __cp[0]) | ((UINT_16) __cp[1] << 8); \
+		PUINT_8 __cp = (PUINT_8)(_memAddr_p); \
+		*(PUINT_16)(_value_p) = ((UINT_16)__cp[0]) | ((UINT_16)__cp[1] << 8); \
 	}
 
 #define WLAN_GET_FIELD_BE16(_memAddr_p, _value_p) \
 	{ \
-	    PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
-	    *(PUINT_16)(_value_p) = ((UINT_16) __cp[0] << 8) | ((UINT_16) __cp[1]); \
+		PUINT_8 __cp = (PUINT_8)(_memAddr_p); \
+		*(PUINT_16)(_value_p) = ((UINT_16)__cp[0] << 8) | ((UINT_16)__cp[1]); \
 	}
 
 #define WLAN_GET_FIELD_32(_memAddr_p, _value_p) \
 	{ \
-	    PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
-	    *(PUINT_32)(_value_p) = ((UINT_32) __cp[0])       | ((UINT_32) __cp[1] << 8) | \
-				    ((UINT_32) __cp[2] << 16) | ((UINT_32) __cp[3] << 24); \
+		PUINT_8 __cp = (PUINT_8)(_memAddr_p); \
+		*(PUINT_32)(_value_p) = ((UINT_32)__cp[0]) | ((UINT_32)__cp[1] << 8) | \
+					((UINT_32)__cp[2] << 16) | ((UINT_32)__cp[3] << 24); \
 	}
 
 #define WLAN_GET_FIELD_64(_memAddr_p, _value_p) \
 	{ \
-	    PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
-	    *(PUINT_64)(_value_p) = \
-		((UINT_64) __cp[0])       | ((UINT_64) __cp[1] << 8)  | \
-		((UINT_64) __cp[2] << 16) | ((UINT_64) __cp[3] << 24) | \
-		((UINT_64) __cp[4] << 32) | ((UINT_64) __cp[5] << 40) | \
-		((UINT_64) __cp[6] << 48) | ((UINT_64) __cp[7] << 56); \
+		PUINT_8 __cp = (PUINT_8)(_memAddr_p); \
+		*(PUINT_64)(_value_p) = \
+			((UINT_64)__cp[0]) | ((UINT_64)__cp[1] << 8) | \
+			((UINT_64)__cp[2] << 16) | ((UINT_64)__cp[3] << 24) | \
+			((UINT_64)__cp[4] << 32) | ((UINT_64)__cp[5] << 40) | \
+			((UINT_64)__cp[6] << 48) | ((UINT_64)__cp[7] << 56); \
 	}
 
 #define WLAN_SET_FIELD_16(_memAddr_p, _value) \
 	{ \
-	    PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
-	    __cp[0] = (UINT_8) (_value); \
-	    __cp[1] = (UINT_8) ((_value) >> 8); \
+		PUINT_8 __cp = (PUINT_8)(_memAddr_p); \
+		__cp[0] = (UINT_8)(_value); \
+		__cp[1] = (UINT_8)((_value) >> 8); \
 	}
 
 #define WLAN_SET_FIELD_BE16(_memAddr_p, _value) \
-       { \
-	    PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
-	    __cp[0] = (UINT_8) ((_value) >> 8); \
-	    __cp[1] = (UINT_8) (_value); \
-       }
+	{ \
+		PUINT_8 __cp = (PUINT_8)(_memAddr_p); \
+		__cp[0] = (UINT_8)((_value) >> 8); \
+		__cp[1] = (UINT_8)(_value); \
+	}
 
 #define WLAN_SET_FIELD_32(_memAddr_p, _value) \
 	{ \
-	    PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
-	    __cp[0] = (UINT_8) (_value); \
-	    __cp[1] = (UINT_8) ((_value) >> 8); \
-	    __cp[2] = (UINT_8) ((_value) >> 16); \
-	    __cp[3] = (UINT_8) ((_value) >> 24); \
+		PUINT_8 __cp = (PUINT_8)(_memAddr_p); \
+		__cp[0] = (UINT_8)(_value); \
+		__cp[1] = (UINT_8)((_value) >> 8); \
+		__cp[2] = (UINT_8)((_value) >> 16); \
+		__cp[3] = (UINT_8)((_value) >> 24); \
+	}
+
+#define WLAN_SET_FIELD_BE24(_memAddr_p, _value) \
+	{ \
+		PUINT_8 __cp = (PUINT_8)(_memAddr_p); \
+		__cp[0] = (UINT_8)((_value) >> 16); \
+		__cp[1] = (UINT_8)((_value) >> 8); \
+		__cp[2] = (UINT_8)(_value); \
+	}
+
+#define WLAN_SET_FIELD_BE32(_memAddr_p, _value) \
+	{ \
+		PUINT_8 __cp = (PUINT_8)(_memAddr_p); \
+		__cp[0] = (UINT_8)((_value) >> 24); \
+		__cp[1] = (UINT_8)((_value) >> 16); \
+		__cp[2] = (UINT_8)((_value) >> 8); \
+		__cp[3] = (UINT_8)(_value); \
 	}
 
 
+/*******************************************************************************
+ *                   F U N C T I O N   D E C L A R A T I O N S
+ ********************************************************************************
+ */
+
 
 /*******************************************************************************
-*                   F U N C T I O N   D E C L A R A T I O N S
-********************************************************************************
-*/
-
-
-/*******************************************************************************
-*                              F U N C T I O N S
-********************************************************************************
-*/
+ *                              F U N C T I O N S
+ ********************************************************************************
+ */
 
 #endif				/* _WLAN_DEF_H */

@@ -37,16 +37,16 @@ static void ebs_overflow_handler(struct perf_event *event, struct perf_sample_da
 	if (event != per_cpu(pevent_ebs, cpu))
 		return;
 
-	// Output backtrace
+	/* Output backtrace */
 	gator_add_sample(cpu, BACKTRACE_BUF, regs);
 
-	// Collect counters
+	/* Collect counters */
 	collect_counters();
 }
 
 static void gator_event_sampling_online_dispatch(int cpu)
 {
-	struct perf_event * ev;
+	struct perf_event *ev;
 
 	if (!event_based_sampling)
 		return;
@@ -74,7 +74,7 @@ static void gator_event_sampling_online_dispatch(int cpu)
 
 static void gator_event_sampling_offline_dispatch(int cpu)
 {
-	struct perf_event * pe = NULL;
+	struct perf_event *pe = NULL;
 
 	mutex_lock(&perf_mutex);
 	if (per_cpu(pevent_ebs, cpu)) {
@@ -124,7 +124,7 @@ static int gator_event_sampling_start(void)
 		per_cpu(pevent_attr, cpu)->sample_period = count;
 		per_cpu(pevent_attr, cpu)->pinned = 1;
 
-		// handle special case for ccnt
+		/* handle special case for ccnt */
 		if (cnt == ccnt) {
 			per_cpu(pevent_attr, cpu)->type = PERF_TYPE_HARDWARE;
 			per_cpu(pevent_attr, cpu)->config = PERF_COUNT_HW_CPU_CYCLES;
@@ -151,6 +151,6 @@ static void gator_event_sampling_stop(void)
 #else
 static void gator_event_sampling_online_dispatch(int cpu) {}
 static void gator_event_sampling_offline_dispatch(int cpu) {}
-static int gator_event_sampling_start(void) {return 0;}
+static int gator_event_sampling_start(void) {return 0; }
 static void gator_event_sampling_stop(void) {}
 #endif

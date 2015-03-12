@@ -105,7 +105,7 @@ static void hash_process(sha1_ctx *ctx, const uchar data[64])
     (                                                       \
 	temp = V[(t -  3) & 0x0F] ^ V[(t - 8) & 0x0F] ^     \
 	V[(t - 14) & 0x0F] ^ V[t & 0x0F],                   \
-        (V[t & 0x0F] = cal_S(temp, 1))                     \
+	(V[t & 0x0F] = cal_S(temp, 1))                     \
     )
 
 	A1 = ctx->st[0];

@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/nic/nic.h#1 $
 */
 
@@ -296,83 +310,83 @@ typedef enum _ENUM_IE_UPD_METHOD_T {
 /* Routines in nic.c                                                          */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicAllocateAdapterMemory (
+nicAllocateAdapterMemory(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-nicReleaseAdapterMemory (
+nicReleaseAdapterMemory(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-nicDisableInterrupt (
+nicDisableInterrupt(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-nicEnableInterrupt (
+nicEnableInterrupt(
     IN P_ADAPTER_T prAdapter
     );
 
 WLAN_STATUS
-nicProcessIST (
+nicProcessIST(
     IN P_ADAPTER_T prAdapter
     );
 
 WLAN_STATUS
-nicProcessIST_impl (
+nicProcessIST_impl(
     IN P_ADAPTER_T prAdapter,
     IN UINT_32 u4IntStatus
     );
 
 WLAN_STATUS
-nicInitializeAdapter (
+nicInitializeAdapter(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-nicMCRInit (
+nicMCRInit(
     IN P_ADAPTER_T prAdapter
     );
 
 BOOL
-nicVerifyChipID (
+nicVerifyChipID(
     IN P_ADAPTER_T prAdapter
     );
 
 
 #if CFG_SDIO_INTR_ENHANCE
 VOID
-nicSDIOInit (
+nicSDIOInit(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-nicSDIOReadIntStatus (
+nicSDIOReadIntStatus(
     IN P_ADAPTER_T prAdapter,
     OUT PUINT_32   pu4IntStatus
     );
 #endif
 
 BOOLEAN
-nicpmSetDriverOwn (
+nicpmSetDriverOwn(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-nicpmSetFWOwn (
+nicpmSetFWOwn(
     IN P_ADAPTER_T prAdapter,
     IN BOOLEAN     fgEnableGlobalInt
     );
 
 BOOLEAN
-nicpmSetAcpiPowerD0 (
+nicpmSetAcpiPowerD0(
     IN P_ADAPTER_T prAdapter
     );
 
 BOOLEAN
-nicpmSetAcpiPowerD3 (
+nicpmSetAcpiPowerD3(
     IN P_ADAPTER_T prAdapter
     );
 
@@ -389,36 +403,36 @@ nicProcessSoftwareInterrupt(
     );
 
 VOID
-nicProcessAbnormalInterrupt (
+nicProcessAbnormalInterrupt(
     IN  P_ADAPTER_T prAdapter
     );
 
 VOID
-nicPutMailbox (
+nicPutMailbox(
     IN P_ADAPTER_T prAdapter,
     IN UINT_32 u4MailboxNum,
     IN UINT_32 u4Data);
 
 VOID
-nicGetMailbox (
+nicGetMailbox(
     IN P_ADAPTER_T prAdapter,
     IN UINT_32 u4MailboxNum,
     OUT PUINT_32 pu4Data);
 
 VOID
-nicSetSwIntr (
+nicSetSwIntr(
     IN P_ADAPTER_T prAdapter,
     IN UINT_32 u4SwIntrBitmap
     );
 
 P_CMD_INFO_T
-nicGetPendingCmdInfo (
+nicGetPendingCmdInfo(
     IN P_ADAPTER_T prAdapter,
     IN UINT_8 ucSeqNum
     );
 
 P_MSDU_INFO_T
-nicGetPendingTxMsduInfo (
+nicGetPendingTxMsduInfo(
     IN P_ADAPTER_T prAdapter,
     IN UINT_8 ucSeqNum
     );
@@ -430,24 +444,24 @@ nicGetPendingStaMMPDU(
     );
 
 VOID
-nicFreePendingTxMsduInfoByNetwork (
+nicFreePendingTxMsduInfoByNetwork(
     IN P_ADAPTER_T                  prAdapter,
     IN ENUM_NETWORK_TYPE_INDEX_T    eNetworkType
     );
 
 UINT_8
-nicIncreaseCmdSeqNum (
+nicIncreaseCmdSeqNum(
     IN P_ADAPTER_T prAdapter
     );
 
 UINT_8
-nicIncreaseTxSeqNum (
+nicIncreaseTxSeqNum(
     IN P_ADAPTER_T prAdapter
     );
 
 /* Media State Change */
 WLAN_STATUS
-nicMediaStateChange (
+nicMediaStateChange(
     IN P_ADAPTER_T                  prAdapter,
     IN ENUM_NETWORK_TYPE_INDEX_T    eNetworkType,
     IN P_EVENT_CONNECTION_STATUS    prConnectionStatus
@@ -455,12 +469,12 @@ nicMediaStateChange (
 
 /* Utility function for channel number conversion */
 UINT_32
-nicChannelNum2Freq (
+nicChannelNum2Freq(
     IN UINT_32 u4ChannelNum
     );
 
 UINT_32
-nicFreq2ChannelNum (
+nicFreq2ChannelNum(
     IN UINT_32 u4FreqInKHz
     );
 
@@ -507,7 +521,7 @@ nicPmIndicateBssAbort(
 
     /* Beacon Template Update */
 WLAN_STATUS
-nicUpdateBeaconIETemplate (
+nicUpdateBeaconIETemplate(
     IN  P_ADAPTER_T prAdapter,
     IN  ENUM_IE_UPD_METHOD_T eIeUpdMethod,
     IN ENUM_NETWORK_TYPE_INDEX_T eNetTypeIndex,
@@ -554,7 +568,7 @@ nicUpdateDPD(
 /* PHY configuration                                                          */
 /*----------------------------------------------------------------------------*/
 VOID
-nicSetAvailablePhyTypeSet (
+nicSetAvailablePhyTypeSet(
     IN P_ADAPTER_T prAdapter
     );
 
@@ -562,33 +576,33 @@ nicSetAvailablePhyTypeSet (
 /* MGMT and System Service Control                                            */
 /*----------------------------------------------------------------------------*/
 VOID
-nicInitSystemService (
+nicInitSystemService(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-nicResetSystemService (
+nicResetSystemService(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-nicUninitSystemService (
+nicUninitSystemService(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-nicInitMGMT (
+nicInitMGMT(
     IN P_ADAPTER_T prAdapter,
     IN P_REG_INFO_T prRegInfo
     );
 
 VOID
-nicUninitMGMT (
+nicUninitMGMT(
     IN P_ADAPTER_T prAdapter
     );
 
 WLAN_STATUS
-nicConfigPowerSaveProfile (
+nicConfigPowerSaveProfile(
     IN  P_ADAPTER_T prAdapter,
     ENUM_NETWORK_TYPE_INDEX_T eNetTypeIndex,
     PARAM_POWER_MODE ePwrMode,
@@ -596,7 +610,7 @@ nicConfigPowerSaveProfile (
     );
 
 WLAN_STATUS
-nicEnterCtiaMode (
+nicEnterCtiaMode(
     IN  P_ADAPTER_T prAdapter,
     BOOLEAN fgEnterCtia,
     BOOLEAN fgEnCmdEvent
@@ -605,7 +619,7 @@ nicEnterCtiaMode (
 /* Scan Result Processing                                                     */
 /*----------------------------------------------------------------------------*/
 VOID
-nicAddScanResult (
+nicAddScanResult(
     IN P_ADAPTER_T                  prAdapter,
     IN PARAM_MAC_ADDRESS            rMacAddr,
     IN P_PARAM_SSID_T               prSsid,
@@ -620,7 +634,7 @@ nicAddScanResult (
     );
 
 VOID
-nicFreeScanResultIE (
+nicFreeScanResultIE(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_32      u4Idx
     );
@@ -630,12 +644,12 @@ nicFreeScanResultIE (
 /* Workaround Control                                                         */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicEnableClockGating (
+nicEnableClockGating(
     IN P_ADAPTER_T prAdapter
     );
 
 WLAN_STATUS
-nicDisableClockGating (
+nicDisableClockGating(
     IN P_ADAPTER_T prAdapter
     );
 #endif
@@ -645,7 +659,7 @@ nicDisableClockGating (
 /* Fixed Rate Hacking                                                         */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicUpdateRateParams (
+nicUpdateRateParams(
     IN P_ADAPTER_T                  prAdapter,
     IN ENUM_REGISTRY_FIXED_RATE_T   eRateSetting,
     IN PUINT_8                      pucDesiredPhyTypeSet,
@@ -660,7 +674,7 @@ nicUpdateRateParams (
 /* Write registers                                                            */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicWriteMcr (
+nicWriteMcr(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_32   u4Address,
     IN  UINT_32  u4Value
@@ -727,4 +741,3 @@ nicUpdateRddTestMode(
 #endif
 
 #endif /* _NIC_H */
-

@@ -78,7 +78,7 @@
 */
 #include "gl_os.h"
 #include "gl_kal.h"
-
+#include "debug.h"
 #include "wlan_lib.h"
 #include "debug.h"
 
@@ -203,6 +203,7 @@ static int procMCRWrite(struct file *file, const char *buffer, unsigned long cou
 	PARAM_CUSTOM_MCR_RW_STRUC_T rMcrInfo;
 	UINT_32 u4BufLen;
 	WLAN_STATUS rStatus = WLAN_STATUS_SUCCESS;
+	int num = 0;
 
 
 	ASSERT(data);
@@ -213,7 +214,8 @@ static int procMCRWrite(struct file *file, const char *buffer, unsigned long cou
 	}
 	acBuf[i4CopySize] = '\0';
 
-	switch (sscanf(acBuf, "0x%lx 0x%lx", &rMcrInfo.u4McrOffset, &rMcrInfo.u4McrData)) {
+	num = sscanf(acBuf, "0x%lx 0x%lx", &rMcrInfo.u4McrOffset, &rMcrInfo.u4McrData);
+	switch (num) {
 	case 2:
 		/* NOTE: Sometimes we want to test if bus will still be ok, after accessing
 		 * the MCR which is not align to DW boundary.
@@ -521,7 +523,7 @@ static UINT_8 aucDbModuleName[][PROC_DBG_LEVEL_MAX_DISPLAY_STR_LEN] = {
 	"DBG_BOW_IDX"
 };
 
-extern UINT_8 aucDebugModule[];
+
 
 
 /*----------------------------------------------------------------------------*/

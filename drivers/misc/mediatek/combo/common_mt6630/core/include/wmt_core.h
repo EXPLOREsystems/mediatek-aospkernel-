@@ -13,8 +13,8 @@
 #include "wmt_ctrl.h"
 #include "wmt_exp.h"
 #include "wmt_plat.h"
-//TODO: [GeorgeKuo][FixMe] remove temporarily
-//#include "mtk_wcn_cmb_stub.h" /* for AIF state definition */
+/* TODO: [GeorgeKuo][FixMe] remove temporarily */
+/* #include "mtk_wcn_cmb_stub.h" /* for AIF state definition */ */
 
 /*******************************************************************************
 *                         C O M P I L E R   F L A G S
@@ -38,7 +38,7 @@
 #define CFG_CORE_MT6630_SUPPORT 0 /* whether MT6630 is supported or not */
 #endif
 
-// TODO:[ChangeFeature][George] move this definition outside so that wmt_dev can remove wmt_core.h inclusion.
+/* TODO:[ChangeFeature][George] move this definition outside so that wmt_dev can remove wmt_core.h inclusion. */
 #define defaultPatchName "mt66xx_patch_hdr.bin"
 
 
@@ -55,7 +55,7 @@
 #define DWCNT_CTRL_DATA  (16)
 
 
-#if 0 // TODO: [obsolete][GeorgeKuo]: remove ubsolete definitions
+#if 0 /* TODO: [obsolete][GeorgeKuo]: remove ubsolete definitions */
 #define WMT_SET (1)
 #define WMT_QUERY (0)
 #define WMT_PKT_FMT_RAW (1)
@@ -73,7 +73,7 @@
 
 #define WMT_DEFAULT_BAUD_RATE   (115200)
 
-#define INIT_CMD(c, e, s) {.cmd= c, .cmdSz=sizeof(c), .evt=e, .evtSz=sizeof(e), .str=s}
+#define INIT_CMD(c, e, s) {.cmd = c, .cmdSz = sizeof(c), .evt = e, .evtSz = sizeof(e), .str = s}
 
 /*******************************************************************************
 *                    E X T E R N A L   R E F E R E N C E S
@@ -124,7 +124,7 @@ typedef enum _ENUM_WMT_OPID_T {
     WMT_OPID_PWR_OFF = 2,
     WMT_OPID_FUNC_ON = 3,
     WMT_OPID_FUNC_OFF = 4,
-    WMT_OPID_REG_RW =  5, // TODO:[ChangeFeature][George] is this OP obsoleted?
+    WMT_OPID_REG_RW =  5, /* TODO:[ChangeFeature][George] is this OP obsoleted? */
     WMT_OPID_EXIT = 6,
     WMT_OPID_PWR_SV = 7,
     WMT_OPID_DSNS = 8,
@@ -147,9 +147,9 @@ typedef OSAL_OP_DAT WMT_OP;
 typedef P_OSAL_OP_DAT P_WMT_OP;
 
 typedef struct _WMT_HIF_CONF {
-    UINT32 hifType; // HIF Type
-    UINT32 au4HifConf[DWCNT_HIF_CONF]; // HIF Config
-    UINT32 au4StrapConf[DWCNT_STRAP_CONF]; // Strap Config
+    UINT32 hifType; /* HIF Type */
+    UINT32 au4HifConf[DWCNT_HIF_CONF]; /* HIF Config */
+    UINT32 au4StrapConf[DWCNT_STRAP_CONF]; /* Strap Config */
 } WMT_HIF_CONF, *P_WMT_HIF_CONF;
 
 typedef INT32(*WMT_OPID_FUNC)(P_WMT_OP);
@@ -224,10 +224,10 @@ typedef enum _WMT_IC_PIN_ID_ {
 typedef enum _WMT_IC_PIN_STATE_ {
     WMT_IC_PIN_EN = 0,
     WMT_IC_PIN_DIS = 1,
-    WMT_IC_AIF_0 = 2, // = CMB_STUB_AIF_0,
-    WMT_IC_AIF_1 = 3, // = CMB_STUB_AIF_1,
-    WMT_IC_AIF_2 = 4, // = CMB_STUB_AIF_2,
-    WMT_IC_AIF_3 = 5, // = CMB_STUB_AIF_3,
+    WMT_IC_AIF_0 = 2, /* = CMB_STUB_AIF_0, */
+    WMT_IC_AIF_1 = 3, /* = CMB_STUB_AIF_1, */
+    WMT_IC_AIF_2 = 4, /* = CMB_STUB_AIF_2, */
+    WMT_IC_AIF_3 = 5, /* = CMB_STUB_AIF_3, */
     WMT_IC_PIN_MUX = 6,
     WMT_IC_PIN_GPIO = 7,
     WMT_IC_PIN_GPIO_HIGH = 8,
@@ -274,12 +274,12 @@ typedef struct _WMT_CTX_ {
     P_WMT_IC_OPS p_ic_ops;
 } WMT_CTX, *P_WMT_CTX;
 
-// TODO:[ChangeFeature][George] remove WMT_PKT. replace it with hardcoded arrays.
-// Using this struct relies on compiler's implementation and pack() settings
+/* TODO:[ChangeFeature][George] remove WMT_PKT. replace it with hardcoded arrays. */
+/* Using this struct relies on compiler's implementation and pack() settings */
 typedef struct _WMT_PKT_ {
-    UINT8 eType;       // PKT_TYPE_*
-    UINT8 eOpCode;     // OPCODE_*
-    UINT16 u2SduLen;   // 2 bytes length, little endian
+    UINT8 eType;       /* PKT_TYPE_* */
+    UINT8 eOpCode;     /* OPCODE_* */
+    UINT16 u2SduLen;   /* 2 bytes length, little endian */
     UINT8 aucParam[32];
 } WMT_PKT, *P_WMT_PKT;
 
@@ -431,17 +431,16 @@ wmt_core_ic_ops_check(
 )
 {
     if (!p_ops) {
-        return MTK_WCN_BOOL_FALSE;
+	return MTK_WCN_BOOL_FALSE;
     }
     if ((NULL == p_ops->sw_init)
-        || (NULL == p_ops->sw_deinit)
-        || (NULL == p_ops->ic_ver_check)
-        || (NULL == p_ops->ic_pin_ctrl)) {
-        return MTK_WCN_BOOL_FALSE;
+	|| (NULL == p_ops->sw_deinit)
+	|| (NULL == p_ops->ic_ver_check)
+	|| (NULL == p_ops->ic_pin_ctrl)) {
+	return MTK_WCN_BOOL_FALSE;
     } else {
-        return MTK_WCN_BOOL_TRUE;
+	return MTK_WCN_BOOL_TRUE;
     }
 }
 
 #endif /* _WMT_CORE_H_ */
-

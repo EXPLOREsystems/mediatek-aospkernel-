@@ -587,7 +587,7 @@ static int __init SiiMhlInit(void)
 	printk("\n============================================\n");
 	printk("%s driver starting!\n", MHL_DRIVER_NAME);
 	sprintf(BUILT_TIME, "Build: %s", __TIME__ "-" __DATE__);
-	printk("Version: %s \n%s\n", DRV_VERSION, BUILT_TIME);
+	printk("Version: %s\n%s\n", DRV_VERSION, BUILT_TIME);
 	printk("register_chrdev %s\n", MHL_DRIVER_NAME);
 	printk("============================================\n");
 	/* InitDebugSW(); */

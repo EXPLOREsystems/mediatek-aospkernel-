@@ -1,5 +1,5 @@
 /*
-** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/mgmt/aaa_fsm.c#3 $
+** Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/mgmt/aaa_fsm.c#3 $
 */
 
 /*! \file   "aaa_fsm.c"
@@ -11,7 +11,7 @@
 
 
 /*
-** $Log: aaa_fsm.c $
+** Log: aaa_fsm.c $
 **
 ** 10 08 2013 yuche.tsai
 ** [ALPS01065606] [Volunteer Patch][MT6630][Wi-Fi Direct][Driver] MT6630 Wi-Fi Direct Driver Patch
@@ -285,19 +285,19 @@ aaaFsmSendEventJoinComplete(WLAN_STATUS rJoinStatus, P_STA_RECORD_T prStaRec, P_
 	ASSERT(prStaRec);
 
 	prJoinCompMsg = cnmMemAlloc(RAM_TYPE_TCM, sizeof(MSG_SAA_JOIN_COMP_T));
-	if (!prJoinCompMsg) {
+	if (!prJoinCompMsg)
 		return WLAN_STATUS_RESOURCES;
-	}
 
-	if (IS_STA_IN_AIS(prStaRec)) {
+
+	if (IS_STA_IN_AIS(prStaRec))
 		prJoinCompMsg->rMsgHdr.eMsgId = MID_SAA_AIS_JOIN_COMPLETE;
-	} else if (IS_STA_IN_P2P(prStaRec)) {
+	else if (IS_STA_IN_P2P(prStaRec))
 		prJoinCompMsg->rMsgHdr.eMsgId = MID_SAA_P2P_JOIN_COMPLETE;
-	} else if (IS_STA_IN_BOW(prStaRec)) {
+	else if (IS_STA_IN_BOW(prStaRec))
 		prJoinCompMsg->rMsgHdr.eMsgId = MID_SAA_BOW_JOIN_COMPLETE;
-	} else {
+	else
 		ASSERT(0);
-	}
+
 
 	prJoinCompMsg->rJoinStatus = rJoinStatus;
 	prJoinCompMsg->prStaRec = prStaRec;
@@ -561,15 +561,13 @@ WLAN_STATUS aaaFsmRunEventRxAssoc(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRf
 
 		/* We should have the corresponding Sta Record. */
 		if ((!prStaRec) || (!prStaRec->fgIsInUse)) {
-			/* ASSERT(0); // Only for debug phase */
-			u2StatusCode = STATUS_CODE_UNSPECIFIED_FAILURE;
-			fgReplyAssocResp = TRUE;
+			/* Not to reply association response with failure code due to lack of STA_REC */
 			break;
 		}
 
-		if (!IS_CLIENT_STA(prStaRec)) {
+		if (!IS_CLIENT_STA(prStaRec))
 			break;
-		}
+
 
 		if (prStaRec->ucStaState == STA_STATE_3) {
 			/* Do Reassocation */
@@ -687,8 +685,8 @@ WLAN_STATUS aaaFsmRunEventRxAssoc(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRf
 				    WLAN_STATUS_SUCCESS) {
 					prStaRec->u2AssocId = bssAssignAssocID(prStaRec);
 					/* prStaRec->eAuthAssocState = AA_STATE_IDLE; */
-					prStaRec->eAuthAssocState = AAA_STATE_SEND_ASSOC2;	/* NOTE(Kevin): for TX done */
-
+					/* NOTE(Kevin): for TX done */
+					prStaRec->eAuthAssocState = AAA_STATE_SEND_ASSOC2;
 					/* NOTE(Kevin): Method A: Change to STATE_3 before handle TX Done */
 					/* cnmStaRecChangeState(prAdapter, prStaRec, STA_STATE_3); */
 				} else {
@@ -697,7 +695,7 @@ WLAN_STATUS aaaFsmRunEventRxAssoc(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRf
 
 					prStaRec->u2AssocId = 0;	/* Invalid Assocation ID */
 
-					/* If (Re)association fail, remove sta record and use class error to handle sta */
+					/* If(Re)association fail,remove sta record and use class error to handle sta*/
 					prStaRec->eAuthAssocState = AA_STATE_IDLE;
 
 					/* NOTE(Kevin): Better to change state here, not at TX Done */
@@ -708,53 +706,37 @@ WLAN_STATUS aaaFsmRunEventRxAssoc(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRf
 
 #if CFG_ENABLE_BT_OVER_WIFI
 			if ((IS_STA_BOW_TYPE(prStaRec))) {
-
-/* if (bowRunEventAAAComplete(prAdapter, prStaRec) == WLAN_STATUS_SUCCESS) { */
+				/* if (bowRunEventAAAComplete(prAdapter, prStaRec) == WLAN_STATUS_SUCCESS) { */
 				prStaRec->u2AssocId = bssAssignAssocID(prStaRec);
 				prStaRec->eAuthAssocState = AAA_STATE_SEND_ASSOC2;	/* NOTE(Kevin): for TX done */
 
 				/* NOTE(Kevin): Method A: Change to STATE_3 before handle TX Done */
 				/* cnmStaRecChangeState(prAdapter, prStaRec, STA_STATE_3); */
 			}
-#if 0
-			else {
-				/* Client List FULL. */
-				u2StatusCode = STATUS_CODE_REQ_DECLINED;
+#endif
+		} else {
+			prStaRec->u2AssocId = 0;	/* Invalid Assocation ID */
 
-				prStaRec->u2AssocId = 0;	/* Invalid Assocation ID */
+			/* If (Re)association fail, remove sta record and use class error to handle sta */
+			prStaRec->eAuthAssocState = AA_STATE_IDLE;
 
-				/* If (Re)association fail, the peer can try Assocation w/o Auth immediately */
-				prStaRec->eAuthAssocState = AAA_STATE_SEND_AUTH2;
-
-				/* NOTE(Kevin): Better to change state here, not at TX Done */
-				cnmStaRecChangeState(prAdapter, prStaRec, STA_STATE_2);
-			}
+			/* NOTE(Kevin): Better to change state here, not at TX Done */
+			cnmStaRecChangeState(prAdapter, prStaRec, STA_STATE_2);
 		}
-#endif
-#endif
-	} else {
-		prStaRec->u2AssocId = 0;	/* Invalid Assocation ID */
 
-		/* If (Re)association fail, remove sta record and use class error to handle sta */
-		prStaRec->eAuthAssocState = AA_STATE_IDLE;
+		/* Update the record join time. */
+		GET_CURRENT_SYSTIME(&prStaRec->rUpdateTime);
 
-		/* NOTE(Kevin): Better to change state here, not at TX Done */
-		cnmStaRecChangeState(prAdapter, prStaRec, STA_STATE_2);
+		/* Update Station Record - Status/Reason Code */
+		prStaRec->u2StatusCode = u2StatusCode;
+
+		/* NOTE: Ignore the return status for AAA */
+		/* 4 <4.2> Reply  Assoc Resp */
+		assocSendReAssocRespFrame(prAdapter, prStaRec);
+
 	}
 
-	/* Update the record join time. */
-	GET_CURRENT_SYSTIME(&prStaRec->rUpdateTime);
-
-	/* Update Station Record - Status/Reason Code */
-	prStaRec->u2StatusCode = u2StatusCode;
-
-	/* NOTE: Ignore the return status for AAA */
-	/* 4 <4.2> Reply  Assoc Resp */
-	assocSendReAssocRespFrame(prAdapter, prStaRec);
-
-}
-
-return WLAN_STATUS_SUCCESS;
+	return WLAN_STATUS_SUCCESS;
 
 }				/* end of aaaFsmRunEventRxAssoc() */
 
@@ -785,9 +767,9 @@ aaaFsmRunEventTxDone(IN P_ADAPTER_T prAdapter,
 
 	prStaRec = cnmGetStaRecByIndex(prAdapter, prMsduInfo->ucStaRecIndex);
 
-	if ((!prStaRec) || (!prStaRec->fgIsInUse)) {
+	if ((!prStaRec) || (!prStaRec->fgIsInUse))
 		return WLAN_STATUS_SUCCESS;	/* For the case of replying ERROR STATUS CODE */
-	}
+
 
 	ASSERT(prStaRec->ucBssIndex <= MAX_BSS_INDEX);
 
@@ -822,9 +804,9 @@ aaaFsmRunEventTxDone(IN P_ADAPTER_T prAdapter,
 					}
 #endif				/* CFG_ENABLE_WIFI_DIRECT */
 #if CFG_ENABLE_BT_OVER_WIFI
-					if (IS_STA_BOW_TYPE(prStaRec)) {
+					if (IS_STA_BOW_TYPE(prStaRec))
 						bowRunEventAAATxFail(prAdapter, prStaRec);
-					}
+
 #endif				/* CFG_ENABLE_BT_OVER_WIFI */
 				}
 
@@ -857,9 +839,9 @@ aaaFsmRunEventTxDone(IN P_ADAPTER_T prAdapter,
 
 #if CFG_ENABLE_BT_OVER_WIFI
 
-					if (IS_STA_BOW_TYPE(prStaRec)) {
+					if (IS_STA_BOW_TYPE(prStaRec))
 						bowRunEventAAAComplete(prAdapter, prStaRec);
-					}
+
 #endif				/* CFG_ENABLE_BT_OVER_WIFI */
 
 				} else {
@@ -877,9 +859,9 @@ aaaFsmRunEventTxDone(IN P_ADAPTER_T prAdapter,
 #endif				/* CFG_ENABLE_WIFI_DIRECT */
 
 #if CFG_ENABLE_BT_OVER_WIFI
-					if (IS_STA_BOW_TYPE(prStaRec)) {
+					if (IS_STA_BOW_TYPE(prStaRec))
 						bowRunEventAAATxFail(prAdapter, prStaRec);
-					}
+
 #endif				/* CFG_ENABLE_BT_OVER_WIFI */
 
 				}
@@ -896,7 +878,7 @@ aaaFsmRunEventTxDone(IN P_ADAPTER_T prAdapter,
 		 */
 		/* /cnmStaRecFree(prAdapter, prStaRec); */
 
-	default :
+	default:
 		break;		/* Ignore other cases */
 	}
 
@@ -954,9 +936,9 @@ VOID saaFsmRunEventAbort(IN P_MSG_HDR_T prMsgHdr)
 		prStaRec->ucStaState = STA_STATE_1;
 	}
 #if DBG
-	else {
+	else
 		ASSERT(0);	/* Shouldn't happened, because we already add this STA_RECORD_T at JOIN_STATE_INIT */
-	}
+
 #endif				/* DBG */
 
 	/* 4 <3> Pull back to IDLE. */
@@ -966,9 +948,9 @@ VOID saaFsmRunEventAbort(IN P_MSG_HDR_T prMsgHdr)
 	/* NOTE: JOIN FAIL -
 	 * Restore original setting from current BSS_INFO_T.
 	 */
-	if (prAdapter->eConnectionState == MEDIA_STATE_CONNECTED) {
+	if (prAdapter->eConnectionState == MEDIA_STATE_CONNECTED)
 		joinAdoptParametersFromCurrentBss(prAdapter);
-	}
+
 
 	return;
 }				/* end of joinFsmRunEventAbort() */
@@ -1020,9 +1002,9 @@ WLAN_STATUS joinFsmRunEventJoinTimeOut(IN P_ADAPTER_T prAdapter)
 	ARB_CANCEL_TIMER(prAdapter, prJoinInfo->rRxResponseTimer);
 
 	/* Restore original setting from current BSS_INFO_T */
-	if (prAdapter->eConnectionState == MEDIA_STATE_CONNECTED) {
+	if (prAdapter->eConnectionState == MEDIA_STATE_CONNECTED)
 		joinAdoptParametersFromCurrentBss(prAdapter);
-	}
+
 
 	/* Pull back to IDLE */
 	joinFsmSteps(prAdapter, JOIN_STATE_IDLE);
@@ -1150,13 +1132,13 @@ VOID joinComplete(IN P_ADAPTER_T prAdapter)
 			  prBssDesc->ucSSIDLen,
 			  prAdapter->rConnSettings.aucSSID, prAdapter->rConnSettings.ucSSIDLen);
 
-		if (prBssDesc->ucSSIDLen) {
+		if (prBssDesc->ucSSIDLen)
 			prBssDesc->fgIsHiddenSSID = FALSE;
-		}
+
 #if DBG
-		else {
+		else
 			ASSERT(0);
-		}
+
 #endif				/* DBG */
 
 		DBGLOG(JOIN, INFO, ("Hidden SSID! - Update SSID : %s\n", prBssDesc->aucSSID));
@@ -1189,11 +1171,11 @@ VOID joinComplete(IN P_ADAPTER_T prAdapter)
 	prBssInfo->u4RsnSelectedGroupCipher = prBssDesc->u4RsnSelectedGroupCipher;
 	prBssInfo->u4RsnSelectedAKMSuite = prBssDesc->u4RsnSelectedAKMSuite;
 
-	if (secRsnKeyHandshakeEnabled()) {
+	if (secRsnKeyHandshakeEnabled())
 		prBssInfo->fgIsWPAorWPA2Enabled = TRUE;
-	} else {
+	else
 		prBssInfo->fgIsWPAorWPA2Enabled = FALSE;
-	}
+
 
 	/* 4 <2.G> Beacon interval. */
 	prBssInfo->u2BeaconInterval = prBssDesc->u2BeaconInterval;
@@ -1207,7 +1189,8 @@ VOID joinComplete(IN P_ADAPTER_T prAdapter)
 
 		prBssInfo->fgIsERPPresent = TRUE;
 		prBssInfo->ucERP = prBssDesc->ucERP;	/* Save the ERP for later check */
-	} else {		/* Some AP, may send ProbeResp without ERP IE. Thus prBssDesc->fgIsERPPresent is FALSE. */
+	} else {
+		/* Some AP, may send ProbeResp without ERP IE. Thus prBssDesc->fgIsERPPresent is FALSE. */
 		prBssInfo->fgIsERPPresent = FALSE;
 		prBssInfo->ucERP = 0;
 	}
@@ -1288,17 +1271,19 @@ VOID joinComplete(IN P_ADAPTER_T prAdapter)
 
 		/* NOTE(Kevin 2007/12/24): Truth Table.
 		 * Short Preamble Bit in
-		 * <AssocReq>     <AssocResp w/i ERP>     <BARKER(Long)>  Final Driver Setting(Short)
-		 * TRUE            FALSE                  FALSE           FALSE(shouldn't have such case, use the AssocResp)
-		 * TRUE            FALSE                  TRUE            FALSE
-		 * FALSE           FALSE                  FALSE           FALSE(shouldn't have such case, use the AssocResp)
-		 * FALSE           FALSE                  TRUE            FALSE
-		 * TRUE            TRUE                   FALSE           TRUE(follow ERP)
-		 * TRUE            TRUE                   TRUE            FALSE(follow ERP)
-		 * FALSE           TRUE                   FALSE           FALSE(shouldn't have such case, and we should set to FALSE)
-		 * FALSE           TRUE                   TRUE            FALSE(we should set to FALSE)
+		 * <AssocReq><AssocResp w/i ERP><BARKER(Long)>Final Driver Setting(Short)
+		 * TRUE      FALSE              FALSE       FALSE(shouldn't have such case, use the AssocResp)
+		 * TRUE      FALSE              TRUE        FALSE
+		 * FALSE     FALSE              FALSE       FALSE(shouldn't have such case, use the AssocResp)
+		 * FALSE     FALSE              TRUE        FALSE
+		 * TRUE      TRUE               FALSE       TRUE(follow ERP)
+		 * TRUE      TRUE               TRUE        FALSE(follow ERP)
+		 * FALSE     TRUE               FALSE       FALSE(shouldn't have such case, and we should set to FALSE)
+		 * FALSE     TRUE               TRUE        FALSE(we should set to FALSE)
 		 */
-		if ((prPeerBssInfo->fgIsShortPreambleAllowed) && ((prConnSettings->ePreambleType == PREAMBLE_TYPE_SHORT) ||	/* Short Preamble Option Enable is TRUE */
+		if ((prPeerBssInfo->fgIsShortPreambleAllowed) &&
+			((prConnSettings->ePreambleType == PREAMBLE_TYPE_SHORT) ||
+			/* Short Preamble Option Enable is TRUE */
 								  ((prConnSettings->ePreambleType ==
 								    PREAMBLE_TYPE_AUTO)
 								   && (prBssDesc->
@@ -1307,11 +1292,11 @@ VOID joinComplete(IN P_ADAPTER_T prAdapter)
 
 			prBssInfo->fgIsShortPreambleAllowed = TRUE;
 
-			if (prBssInfo->ucERP & ERP_INFO_BARKER_PREAMBLE_MODE) {
+			if (prBssInfo->ucERP & ERP_INFO_BARKER_PREAMBLE_MODE)
 				prBssInfo->fgUseShortPreamble = FALSE;
-			} else {
+			else
 				prBssInfo->fgUseShortPreamble = TRUE;
-			}
+
 		} else {
 			prBssInfo->fgIsShortPreambleAllowed = FALSE;
 			prBssInfo->fgUseShortPreamble = FALSE;
@@ -1352,14 +1337,14 @@ VOID joinComplete(IN P_ADAPTER_T prAdapter)
 
 
 	/* 4 <3.G> Save the available Auth Types during Roaming (Design for Fast BSS Transition). */
-	/* if (prAdapter->fgIsEnableRoaming)*/ /* NOTE(Kevin): Always prepare info for roaming */
+	/* if (prAdapter->fgIsEnableRoaming) */ /* NOTE(Kevin): Always prepare info for roaming */
 	{
 
-		if (prJoinInfo->ucCurrAuthAlgNum == AUTH_ALGORITHM_NUM_OPEN_SYSTEM) {
+		if (prJoinInfo->ucCurrAuthAlgNum == AUTH_ALGORITHM_NUM_OPEN_SYSTEM)
 			prJoinInfo->ucRoamingAuthTypes |= AUTH_TYPE_OPEN_SYSTEM;
-		} else if (prJoinInfo->ucCurrAuthAlgNum == AUTH_ALGORITHM_NUM_SHARED_KEY) {
+		else if (prJoinInfo->ucCurrAuthAlgNum == AUTH_ALGORITHM_NUM_SHARED_KEY)
 			prJoinInfo->ucRoamingAuthTypes |= AUTH_TYPE_SHARED_KEY;
-		}
+
 
 		prBssInfo->ucRoamingAuthTypes = prJoinInfo->ucRoamingAuthTypes;
 
@@ -1417,9 +1402,9 @@ VOID joinComplete(IN P_ADAPTER_T prAdapter)
 		prStaRec->fgIsQoS = prBssInfo->fgIsWmmAssoc;
 	}
 #if DBG
-	else {
+	else
 		ASSERT(0);
-	}
+
 #endif				/* DBG */
 
 
@@ -1428,14 +1413,14 @@ VOID joinComplete(IN P_ADAPTER_T prAdapter)
 	nicSetupBSS(prAdapter, prBssInfo);
 
 	/* 4 <5.B> Update WLAN Table. */
-	if (nicSetHwBySta(prAdapter, prStaRec) == FALSE) {
+	if (nicSetHwBySta(prAdapter, prStaRec) == FALSE)
 		ASSERT(FALSE);
-	}
+
 	/* 4 <5.C> Update Desired Rate Set for BT. */
 #if CFG_TX_FRAGMENT
-	if (prConnSettings->fgIsEnableTxAutoFragmentForBT) {
+	if (prConnSettings->fgIsEnableTxAutoFragmentForBT)
 		txRateSetInitForBT(prAdapter, prStaRec);
-	}
+
 #endif				/* CFG_TX_FRAGMENT */
 
 	/* 4 <5.D> TX AC Parameter and TX/RX Queue Control */
@@ -1467,9 +1452,9 @@ VOID joinComplete(IN P_ADAPTER_T prAdapter)
 
 		nicTxRetransmitOfSendWaitQue(prAdapter);
 
-		if (prTxCtrl->fgIsPacketInOsSendQueue) {
+		if (prTxCtrl->fgIsPacketInOsSendQueue)
 			nicTxRetransmitOfOsSendQue(prAdapter);
-		}
+
 #if CFG_SDIO_TX_ENHANCE
 		halTxLeftClusteredMpdu(prAdapter);
 #endif				/* CFG_SDIO_TX_ENHANCE */
@@ -1482,11 +1467,10 @@ VOID joinComplete(IN P_ADAPTER_T prAdapter)
 	prAdapter->eConnectionState = MEDIA_STATE_CONNECTED;
 	prAdapter->eConnectionStateIndicated = MEDIA_STATE_CONNECTED;
 
-	if (prJoinInfo->fgIsReAssoc) {
+	if (prJoinInfo->fgIsReAssoc)
 		prAdapter->fgBypassPortCtrlForRoaming = TRUE;
-	} else {
+	else
 		prAdapter->fgBypassPortCtrlForRoaming = FALSE;
-	}
 
 	kalIndicateStatusAndComplete(prAdapter->prGlueInfo,
 				     WLAN_STATUS_MEDIA_CONNECT, (PVOID) NULL, 0);

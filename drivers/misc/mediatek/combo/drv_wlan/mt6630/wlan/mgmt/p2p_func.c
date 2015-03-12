@@ -16,8 +16,34 @@ APPEND_VAR_IE_ENTRY_T txProbeRspIETable[] = {
 	, {(ELEM_HDR_LEN + ELEM_MAX_LEN_EXT_CAP), NULL, rlmRspGenerateExtCapIE}	/* 127 */
 	, {(ELEM_HDR_LEN + ELEM_MAX_LEN_WPA), NULL, rsnGenerateWpaNoneIE}	/* 221 */
 	, {(ELEM_HDR_LEN + ELEM_MAX_LEN_WMM_PARAM), NULL, mqmGenerateWmmParamIE}	/* 221 */
+#if CFG_SUPPORT_802_11AC
+    , { (ELEM_HDR_LEN + ELEM_MAX_LEN_VHT_CAP), NULL, rlmRspGenerateVhtCapIE}   /*191*/
+    , { (ELEM_HDR_LEN + ELEM_MAX_LEN_VHT_OP), NULL, rlmRspGenerateVhtOpIE}   /*192*/
+#endif
+#if CFG_SUPPORT_MTK_SYNERGY
+    , { (ELEM_HDR_LEN + ELEM_MIN_LEN_MTK_OUI), NULL, rlmGenerateMTKOuiIE}   /* 221 */
+#endif
+
 };
 
+static VOID
+p2pFuncParseBeaconVenderId(IN P_ADAPTER_T prAdapter, IN PUINT_8 pucIE, IN P_P2P_SPECIFIC_BSS_INFO_T prP2pSpecificBssInfo, OUT BOOL * ucNewSecMode);
+
+static VOID
+p2pFuncGetAttriListAction(IN P_ADAPTER_T prAdapter,
+	IN P_IE_P2P_T prIe, IN UINT_8 ucOuiType,
+	OUT PUINT_8 * pucAttriListStart, OUT UINT_16 * u2AttriListLen,
+	OUT BOOLEAN * fgIsAllocMem, OUT BOOLEAN * fgBackupAttributes, OUT UINT_16 * u2BufferSize);
+
+static VOID
+p2pFuncProcessP2pProbeRspAction(IN P_ADAPTER_T prAdapter,
+		IN PUINT_8 pucIEBuf, IN UINT_8 ucElemIdType,
+		OUT UINT_8 * ucBssIdx, OUT P_BSS_INFO_T * prP2pBssInfo, OUT BOOLEAN * fgIsWSCIE,
+		OUT BOOLEAN * fgIsP2PIE, OUT BOOLEAN * fgIsWFDIE);
+static VOID
+p2pFuncGetSpecAttriAction(IN P_IE_P2P_T prP2pIE,
+		IN UINT_8 ucOuiType, IN UINT_8 ucAttriID,
+		OUT P_ATTRIBUTE_HDR_T * prTargetAttri);
 /*----------------------------------------------------------------------------*/
 /*!
 * @brief Function for requesting scan. There is an option to do ACTIVE or PASSIVE scan.
@@ -78,7 +104,7 @@ p2pFuncRequestScan(IN P_ADAPTER_T prAdapter,
 		prScanReqV2->eScanChannel = prScanReqInfo->eChannelSet;
 		prScanReqV2->u2IELen = 0;
 		prScanReqV2->prSsid =
-		    (P_PARAM_SSID_T) ((UINT_32) prScanReqV2 + sizeof(MSG_SCN_SCAN_REQ_V2));
+		    (P_PARAM_SSID_T) ((ULONG) prScanReqV2 + sizeof(MSG_SCN_SCAN_REQ_V2));
 
 		/* Copy IE for Probe Request. */
 		kalMemCopy(prScanReqV2->aucIE, prScanReqInfo->aucIEBuf, prScanReqInfo->u4BufLength);
@@ -221,8 +247,8 @@ p2pFuncGCJoin(IN P_ADAPTER_T prAdapter,
 		ASSERT_BREAK((prAdapter != NULL) &&
 			     (prP2pBssInfo != NULL) && (prP2pJoinInfo != NULL));
 
-
-		if ((prBssDesc = prP2pJoinInfo->prTargetBssDesc) == NULL) {
+		prBssDesc = prP2pJoinInfo->prTargetBssDesc;
+		if ((prBssDesc) == NULL) {
 			DBGLOG(P2P, ERROR, ("p2pFuncGCJoin: NO Target BSS Descriptor\n"));
 			ASSERT(FALSE);
 			break;
@@ -487,8 +513,17 @@ p2pFuncTxMgmtFrame(IN P_ADAPTER_T prAdapter,
 	do {
 		ASSERT_BREAK(prAdapter != NULL);
 
+		/* Drop this frame if BSS inactive */
+		if (!IS_NET_ACTIVE(prAdapter, ucBssIndex)) {
+			p2pDevFsmRunEventMgmtFrameTxDone(prAdapter, prMgmtTxMsdu,
+							 TX_RESULT_DROPPED_IN_DRIVER);
+			cnmMgtPktFree(prAdapter, prMgmtTxMsdu);
+
+			break;
+		}
+
 		prWlanHdr =
-		    (P_WLAN_MAC_HEADER_T) ((UINT_32) prMgmtTxMsdu->prPacket +
+		    (P_WLAN_MAC_HEADER_T) ((ULONG) prMgmtTxMsdu->prPacket +
 					   MAC_TX_RESERVED_FIELD);
 		prStaRec = cnmGetStaRecByAddress(prAdapter, ucBssIndex, prWlanHdr->aucAddr1);
 		/* prMgmtTxMsdu->ucBssIndex = ucBssIndex; */
@@ -496,6 +531,14 @@ p2pFuncTxMgmtFrame(IN P_ADAPTER_T prAdapter,
 		switch (prWlanHdr->u2FrameCtrl & MASK_FRAME_TYPE) {
 		case MAC_FRAME_PROBE_RSP:
 			DBGLOG(P2P, TRACE, ("TX Probe Resposne Frame\n"));
+	    if (!nicTxIsMgmtResourceEnough(prAdapter)) {
+		DBGLOG(P2P, TRACE, ("Drop Tx probe response due to resource issue\n"));
+			p2pDevFsmRunEventMgmtFrameTxDone(prAdapter, prMgmtTxMsdu,
+							 TX_RESULT_DROPPED_IN_DRIVER);
+			cnmMgtPktFree(prAdapter, prMgmtTxMsdu);
+
+			break;
+	    }
 			prMgmtTxMsdu =
 			    p2pFuncProcessP2pProbeRsp(prAdapter, ucBssIndex, prMgmtTxMsdu);
 			ucRetryLimit = 2;
@@ -626,7 +669,7 @@ p2pFuncStartGO(IN P_ADAPTER_T prAdapter,
 				prBssInfo->fgIsProtection = TRUE;
 		}
 
-		bssInitForAP(prAdapter, prBssInfo, FALSE);
+		bssInitForAP(prAdapter, prBssInfo, TRUE);
 
 		if ((prBssInfo->ucBMCWlanIndex >= WTBL_SIZE)) {
 			prBssInfo->ucBMCWlanIndex =
@@ -979,7 +1022,7 @@ p2pFuncBeaconUpdate(IN P_ADAPTER_T prAdapter,
 
 			IE_FOR_EACH(pucIEBuf, u2IELength, u2Offset) {
 				if ((IE_ID(pucIEBuf) == ELEM_ID_TIM) ||
-				    ((IE_ID(pucIEBuf) > ELEM_ID_IBSS_PARAM_SET)) {
+				    ((IE_ID(pucIEBuf) > ELEM_ID_IBSS_PARAM_SET))) {
 				    pucTIMBody = pucIEBuf; break}
 				    u2FrameLength += IE_SIZE(pucIEBuf); }
 
@@ -994,16 +1037,15 @@ p2pFuncBeaconUpdate(IN P_ADAPTER_T prAdapter,
 				    kalMemCmp(aucIEBuf, pucTIMBody, u2OldBodyLen); } while (FALSE);
 				    if (pucBcnHdr) {
 				    kalMemCopy(prBcnMsduInfo->prPacket, pucBcnHdr, u4HdrLen); pucTIMBody = (PUINT_8) ((UINT_32) prBcnMsduInfo->prPacket + u4HdrLen); prBcnMsduInfo->ucMacHeaderLength = (WLAN_MAC_MGMT_HEADER_LEN + (TIMESTAMP_FIELD_LEN + BEACON_INTERVAL_FIELD_LEN + CAP_INFO_FIELD_LEN)); u2FrameLength = u4HdrLen;	/* Header + Partial Body. */
-				    }
-				    else {
+				    } else {
 				    /* Header not change. */
 				    u2FrameLength += prBcnMsduInfo->ucMacHeaderLength; }
 
 
 				    if (pucBcnBody) {
 				    kalMemCopy(pucTIMBody, pucBcnBody, u4BodyLen);
-				    u2FrameLength += (UINT_16) u4BodyLen; }
-				    else {
+					u2FrameLength += (UINT_16) u4BodyLen;
+					} else {
 				    kalMemCopy(pucTIMBody, aucIEBuf, u2OldBodyLen);
 				    u2FrameLength += u2OldBodyLen; }
 
@@ -1032,8 +1074,7 @@ p2pFuncBeaconUpdate(IN P_ADAPTER_T prAdapter,
 				    nicPmIndicateBssAbort(prAdapter, NETWORK_TYPE_P2P_INDEX);
 				    nicPmIndicateBssCreated(prAdapter, NETWORK_TYPE_P2P_INDEX); }
 
-				    }
-				    while (FALSE); return rResultStatus; }	/* p2pFuncBeaconUpdate */
+				    } while (FALSE); return rResultStatus; }	/* p2pFuncBeaconUpdate */
 
 #else
 WLAN_STATUS
@@ -1067,7 +1108,7 @@ do {
 	}
 #endif
 	prBcnFrame =
-	    (P_WLAN_BEACON_FRAME_T) ((UINT_32) prBcnMsduInfo->prPacket + MAC_TX_RESERVED_FIELD);
+	    (P_WLAN_BEACON_FRAME_T) ((ULONG) prBcnMsduInfo->prPacket + MAC_TX_RESERVED_FIELD);
 
 	if (!pucNewBcnBody) {
 		/* Old body. */
@@ -1088,8 +1129,8 @@ do {
 	}
 
 	pucIEBuf =
-	    (PUINT_8) ((UINT_32) prBcnUpdateInfo->pucBcnHdr +
-		       (UINT_32) prBcnUpdateInfo->u4BcnHdrLen);
+	    (PUINT_8) ((ULONG) prBcnUpdateInfo->pucBcnHdr +
+		       (ULONG) prBcnUpdateInfo->u4BcnHdrLen);
 	kalMemCopy(pucIEBuf, aucIEBuf, u4NewBodyLen);
 	prBcnUpdateInfo->pucBcnBody = pucIEBuf;
 
@@ -1315,30 +1356,27 @@ p2pFuncDissolve(IN P_ADAPTER_T prAdapter,
 			 * We only stop the Beacon & let all stations timeout.
 			 */
 			{
-				P_LINK_T prStaRecOfClientList = (P_LINK_T) NULL;
+			    P_STA_RECORD_T prCurrStaRec;
 
 				/* Send deauth. */
 				authSendDeauthFrame(prAdapter,
+						    prP2pBssInfo,
 						    NULL,
 						    (P_SW_RFB_T) NULL,
 						    u2ReasonCode, (PFN_TX_DONE_HANDLER) NULL);
 
-				prStaRecOfClientList = &prP2pBssInfo->rStaRecOfClientList;
-
-				while (!LINK_IS_EMPTY(prStaRecOfClientList)) {
-					P_STA_RECORD_T prCurrStaRec;
-
-					LINK_REMOVE_HEAD(prStaRecOfClientList, prCurrStaRec,
-							 P_STA_RECORD_T);
-
+		prCurrStaRec = bssRemoveHeadClient(prAdapter,
+		    prP2pBssInfo);
+		while (prCurrStaRec) {
 					/* Indicate to Host. */
 					/* kalP2PGOStationUpdate(prAdapter->prGlueInfo, prCurrStaRec, FALSE); */
 
 					p2pFuncDisconnect(prAdapter, prP2pBssInfo, prCurrStaRec,
-							  TRUE, u2ReasonCode);
+					    TRUE, u2ReasonCode);
 
-				}
-
+		    prCurrStaRec = bssRemoveHeadClient(prAdapter,
+			prP2pBssInfo);
+		}
 			}
 
 			break;
@@ -1380,7 +1418,7 @@ p2pFuncDisconnect(IN P_ADAPTER_T prAdapter,
 {
 	ENUM_PARAM_MEDIA_STATE_T eOriMediaStatus;
 
-	DBGLOG(P2P, TRACE, ("p2pFuncDisconnect()"));
+	DBGLOG(P2P, INFO, ("p2pFuncDisconnect()"));
 
 	do {
 		ASSERT_BREAK((prAdapter != NULL) && (prStaRec != NULL) && (prP2pBssInfo != NULL));
@@ -1405,6 +1443,7 @@ p2pFuncDisconnect(IN P_ADAPTER_T prAdapter,
 		if (fgSendDeauth) {
 			/* Send deauth. */
 			authSendDeauthFrame(prAdapter,
+					    prP2pBssInfo,
 					    prStaRec,
 					    (P_SW_RFB_T) NULL,
 					    u2ReasonCode,
@@ -1425,7 +1464,7 @@ p2pFuncDisconnect(IN P_ADAPTER_T prAdapter,
 			cnmStaRecFree(prAdapter, prStaRec);
 
 			if ((prP2pBssInfo->eCurrentOPMode != OP_MODE_ACCESS_POINT) ||
-			    (prP2pBssInfo->rStaRecOfClientList.u4NumElem == 0)) {
+			    (bssGetClientCount(prAdapter, prP2pBssInfo) == 0)) {
 				DBGLOG(P2P, TRACE, ("No More Client, Media Status DISCONNECTED\n"));
 				p2pChangeMediaState(prAdapter, prP2pBssInfo,
 						    PARAM_MEDIA_STATE_DISCONNECTED);
@@ -1663,22 +1702,21 @@ p2pFuncValidateAuth(IN P_ADAPTER_T prAdapter,
 
 				p2pFuncResetStaRecStatus(prAdapter, prStaRec);
 
-				bssRemoveStaRecFromClientList(prAdapter, prP2pBssInfo, prStaRec);
+				bssRemoveClient(prAdapter, prP2pBssInfo, prStaRec);
 			}
 
 		}
 #if CFG_SUPPORT_HOTSPOT_WPS_MANAGER
-		if (prP2pBssInfo->rStaRecOfClientList.u4NumElem >= P2P_MAXIMUM_CLIENT_COUNT ||
+		if (bssGetClientCount(prAdapter, prP2pBssInfo) >= P2P_MAXIMUM_CLIENT_COUNT ||
 		    kalP2PMaxClients(prAdapter->prGlueInfo,
-				     prP2pBssInfo->rStaRecOfClientList.u4NumElem)) {
+			bssGetClientCount(prAdapter, prP2pBssInfo))) {
 #else
-		if (prP2pBssInfo->rStaRecOfClientList.u4NumElem >= P2P_MAXIMUM_CLIENT_COUNT) {
+		if (bssGetClientCount(prAdapter, prP2pBssInfo) >= P2P_MAXIMUM_CLIENT_COUNT) {
 #endif
 			/* GROUP limit full. */
 			/* P2P 3.2.8 */
-			DBGLOG(P2P, WARN,
-			       ("Group Limit Full. (%d)\n",
-				(INT_16) prP2pBssInfo->rStaRecOfClientList.u4NumElem));
+			DBGLOG(P2P, WARN, ("Group Limit Full. (%d)\n",
+			    bssGetClientCount(prAdapter, prP2pBssInfo)));
 			cnmStaRecFree(prAdapter, prStaRec);
 			break;
 		}
@@ -2019,18 +2057,21 @@ p2pFuncParseBeaconContent(IN P_ADAPTER_T prAdapter,
 			switch (IE_ID(pucIE)) {
 			case ELEM_ID_SSID:	/* 0 *//* V *//* Done */
 				{
-					DBGLOG(P2P, TRACE, ("SSID update\n"));
 
-					/* Update when starting GO. */
+		    /* DBGLOG(P2P, TRACE, ("SSID update\n")); */
+		    /* SSID is saved when start AP/GO */
+		    /* SSID IE set in beacon from supplicant will not always be the true since hidden SSID case */
+		    /*
 					COPY_SSID(prP2pBssInfo->aucSSID,
-						  prP2pBssInfo->ucSSIDLen,
-						  SSID_IE(pucIE)->aucSSID,
-						  SSID_IE(pucIE)->ucLength);
+						      prP2pBssInfo->ucSSIDLen,
+						      SSID_IE(pucIE)->aucSSID,
+						      SSID_IE(pucIE)->ucLength);
 
 					COPY_SSID(prP2pSpecificBssInfo->aucGroupSsid,
-						  prP2pSpecificBssInfo->u2GroupSsidLen,
-						  SSID_IE(pucIE)->aucSSID,
-						  SSID_IE(pucIE)->ucLength);
+						      prP2pSpecificBssInfo->u2GroupSsidLen,
+						      SSID_IE(pucIE)->aucSSID,
+						      SSID_IE(pucIE)->ucLength);
+				 */
 
 				}
 				break;
@@ -2195,7 +2236,8 @@ p2pFuncParseBeaconContent(IN P_ADAPTER_T prAdapter,
 				prP2pBssInfo->ucAllSupportedRatesLen +=
 				    EXT_SUP_RATES_IE(pucIE)->ucLength;
 				break;
-			case ELEM_ID_HT_OP:	/* 61 */ /* V */ /* TODO: */
+			case ELEM_ID_HT_OP:
+			/* 61 */ /* V */ /* TODO: */
 				{
 #if 1
 					DBGLOG(P2P, TRACE,
@@ -2274,72 +2316,7 @@ p2pFuncParseBeaconContent(IN P_ADAPTER_T prAdapter,
 			case ELEM_ID_VENDOR:	/* 221 *//* V */
 				DBGLOG(P2P, TRACE, ("Vender Specific IE\n"));
 				{
-					UINT_8 ucOuiType;
-					UINT_16 u2SubTypeVersion;
-					if (rsnParseCheckForWFAInfoElem
-					    (prAdapter, pucIE, &ucOuiType, &u2SubTypeVersion)) {
-						if ((ucOuiType == VENDOR_OUI_TYPE_WPA)
-						    && (u2SubTypeVersion == VERSION_WPA)) {
-							kalP2PSetCipher(prAdapter->prGlueInfo,
-									IW_AUTH_CIPHER_TKIP);
-							ucNewSecMode = TRUE;
-							DBGLOG(P2P, TRACE,
-							       ("WPA IE in supplicant\n"));
-						} else if ((ucOuiType == VENDOR_OUI_TYPE_WPS)) {
-							kalP2PUpdateWSC_IE(prAdapter->prGlueInfo, 0,
-									   pucIE, IE_SIZE(pucIE));
-							DBGLOG(P2P, TRACE,
-							       ("WPS IE in supplicant\n"));
-						} else if ((ucOuiType == VENDOR_OUI_TYPE_WMM)) {
-							DBGLOG(P2P, TRACE,
-							       ("WMM IE in supplicant\n"));
-						}
-						/* WMM here. */
-					} else
-					    if (p2pFuncParseCheckForP2PInfoElem
-						(prAdapter, pucIE, &ucOuiType)) {
-						/* TODO Store the whole P2P IE & generate later. */
-						/* Be aware that there may be one or more P2P IE. */
-						if (ucOuiType == VENDOR_OUI_TYPE_P2P) {
-							kalMemCopy(&prP2pSpecificBssInfo->
-								   aucAttributesCache
-								   [prP2pSpecificBssInfo->
-								    u2AttributeLen], pucIE,
-								   IE_SIZE(pucIE));
-
-							prP2pSpecificBssInfo->u2AttributeLen +=
-							    IE_SIZE(pucIE);
-							DBGLOG(P2P, TRACE,
-							       ("P2P IE in supplicant\n"));
-						} else if (ucOuiType == VENDOR_OUI_TYPE_WFD) {
-
-							kalMemCopy(&prP2pSpecificBssInfo->
-								   aucAttributesCache
-								   [prP2pSpecificBssInfo->
-								    u2AttributeLen], pucIE,
-								   IE_SIZE(pucIE));
-
-							prP2pSpecificBssInfo->u2AttributeLen +=
-							    IE_SIZE(pucIE);
-						} else {
-							DBGLOG(P2P, TRACE,
-							       ("Unknown 50-6F-9A-%d IE.\n",
-								ucOuiType));
-						}
-					} else {
-
-						kalMemCopy(&prP2pSpecificBssInfo->
-							   aucAttributesCache[prP2pSpecificBssInfo->
-									      u2AttributeLen],
-							   pucIE, IE_SIZE(pucIE));
-
-						prP2pSpecificBssInfo->u2AttributeLen +=
-						    IE_SIZE(pucIE);
-						DBGLOG(P2P, TRACE,
-						       ("Driver unprocessed Vender Specific IE\n"));
-						ASSERT(FALSE);
-					}
-
+					p2pFuncParseBeaconVenderId(prAdapter, pucIE, prP2pSpecificBssInfo, &ucNewSecMode);
 					/* TODO: Store other Vender IE except for WMM Param. */
 				}
 				break;
@@ -2358,7 +2335,59 @@ p2pFuncParseBeaconContent(IN P_ADAPTER_T prAdapter,
 }				/* p2pFuncParseBeaconContent */
 
 
+/* Code refactoring for AOSP */
+static VOID
+p2pFuncParseBeaconVenderId(IN P_ADAPTER_T prAdapter, IN PUINT_8 pucIE, IN P_P2P_SPECIFIC_BSS_INFO_T prP2pSpecificBssInfo, OUT BOOL *ucNewSecMode)
+{
+	do {
+		UINT_8 ucOuiType;
+		UINT_16 u2SubTypeVersion;
+		if (rsnParseCheckForWFAInfoElem(prAdapter, pucIE, &ucOuiType, &u2SubTypeVersion)) {
+			if ((ucOuiType == VENDOR_OUI_TYPE_WPA) && (u2SubTypeVersion == VERSION_WPA)) {
+				kalP2PSetCipher(prAdapter->prGlueInfo, IW_AUTH_CIPHER_TKIP);
+				*ucNewSecMode = TRUE;
+				kalMemCopy(prP2pSpecificBssInfo->aucWpaIeBuffer, pucIE, IE_SIZE(pucIE));
+				prP2pSpecificBssInfo->u2WpaIeLen = IE_SIZE(pucIE);
+				DBGLOG(P2P, TRACE, ("WPA IE in supplicant\n"));
+			} else if ((ucOuiType == VENDOR_OUI_TYPE_WPS)) {
+				kalP2PUpdateWSC_IE(prAdapter->prGlueInfo, 0, pucIE, IE_SIZE(pucIE));
+				DBGLOG(P2P, TRACE, ("WPS IE in supplicant\n"));
+			} else if ((ucOuiType == VENDOR_OUI_TYPE_WMM)) {
+				DBGLOG(P2P, TRACE, ("WMM IE in supplicant\n"));
+			}
+			/* WMM here. */
+		} else
+		    if (p2pFuncParseCheckForP2PInfoElem
+			(prAdapter, pucIE, &ucOuiType)) {
+			/* TODO Store the whole P2P IE & generate later. */
+			/* Be aware that there may be one or more P2P IE. */
+			if (ucOuiType == VENDOR_OUI_TYPE_P2P) {
+				kalMemCopy(&prP2pSpecificBssInfo->aucAttributesCache[prP2pSpecificBssInfo->u2AttributeLen],
+					pucIE,
+					IE_SIZE(pucIE));
+				prP2pSpecificBssInfo->u2AttributeLen += IE_SIZE(pucIE);
+				DBGLOG(P2P, TRACE, ("P2P IE in supplicant\n"));
+			} else if (ucOuiType == VENDOR_OUI_TYPE_WFD) {
 
+				kalMemCopy(&prP2pSpecificBssInfo->aucAttributesCache[prP2pSpecificBssInfo->u2AttributeLen],
+					pucIE,
+					IE_SIZE(pucIE));
+
+				prP2pSpecificBssInfo->u2AttributeLen += IE_SIZE(pucIE);
+			} else {
+				DBGLOG(P2P, TRACE, ("Unknown 50-6F-9A-%d IE.\n", ucOuiType));
+			}
+		} else {
+			kalMemCopy(&prP2pSpecificBssInfo->aucAttributesCache[prP2pSpecificBssInfo->u2AttributeLen],
+				pucIE,
+				IE_SIZE(pucIE));
+
+			prP2pSpecificBssInfo->u2AttributeLen += IE_SIZE(pucIE);
+			DBGLOG(P2P, TRACE, ("Driver unprocessed Vender Specific IE\n"));
+			ASSERT(FALSE);
+		}
+	} while (0);
+}
 
 P_BSS_DESC_T
 p2pFuncKeepOnConnection(IN P_ADAPTER_T prAdapter,
@@ -2605,8 +2634,10 @@ p2pFuncGetAttriList(IN P_ADAPTER_T prAdapter,
 	UINT_16 u2Offset = 0;
 	P_IE_P2P_T prIe = (P_IE_P2P_T) NULL;
 	PUINT_8 pucAttriListStart = (PUINT_8) NULL;
-	UINT_16 u2AttriListLen = 0, u2BufferSize = 0;
+	UINT_16 u2AttriListLen = 0, u2BufferSize;
 	BOOLEAN fgBackupAttributes = FALSE;
+
+	u2BufferSize = 0;
 
 	do {
 		ASSERT_BREAK((prAdapter != NULL) &&
@@ -2648,107 +2679,10 @@ p2pFuncGetAttriList(IN P_ADAPTER_T prAdapter,
 				    (prIe->aucOui[1] == aucWfaOui[1]) &&
 				    (prIe->aucOui[2] == aucWfaOui[2]) &&
 				    (ucOuiType == prIe->ucOuiType)) {
-
-					if (!pucAttriListStart) {
-						pucAttriListStart = &prIe->aucP2PAttributes[0];
-						if (prIe->ucLength > P2P_OUI_TYPE_LEN) {
-							u2AttriListLen =
-							    (UINT_16) (prIe->ucLength -
-								       P2P_OUI_TYPE_LEN);
-						} else {
-							ASSERT(FALSE);
-						}
-					} else {
-/* More than 2 attributes. */
-						UINT_16 u2CopyLen;
-
-						if (FALSE == fgBackupAttributes) {
-							P_P2P_SPECIFIC_BSS_INFO_T
-							    prP2pSpecificBssInfo =
-							    prAdapter->rWifiVar.
-							    prP2pSpecificBssInfo;
-
-							fgBackupAttributes = TRUE;
-							if (ucOuiType == VENDOR_OUI_TYPE_P2P) {
-								kalMemCopy(&prP2pSpecificBssInfo->
-									   aucAttributesCache[0],
-									   pucAttriListStart,
-									   u2AttriListLen);
-
-								pucAttriListStart =
-								    &prP2pSpecificBssInfo->
-								    aucAttributesCache[0];
-
-								u2BufferSize =
-								    P2P_MAXIMUM_ATTRIBUTE_LEN;
-							} else if (ucOuiType == VENDOR_OUI_TYPE_WPS) {
-								kalMemCopy(&prP2pSpecificBssInfo->
-									   aucWscAttributesCache[0],
-									   pucAttriListStart,
-									   u2AttriListLen);
-								pucAttriListStart =
-								    &prP2pSpecificBssInfo->
-								    aucWscAttributesCache[0];
-
-								u2BufferSize =
-								    WPS_MAXIMUM_ATTRIBUTES_CACHE_SIZE;
-							}
-#if CFG_SUPPORT_WFD
-							else if (ucOuiType == VENDOR_OUI_TYPE_WFD) {
-								PUINT_8 pucTmpBuf = (PUINT_8) NULL;
-								pucTmpBuf =
-								    (PUINT_8)
-								    kalMemAlloc
-								    (WPS_MAXIMUM_ATTRIBUTES_CACHE_SIZE,
-								     VIR_MEM_TYPE);
-
-								if (pucTmpBuf != NULL) {
-									fgIsAllocMem = TRUE;
-								} else {
-									/* Can't alloca memory for WFD IE relocate. */
-									ASSERT(FALSE);
-									break;
-								}
-
-								kalMemCopy(pucTmpBuf,
-									   pucAttriListStart,
-									   u2AttriListLen);
-
-								pucAttriListStart = pucTmpBuf;
-
-								u2BufferSize =
-								    WPS_MAXIMUM_ATTRIBUTES_CACHE_SIZE;
-							}
-#endif
-							else {
-								fgBackupAttributes = FALSE;
-							}
-						}
-
-						u2CopyLen =
-						    (UINT_16) (prIe->ucLength - P2P_OUI_TYPE_LEN);
-
-						if ((u2AttriListLen + u2CopyLen) > u2BufferSize) {
-
-							u2CopyLen = u2BufferSize - u2AttriListLen;
-
-							DBGLOG(P2P, WARN,
-							       ("Length of received P2P attributes > maximum cache size.\n"));
-
-						}
-
-						if (u2CopyLen) {
-							kalMemCopy((PUINT_8)
-								   ((UINT_32) pucAttriListStart +
-								    (UINT_32) u2AttriListLen),
-								   &prIe->aucP2PAttributes[0],
-								   u2CopyLen);
-
-							u2AttriListLen += u2CopyLen;
-						}
-
-
-					}
+					p2pFuncGetAttriListAction(prAdapter,
+						prIe, ucOuiType,
+						&pucAttriListStart, &u2AttriListLen,
+						&fgIsAllocMem, &fgBackupAttributes, &u2BufferSize);
 				}	/* prIe->aucOui */
 			}	/* ELEM_ID_VENDOR */
 		}		/* IE_FOR_EACH */
@@ -2785,7 +2719,86 @@ p2pFuncGetAttriList(IN P_ADAPTER_T prAdapter,
 	return fgIsAllocMem;
 }				/* p2pFuncGetAttriList */
 
+/* Code refactoring for AOSP */
+static VOID
+p2pFuncGetAttriListAction(IN P_ADAPTER_T prAdapter,
+	IN P_IE_P2P_T prIe, IN UINT_8 ucOuiType,
+	OUT PUINT_8 *pucAttriListStart, OUT UINT_16 *u2AttriListLen,
+	OUT BOOLEAN *fgIsAllocMem, OUT BOOLEAN *fgBackupAttributes, OUT UINT_16 *u2BufferSize)
+{
+	do {
+		if (!(*pucAttriListStart)) {
+			*pucAttriListStart = &prIe->aucP2PAttributes[0];
+			if (prIe->ucLength > P2P_OUI_TYPE_LEN) {
+				*u2AttriListLen = (UINT_16) (prIe->ucLength - P2P_OUI_TYPE_LEN);
+			} else {
+				ASSERT(FALSE);
+			}
+		} else {
+			/* More than 2 attributes. */
+			UINT_16 u2CopyLen;
+			if (FALSE == *fgBackupAttributes) {
+				P_P2P_SPECIFIC_BSS_INFO_T prP2pSpecificBssInfo = prAdapter->rWifiVar.prP2pSpecificBssInfo;
 
+				*fgBackupAttributes = TRUE;
+				if (ucOuiType == VENDOR_OUI_TYPE_P2P) {
+					kalMemCopy(&prP2pSpecificBssInfo->aucAttributesCache[0],
+						   *pucAttriListStart,
+						   *u2AttriListLen);
+
+					*pucAttriListStart = &prP2pSpecificBssInfo->aucAttributesCache[0];
+					*u2BufferSize = P2P_MAXIMUM_ATTRIBUTE_LEN;
+				} else if (ucOuiType == VENDOR_OUI_TYPE_WPS) {
+					kalMemCopy(&prP2pSpecificBssInfo->aucWscAttributesCache[0],
+						   *pucAttriListStart,
+						   *u2AttriListLen);
+					*pucAttriListStart = &prP2pSpecificBssInfo->aucWscAttributesCache[0];
+					*u2BufferSize = WPS_MAXIMUM_ATTRIBUTES_CACHE_SIZE;
+				}
+#if CFG_SUPPORT_WFD
+				else if (ucOuiType == VENDOR_OUI_TYPE_WFD) {
+					PUINT_8 pucTmpBuf = (PUINT_8) NULL;
+					pucTmpBuf = (PUINT_8)kalMemAlloc
+					    (WPS_MAXIMUM_ATTRIBUTES_CACHE_SIZE,
+					     VIR_MEM_TYPE);
+
+					if (pucTmpBuf != NULL) {
+						*fgIsAllocMem = TRUE;
+					} else {
+						/* Can't alloca memory for WFD IE relocate. */
+						ASSERT(FALSE);
+						break;
+					}
+
+					kalMemCopy(pucTmpBuf,
+						   *pucAttriListStart,
+						   *u2AttriListLen);
+					*pucAttriListStart = pucTmpBuf;
+					*u2BufferSize = WPS_MAXIMUM_ATTRIBUTES_CACHE_SIZE;
+				}
+#endif
+				else {
+					*fgBackupAttributes = FALSE;
+				}
+			}
+			u2CopyLen = (UINT_16)(prIe->ucLength - P2P_OUI_TYPE_LEN);
+
+			if (((*u2AttriListLen) + u2CopyLen) > (*u2BufferSize)) {
+				u2CopyLen = (*u2BufferSize) - (*u2AttriListLen);
+				DBGLOG(P2P, WARN,
+				       ("Length of received P2P attributes > maximum cache size.\n"));
+			}
+
+			if (u2CopyLen) {
+				kalMemCopy((PUINT_8)((ULONG)(*pucAttriListStart) + (ULONG)(*u2AttriListLen)),
+					   &prIe->aucP2PAttributes[0],
+					   u2CopyLen);
+				*u2AttriListLen += u2CopyLen;
+			}
+
+		}
+	} while (0);
+}
 P_MSDU_INFO_T
 p2pFuncProcessP2pProbeRsp(IN P_ADAPTER_T prAdapter,
 			  IN UINT_8 ucBssIdx, IN P_MSDU_INFO_T prMgmtTxMsdu)
@@ -2808,7 +2821,7 @@ p2pFuncProcessP2pProbeRsp(IN P_ADAPTER_T prAdapter,
 
 		/* 3 Make sure this is probe response frame. */
 		prProbeRspFrame =
-		    (P_WLAN_PROBE_RSP_FRAME_T) ((UINT_32) prMgmtTxMsdu->prPacket +
+		    (P_WLAN_PROBE_RSP_FRAME_T) ((ULONG) prMgmtTxMsdu->prPacket +
 						MAC_TX_RESERVED_FIELD);
 		ASSERT_BREAK((prProbeRspFrame->u2FrameCtrl & MASK_FRAME_TYPE) ==
 			     MAC_FRAME_PROBE_RSP);
@@ -2830,122 +2843,16 @@ p2pFuncProcessP2pProbeRsp(IN P_ADAPTER_T prAdapter,
 			switch (IE_ID(pucIEBuf)) {
 			case ELEM_ID_SSID:
 				{
-					if (SSID_IE(pucIEBuf)->ucLength > 7) {
-						for (ucBssIdx = 0; ucBssIdx < MAX_BSS_INDEX;
-						     ucBssIdx++) {
-							prP2pBssInfo =
-							    GET_BSS_INFO_BY_INDEX(prAdapter,
-										  ucBssIdx);
-
-							if (!prP2pBssInfo) {
-								continue;
-							}
-
-							if (EQUAL_SSID(prP2pBssInfo->aucSSID,
-								       prP2pBssInfo->ucSSIDLen,
-								       SSID_IE(pucIEBuf)->aucSSID,
-								       SSID_IE(pucIEBuf)->
-								       ucLength)) {
-								break;
-							}
-						}
-
-						if (ucBssIdx == P2P_DEV_BSS_INDEX) {
-							prP2pBssInfo =
-							    GET_BSS_INFO_BY_INDEX(prAdapter,
-										  ucBssIdx);
-						}
-					}
-
-					COPY_SSID(prP2pBssInfo->aucSSID,
-						  prP2pBssInfo->ucSSIDLen,
-						  SSID_IE(pucIEBuf)->aucSSID,
-						  SSID_IE(pucIEBuf)->ucLength);
+					p2pFuncProcessP2pProbeRspAction(prAdapter, pucIEBuf, ELEM_ID_SSID,
+						&ucBssIdx, &prP2pBssInfo, &fgIsWSCIE,
+						&fgIsP2PIE, &fgIsWFDIE);
 				}
 				break;
 			case ELEM_ID_VENDOR:
 				{
-					UINT_8 ucOuiType = 0;
-					UINT_16 u2SubTypeVersion = 0;
-
-
-					if (rsnParseCheckForWFAInfoElem
-					    (prAdapter, pucIEBuf, &ucOuiType, &u2SubTypeVersion)) {
-						if (ucOuiType == VENDOR_OUI_TYPE_WPS) {
-							kalP2PUpdateWSC_IE(prAdapter->prGlueInfo, 2,
-									   pucIEBuf,
-									   IE_SIZE(pucIEBuf));
-							fgIsWSCIE = TRUE;
-						}
-
-					} else
-					    if (p2pFuncParseCheckForP2PInfoElem
-						(prAdapter, pucIEBuf, &ucOuiType)) {
-						if (ucOuiType == VENDOR_OUI_TYPE_P2P) {
-							/* 2 Note(frog): I use WSC IE buffer for Probe Request to store the P2P IE for Probe Response. */
-							kalP2PUpdateWSC_IE(prAdapter->prGlueInfo, 1,
-									   pucIEBuf,
-									   IE_SIZE(pucIEBuf));
-							fgIsP2PIE = TRUE;
-						}
-#if CFG_SUPPORT_WFD
-						else if (ucOuiType == VENDOR_OUI_TYPE_WFD) {
-							DBGLOG(P2P, INFO,
-							       ("WFD IE is found in probe resp. Len %u\n",
-								IE_SIZE(pucIEBuf)));
-							if ((sizeof
-							     (prAdapter->prGlueInfo->prP2PInfo->
-							      aucWFDIE)
-							     >= (prAdapter->prGlueInfo->prP2PInfo->
-								 u2WFDIELen + IE_SIZE(pucIEBuf)))) {
-								fgIsWFDIE = TRUE;
-								kalMemCopy(prAdapter->prGlueInfo->
-									   prP2PInfo->aucWFDIE,
-									   pucIEBuf,
-									   IE_SIZE(pucIEBuf));
-								prAdapter->prGlueInfo->prP2PInfo->
-								    u2WFDIELen += IE_SIZE(pucIEBuf);
-							}
-						}	/*  VENDOR_OUI_TYPE_WFD */
-#endif
-					} else {
-						DBGLOG(P2P, INFO,
-						       ("Other vender IE is found in probe resp. Len %u\n",
-							IE_SIZE(pucIEBuf)));
-#if 0
-
-						/* Copy other vender id from supplicant ? */
-						if ((prAdapter->prGlueInfo->prP2PInfo->
-						     u2VenderIELen + IE_SIZE(pucIEBuf)) < 512) {
-							kalMemCopy(prAdapter->prGlueInfo->
-								   prP2PInfo->aucVenderIE, pucIEBuf,
-								   IE_SIZE(pucIEBuf));
-							prAdapter->prGlueInfo->prP2PInfo->
-							    u2VenderIELen += IE_SIZE(pucIEBuf);
-						}
-#endif
-					}
-#if 0
-					/* Eddie May be WFD */
-					if (rsnParseCheckForWFAInfoElem
-					    (prAdapter, pucIEBuf, &ucOuiType, &u2SubTypeVersion)) {
-						if (ucOuiType == VENDOR_OUI_TYPE_WMM) {
-							break;
-						}
-
-					}
-					if ((prAdapter->prGlueInfo->prP2PInfo->u2VenderIELen +
-					     IE_SIZE(pucIEBuf)) < 1024) {
-						kalMemCopy(prAdapter->prGlueInfo->prP2PInfo->
-							   aucVenderIE +
-							   prAdapter->prGlueInfo->prP2PInfo->
-							   u2VenderIELen, pucIEBuf,
-							   IE_SIZE(pucIEBuf));
-						prAdapter->prGlueInfo->prP2PInfo->u2VenderIELen +=
-						    IE_SIZE(pucIEBuf);
-					}
-#endif
-
+					p2pFuncProcessP2pProbeRspAction(prAdapter, pucIEBuf, ELEM_ID_VENDOR,
+						&ucBssIdx, &prP2pBssInfo, &fgIsWSCIE,
+						&fgIsP2PIE, &fgIsWFDIE);
 				}
 				break;
 			default:
@@ -2991,6 +2898,7 @@ p2pFuncProcessP2pProbeRsp(IN P_ADAPTER_T prAdapter,
 
 		if (fgIsP2PIE) {
 			u2EstimatedExtraIELen += kalP2PCalWSC_IELen(prAdapter->prGlueInfo, 1);
+	    u2EstimatedExtraIELen += p2pFuncCalculateP2P_IE_NoA(prAdapter, ucBssIdx, NULL);
 		}
 #if CFG_SUPPORT_WFD
 		ASSERT(sizeof(prAdapter->prGlueInfo->prP2PInfo->aucWFDIE) >=
@@ -3004,8 +2912,8 @@ p2pFuncProcessP2pProbeRsp(IN P_ADAPTER_T prAdapter,
 #endif
 
 
-
-		if ((u2EstimateSize += u2EstimatedExtraIELen) > (prRetMsduInfo->u2FrameLength)) {
+		u2EstimateSize += u2EstimatedExtraIELen;
+		if ((u2EstimateSize) > (prRetMsduInfo->u2FrameLength)) {
 			prRetMsduInfo = cnmMgtPktAlloc(prAdapter, u2EstimateSize);
 
 			if (prRetMsduInfo == NULL) {
@@ -3022,7 +2930,7 @@ p2pFuncProcessP2pProbeRsp(IN P_ADAPTER_T prAdapter,
 
 		/* 3 Compose / Re-compose probe response frame. */
 		bssComposeBeaconProbeRespFrameHeaderAndFF((PUINT_8)
-							  ((UINT_32) (prRetMsduInfo->prPacket) +
+							  ((ULONG) (prRetMsduInfo->prPacket) +
 							   MAC_TX_RESERVED_FIELD),
 							  prProbeRspFrame->aucDestAddr,
 							  prProbeRspFrame->aucSrcAddr,
@@ -3048,8 +2956,8 @@ p2pFuncProcessP2pProbeRsp(IN P_ADAPTER_T prAdapter,
 		if (fgIsWSCIE) {
 			kalP2PGenWSC_IE(prAdapter->prGlueInfo,
 					2,
-					(PUINT_8) ((UINT_32) prRetMsduInfo->prPacket +
-						   (UINT_32) prRetMsduInfo->u2FrameLength));
+					(PUINT_8) ((ULONG) prRetMsduInfo->prPacket +
+						   (ULONG) prRetMsduInfo->u2FrameLength));
 
 			prRetMsduInfo->u2FrameLength +=
 			    (UINT_16) kalP2PCalWSC_IELen(prAdapter->prGlueInfo, 2);
@@ -3058,19 +2966,21 @@ p2pFuncProcessP2pProbeRsp(IN P_ADAPTER_T prAdapter,
 		if (fgIsP2PIE) {
 			kalP2PGenWSC_IE(prAdapter->prGlueInfo,
 					1,
-					(PUINT_8) ((UINT_32) prRetMsduInfo->prPacket +
-						   (UINT_32) prRetMsduInfo->u2FrameLength));
+					(PUINT_8) ((ULONG) prRetMsduInfo->prPacket +
+						   (ULONG) prRetMsduInfo->u2FrameLength));
 
 			prRetMsduInfo->u2FrameLength +=
 			    (UINT_16) kalP2PCalWSC_IELen(prAdapter->prGlueInfo, 1);
+			p2pFuncGenerateP2P_IE_NoA(prAdapter, prRetMsduInfo);
+
 		}
 #if CFG_SUPPORT_WFD
 
 		if (fgIsWFDIE > 0) {
 			ASSERT(prAdapter->prGlueInfo->prP2PInfo->u2WFDIELen > 0);
 			kalMemCopy((PUINT_8)
-				   ((UINT_32) prRetMsduInfo->prPacket +
-				    (UINT_32) prRetMsduInfo->u2FrameLength),
+				   ((ULONG) prRetMsduInfo->prPacket +
+				    (ULONG) prRetMsduInfo->u2FrameLength),
 				   prAdapter->prGlueInfo->prP2PInfo->aucWFDIE,
 				   prAdapter->prGlueInfo->prP2PInfo->u2WFDIELen);
 			prRetMsduInfo->u2FrameLength +=
@@ -3100,6 +3010,90 @@ p2pFuncProcessP2pProbeRsp(IN P_ADAPTER_T prAdapter,
 
 	return prRetMsduInfo;
 }				/* p2pFuncProcessP2pProbeRsp */
+
+/* Code refactoring for AOSP */
+static VOID
+p2pFuncProcessP2pProbeRspAction(IN P_ADAPTER_T prAdapter,
+		IN PUINT_8 pucIEBuf, IN UINT_8 ucElemIdType,
+		OUT UINT_8 *ucBssIdx, OUT P_BSS_INFO_T *prP2pBssInfo, OUT BOOLEAN *fgIsWSCIE,
+		OUT BOOLEAN *fgIsP2PIE, OUT BOOLEAN *fgIsWFDIE)
+{
+	switch (ucElemIdType) {
+	case ELEM_ID_SSID:
+		{
+			if (SSID_IE(pucIEBuf)->ucLength > 7) {
+				for ((*ucBssIdx) = 0; (*ucBssIdx) < MAX_BSS_INDEX; (*ucBssIdx)++) {
+					*prP2pBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, *ucBssIdx);
+					if (!(*prP2pBssInfo)) {
+						continue;
+					}
+					if (EQUAL_SSID((*prP2pBssInfo)->aucSSID,
+							(*prP2pBssInfo)->ucSSIDLen,
+							SSID_IE(pucIEBuf)->aucSSID,
+							SSID_IE(pucIEBuf)->ucLength)) {
+						break;
+					}
+				}
+				if ((*ucBssIdx) == P2P_DEV_BSS_INDEX) {
+					*prP2pBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, *ucBssIdx);
+				}
+			} else {
+				*prP2pBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter,
+							  P2P_DEV_BSS_INDEX);
+				COPY_SSID((*prP2pBssInfo)->aucSSID,
+					  (*prP2pBssInfo)->ucSSIDLen,
+					  SSID_IE(pucIEBuf)->aucSSID,
+					  SSID_IE(pucIEBuf)->ucLength);
+
+			}
+		}
+		break;
+	case ELEM_ID_VENDOR:
+		{
+			UINT_8 ucOuiType = 0;
+			UINT_16 u2SubTypeVersion = 0;
+
+			if (rsnParseCheckForWFAInfoElem
+			    (prAdapter, pucIEBuf, &ucOuiType, &u2SubTypeVersion)) {
+				if (ucOuiType == VENDOR_OUI_TYPE_WPS) {
+					kalP2PUpdateWSC_IE(prAdapter->prGlueInfo, 2,
+							   pucIEBuf,
+							   IE_SIZE(pucIEBuf));
+					*fgIsWSCIE = TRUE;
+				}
+
+			} else
+			    if (p2pFuncParseCheckForP2PInfoElem
+				(prAdapter, pucIEBuf, &ucOuiType)) {
+				if (ucOuiType == VENDOR_OUI_TYPE_P2P) {
+					/* 2 Note(frog): I use WSC IE buffer for Probe Request to store the P2P IE for Probe Response. */
+					kalP2PUpdateWSC_IE(prAdapter->prGlueInfo, 1,
+							   pucIEBuf,
+							   IE_SIZE(pucIEBuf));
+					*fgIsP2PIE = TRUE;
+				}
+#if CFG_SUPPORT_WFD
+				else if (ucOuiType == VENDOR_OUI_TYPE_WFD) {
+					DBGLOG(P2P, INFO, ("WFD IE is found in probe resp (supp). Len %u\n", IE_SIZE(pucIEBuf)));
+					if ((sizeof(prAdapter->prGlueInfo->prP2PInfo->aucWFDIE) >=
+						(prAdapter->prGlueInfo->prP2PInfo->u2WFDIELen + IE_SIZE(pucIEBuf)))) {
+						*fgIsWFDIE = TRUE;
+						kalMemCopy(prAdapter->prGlueInfo->prP2PInfo->aucWFDIE,
+							   pucIEBuf,
+							   IE_SIZE(pucIEBuf));
+						prAdapter->prGlueInfo->prP2PInfo->u2WFDIELen += IE_SIZE(pucIEBuf);
+					}
+				}	/*  VENDOR_OUI_TYPE_WFD */
+#endif
+			} else {
+				DBGLOG(P2P, INFO, ("Other vender IE is found in probe resp (supp). Len %u\n", IE_SIZE(pucIEBuf)));
+			}
+		}
+		break;
+	default:
+		break;
+	}
+}
 
 
 #if 0				/* LINUX_VERSION_CODE >= KERNEL_VERSION(3, 2, 0) */
@@ -3208,8 +3202,8 @@ VOID p2pFuncGenerateP2p_IEForBeacon(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T p
 		}
 
 		pucIEBuf =
-		    (PUINT_8) ((UINT_32) prMsduInfo->prPacket +
-			       (UINT_32) prMsduInfo->u2FrameLength);
+		    (PUINT_8) ((ULONG) prMsduInfo->prPacket +
+			       (ULONG) prMsduInfo->u2FrameLength);
 
 		kalMemCopy(pucIEBuf, prP2pSpeBssInfo->aucAttributesCache,
 			   prP2pSpeBssInfo->u2AttributeLen);
@@ -3258,8 +3252,8 @@ VOID p2pFuncGenerateWSC_IEForBeacon(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T p
 
 	u2IELen = (UINT_16) kalP2PCalWSC_IELen(prAdapter->prGlueInfo, 0);
 
-	pucBuffer = (PUINT_8) ((UINT_32) prMsduInfo->prPacket +
-			       (UINT_32) prMsduInfo->u2FrameLength);
+	pucBuffer = (PUINT_8) ((ULONG) prMsduInfo->prPacket +
+			       (ULONG) prMsduInfo->u2FrameLength);
 
 	ASSERT(pucBuffer);
 
@@ -3413,7 +3407,7 @@ p2pFuncGenerateP2P_IE(IN P_ADAPTER_T prAdapter,
 	do {
 		ASSERT_BREAK((prAdapter != NULL) && (pucBuf != NULL));
 
-		pucBuffer = (PUINT_8) ((UINT_32) pucBuf + (*pu2Offset));
+		pucBuffer = (PUINT_8) ((ULONG) pucBuf + (*pu2Offset));
 
 		ASSERT_BREAK(pucBuffer != NULL);
 
@@ -3452,11 +3446,11 @@ p2pFuncGenerateP2P_IE(IN P_ADAPTER_T prAdapter,
 					    (VENDOR_OUI_TYPE_LEN + P2P_MAXIMUM_ATTRIBUTE_LEN);
 
 					pucBuffer =
-					    (PUINT_8) ((UINT_32) prIeP2P +
+					    (PUINT_8) ((ULONG) prIeP2P +
 						       (VENDOR_OUI_TYPE_LEN +
 							P2P_MAXIMUM_ATTRIBUTE_LEN));
 
-					prIeP2P = (P_IE_P2P_T) ((UINT_32) prIeP2P +
+					prIeP2P = (P_IE_P2P_T) ((ULONG) prIeP2P +
 								(ELEM_HDR_LEN +
 								 (VENDOR_OUI_TYPE_LEN +
 								  P2P_MAXIMUM_ATTRIBUTE_LEN)));
@@ -3505,7 +3499,7 @@ p2pFuncAppendAttriStatusForAssocRsp(IN P_ADAPTER_T prAdapter,
 	}
 	/* TODO: For assoc request P2P IE check in driver & return status in P2P IE. */
 
-	pucBuffer = (PUINT_8) ((UINT_32) pucBuf + (UINT_32) (*pu2Offset));
+	pucBuffer = (PUINT_8) ((ULONG) pucBuf + (ULONG) (*pu2Offset));
 
 	ASSERT(pucBuffer);
 	prAttriStatus = (P_P2P_ATTRI_STATUS_T) pucBuffer;
@@ -3552,7 +3546,7 @@ p2pFuncAppendAttriExtListenTiming(IN P_ADAPTER_T prAdapter,
 
 	ASSERT(u2BufSize >= ((*pu2Offset) + (UINT_16) u4AttriLen));
 
-	pucBuffer = (PUINT_8) ((UINT_32) pucBuf + (UINT_32) (*pu2Offset));
+	pucBuffer = (PUINT_8) ((ULONG) pucBuf + (ULONG) (*pu2Offset));
 
 	ASSERT(pucBuffer);
 
@@ -3625,10 +3619,8 @@ p2pFuncGetSpecAttri(IN P_ADAPTER_T prAdapter,
 	P_IE_P2P_T prP2pIE = (P_IE_P2P_T) NULL;
 	P_ATTRIBUTE_HDR_T prTargetAttri = (P_ATTRIBUTE_HDR_T) NULL;
 	BOOLEAN fgIsMore = FALSE;
-	PUINT_8 pucIE = (PUINT_8) NULL, pucAttri = (PUINT_8) NULL;
-	UINT_16 u2OffsetAttri = 0;
+	PUINT_8 pucIE = (PUINT_8) NULL;
 	UINT_16 u2BufferLenLeft = 0;
-	UINT_8 aucWfaOui[] = VENDOR_OUI_WFA_SPECIFIC;
 
 
 	DBGLOG(P2P, INFO,
@@ -3648,110 +3640,19 @@ p2pFuncGetSpecAttri(IN P_ADAPTER_T prAdapter,
 								pucIE,
 								u2BufferLenLeft,
 								ELEM_ID_VENDOR, &fgIsMore);
-
 			if (prP2pIE) {
+				ASSERT((ULONG) prP2pIE >= (ULONG) pucIE);
+				u2BufferLenLeft = u2BufferLen - (UINT_16) (((ULONG) prP2pIE) - ((ULONG) pucIEBuf));
 
-				ASSERT((UINT_32) prP2pIE >= (UINT_32) pucIE);
-
-				u2BufferLenLeft =
-				    u2BufferLen - (UINT_16) (((UINT_32) prP2pIE) -
-							     ((UINT_32) pucIEBuf));
-
-				DBGLOG(P2P, INFO,
-				       ("Find vendor id %u len %u oui %u more %u LeftLen %u\n",
+				DBGLOG(P2P, INFO, ("Find vendor id %u len %u oui %u more %u LeftLen %u\n",
 					IE_ID(prP2pIE), IE_LEN(prP2pIE), prP2pIE->ucOuiType,
 					fgIsMore, u2BufferLenLeft));
 
 				if (IE_LEN(prP2pIE) > P2P_OUI_TYPE_LEN) {
-
-					if (prP2pIE->ucOuiType == ucOuiType) {
-						switch (ucOuiType) {
-						case VENDOR_OUI_TYPE_WPS:
-							aucWfaOui[0] = 0x00;
-							aucWfaOui[1] = 0x50;
-							aucWfaOui[2] = 0xF2;
-							break;
-						case VENDOR_OUI_TYPE_P2P:
-							break;
-						case VENDOR_OUI_TYPE_WPA:
-						case VENDOR_OUI_TYPE_WMM:
-						case VENDOR_OUI_TYPE_WFD:
-						default:
-							break;
-						}
-
-
-						if ((prP2pIE->aucOui[0] == aucWfaOui[0]) &&
-						    (prP2pIE->aucOui[1] == aucWfaOui[1]) &&
-						    (prP2pIE->aucOui[2] == aucWfaOui[2])) {
-
-							u2OffsetAttri = 0;
-							pucAttri = prP2pIE->aucP2PAttributes;
-
-							if (ucOuiType == VENDOR_OUI_TYPE_WPS) {
-								WSC_ATTRI_FOR_EACH(pucAttri,
-										   (IE_LEN(prP2pIE)
-										    -
-										    P2P_IE_OUI_HDR),
-										   u2OffsetAttri) {
-									/* LOG_FUNC("WSC: attri id=%u len=%u\n",WSC_ATTRI_ID(pucAttri), WSC_ATTRI_LEN(pucAttri)); */
-									if (WSC_ATTRI_ID(pucAttri)
-									    == ucAttriID) {
-										prTargetAttri =
-										    (P_ATTRIBUTE_HDR_T)
-										    pucAttri;
-										break;
-									}
-
-								}
-
-							} else if (ucOuiType == VENDOR_OUI_TYPE_P2P) {
-								P2P_ATTRI_FOR_EACH(pucAttri,
-										   (IE_LEN(prP2pIE)
-										    -
-										    P2P_IE_OUI_HDR),
-										   u2OffsetAttri) {
-									/* LOG_FUNC("P2P: attri id=%u len=%u\n",ATTRI_ID(pucAttri), ATTRI_LEN(pucAttri)); */
-									if (ATTRI_ID(pucAttri) ==
-									    ucAttriID) {
-										prTargetAttri =
-										    (P_ATTRIBUTE_HDR_T)
-										    pucAttri;
-										break;
-									}
-
-								}
-
-							}
-#if CFG_SUPPORT_WFD
-							else if (ucOuiType == VENDOR_OUI_TYPE_WFD) {
-								WFD_ATTRI_FOR_EACH(pucAttri,
-										   (IE_LEN(prP2pIE)
-										    -
-										    P2P_IE_OUI_HDR),
-										   u2OffsetAttri) {
-									/* DBGLOG(P2P, INFO, ("WFD: attri id=%u len=%u\n",WFD_ATTRI_ID(pucAttri), WFD_ATTRI_LEN(pucAttri))); */
-									if (ATTRI_ID(pucAttri) ==
-									    (UINT_8) ucAttriID) {
-										prTargetAttri =
-										    (P_ATTRIBUTE_HDR_T)
-										    pucAttri;
-										break;
-									}
-								}
-
-							}
-#endif
-							else {
-								/* Possible or else. */
-							}
-
-						}
-					}	/* ucOuiType */
+					p2pFuncGetSpecAttriAction(prP2pIE, ucOuiType, ucAttriID, &prTargetAttri);
 				}
 				/* P2P_OUI_TYPE_LEN */
-				pucIE = (PUINT_8) (((UINT_32) prP2pIE) + IE_SIZE(prP2pIE));
-
+				pucIE = (PUINT_8) (((ULONG) prP2pIE) + IE_SIZE(prP2pIE));
 			}
 			/* prP2pIE */
 		} while (prP2pIE && fgIsMore && u2BufferLenLeft);
@@ -3760,8 +3661,76 @@ p2pFuncGetSpecAttri(IN P_ADAPTER_T prAdapter,
 
 	return prTargetAttri;
 }
-
 /* p2pFuncGetSpecAttri */
+
+/* Code refactoring for AOSP */
+static VOID
+p2pFuncGetSpecAttriAction(IN P_IE_P2P_T prP2pIE,
+		IN UINT_8 ucOuiType, IN UINT_8 ucAttriID,
+		OUT P_ATTRIBUTE_HDR_T *prTargetAttri)
+{
+	PUINT_8 pucAttri = (PUINT_8) NULL;
+	UINT_16 u2OffsetAttri = 0;
+	UINT_8 aucWfaOui[] = VENDOR_OUI_WFA_SPECIFIC;
+	if (prP2pIE->ucOuiType == ucOuiType) {
+		switch (ucOuiType) {
+		case VENDOR_OUI_TYPE_WPS:
+			aucWfaOui[0] = 0x00;
+			aucWfaOui[1] = 0x50;
+			aucWfaOui[2] = 0xF2;
+			break;
+		case VENDOR_OUI_TYPE_P2P:
+			break;
+		case VENDOR_OUI_TYPE_WPA:
+		case VENDOR_OUI_TYPE_WMM:
+		case VENDOR_OUI_TYPE_WFD:
+		default:
+			break;
+		}
+
+
+		if ((prP2pIE->aucOui[0] == aucWfaOui[0]) &&
+		    (prP2pIE->aucOui[1] == aucWfaOui[1]) &&
+		    (prP2pIE->aucOui[2] == aucWfaOui[2])) {
+
+			u2OffsetAttri = 0;
+			pucAttri = prP2pIE->aucP2PAttributes;
+
+			if (ucOuiType == VENDOR_OUI_TYPE_WPS) {
+				WSC_ATTRI_FOR_EACH(pucAttri, (IE_LEN(prP2pIE) - P2P_IE_OUI_HDR), u2OffsetAttri) {
+					if (WSC_ATTRI_ID(pucAttri) == ucAttriID) {
+						*prTargetAttri = (P_ATTRIBUTE_HDR_T)pucAttri;
+						break;
+					}
+
+				}
+
+			} else if (ucOuiType == VENDOR_OUI_TYPE_P2P) {
+				P2P_ATTRI_FOR_EACH(pucAttri, (IE_LEN(prP2pIE) - P2P_IE_OUI_HDR), u2OffsetAttri) {
+					if (ATTRI_ID(pucAttri) == ucAttriID) {
+						*prTargetAttri = (P_ATTRIBUTE_HDR_T)pucAttri;
+						break;
+					}
+				}
+
+			}
+#if CFG_SUPPORT_WFD
+			else if (ucOuiType == VENDOR_OUI_TYPE_WFD) {
+				WFD_ATTRI_FOR_EACH(pucAttri, (IE_LEN(prP2pIE) - P2P_IE_OUI_HDR), u2OffsetAttri) {
+					if (ATTRI_ID(pucAttri) ==
+					    (UINT_8) ucAttriID) {
+						*prTargetAttri = (P_ATTRIBUTE_HDR_T)pucAttri;
+						break;
+					}
+				}
+			}
+#endif
+			else {
+				/* Possible or else. */
+			}
+		}
+	}	/* ucOuiType */
+}
 
 
 WLAN_STATUS
@@ -3868,7 +3837,7 @@ p2pFuncComposeBeaconProbeRspTemplate(IN P_ADAPTER_T prAdapter,
 		}
 
 
-		pucBuffer = (PUINT_8) ((UINT_32) (prMsduInfo->prPacket) + MAC_TX_RESERVED_FIELD);
+		pucBuffer = (PUINT_8) ((ULONG) (prMsduInfo->prPacket) + MAC_TX_RESERVED_FIELD);
 
 		kalMemCopy(pucBuffer, pucBcnBuffer, u4BcnBufLen);
 
@@ -3886,3 +3855,192 @@ p2pFuncComposeBeaconProbeRspTemplate(IN P_ADAPTER_T prAdapter,
 	return rWlanStatus;
 
 }				/* p2pFuncComposeBeaconTemplate */
+
+
+
+UINT_32
+wfdFuncCalculateWfdIELenForAssocRsp(IN P_ADAPTER_T prAdapter,
+				    IN UINT_8 ucBssIndex, IN P_STA_RECORD_T prStaRec)
+{
+
+#if CFG_SUPPORT_WFD_COMPOSE_IE
+	UINT_16 u2EstimatedExtraIELen = 0;
+	P_WFD_CFG_SETTINGS_T prWfdCfgSettings = (P_WFD_CFG_SETTINGS_T) NULL;
+	P_BSS_INFO_T prBssInfo = (P_BSS_INFO_T) NULL;
+
+	prBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, ucBssIndex);
+
+	if (prBssInfo->eNetworkType != NETWORK_TYPE_P2P) {
+		return 0;
+	}
+
+	prWfdCfgSettings = &(prAdapter->rWifiVar.rWfdConfigureSettings);
+
+	if (IS_STA_P2P_TYPE(prStaRec) && (prWfdCfgSettings->ucWfdEnable > 0)) {
+
+		u2EstimatedExtraIELen = prAdapter->prGlueInfo->prP2PInfo->u2WFDIELen;
+		ASSERT(u2EstimatedExtraIELen < 128);
+	}
+	return u2EstimatedExtraIELen;
+
+#else
+	return 0;
+#endif
+}				/* wfdFuncCalculateWfdIELenForAssocRsp */
+
+
+
+VOID wfdFuncGenerateWfdIEForAssocRsp(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T prMsduInfo)
+{
+
+#if CFG_SUPPORT_WFD_COMPOSE_IE
+	P_WFD_CFG_SETTINGS_T prWfdCfgSettings = (P_WFD_CFG_SETTINGS_T) NULL;
+	P_STA_RECORD_T prStaRec;
+	UINT_16 u2EstimatedExtraIELen;
+
+	prWfdCfgSettings = &(prAdapter->rWifiVar.rWfdConfigureSettings);
+
+	do {
+		ASSERT_BREAK((prMsduInfo != NULL) && (prAdapter != NULL));
+
+		prStaRec = cnmGetStaRecByIndex(prAdapter, prMsduInfo->ucStaRecIndex);
+
+		if (prStaRec) {
+			if (IS_STA_P2P_TYPE(prStaRec)) {
+
+				if (prWfdCfgSettings->ucWfdEnable > 0) {
+					u2EstimatedExtraIELen =
+					    prAdapter->prGlueInfo->prP2PInfo->u2WFDIELen;
+					if (u2EstimatedExtraIELen > 0) {
+						ASSERT(u2EstimatedExtraIELen < 128);
+						ASSERT(sizeof
+						       (prAdapter->prGlueInfo->prP2PInfo->
+							aucWFDIE) >=
+						       prAdapter->prGlueInfo->prP2PInfo->
+						       u2WFDIELen);
+						kalMemCopy((prMsduInfo->prPacket +
+							    prMsduInfo->u2FrameLength),
+							   prAdapter->prGlueInfo->prP2PInfo->
+							   aucWFDIE, u2EstimatedExtraIELen);
+						prMsduInfo->u2FrameLength += u2EstimatedExtraIELen;
+					}
+				}
+			}	/* IS_STA_P2P_TYPE */
+		} else {
+		}
+	} while (FALSE);
+
+	return;
+#else
+
+	return;
+#endif
+}				/* wfdFuncGenerateWfdIEForAssocRsp */
+VOID
+p2pFuncComposeNoaAttribute(
+    IN P_ADAPTER_T      prAdapter,
+    IN UINT_8           ucBssIndex,
+    OUT PUINT_8         aucNoaAttrArray,
+    OUT PUINT_32        pu4Len
+    )
+{
+    P_BSS_INFO_T prBssInfo = NULL;
+    P_P2P_ATTRI_NOA_T prNoaAttr = NULL;
+    P_P2P_SPECIFIC_BSS_INFO_T prP2pSpecificBssInfo = NULL;
+    P_NOA_DESCRIPTOR_T prNoaDesc = NULL;
+    UINT_32 u4NumOfNoaDesc = 0;
+    UINT_32 i = 0;
+
+    prBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, ucBssIndex);
+    prP2pSpecificBssInfo = prAdapter->rWifiVar.prP2pSpecificBssInfo;
+
+    prNoaAttr = (P_P2P_ATTRI_NOA_T)aucNoaAttrArray;
+
+    prNoaAttr->ucId = P2P_ATTRI_ID_NOTICE_OF_ABSENCE;
+    prNoaAttr->ucIndex = prP2pSpecificBssInfo->ucNoAIndex;
+
+    if (prP2pSpecificBssInfo->fgEnableOppPS) {
+	prNoaAttr->ucCTWOppPSParam = P2P_CTW_OPPPS_PARAM_OPPPS_FIELD |
+			(prP2pSpecificBssInfo->u2CTWindow & P2P_CTW_OPPPS_PARAM_CTWINDOW_MASK);
+    } else {
+	prNoaAttr->ucCTWOppPSParam = 0;
+    }
+
+    for (i = 0; i < prP2pSpecificBssInfo->ucNoATimingCount; i++) {
+	if (prP2pSpecificBssInfo->arNoATiming[i].fgIsInUse) {
+	    prNoaDesc = (P_NOA_DESCRIPTOR_T)&prNoaAttr->aucNoADesc[u4NumOfNoaDesc];
+
+	    prNoaDesc->ucCountType = prP2pSpecificBssInfo->arNoATiming[i].ucCount;
+	    prNoaDesc->u4Duration = prP2pSpecificBssInfo->arNoATiming[i].u4Duration;
+	    prNoaDesc->u4Interval = prP2pSpecificBssInfo->arNoATiming[i].u4Interval;
+	    prNoaDesc->u4StartTime = prP2pSpecificBssInfo->arNoATiming[i].u4StartTime;
+
+	    u4NumOfNoaDesc++;
+	}
+    }
+
+    /* include "index" + "OppPs Params" + "NOA descriptors" */
+    prNoaAttr->u2Length = 2 + u4NumOfNoaDesc * sizeof(NOA_DESCRIPTOR_T);
+
+    /* include "Attribute ID" + "Length" + "index" + "OppPs Params" + "NOA descriptors" */
+    *pu4Len = P2P_ATTRI_HDR_LEN + prNoaAttr->u2Length;
+}
+
+UINT_32
+p2pFuncCalculateP2P_IE_NoA(
+    IN P_ADAPTER_T prAdapter,
+    IN UINT_8 ucBssIdx,
+    IN P_STA_RECORD_T prStaRec
+    )
+{
+    P_P2P_SPECIFIC_BSS_INFO_T prP2pSpecificBssInfo = NULL;
+    UINT_8 ucIdx;
+    UINT_32 u4NumOfNoaDesc = 0;
+
+    if (p2pFuncIsAPMode(prAdapter->rWifiVar.prP2PConnSettings)) {
+	return 0;
+    }
+
+    prP2pSpecificBssInfo = prAdapter->rWifiVar.prP2pSpecificBssInfo;
+
+    for (ucIdx = 0; ucIdx < prP2pSpecificBssInfo->ucNoATimingCount; ucIdx++) {
+	if (prP2pSpecificBssInfo->arNoATiming[ucIdx].fgIsInUse) {
+	    u4NumOfNoaDesc++;
+	}
+    }
+
+    /* include "index" + "OppPs Params" + "NOA descriptors" */
+    /* include "Attribute ID" + "Length" + "index" + "OppPs Params" + "NOA descriptors" */
+    return (P2P_ATTRI_HDR_LEN + 2 + (u4NumOfNoaDesc * sizeof(NOA_DESCRIPTOR_T)));
+}
+
+VOID
+p2pFuncGenerateP2P_IE_NoA(
+    IN P_ADAPTER_T      prAdapter,
+    IN P_MSDU_INFO_T    prMsduInfo
+    )
+{
+    P_IE_P2P_T prIeP2P;
+    UINT_8 aucWfaOui[] = VENDOR_OUI_WFA_SPECIFIC;
+    UINT_32 u4AttributeLen;
+
+    if (p2pFuncIsAPMode(prAdapter->rWifiVar.prP2PConnSettings)) {
+	return;
+    }
+
+    prIeP2P = (P_IE_P2P_T)((ULONG)prMsduInfo->prPacket + (UINT_32)prMsduInfo->u2FrameLength);
+
+    prIeP2P->ucId = ELEM_ID_P2P;
+    prIeP2P->aucOui[0] = aucWfaOui[0];
+    prIeP2P->aucOui[1] = aucWfaOui[1];
+    prIeP2P->aucOui[2] = aucWfaOui[2];
+    prIeP2P->ucOuiType = VENDOR_OUI_TYPE_P2P;
+
+    /* Compose NoA attribute */
+    p2pFuncComposeNoaAttribute(prAdapter, prMsduInfo->ucBssIndex, prIeP2P->aucP2PAttributes, &u4AttributeLen);
+
+    prIeP2P->ucLength = VENDOR_OUI_TYPE_LEN + u4AttributeLen;
+
+    prMsduInfo->u2FrameLength += (ELEM_HDR_LEN + prIeP2P->ucLength);
+
+}

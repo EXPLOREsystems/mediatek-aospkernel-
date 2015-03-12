@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/os/linux/include/gl_cfg80211.h#1 $
 */
 
@@ -10,14 +24,17 @@
 
 /*
 ** $Log: gl_cfg80211.h $
-** 
+**
+** 07 11 2014 kh.hung
+** .
+**
 ** 09 03 2013 cp.wu
 ** add path for reassociation
-** 
+**
 ** 09 12 2012 wcpadmin
 ** [ALPS00276400] Remove MTK copyright and legal header on GPL/LGPL related packages
 ** .
-** 
+**
 ** 08 30 2012 chinglan.wang
 ** [ALPS00349664] [6577JB][WIFI] Phone can not connect to AP secured with AES via WPS in 802.11n Only
 ** .
@@ -64,17 +81,9 @@ typedef struct _NL80211_DRIVER_GET_STA_STATISTICS_PARAMS {
     UINT_32 u4Version;
     UINT_32 u4Flag;
     UINT_8 aucMacAddr[MAC_ADDR_LEN];
-}NL80211_DRIVER_GET_STA_STATISTICS_PARAMS, *P_NL80211_DRIVER_GET_STA_STATISTICS_PARAMS;
+} NL80211_DRIVER_GET_STA_STATISTICS_PARAMS, *P_NL80211_DRIVER_GET_STA_STATISTICS_PARAMS;
 
-typedef struct _NL80211_DRIVER_POORLINK_PARAMS {
-NL80211_DRIVER_TEST_MODE_PARAMS hdr;
-INT_8 cRssi; //cRssi=0 means it is a invalid value.
-UINT_8 ucLinkSpeed; //ucLinkSpeed=0 means it is a invalid value
-UINT_16 u2Reserved;
-} NL80211_DRIVER_POORLINK_PARAMS, *P_NL80211_DRIVER_POORLINK_PARAMS;
-
-
-typedef enum _ENUM_TESTMODE_STA_STATISTICS_ATTR{
+typedef enum _ENUM_TESTMODE_STA_STATISTICS_ATTR {
     NL80211_TESTMODE_STA_STATISTICS_INVALID = 0,
 	NL80211_TESTMODE_STA_STATISTICS_VERSION,
 	NL80211_TESTMODE_STA_STATISTICS_MAC,
@@ -85,11 +94,11 @@ typedef enum _ENUM_TESTMODE_STA_STATISTICS_ATTR{
     NL80211_TESTMODE_STA_STATISTICS_RSSI,
     NL80211_TESTMODE_STA_STATISTICS_PHY_MODE,
 	NL80211_TESTMODE_STA_STATISTICS_TX_RATE,
-	
+
 	NL80211_TESTMODE_STA_STATISTICS_TOTAL_CNT,
 	NL80211_TESTMODE_STA_STATISTICS_THRESHOLD_CNT,
 	NL80211_TESTMODE_STA_STATISTICS_AVG_PROCESS_TIME,
-	
+
 	NL80211_TESTMODE_STA_STATISTICS_FAIL_CNT,
 	NL80211_TESTMODE_STA_STATISTICS_TIMEOUT_CNT,
 	NL80211_TESTMODE_STA_STATISTICS_AVG_AIR_TIME,
@@ -101,52 +110,18 @@ typedef enum _ENUM_TESTMODE_STA_STATISTICS_ATTR{
     NL80211_TESTMODE_STA_STATISTICS_TC_CUR_QUE_LEN_ARRAY,
 
     NL80211_TESTMODE_STA_STATISTICS_RESERVED_ARRAY,
-    
+
     NL80211_TESTMODE_STA_STATISTICS_NUM
-}ENUM_TESTMODE_STA_STATISTICS_ATTR;
+} ENUM_TESTMODE_STA_STATISTICS_ATTR;
 typedef struct _NL80211_DRIVER_SET_NFC_PARAMS {
     NL80211_DRIVER_TEST_MODE_PARAMS hdr;
     UINT_32 NFC_Enable;
-
-}NL80211_DRIVER_SET_NFC_PARAMS, *P_NL80211_DRIVER_SET_NFC_PARAMS;
+} NL80211_DRIVER_SET_NFC_PARAMS, *P_NL80211_DRIVER_SET_NFC_PARAMS;
 typedef struct _NL80211_DRIVER_GET_SCANDONE_PARAMS {
     NL80211_DRIVER_TEST_MODE_PARAMS hdr;
     UINT_32 u4ScanDone;
+} NL80211_DRIVER_GET_SCANDONE_PARAMS, *P_NL80211_DRIVER_GET_SCANDONE_PARAMS;
 
-}NL80211_DRIVER_GET_SCANDONE_PARAMS, *P_NL80211_DRIVER_GET_SCANDONE_PARAMS;
-
-typedef enum _ENUM_TESTMODE_LINK_DETECTION_ATTR{
-	NL80211_TESTMODE_LINK_INVALID = 0,
-	NL80211_TESTMODE_LINK_TX_FAIL_CNT,
-	NL80211_TESTMODE_LINK_TX_RETRY_CNT,
-	NL80211_TESTMODE_LINK_TX_MULTI_RETRY_CNT,
-	NL80211_TESTMODE_LINK_ACK_FAIL_CNT,
-	NL80211_TESTMODE_LINK_FCS_ERR_CNT,
-    
-	NL80211_TESTMODE_LINK_DETECT_NUM,
-}ENUM_TESTMODE_LINK_DETECTION_ATTR;
-
-#if CFG_AUTO_CHANNEL_SEL_SUPPORT
-
-typedef struct _NL80211_DRIVER_GET_LTE_PARAMS {
-    NL80211_DRIVER_TEST_MODE_PARAMS hdr;
-    UINT_32 u4Version;
-    UINT_32 u4Flag;
-    
-}NL80211_DRIVER_GET_LTE_PARAMS, *P_NL80211_DRIVER_GET_LTE_PARAMS;
-
-typedef enum _ENUM_TESTMODE_AVAILABLE_CHAN_ATTR{
-	NL80211_TESTMODE_AVAILABLE_CHAN_INVALID = 0,
-	NL80211_TESTMODE_AVAILABLE_CHAN_2G_BASE_1,
-	NL80211_TESTMODE_AVAILABLE_CHAN_5G_BASE_34,
-	NL80211_TESTMODE_AVAILABLE_CHAN_5G_BASE_149,
-	NL80211_TESTMODE_AVAILABLE_CHAN_5G_BASE_184,
-    
-	NL80211_TESTMODE_AVAILABLE_CHAN_NUM,
-}ENUM_TESTMODE_AVAILABLE_CHAN_ATTR;
-
-
-#endif
 #endif
 /*******************************************************************************
 *                            P U B L I C   D A T A
@@ -168,8 +143,8 @@ typedef enum _ENUM_TESTMODE_AVAILABLE_CHAN_ATTR{
 ********************************************************************************
 */
 /* cfg80211 hooks */
-int 
-mtk_cfg80211_change_iface (
+int
+mtk_cfg80211_change_iface(
     struct wiphy *wiphy,
     struct net_device *ndev,
     enum nl80211_iftype type,
@@ -179,7 +154,7 @@ mtk_cfg80211_change_iface (
 
 
 int
-mtk_cfg80211_add_key (
+mtk_cfg80211_add_key(
     struct wiphy *wiphy,
     struct net_device *ndev,
     u8 key_index,
@@ -189,8 +164,8 @@ mtk_cfg80211_add_key (
     );
 
 
-int 
-mtk_cfg80211_get_key (
+int
+mtk_cfg80211_get_key(
     struct wiphy *wiphy,
     struct net_device *ndev,
     u8 key_index,
@@ -202,7 +177,7 @@ mtk_cfg80211_get_key (
 
 
 int
-mtk_cfg80211_del_key (
+mtk_cfg80211_del_key(
     struct wiphy *wiphy,
     struct net_device *ndev,
     u8 key_index,
@@ -211,8 +186,8 @@ mtk_cfg80211_del_key (
     );
 
 
-int 
-mtk_cfg80211_set_default_key (
+int
+mtk_cfg80211_set_default_key(
     struct wiphy *wiphy,
     struct net_device *ndev,
     u8 key_index,
@@ -221,18 +196,8 @@ mtk_cfg80211_set_default_key (
     );
 
 
-/* ++ TDLS */
 int
-mtk_cfg80211_set_default_mgmt_key(
-	struct wiphy *wiphy,
-	struct net_device *netdev,
-	u8 key_index
-);
-/* -- TDLS */
-
-
-int
-mtk_cfg80211_get_station (
+mtk_cfg80211_get_station(
     struct wiphy *wiphy,
     struct net_device *ndev,
     u8 *mac,
@@ -240,36 +205,10 @@ mtk_cfg80211_get_station (
     );
 
 
-/* ++ TDLS */
 int
-mtk_cfg80211_add_station (
+mtk_cfg80211_scan(
     struct wiphy *wiphy,
-    struct net_device *ndev,
-    u8 *mac,
-    struct station_parameters *params
-    );
-
-int
-mtk_cfg80211_change_station (
-    struct wiphy *wiphy,
-    struct net_device *ndev,
-    u8 *mac,
-    struct station_parameters *params
-    );
-
-int
-mtk_cfg80211_del_station (
-    struct wiphy *wiphy,
-    struct net_device *ndev,
-    u8 *mac
-    );
-/* -- TDLS */
-
-
-int 
-mtk_cfg80211_scan (
-    struct wiphy *wiphy,
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0)   
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0)
     struct net_device *ndev,
 #endif /* LINUX_VERSION_CODE */
     struct cfg80211_scan_request *request
@@ -277,15 +216,15 @@ mtk_cfg80211_scan (
 
 
 int
-mtk_cfg80211_connect (
+mtk_cfg80211_connect(
     struct wiphy *wiphy,
     struct net_device *ndev,
     struct cfg80211_connect_params *sme
     );
 
 
-int 
-mtk_cfg80211_disconnect (
+int
+mtk_cfg80211_disconnect(
     struct wiphy *wiphy,
     struct net_device *ndev,
     u16 reason_code
@@ -293,7 +232,7 @@ mtk_cfg80211_disconnect (
 
 
 int
-mtk_cfg80211_join_ibss (
+mtk_cfg80211_join_ibss(
     struct wiphy *wiphy,
     struct net_device *ndev,
     struct cfg80211_ibss_params *params
@@ -301,14 +240,14 @@ mtk_cfg80211_join_ibss (
 
 
 int
-mtk_cfg80211_leave_ibss (
+mtk_cfg80211_leave_ibss(
     struct wiphy *wiphy,
     struct net_device *ndev
     );
 
 
 int
-mtk_cfg80211_set_power_mgmt (
+mtk_cfg80211_set_power_mgmt(
     struct wiphy *wiphy,
     struct net_device *ndev,
     bool enabled,
@@ -317,7 +256,7 @@ mtk_cfg80211_set_power_mgmt (
 
 
 int
-mtk_cfg80211_set_pmksa (
+mtk_cfg80211_set_pmksa(
     struct wiphy *wiphy,
     struct net_device *ndev,
     struct cfg80211_pmksa *pmksa
@@ -325,7 +264,7 @@ mtk_cfg80211_set_pmksa (
 
 
 int
-mtk_cfg80211_del_pmksa (
+mtk_cfg80211_del_pmksa(
     struct wiphy *wiphy,
     struct net_device *ndev,
     struct cfg80211_pmksa *pmksa
@@ -333,22 +272,22 @@ mtk_cfg80211_del_pmksa (
 
 
 int
-mtk_cfg80211_flush_pmksa (
+mtk_cfg80211_flush_pmksa(
     struct wiphy *wiphy,
     struct net_device *ndev
     );
 
 
-int 
-mtk_cfg80211_remain_on_channel (
+int
+mtk_cfg80211_remain_on_channel(
     struct wiphy *wiphy,
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0)   
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0)
     struct net_device *ndev,
 #else
     struct wireless_dev *wdev,
 #endif /* LINUX_VERSION_CODE */
     struct ieee80211_channel *chan,
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0)   
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0)
     enum nl80211_channel_type channel_type,
 #endif /* LINUX_VERSION_CODE */
     unsigned int duration,
@@ -357,9 +296,9 @@ mtk_cfg80211_remain_on_channel (
 
 
 int
-mtk_cfg80211_cancel_remain_on_channel (
+mtk_cfg80211_cancel_remain_on_channel(
     struct wiphy *wiphy,
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0)   
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0)
     struct net_device *ndev,
 #else
     struct wireless_dev *wdev,
@@ -370,7 +309,7 @@ mtk_cfg80211_cancel_remain_on_channel (
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0)
 int
-mtk_cfg80211_mgmt_tx (
+mtk_cfg80211_mgmt_tx(
     struct wiphy *wiphy,
     struct net_device *ndev,
     struct ieee80211_channel *channel,
@@ -386,7 +325,7 @@ mtk_cfg80211_mgmt_tx (
     );
 #else
 int
-mtk_cfg80211_mgmt_tx (
+mtk_cfg80211_mgmt_tx(
     struct wiphy *wiphy,
     struct wireless_dev *wdev,
     struct ieee80211_channel *channel,
@@ -402,7 +341,7 @@ mtk_cfg80211_mgmt_tx (
 
 
 void
-mtk_cfg80211_mgmt_frame_register (
+mtk_cfg80211_mgmt_frame_register(
     IN struct wiphy *wiphy,
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0)
     IN struct net_device *dev,
@@ -415,7 +354,7 @@ mtk_cfg80211_mgmt_frame_register (
 
 
 int
-mtk_cfg80211_mgmt_tx_cancel_wait (
+mtk_cfg80211_mgmt_tx_cancel_wait(
     struct wiphy *wiphy,
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 8, 0)
     struct net_device *ndev,
@@ -426,34 +365,19 @@ mtk_cfg80211_mgmt_tx_cancel_wait (
     );
 
 int
-mtk_cfg80211_assoc (
+mtk_cfg80211_assoc(
     struct wiphy *wiphy,
     struct net_device *ndev,
     struct cfg80211_assoc_request *req
     );
 
 #if CONFIG_NL80211_TESTMODE
-#if CFG_AUTO_CHANNEL_SEL_SUPPORT
-WLAN_STATUS 
-wlanoidQueryACSChannelList (
-    IN P_ADAPTER_T  prAdapter,
-    IN PVOID        pvQueryBuffer,
-    IN UINT_32      u4QueryBufferLen,
-    OUT PUINT_32    pu4QueryInfoLen
-    );
 
-int
-mtk_cfg80211_testmode_get_lte_channel(
-    IN struct wiphy *wiphy,
-    IN void *data,
-    IN int len,
-    IN P_GLUE_INFO_T prGlueInfo);
-#endif
 int
 mtk_cfg80211_testmode_get_sta_statistics(
     IN struct wiphy *wiphy,
     IN void *data,
-    IN int len, 
+    IN int len,
     IN P_GLUE_INFO_T prGlueInfo
     );
 
@@ -461,7 +385,7 @@ int
 mtk_cfg80211_testmode_get_scan_done(
     IN struct wiphy *wiphy,
     IN void *data,
-    IN int len, 
+    IN int len,
     IN P_GLUE_INFO_T prGlueInfo
     );
 
@@ -515,4 +439,3 @@ mtk_p2p_cfg80211_testmode_sw_cmd(
 */
 
 #endif /* _GL_CFG80211_H */
-

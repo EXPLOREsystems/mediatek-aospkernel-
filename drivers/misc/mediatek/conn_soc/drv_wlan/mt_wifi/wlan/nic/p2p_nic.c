@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: @(#) p2p_nic.c@@
 */
 
@@ -74,7 +88,7 @@
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxAddP2pDevice (
+nicRxAddP2pDevice(
     IN P_ADAPTER_T  prAdapter,
     IN P_EVENT_P2P_DEV_DISCOVER_RESULT_T prP2pResult,
     IN PUINT_8 pucRxIEBuf,
@@ -95,109 +109,106 @@ nicRxAddP2pDevice (
     prP2pInfo = prAdapter->prP2pInfo;
 
     for (u4Idx = 0; u4Idx < prP2pInfo->u4DeviceNum; u4Idx++) {
-        prTargetResult = &prP2pInfo->arP2pDiscoverResult[u4Idx];
+	prTargetResult = &prP2pInfo->arP2pDiscoverResult[u4Idx];
 
-        if (EQUAL_MAC_ADDR(prTargetResult->aucDeviceAddr, prP2pResult->aucDeviceAddr)) {
-            bUpdate = TRUE;
+	if (EQUAL_MAC_ADDR(prTargetResult->aucDeviceAddr, prP2pResult->aucDeviceAddr)) {
+	    bUpdate = TRUE;
 
-            /* Backup OLD buffer result. */
-            pucIeBuf = prTargetResult->pucIeBuf;
-            u2IELength = prTargetResult->u2IELength;
+	    /* Backup OLD buffer result. */
+	    pucIeBuf = prTargetResult->pucIeBuf;
+	    u2IELength = prTargetResult->u2IELength;
 
-            /* Update Device Info. */
-            // zero
-            kalMemZero(prTargetResult, sizeof(EVENT_P2P_DEV_DISCOVER_RESULT_T));
+	    /* Update Device Info. */
+	    /* zero */
+	    kalMemZero(prTargetResult, sizeof(EVENT_P2P_DEV_DISCOVER_RESULT_T));
 
-            // then buffer
-            kalMemCopy(prTargetResult,
-                (PVOID)prP2pResult,
-                sizeof(EVENT_P2P_DEV_DISCOVER_RESULT_T));
+	    /* then buffer */
+	    kalMemCopy(prTargetResult,
+		(PVOID)prP2pResult,
+		sizeof(EVENT_P2P_DEV_DISCOVER_RESULT_T));
 
-            /* See if new IE length is longer or not. */
-            if ((u2RxIELength > u2IELength) && (u2IELength != 0)) {
-                /* Buffer is not enough. */
-                u2RxIELength = u2IELength;
-            }
-            else if ((u2IELength == 0) && (u2RxIELength != 0)) {
-                /* RX new IE buf. */
-                ASSERT(pucIeBuf == NULL);
-                pucIeBuf = prP2pInfo->pucCurrIePtr;
+	    /* See if new IE length is longer or not. */
+	    if ((u2RxIELength > u2IELength) && (u2IELength != 0)) {
+		/* Buffer is not enough. */
+		u2RxIELength = u2IELength;
+	    }
+	    else if ((u2IELength == 0) && (u2RxIELength != 0)) {
+		/* RX new IE buf. */
+		ASSERT(pucIeBuf == NULL);
+		pucIeBuf = prP2pInfo->pucCurrIePtr;
 
-                if (((UINT_32)prP2pInfo->pucCurrIePtr + (UINT_32)u2RxIELength) >
-                        (UINT_32)&prP2pInfo->aucCommIePool[CFG_MAX_COMMON_IE_BUF_LEN]) {
-                    /* Common Buffer is no enough. */
-                    u2RxIELength = (UINT_16)((UINT_32)&prP2pInfo->aucCommIePool[CFG_MAX_COMMON_IE_BUF_LEN] - (UINT_32)prP2pInfo->pucCurrIePtr);
-                }
+		if (((UINT_32)prP2pInfo->pucCurrIePtr + (UINT_32)u2RxIELength) >
+			(UINT_32)&prP2pInfo->aucCommIePool[CFG_MAX_COMMON_IE_BUF_LEN]) {
+		    /* Common Buffer is no enough. */
+		    u2RxIELength = (UINT_16)((UINT_32)&prP2pInfo->aucCommIePool[CFG_MAX_COMMON_IE_BUF_LEN] - (UINT_32)prP2pInfo->pucCurrIePtr);
+		}
 
-                /* Step to next buffer address. */
-                prP2pInfo->pucCurrIePtr = (PUINT_8)((UINT_32)prP2pInfo->pucCurrIePtr + (UINT_32)u2RxIELength);
-            }
+		/* Step to next buffer address. */
+		prP2pInfo->pucCurrIePtr = (PUINT_8)((UINT_32)prP2pInfo->pucCurrIePtr + (UINT_32)u2RxIELength);
+	    }
 
-            /* Restore buffer pointer. */
-            prTargetResult->pucIeBuf = pucIeBuf;
+	    /* Restore buffer pointer. */
+	    prTargetResult->pucIeBuf = pucIeBuf;
 
-            if (pucRxIEBuf) {
-                /* If new received IE is availabe.
-                  * Replace the old one & update new IE length.
-                  */
-                kalMemCopy(pucIeBuf, pucRxIEBuf, u2RxIELength);
-                prTargetResult->u2IELength = u2RxIELength;
-            }
-            else {
-                /* There is no new IE information, keep the old one. */
-                prTargetResult->u2IELength = u2IELength;
-            }
-        }
+	    if (pucRxIEBuf) {
+		/* If new received IE is availabe.
+		  * Replace the old one & update new IE length.
+		  */
+		kalMemCopy(pucIeBuf, pucRxIEBuf, u2RxIELength);
+		prTargetResult->u2IELength = u2RxIELength;
+	    }
+	    else {
+		/* There is no new IE information, keep the old one. */
+		prTargetResult->u2IELength = u2IELength;
+	    }
+	}
     }
 
     if (!bUpdate) {
-        /* We would flush the whole scan result after each scan request is issued.
-          * If P2P device is too many, it may over the scan list.
-          */
-        if ((u4Idx < CFG_MAX_NUM_BSS_LIST) && (UNEQUAL_MAC_ADDR(zeroMac, prP2pResult->aucDeviceAddr))) { /* whsu:XXX */
-            prTargetResult = &prP2pInfo->arP2pDiscoverResult[u4Idx];
+	/* We would flush the whole scan result after each scan request is issued.
+	  * If P2P device is too many, it may over the scan list.
+	  */
+	if ((u4Idx < CFG_MAX_NUM_BSS_LIST) && (UNEQUAL_MAC_ADDR(zeroMac, prP2pResult->aucDeviceAddr))) { /* whsu:XXX */
+	    prTargetResult = &prP2pInfo->arP2pDiscoverResult[u4Idx];
 
-            // zero
-            kalMemZero(prTargetResult, sizeof(EVENT_P2P_DEV_DISCOVER_RESULT_T));
+	    /* zero */
+	    kalMemZero(prTargetResult, sizeof(EVENT_P2P_DEV_DISCOVER_RESULT_T));
 
-            // then buffer
-            kalMemCopy(prTargetResult,
-                (PVOID)prP2pResult,
-                sizeof(EVENT_P2P_DEV_DISCOVER_RESULT_T));
+	    /* then buffer */
+	    kalMemCopy(prTargetResult,
+		(PVOID)prP2pResult,
+		sizeof(EVENT_P2P_DEV_DISCOVER_RESULT_T));
 
-            //printk("DVC FND %d " MACSTR", " MACSTR "\n", prP2pInfo->u4DeviceNum, MAC2STR(prP2pResult->aucDeviceAddr), MAC2STR(prTargetResult->aucDeviceAddr));
+	    /* printk("DVC FND %d " MACSTR", " MACSTR "\n", prP2pInfo->u4DeviceNum, MAC2STR(prP2pResult->aucDeviceAddr), MAC2STR(prTargetResult->aucDeviceAddr)); */
 
-            if (u2RxIELength) {
-                prTargetResult->pucIeBuf = prP2pInfo->pucCurrIePtr;
+	    if (u2RxIELength) {
+		prTargetResult->pucIeBuf = prP2pInfo->pucCurrIePtr;
 
-                if (((UINT_32)prP2pInfo->pucCurrIePtr + (UINT_32)u2RxIELength) >
-                        (UINT_32)&prP2pInfo->aucCommIePool[CFG_MAX_COMMON_IE_BUF_LEN]) {
-                    /* Common Buffer is no enough. */
-                    u2IELength = (UINT_16)((UINT_32)&prP2pInfo->aucCommIePool[CFG_MAX_COMMON_IE_BUF_LEN] - (UINT_32)prP2pInfo->pucCurrIePtr);
-                }
-                else {
-                    u2IELength = u2RxIELength;
-                }
+		if (((UINT_32)prP2pInfo->pucCurrIePtr + (UINT_32)u2RxIELength) >
+			(UINT_32)&prP2pInfo->aucCommIePool[CFG_MAX_COMMON_IE_BUF_LEN]) {
+		    /* Common Buffer is no enough. */
+		    u2IELength = (UINT_16)((UINT_32)&prP2pInfo->aucCommIePool[CFG_MAX_COMMON_IE_BUF_LEN] - (UINT_32)prP2pInfo->pucCurrIePtr);
+		}
+		else {
+		    u2IELength = u2RxIELength;
+		}
 
-                prP2pInfo->pucCurrIePtr = (PUINT_8)((UINT_32)prP2pInfo->pucCurrIePtr + (UINT_32)u2IELength);
+		prP2pInfo->pucCurrIePtr = (PUINT_8)((UINT_32)prP2pInfo->pucCurrIePtr + (UINT_32)u2IELength);
 
-                kalMemCopy((PVOID)prTargetResult->pucIeBuf, (PVOID)pucRxIEBuf, (UINT_32)u2IELength);
-                prTargetResult->u2IELength = u2IELength;
-            }
-            else {
-                prTargetResult->pucIeBuf = NULL;
-                prTargetResult->u2IELength = 0;
-            }
+		kalMemCopy((PVOID)prTargetResult->pucIeBuf, (PVOID)pucRxIEBuf, (UINT_32)u2IELength);
+		prTargetResult->u2IELength = u2IELength;
+	    }
+	    else {
+		prTargetResult->pucIeBuf = NULL;
+		prTargetResult->u2IELength = 0;
+	    }
 
-            prP2pInfo->u4DeviceNum++;
+	    prP2pInfo->u4DeviceNum++;
 
-        }
-        else {
-            // TODO: Fixme to replace an old one. (?)
-            ASSERT(FALSE);
-        }
+	}
+	else {
+	    /* TODO: Fixme to replace an old one. (?) */
+	    ASSERT(FALSE);
+	}
     }
 } /* nicRxAddP2pDevice */
-
-
-

@@ -1,10 +1,24 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/TRUNK/MT6620_5931_WiFi_Driver/include/mgmt/wnm.h#1 $
 */
 
 /*! \file  wnm.h
     \brief This file contains the IEEE 802.11 family related 802.11v network management
-           for MediaTek 802.11 Wireless LAN Adapters.
+	   for MediaTek 802.11 Wireless LAN Adapters.
 */
 
 
@@ -44,11 +58,11 @@
 
 typedef struct _TIMINGMSMT_PARAM_T {
 	  BOOLEAN     fgInitiator;
-	  UINT_8      ucTrigger;	  
+	  UINT_8      ucTrigger;
     UINT_8      ucDialogToken;              /* Dialog Token */
     UINT_8      ucFollowUpDialogToken;      /* Follow Up Dialog Token */
     UINT_32     u4ToD;                      /* Timestamp of Departure [10ns] */
-    UINT_32     u4ToA;                      /* Timestamp of Arrival [10ns] */    
+    UINT_32     u4ToA;                      /* Timestamp of Arrival [10ns] */
 } TIMINGMSMT_PARAM_T, *P_TIMINGMSMT_PARAM_T;
 
 /*******************************************************************************
@@ -72,13 +86,13 @@ typedef struct _TIMINGMSMT_PARAM_T {
 */
 
 VOID
-wnmWNMAction (
+wnmWNMAction(
     IN P_ADAPTER_T                  prAdapter,
     IN P_SW_RFB_T                   prSwRfb
     );
 
 VOID
-wnmReportTimingMeas (
+wnmReportTimingMeas(
     IN P_ADAPTER_T         prAdapter,
     IN UINT_8              ucStaRecIndex,
     IN UINT_32             u4ToD,
@@ -97,4 +111,3 @@ VOID wnmTimingMeasUnitTest1(P_ADAPTER_T prAdapter, UINT_8 ucStaRecIndex);
 */
 
 #endif /* _WNM_H */
-

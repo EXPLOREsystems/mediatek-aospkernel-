@@ -1,7 +1,6 @@
 #ifndef __MTK_UART_H__
 #define __MTK_UART_H__
 
-#include <mach/hardware.h>
 #ifndef CONFIG_OF
 #include <mach/mt_reg_base.h>
 #endif

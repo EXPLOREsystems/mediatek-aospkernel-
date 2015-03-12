@@ -15,6 +15,14 @@
 /*
 ** $Log: privacy.c $
 **
+** 07 16 2014 eason.tsai
+** [ALPS01070904] [Need Patch] [Volunteer Patch]
+** .
+**
+** 07 16 2014 eason.tsai
+** [ALPS01070904] [Need Patch] [Volunteer Patch]
+** fix ap assert after 32 times connect-disconnct
+**
 ** 08 19 2013 wh.su
 ** [BORA00002446] [MT6630] [Wi-Fi] [Driver] Update the security function code
 ** .Adjust some debug message, refine the wlan table assign for bss
@@ -286,12 +294,12 @@ VOID secInit(IN P_ADAPTER_T prAdapter, IN UINT_8 ucBssIndex)
 
 	cnmTimerInitTimer(prAdapter,
 			  &prAisSpecBssInfo->rPreauthenticationTimer,
-			  (PFN_MGMT_TIMEOUT_FUNC) rsnIndicatePmkidCand, (UINT_32) NULL);
+			  (PFN_MGMT_TIMEOUT_FUNC) rsnIndicatePmkidCand, (ULONG) NULL);
 
 #if CFG_SUPPORT_802_11W
 	cnmTimerInitTimer(prAdapter,
 			  &prAisSpecBssInfo->rSaQueryTimer,
-			  (PFN_MGMT_TIMEOUT_FUNC) rsnStartSaQueryTimer, (UINT_32) NULL);
+			  (PFN_MGMT_TIMEOUT_FUNC) rsnStartSaQueryTimer, (ULONG) NULL);
 #endif
 
 	prAisSpecBssInfo->fgCounterMeasure = FALSE;
@@ -342,6 +350,7 @@ BOOL secCheckClassError(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb, IN P_ST
 
 		/* if (IS_NET_ACTIVE(prAdapter, ucBssIndex)) { */
 		authSendDeauthFrame(prAdapter,
+				    NULL,
 				    NULL,
 				    prSwRfb, REASON_CODE_CLASS_3_ERR, (PFN_TX_DONE_HANDLER) NULL);
 		return FALSE;
@@ -821,7 +830,7 @@ UINT_8 secGetBmcWlanIndex(IN P_ADAPTER_T prAdapter,
 			prAdapter->aprBssInfo[ucBssIndex]->ucBMCWlanIndex = ucEntry;
 		}
 
-		DBGLOG(RSN, TRACE,
+		DBGLOG(RSN, INFO,
 		       ("[Wlan index] secGetBmcWlanIndex = %d\n",
 			prAdapter->aprBssInfo[ucBssIndex]->ucBMCWlanIndex));
 		return prAdapter->aprBssInfo[ucBssIndex]->ucBMCWlanIndex;
@@ -941,7 +950,7 @@ BOOL secPrivacySeekForEntry(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T prSta)
 
 		prSta->ucWlanIndex = ucEntry;
 
-		DBGLOG(RSN, TRACE,
+		DBGLOG(RSN, INFO,
 		       ("[Wlan index] BSS#%d keyid#%d P=%d use WlanIndex#%d STAIdx=%d " MACSTR
 			" staType=%x\n", prSta->ucBssIndex, 0, prWtbl[ucEntry].ucPairwise, ucEntry,
 			prSta->ucIndex, MAC2STR(prSta->aucMacAddr), prSta->eStaType));
@@ -1037,14 +1046,15 @@ VOID secPrivacyFreeSta(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T prStaRec)
 	prStaRec->ucWlanIndex = WTBL_RESERVED_ENTRY;
 	prStaRec->ucBMCWlanIndex = WTBL_RESERVED_ENTRY;
 
-	if ((IS_ADHOC_STA(prStaRec)
-	     || IS_STA_IN_AIS(prStaRec)) /*  && prStaRec->ucBMCWlanIndex < WTBL_SIZE */) {
+	/* if ((IS_ADHOC_STA(prStaRec) || IS_STA_IN_AIS(prStaRec))  *//*  && prStaRec->ucBMCWlanIndex < WTBL_SIZE *//*) { */
+	/* the hotspot mode would be assert after connect-disconnect field try WTBL_SIZE times */
+	if (TRUE) {
 		for (entry = 0; entry < WTBL_SIZE; entry++) {
 			if (prWtbl[entry].ucUsed
 			    && EQUAL_MAC_ADDR(prStaRec->aucMacAddr, prWtbl[entry].aucMacAddr)) {
 				secPrivacyFreeForEntry(prAdapter, entry);
-#if DBG
-				DBGLOG(RSN, TRACE, ("Free the STA entry (%lu)!\n", entry));
+#if 1				/* DBG */
+				DBGLOG(RSN, INFO, ("Free the STA entry (%lu)!\n", entry));
 #endif
 			}
 		}

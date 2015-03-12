@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/pwr_mgt.h#1 $
 */
 
@@ -16,25 +30,25 @@
 ** $Log: pwr_mgt.h $
  *
  * 07 09 2010 george.huang
- * 
+ *
  * [WPD00001556] Migrate PM variables from FW to driver: for composing QoS Info
  *
  * 07 08 2010 cp.wu
- * 
+ *
  * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
  *
  * 06 06 2010 kevin.huang
- * [WPD00003832][MT6620 5931] Create driver base 
+ * [WPD00003832][MT6620 5931] Create driver base
  * [MT6620 5931] Create driver base
  *
  * 04 20 2010 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP 
- * don't need SPIN_LOCK_PWR_CTRL anymore, it will raise IRQL 
+ * [WPD00001943]Create WiFi test driver framework on WinXP
+ * don't need SPIN_LOCK_PWR_CTRL anymore, it will raise IRQL
  * and cause SdBusSubmitRequest running at DISPATCH_LEVEL as well.
 
  *
  * 03 25 2010 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP 
+ * [WPD00001943]Create WiFi test driver framework on WinXP
  * firmware download load adress & start address are now configured from config.h
  *  *  * due to the different configurations on FPGA and ASIC
 **  \main\maintrunk.MT6620WiFiDriver_Prj\7 2009-12-10 16:39:10 GMT mtk02752
@@ -89,7 +103,7 @@ typedef struct _PM_PROFILE_SETUP_INFO_T {
     UINT_8                  ucBmpTriggerAC;        /* 0: AC_BE, 1: AC_BK, 2: AC_VI, 3: AC_VO */
 
     UINT_8      ucUapsdSp;          /* Number of triggered packets in UAPSD */
-    
+
 } PM_PROFILE_SETUP_INFO_T, *P_PM_PROFILE_SETUP_INFO_T;
 
 
@@ -114,21 +128,21 @@ typedef struct _PM_PROFILE_SETUP_INFO_T {
 #else
     #define ACQUIRE_POWER_CONTROL_FROM_PM(_prAdapter) \
     { \
-        if (_prAdapter->fgIsFwOwn) { \
-            nicpmSetDriverOwn(_prAdapter); \
-        } \
-        /* Increase Block to Enter Low Power Semaphore count */ \
-        GLUE_INC_REF_CNT(_prAdapter->u4PwrCtrlBlockCnt); \
+	if (_prAdapter->fgIsFwOwn) { \
+	    nicpmSetDriverOwn(_prAdapter); \
+	} \
+	/* Increase Block to Enter Low Power Semaphore count */ \
+	GLUE_INC_REF_CNT(_prAdapter->u4PwrCtrlBlockCnt); \
     }
 
     #define RECLAIM_POWER_CONTROL_TO_PM(_prAdapter, _fgEnableGINT_in_IST) \
     { \
-        ASSERT(_prAdapter->u4PwrCtrlBlockCnt != 0); \
-        /* Decrease Block to Enter Low Power Semaphore count */ \
-        GLUE_DEC_REF_CNT(_prAdapter->u4PwrCtrlBlockCnt); \
-        if (_prAdapter->fgWiFiInSleepyState && (_prAdapter->u4PwrCtrlBlockCnt == 0)) { \
-            nicpmSetFWOwn(_prAdapter, _fgEnableGINT_in_IST); \
-        } \
+	ASSERT(_prAdapter->u4PwrCtrlBlockCnt != 0); \
+	/* Decrease Block to Enter Low Power Semaphore count */ \
+	GLUE_DEC_REF_CNT(_prAdapter->u4PwrCtrlBlockCnt); \
+	if (_prAdapter->fgWiFiInSleepyState && (_prAdapter->u4PwrCtrlBlockCnt == 0)) { \
+	    nicpmSetFWOwn(_prAdapter, _fgEnableGINT_in_IST); \
+	} \
     }
 #endif
 
@@ -144,4 +158,3 @@ typedef struct _PM_PROFILE_SETUP_INFO_T {
 */
 
 #endif /* _PWR_MGT_H */
-

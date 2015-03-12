@@ -1,3 +1,17 @@
+/*
+* Copyright (C) 2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/xlog.h>
@@ -5,7 +19,6 @@
 #include <linux/kobject.h>
 
 #include "mach/mtk_thermal_monitor.h"
-#include <mach/system.h>
 
 #if 0
 #define mtk_cooler_spkrvol_dprintk(fmt, args...) \
@@ -88,7 +101,7 @@ static int mtk_cooler_spkrvol_register_ltf(void)
 
 #if 0
 	cl_spkrvol_dev = mtk_thermal_cooling_device_register("mtk-cl-spkrvol",
-							     NULL, &mtk_cl_spkrvol_ops);
+								 NULL, &mtk_cl_spkrvol_ops);
 #endif
 
 	return 0;

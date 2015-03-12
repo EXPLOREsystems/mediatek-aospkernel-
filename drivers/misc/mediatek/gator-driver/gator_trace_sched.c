@@ -26,8 +26,8 @@ enum {
 static DEFINE_PER_CPU(uint64_t *, taskname_keys);
 static DEFINE_PER_CPU(int, collecting);
 
-// this array is never read as the cpu wait charts are derived counters
-// the files are needed, nonetheless, to show that these counters are available
+/* this array is never read as the cpu wait charts are derived counters */
+/* the files are needed, nonetheless, to show that these counters are available */
 static ulong cpu_wait_enabled[CPU_WAIT_TOTAL];
 static ulong sched_cpu_key[CPU_WAIT_TOTAL];
 
@@ -35,7 +35,7 @@ static int sched_trace_create_files(struct super_block *sb, struct dentry *root)
 {
 	struct dentry *dir;
 
-	// CPU Wait - Contention
+	/* CPU Wait - Contention */
 	dir = gatorfs_mkdir(sb, root, "Linux_cpu_wait_contention");
 	if (!dir) {
 		return -1;
@@ -43,7 +43,7 @@ static int sched_trace_create_files(struct super_block *sb, struct dentry *root)
 	gatorfs_create_ulong(sb, dir, "enabled", &cpu_wait_enabled[STATE_CONTENTION]);
 	gatorfs_create_ro_ulong(sb, dir, "key", &sched_cpu_key[STATE_CONTENTION]);
 
-	// CPU Wait - I/O
+	/* CPU Wait - I/O */
 	dir = gatorfs_mkdir(sb, root, "Linux_cpu_wait_io");
 	if (!dir) {
 		return -1;
@@ -65,7 +65,7 @@ void emit_pid_name(struct task_struct *task)
 	value = gator_chksum_crc32(task->comm);
 	value = (value << 32) | (uint32_t)task->pid;
 
-	// determine if the thread name was emitted already
+	/* determine if the thread name was emitted already */
 	for (x = 0; x < TASK_MAX_COLLISIONS; x++) {
 		if (keys[x] == value) {
 			found = true;
@@ -74,7 +74,7 @@ void emit_pid_name(struct task_struct *task)
 	}
 
 	if (!found) {
-		// shift values, new value always in front
+		/* shift values, new value always in front */
 		uint64_t oldv, newv = value;
 		for (x = 0; x < TASK_MAX_COLLISIONS; x++) {
 			oldv = keys[x];
@@ -82,9 +82,9 @@ void emit_pid_name(struct task_struct *task)
 			newv = oldv;
 		}
 
-		// emit pid names, cannot use get_task_comm, as it's not exported on all kernel versions
+		/* emit pid names, cannot use get_task_comm, as it's not exported on all kernel versions */
 		if (strlcpy(taskcomm, task->comm, TASK_COMM_LEN) == TASK_COMM_LEN - 1) {
-			// append ellipses if task->comm has length of TASK_COMM_LEN - 1
+			/* append ellipses if task->comm has length of TASK_COMM_LEN - 1 */
 			strcat(taskcomm, "...");
 		}
 
@@ -110,11 +110,11 @@ static void collect_counters(void)
 				marshal_event64(len, buffer64);
 			}
 		}
-		// Only check after writing all counters so that time and corresponding counters appear in the same frame
+		/* Only check after writing all counters so that time and corresponding counters appear in the same frame */
 		buffer_check(cpu, BLOCK_COUNTER_BUF, time);
 
 #if GATOR_LIVE
-		// Commit buffers on timeout
+		/* Commit buffers on timeout */
 		if (gator_live_rate > 0 && time >= per_cpu(gator_buffer_commit_time, cpu)) {
 			static const int buftypes[] = { COUNTER_BUF, BLOCK_COUNTER_BUF, SCHED_TRACE_BUF };
 			int i;
@@ -134,7 +134,7 @@ static void probe_sched_write(int type, struct task_struct *task, struct task_st
 	int pid = task->pid;
 
 	if (type == SCHED_SWITCH) {
-		// do as much work as possible before disabling interrupts
+		/* do as much work as possible before disabling interrupts */
 		cookie = get_exec_cookie(cpu, task);
 		emit_pid_name(task);
 		if (old_task->state == TASK_RUNNING) {
@@ -150,8 +150,8 @@ static void probe_sched_write(int type, struct task_struct *task, struct task_st
 		per_cpu(collecting, cpu) = 0;
 	}
 
-	// marshal_sched_trace() disables interrupts as the free may trigger while switch is writing to the buffer; disabling preemption is not sufficient
-	// is disable interrupts necessary now that exit is used instead of free?
+	/* marshal_sched_trace() disables interrupts as the free may trigger while switch is writing to the buffer; disabling preemption is not sufficient */
+	/* is disable interrupts necessary now that exit is used instead of free? */
 	if (type == SCHED_SWITCH) {
 		marshal_sched_trace_switch(tgid, pid, cookie, state);
 	} else {
@@ -159,7 +159,7 @@ static void probe_sched_write(int type, struct task_struct *task, struct task_st
 	}
 }
 
-// special case used during a suspend of the system
+/* special case used during a suspend of the system */
 static void trace_sched_insert_idle(void)
 {
 	marshal_sched_trace_switch(0, 0, 0, 0);
@@ -181,27 +181,27 @@ GATOR_DEFINE_PROBE(sched_process_exit, TP_PROTO(struct task_struct *p))
 
 static void do_nothing(void *info)
 {
-	// Intentionally do nothing
+	/* Intentionally do nothing */
 	(void)info;
 }
 
 static int register_scheduler_tracepoints(void)
 {
-	// register tracepoints
+	/* register tracepoints */
 	if (GATOR_REGISTER_TRACE(sched_switch))
 		goto fail_sched_switch;
 	if (GATOR_REGISTER_TRACE(sched_process_exit))
 		goto fail_sched_process_exit;
 	pr_debug("gator: registered tracepoints\n");
 
-	// Now that the scheduler tracepoint is registered, force a context switch
-	// on all cpus to capture what is currently running.
+	/* Now that the scheduler tracepoint is registered, force a context switch */
+	/* on all cpus to capture what is currently running. */
 	on_each_cpu(do_nothing, NULL, 0);
 
 	return 0;
 
-	// unregister tracepoints on error
-fail_sched_process_exit:
+	/* unregister tracepoints on error */
+fail_sched_process_exit :
 	GATOR_UNREGISTER_TRACE(sched_switch);
 fail_sched_switch:
 	pr_err("gator: tracepoints failed to activate, please verify that tracepoints are enabled in the linux kernel\n");

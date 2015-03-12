@@ -246,6 +246,7 @@
 *                    E X T E R N A L   R E F E R E N C E S
 ********************************************************************************
 */
+#include "precomp.h"
 #include "gl_os.h"
 #include "gl_wext_priv.h"
 #if CFG_SUPPORT_WAPI
@@ -254,7 +255,8 @@
 #if CFG_ENABLE_WIFI_DIRECT
 #include "gl_p2p_os.h"
 #endif
-#include "precomp.h"
+
+
 
 /*******************************************************************************
 *                              C O N S T A N T S
@@ -274,6 +276,17 @@ priv_get_ndis(IN struct net_device *prNetDev,
 static int
 priv_set_ndis(IN struct net_device *prNetDev,
 	      IN NDIS_TRANSPORT_STRUCT * prNdisReq, OUT PUINT_32 pu4OutputLen);
+
+static void
+priv_driver_get_chip_config_16(PUINT_8 pucStartAddr,
+		UINT_32 u4Length, UINT_32 u4Line, int i4TotalLen, INT_32 i4BytesWritten, char *pcCommand);
+
+static void
+priv_driver_get_chip_config_4(PUINT_32 pu4StartAddr,
+		UINT_32 u4Length, UINT_32 u4Line, int i4TotalLen, INT_32 i4BytesWritten, char *pcCommand);
+
+
+
 
 #if 0				/* CFG_SUPPORT_WPS */
 static int
@@ -709,6 +722,7 @@ batchConvertResult(IN P_EVENT_BATCH_RESULT_T prEventBatchResult,
 	P_EVENT_BATCH_RESULT_ENTRY_T prEntry;
 	P_EVENT_BATCH_RESULT_T pBr;
 
+	nsize = 0;
 	nleft = u4MaxBufferLen - 5;	/* -5 for "----\n" */
 
 	pBr = prEventBatchResult;
@@ -757,8 +771,13 @@ batchConvertResult(IN P_EVENT_BATCH_RESULT_T prEventBatchResult,
 					     prEntry->aucBssid[3],
 					     prEntry->aucBssid[4], prEntry->aucBssid[5]);
 
-			kalMemCopy(ssid, prEntry->aucSSID, prEntry->ucSSIDLen);
-			ssid[prEntry->ucSSIDLen] = '\0';
+			kalMemCopy(ssid,
+				   prEntry->aucSSID,
+				   (prEntry->ucSSIDLen <
+				    ELEM_MAX_LEN_SSID ? prEntry->ucSSIDLen : ELEM_MAX_LEN_SSID));
+			ssid[(prEntry->ucSSIDLen <
+			      (ELEM_MAX_LEN_SSID - 1) ? prEntry->ucSSIDLen : (ELEM_MAX_LEN_SSID -
+									      1))] = '\0';
 			nsize2 = kalSnprintf(text2, TMP_TEXT_LEN_L, "ssid=%s\n", ssid);
 
 			freq = batchChannelNum2Freq(prEntry->ucFreq);
@@ -800,7 +819,7 @@ batchConvertResult(IN P_EVENT_BATCH_RESULT_T prEventBatchResult,
 
 	return WLAN_STATUS_SUCCESS;
 
- short_buf:
+short_buf:
 	DBGLOG(SCN, TRACE,
 	       ("Short buffer issue! %d > %d, %s\n", u4MaxBufferLen + (nsize - nleft),
 		u4MaxBufferLen, pvBuffer));
@@ -1064,6 +1083,23 @@ priv_set_int(IN struct net_device *prNetDev,
 
 		}
 		break;
+#endif
+
+#if (CFG_MET_PACKET_TRACE_SUPPORT == 1)
+    case PRIV_CMD_MET_PROFILING:
+	    {
+		/* PARAM_CUSTOM_WFD_DEBUG_STRUC_T rWfdDebugModeInfo; */
+		/* rWfdDebugModeInfo.ucWFDDebugMode=(UINT_8)pu4IntBuf[1]; */
+		/* rWfdDebugModeInfo.u2SNPeriod=(UINT_16)pu4IntBuf[2]; */
+		/* DBGLOG(REQ, INFO,("WFD Debug Mode:%d Peroid:%d\n",rWfdDebugModeInfo.ucWFDDebugMode,rWfdDebugModeInfo.u2SNPeriod)); */
+		prGlueInfo->fgMetProfilingEn = (UINT_8)pu4IntBuf[1];
+		prGlueInfo->u2MetUdpPort = (UINT_16)pu4IntBuf[2];
+		/* printk("MET_PROF: Enable=%d UDP_PORT=%d\n", prGlueInfo->fgMetProfilingEn, prGlueInfo->u2MetUdpPort); */
+
+
+	    }
+	    break;
+
 #endif
 
 	default:
@@ -1745,8 +1781,7 @@ priv_get_struct(IN struct net_device *prNetDev,
 
 			if (copy_to_user(prIwReqData->data.pointer,
 					 &prNdisReq->ndisOidContent[4],
-					 4 /* OFFSET_OF(NDIS_TRANSPORT_STRUCT, ndisOidContent) */))
-			{
+					 4 /* OFFSET_OF(NDIS_TRANSPORT_STRUCT, ndisOidContent) */)){
 				DBGLOG(REQ, INFO,
 				       ("priv_get_struct() copy_to_user oidBuf fail(2)\n"));
 			}
@@ -2409,6 +2444,8 @@ reqExtSetAcpiDevicePowerState(IN P_GLUE_INFO_T prGlueInfo,
 #define CMD_OKC_SET_PMK		"SET_PMK"
 #define CMD_OKC_ENABLE		"OKC_ENABLE"
 
+#define CMD_SETMONITOR		"MONITOR"
+
 /* miracast related definition */
 #define MIRACAST_MODE_OFF	0
 #define MIRACAST_MODE_SOURCE	1
@@ -2426,6 +2463,10 @@ reqExtSetAcpiDevicePowerState(IN P_GLUE_INFO_T prGlueInfo,
 #define MIRACAST_MCHAN_BW       25
 #endif
 
+#define	CMD_BAND_AUTO	0
+#define	CMD_BAND_5G		1
+#define	CMD_BAND_2G		2
+#define	CMD_BAND_ALL	3
 
 /* Mediatek private command */
 
@@ -2657,11 +2698,11 @@ int priv_driver_set_cfg(IN struct net_device *prNetDev, IN char *pcCommand, IN i
 		return -1;
 	}
 	prGlueInfo = *((P_GLUE_INFO_T *) netdev_priv(prNetDev));
-	prAdapter = prGlueInfo->prAdapter;
 
 	DBGLOG(REQ, LOUD, ("command is %s\n", pcCommand));
 	wlanCfgParseArgument(pcCommand, &i4Argc, apcArgv);
 	DBGLOG(REQ, LOUD, ("argc is %i\n", i4Argc));
+	prAdapter = prGlueInfo->prAdapter;
 
 	kalMemZero(&rKeyCfgInfo, sizeof(rKeyCfgInfo));
 
@@ -2699,11 +2740,11 @@ int priv_driver_get_cfg(IN struct net_device *prNetDev, IN char *pcCommand, IN i
 	}
 
 	prGlueInfo = *((P_GLUE_INFO_T *) netdev_priv(prNetDev));
-	prAdapter = prGlueInfo->prAdapter;
 
 	DBGLOG(REQ, LOUD, ("command is %s\n", pcCommand));
 	wlanCfgParseArgument(pcCommand, &i4Argc, apcArgv);
 	DBGLOG(REQ, LOUD, ("argc is %i\n", i4Argc));
+	prAdapter = prGlueInfo->prAdapter;
 
 	if (i4Argc >= 2) {
 		/* by wlanoid ? */
@@ -2849,36 +2890,7 @@ priv_driver_get_chip_config(IN struct net_device *prNetDev, IN char *pcCommand, 
 					/* align 16 bytes becuase one print line is 16 bytes */
 					u4Length = (((u2MsgSize + 15) >> 4)) << 4;
 					u4Line = 0;
-
-					while (u4Length >= 16) {
-						if (i4TotalLen > i4BytesWritten) {
-
-							i4BytesWritten +=
-							    snprintf(pcCommand + i4BytesWritten,
-								     i4TotalLen - i4BytesWritten,
-								     "%04lx %02x %02x %02x %02x  %02x %02x %02x %02x - %02x %02x %02x %02x  %02x %02x %02x %02x\n",
-								     u4Line, pucStartAddr[0],
-								     pucStartAddr[1],
-								     pucStartAddr[2],
-								     pucStartAddr[3],
-								     pucStartAddr[4],
-								     pucStartAddr[5],
-								     pucStartAddr[6],
-								     pucStartAddr[7],
-								     pucStartAddr[8],
-								     pucStartAddr[9],
-								     pucStartAddr[10],
-								     pucStartAddr[11],
-								     pucStartAddr[12],
-								     pucStartAddr[13],
-								     pucStartAddr[14],
-								     pucStartAddr[15]);
-						}
-
-						pucStartAddr += 16;
-						u4Length -= 16;
-						u4Line += 16;
-					}	/* u4Length */
+					priv_driver_get_chip_config_16(pucStartAddr, u4Length, u4Line, i4TotalLen, i4BytesWritten, pcCommand);
 				} else {
 					PUINT_32 pu4StartAddr = NULL;
 					pu4StartAddr = (PUINT_32) rChipConfigInfo.aucCmd;
@@ -2886,26 +2898,8 @@ priv_driver_get_chip_config(IN struct net_device *prNetDev, IN char *pcCommand, 
 					u4Length = (((u2MsgSize + 15) >> 4)) << 4;
 					u4Line = 0;
 
-					if (IS_ALIGN_4((UINT_32) pu4StartAddr)) {
-						while (u4Length >= 16) {
-							if (i4TotalLen > i4BytesWritten) {
-								i4BytesWritten +=
-								    snprintf(pcCommand +
-									     i4BytesWritten,
-									     i4TotalLen -
-									     i4BytesWritten,
-									     "%04lx %08lx %08lx %08lx %08lx\n",
-									     u4Line,
-									     pu4StartAddr[0],
-									     pu4StartAddr[1],
-									     pu4StartAddr[2],
-									     pu4StartAddr[3]);
-							}
-
-							pu4StartAddr += 4;
-							u4Length -= 16;
-							u4Line += 4;
-						}	/* u4Length */
+					if (IS_ALIGN_4((ULONG) pu4StartAddr)) {
+						priv_driver_get_chip_config_4(pu4StartAddr, u4Length, u4Line, i4TotalLen, i4BytesWritten, pcCommand);
 					} else {
 						DBGLOG(REQ, INFO,
 						       ("%s: rChipConfigInfo.aucCmd is not 4 bytes alignment %p\n",
@@ -2922,9 +2916,63 @@ priv_driver_get_chip_config(IN struct net_device *prNetDev, IN char *pcCommand, 
 
 }				/* priv_driver_get_chip_config  */
 
+static void
+priv_driver_get_chip_config_16(PUINT_8 pucStartAddr, UINT_32 u4Length, UINT_32 u4Line, int i4TotalLen, INT_32 i4BytesWritten, char *pcCommand)
+{
 
+	while (u4Length >= 16) {
+		if (i4TotalLen > i4BytesWritten) {
+			i4BytesWritten +=
+			    snprintf(pcCommand + i4BytesWritten,
+				     i4TotalLen - i4BytesWritten,
+				     "%04lx %02x %02x %02x %02x  %02x %02x %02x %02x - %02x %02x %02x %02x  %02x %02x %02x %02x\n",
+				     u4Line, pucStartAddr[0],
+				     pucStartAddr[1],
+				     pucStartAddr[2],
+				     pucStartAddr[3],
+				     pucStartAddr[4],
+				     pucStartAddr[5],
+				     pucStartAddr[6],
+				     pucStartAddr[7],
+				     pucStartAddr[8],
+				     pucStartAddr[9],
+				     pucStartAddr[10],
+				     pucStartAddr[11],
+				     pucStartAddr[12],
+				     pucStartAddr[13],
+				     pucStartAddr[14],
+				     pucStartAddr[15]);
+		}
 
+		pucStartAddr += 16;
+		u4Length -= 16;
+		u4Line += 16;
+	}	/* u4Length */
+}
 
+static void
+priv_driver_get_chip_config_4(PUINT_32 pu4StartAddr, UINT_32 u4Length, UINT_32 u4Line, int i4TotalLen, INT_32 i4BytesWritten, char *pcCommand)
+{
+	while (u4Length >= 16) {
+		if (i4TotalLen > i4BytesWritten) {
+			i4BytesWritten +=
+			    snprintf(pcCommand +
+				     i4BytesWritten,
+				     i4TotalLen -
+				     i4BytesWritten,
+				     "%04lx %08lx %08lx %08lx %08lx\n",
+				     u4Line,
+				     pu4StartAddr[0],
+				     pu4StartAddr[1],
+				     pu4StartAddr[2],
+				     pu4StartAddr[3]);
+		}
+
+		pu4StartAddr += 4;
+		u4Length -= 16;
+		u4Line += 4;
+	}	/* u4Length */
+}
 
 int priv_driver_get_linkspeed(IN struct net_device *prNetDev, IN char *pcCommand, IN int i4TotalLen)
 {
@@ -2959,6 +3007,44 @@ int priv_driver_get_linkspeed(IN struct net_device *prNetDev, IN char *pcCommand
 	return i4BytesWritten;
 
 }				/* priv_driver_get_linkspeed */
+
+
+int priv_driver_set_band(IN struct net_device *prNetDev, IN char *pcCommand, IN int i4TotalLen)
+{
+	P_ADAPTER_T prAdapter = NULL;
+	P_GLUE_INFO_T prGlueInfo = NULL;
+	INT_32 i4Argc = 0;
+	UINT_8 ucBand = 0;
+	UINT_8 ucBssIndex;
+	ENUM_BAND_T eBand = BAND_NULL;
+	PCHAR apcArgv[WLAN_CFG_ARGV_MAX];
+
+	ASSERT(prNetDev);
+	if (FALSE == GLUE_CHK_PR2(prNetDev, pcCommand)) {
+		return -1;
+	}
+	prGlueInfo = *((P_GLUE_INFO_T *) netdev_priv(prNetDev));
+
+	DBGLOG(REQ, LOUD, ("command is %s\n", pcCommand));
+	wlanCfgParseArgument(pcCommand, &i4Argc, apcArgv);
+	DBGLOG(REQ, LOUD, ("argc is %i\n", i4Argc));
+
+	prAdapter = prGlueInfo->prAdapter;
+	if (i4Argc >= 2) {
+		ucBand = kalStrtoul(apcArgv[1], NULL, 0);
+		ucBssIndex = wlanGetAisBssIndex(prGlueInfo->prAdapter);
+		eBand = BAND_NULL;
+		if (ucBand == CMD_BAND_5G)
+			eBand = BAND_5G;
+		else if (ucBand == CMD_BAND_2G)
+			eBand = BAND_2G4;
+		prAdapter->aePreferBand[ucBssIndex] = eBand;
+		/* XXX call wlanSetPreferBandByNetwork directly in different thread */
+		/* wlanSetPreferBandByNetwork (prAdapter, eBand, ucBssIndex); */
+	}
+
+	return 0;
+}
 
 
 int priv_driver_set_country(IN struct net_device *prNetDev, IN char *pcCommand, IN int i4TotalLen)
@@ -2996,15 +3082,19 @@ int priv_driver_set_country(IN struct net_device *prNetDev, IN char *pcCommand, 
 	return 0;
 }
 
-
 int priv_driver_set_miracast(IN struct net_device *prNetDev, IN char *pcCommand, IN int i4TotalLen)
 {
 
+	P_ADAPTER_T prAdapter = NULL;
 	P_GLUE_INFO_T prGlueInfo = NULL;
+	UINT_32 i4BytesWritten = 0;
 	/* WLAN_STATUS rStatus = WLAN_STATUS_SUCCESS; */
 	/* UINT_32 u4BufLen = 0; */
 	INT_32 i4Argc = 0;
 	UINT_8 ucMode = 0;
+	P_WFD_CFG_SETTINGS_T prWfdCfgSettings = (P_WFD_CFG_SETTINGS_T) NULL;
+	P_MSG_WFD_CONFIG_SETTINGS_CHANGED_T prMsgWfdCfgUpdate =
+	    (P_MSG_WFD_CONFIG_SETTINGS_CHANGED_T) NULL;
 	PCHAR apcArgv[WLAN_CFG_ARGV_MAX];
 
 	ASSERT(prNetDev);
@@ -3021,27 +3111,53 @@ int priv_driver_set_miracast(IN struct net_device *prNetDev, IN char *pcCommand,
 	DBGLOG(REQ, LOUD, ("argc is %i\n", i4Argc));
 
 
+	prAdapter = prGlueInfo->prAdapter;
 	if (i4Argc >= 2) {
 
 		ucMode = kalStrtoul(apcArgv[1], NULL, 0);
 
-		if (g_ucMiracastMode == ucMode)
-			return 0;
-
-		g_ucMiracastMode = ucMode;
-
-		if (ucMode == MIRACAST_MODE_OFF) {
-			snprintf(pcCommand, i4TotalLen, CMD_SET_CHIP " mira 0");
-		} else if (ucMode == MIRACAST_MODE_SOURCE) {
-			snprintf(pcCommand, i4TotalLen, CMD_SET_CHIP " mira 1");
-		} else if (ucMode == MIRACAST_MODE_SINK) {
-			snprintf(pcCommand, i4TotalLen, CMD_SET_CHIP " mira 2");
+		if (g_ucMiracastMode == ucMode) {
+			/* XXX: continue or skip */
 		}
 
-		return priv_driver_set_chip_config(prNetDev, pcCommand, i4TotalLen);
+		g_ucMiracastMode = ucMode;
+		prMsgWfdCfgUpdate =
+		    cnmMemAlloc(prAdapter, RAM_TYPE_MSG, sizeof(MSG_WFD_CONFIG_SETTINGS_CHANGED_T));
+
+		if (prMsgWfdCfgUpdate != NULL) {
+
+			prWfdCfgSettings = &(prAdapter->rWifiVar.rWfdConfigureSettings);
+			prMsgWfdCfgUpdate->rMsgHdr.eMsgId = MID_MNY_P2P_WFD_CFG_UPDATE;
+			prMsgWfdCfgUpdate->prWfdCfgSettings = prWfdCfgSettings;
+
+			if (ucMode == MIRACAST_MODE_OFF) {
+				prWfdCfgSettings->ucWfdEnable = 0;
+				snprintf(pcCommand, i4TotalLen, CMD_SET_CHIP " mira 0");
+			} else if (ucMode == MIRACAST_MODE_SOURCE) {
+				prWfdCfgSettings->ucWfdEnable = 1;
+				snprintf(pcCommand, i4TotalLen, CMD_SET_CHIP " mira 1");
+			} else if (ucMode == MIRACAST_MODE_SINK) {
+				prWfdCfgSettings->ucWfdEnable = 2;
+				snprintf(pcCommand, i4TotalLen, CMD_SET_CHIP " mira 2");
+			} else {
+				prWfdCfgSettings->ucWfdEnable = 0;
+				snprintf(pcCommand, i4TotalLen, CMD_SET_CHIP " mira 0");
+			}
+
+			mboxSendMsg(prAdapter,
+				    MBOX_ID_0,
+				    (P_MSG_HDR_T) prMsgWfdCfgUpdate, MSG_SEND_METHOD_BUF);
+
+			priv_driver_set_chip_config(prNetDev, pcCommand, i4TotalLen);
+		} /* prMsgWfdCfgUpdate */
+		else {
+			ASSERT(FALSE);
+			i4BytesWritten = -1;
+		}
 	}
 
-	return 0;
+	/* i4Argc */
+	return i4BytesWritten;
 }
 
 int
@@ -3081,6 +3197,150 @@ priv_driver_set_suspend_mode(IN struct net_device *prNetDev, IN char *pcCommand,
 	return 0;
 }
 
+#if CFG_SUPPORT_SNIFFER
+int priv_driver_set_monitor(IN struct net_device *prNetDev, IN char *pcCommand, IN int i4TotalLen)
+{
+    P_GLUE_INFO_T prGlueInfo = NULL;
+    P_ADAPTER_T prAdapter = NULL;
+    WLAN_STATUS rStatus = WLAN_STATUS_SUCCESS;
+    UINT_32 u4BufLen = 0;
+    INT_32 i4Argc = 0;
+    INT_32 i4BytesWritten = 0;
+    PCHAR apcArgv[WLAN_CFG_ARGV_MAX];
+    PARAM_CUSTOM_MONITOR_SET_STRUC_T rMonitorSetInfo;
+    UINT_8 ucEnable = 0;
+    UINT_8 ucPriChannel = 0;
+    UINT_8 ucChannelWidth = 0;
+    UINT_8 ucExt = 0;
+    UINT_8 ucSco = 0;
+    UINT_8 ucChannelS1 = 0;
+    UINT_8 ucChannelS2 = 0;
+    BOOLEAN fgIsLegalChannel = FALSE;
+    BOOLEAN fgError = FALSE;
+    BOOLEAN fgEnable = FALSE;
+    ENUM_BAND_T eBand = BAND_NULL;
+
+    ASSERT(prNetDev);
+    if (FALSE == GLUE_CHK_PR2(prNetDev, pcCommand)) {
+	return -1;
+    }
+    prGlueInfo = *((P_GLUE_INFO_T *) netdev_priv(prNetDev));
+    prAdapter = prGlueInfo->prAdapter;
+
+    wlanCfgParseArgument(pcCommand, &i4Argc, apcArgv);
+
+    if (i4Argc >= 5) {
+	ucEnable = (UINT_8)(kalStrtoul(apcArgv[1], NULL, 0));
+	ucPriChannel = (UINT_8)(kalStrtoul(apcArgv[2], NULL, 0));
+	ucChannelWidth = (UINT_8)(kalStrtoul(apcArgv[3], NULL, 0));
+	ucExt = (UINT_8)(kalStrtoul(apcArgv[4], NULL, 0));
+
+	eBand = (ucPriChannel <= 14) ? BAND_2G4 : BAND_5G;
+	fgIsLegalChannel = rlmDomainIsLegalChannel(prAdapter, eBand, ucPriChannel);
+
+	if (fgIsLegalChannel == FALSE) {
+	    i4BytesWritten = snprintf(pcCommand, i4TotalLen, "Illegal primary channel %d", ucPriChannel);
+	    return i4BytesWritten;
+	}
+
+	switch (ucChannelWidth) {
+	    case 160:
+		ucChannelWidth = (UINT_8)CW_160MHZ;
+		ucSco = (UINT_8)CHNL_EXT_SCN;
+
+		if (ucPriChannel >= 36 && ucPriChannel <= 64) {
+		    ucChannelS2 = 50;
+		}
+		else if (ucPriChannel >= 100 && ucPriChannel <= 128) {
+		    ucChannelS2 = 114;
+		}
+		else {
+		    fgError = TRUE;
+		}
+		break;
+
+	    case 80:
+		ucChannelWidth = (UINT_8)CW_80MHZ;
+		ucSco = (UINT_8)CHNL_EXT_SCN;
+
+		if (ucPriChannel >= 36 && ucPriChannel <= 48) {
+		    ucChannelS1 = 42;
+		}
+		else if (ucPriChannel >= 52 && ucPriChannel <= 64) {
+		    ucChannelS1 = 58;
+		}
+		else if (ucPriChannel >= 100 && ucPriChannel <= 112) {
+		    ucChannelS1 = 106;
+		}
+		else if (ucPriChannel >= 116 && ucPriChannel <= 128) {
+		    ucChannelS1 = 122;
+		}
+		else if (ucPriChannel >= 132 && ucPriChannel <= 144) {
+		    ucChannelS1 = 138;
+		}
+		else if (ucPriChannel >= 149 && ucPriChannel <= 161) {
+		    ucChannelS1 = 155;
+		}
+		else {
+		    fgError = TRUE;
+		}
+		break;
+
+	    case 40:
+		ucChannelWidth = (UINT_8)CW_20_40MHZ;
+		ucSco = (ucExt) ? (UINT_8)CHNL_EXT_SCA : (UINT_8)CHNL_EXT_SCB;
+		break;
+
+	    case 20:
+		ucChannelWidth = (UINT_8)CW_20_40MHZ;
+		ucSco = (UINT_8)CHNL_EXT_SCN;
+		break;
+
+	    default:
+		fgError = TRUE;
+		break;
+	}
+
+	if (fgError) {
+	    i4BytesWritten = snprintf(pcCommand, i4TotalLen, "Invalid primary channel %d with bandwidth %d", ucPriChannel, ucChannelWidth);
+	    return i4BytesWritten;
+	}
+
+	fgEnable = (ucEnable) ? TRUE : FALSE;
+
+	if (prGlueInfo->fgIsEnableMon != fgEnable) {
+	    prGlueInfo->fgIsEnableMon = fgEnable;
+	    schedule_work(&prGlueInfo->monWork);
+	}
+
+	kalMemZero(&rMonitorSetInfo, sizeof(rMonitorSetInfo));
+
+	rMonitorSetInfo.ucEnable = ucEnable;
+	rMonitorSetInfo.ucPriChannel = ucPriChannel;
+	rMonitorSetInfo.ucSco = ucSco;
+	rMonitorSetInfo.ucChannelWidth = ucChannelWidth;
+	rMonitorSetInfo.ucChannelS1 = ucChannelS1;
+	rMonitorSetInfo.ucChannelS2 = ucChannelS2;
+
+	rStatus = kalIoctl(prGlueInfo,
+		wlanoidSetMonitor,
+		&rMonitorSetInfo,
+		sizeof(rMonitorSetInfo),
+		FALSE,
+		FALSE,
+		TRUE,
+		&u4BufLen);
+
+	i4BytesWritten = snprintf(pcCommand, i4TotalLen, "set monitor config %s", (rStatus == WLAN_STATUS_SUCCESS) ? "success" : "fail");
+
+	return i4BytesWritten;
+    }
+
+    i4BytesWritten = snprintf(pcCommand, i4TotalLen, "monitor [Enable][PriChannel][ChannelWidth][Sco]");
+
+    return i4BytesWritten;
+}
+#endif
 
 #if CFG_SUPPORT_BATCH_SCAN
 #define CMD_BATCH_SET           "WLS_BATCHING SET"
@@ -3115,13 +3375,12 @@ INT_32 priv_driver_cmds(IN struct net_device *prNetDev, IN PCHAR pcCommand, IN I
 			i4BytesWritten =
 			    priv_driver_set_suspend_mode(prNetDev, pcCommand, i4TotalLen);
 		} else if (strnicmp(pcCommand, CMD_SETBAND, strlen(CMD_SETBAND)) == 0) {
-			/* uint band = *(pcCommand + strlen(CMD_SETBAND) + 1) - '0'; */
-			/* i4BytesWritten = wldev_set_band(net, band); */
+			i4BytesWritten = priv_driver_set_band(prNetDev, pcCommand, i4TotalLen);
 		} else if (strnicmp(pcCommand, CMD_GETBAND, strlen(CMD_GETBAND)) == 0) {
 			/* i4BytesWritten = wl_android_get_band(net, pcCommand, i4TotalLen); */
 		} else if (strnicmp(pcCommand, CMD_COUNTRY, strlen(CMD_COUNTRY)) == 0) {
 			i4BytesWritten = priv_driver_set_country(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_MIRACAST, strlen(CMD_COUNTRY)) == 0) {
+		} else if (strnicmp(pcCommand, CMD_MIRACAST, strlen(CMD_MIRACAST)) == 0) {
 			i4BytesWritten = priv_driver_set_miracast(prNetDev, pcCommand, i4TotalLen);
 		}
 		/* Mediatek private command  */
@@ -3155,7 +3414,6 @@ INT_32 priv_driver_cmds(IN struct net_device *prNetDev, IN PCHAR pcCommand, IN I
 			/* i4BytesWritten = strlen("BATCH SCAN DATA FROM FIRMWARE") + 1; */
 			/* i4BytesWritten = priv_driver_get_linkspeed (prNetDev, pcCommand, i4TotalLen); */
 
-			/* P_EVENT_BATCH_RESULT_ENTRY_T prEntry; */
 			UINT_32 u4BufLen;
 			int i;
 			/* int rlen=0; */
@@ -3169,19 +3427,19 @@ INT_32 priv_driver_cmds(IN struct net_device *prNetDev, IN PCHAR pcCommand, IN I
 			}
 
 #if 0
-			DBGLOG(SCN, TRACE,
+			DBGLOG(SCN, INFO,
 			       ("Batch Scan Results, scan count = %u\n",
-				rEventBatchResult.ucScanCount));
-			for (i = 0; i < rEventBatchResult.ucScanCount; i++) {
-				prEntry = &rEventBatchResult.arBatchResult[i];
-				DBGLOG(SCN, TRACE, ("Entry %u\n", i));
-				DBGLOG(SCN, TRACE,
+				g_rEventBatchResult.ucScanCount));
+			for (i = 0; i < g_rEventBatchResult.ucScanCount; i++) {
+				prEntry = &g_rEventBatchResult.arBatchResult[i];
+				DBGLOG(SCN, INFO, ("Entry %u\n", i));
+				DBGLOG(SCN, INFO,
 				       ("	 BSSID = " MACSTR "\n",
 					MAC2STR(prEntry->aucBssid)));
-				DBGLOG(SCN, TRACE, ("	 SSID = %s\n", prEntry->aucSSID));
-				DBGLOG(SCN, TRACE, ("	 SSID len = %u\n", prEntry->ucSSIDLen));
-				DBGLOG(SCN, TRACE, ("	 RSSI = %d\n", prEntry->cRssi));
-				DBGLOG(SCN, TRACE, ("	 Freq = %u\n", prEntry->ucFreq));
+				DBGLOG(SCN, INFO, ("	 SSID = %s\n", prEntry->aucSSID));
+				DBGLOG(SCN, INFO, ("	 SSID len = %u\n", prEntry->ucSSIDLen));
+				DBGLOG(SCN, INFO, ("	 RSSI = %d\n", prEntry->cRssi));
+				DBGLOG(SCN, INFO, ("	 Freq = %u\n", prEntry->ucFreq));
 			}
 #endif
 
@@ -3189,8 +3447,7 @@ INT_32 priv_driver_cmds(IN struct net_device *prNetDev, IN PCHAR pcCommand, IN I
 					   &i4BytesWritten);
 
 			/* Dump for debug */
-			print_hex_dump(KERN_INFO, "BATCH", DUMP_PREFIX_ADDRESS, 16, 1, pcCommand,
-				       i4BytesWritten, TRUE);
+			/* print_hex_dump(KERN_INFO, "BATCH", DUMP_PREFIX_ADDRESS, 16, 1, pcCommand, i4BytesWritten, TRUE); */
 
 		} else if (strnicmp(pcCommand, CMD_BATCH_STOP, strlen(CMD_BATCH_STOP)) == 0) {
 			kalIoctl(prGlueInfo,
@@ -3198,6 +3455,11 @@ INT_32 priv_driver_cmds(IN struct net_device *prNetDev, IN PCHAR pcCommand, IN I
 				 (PVOID) pcCommand,
 				 i4TotalLen, FALSE, FALSE, TRUE, &i4BytesWritten);
 		}
+#endif
+#if CFG_SUPPORT_SNIFFER
+	else if (strnicmp(pcCommand, CMD_SETMONITOR, strlen(CMD_SETMONITOR)) == 0) {
+	    i4BytesWritten = priv_driver_set_monitor(prNetDev, pcCommand, i4TotalLen);
+	}
 #endif
 		else {
 			i4CmdFound = 0;
@@ -3332,7 +3594,7 @@ priv_support_driver_cmd(IN struct net_device *prNetDev, IN OUT struct ifreq *prR
 
 	}
 
- exit:
+exit:
 	if (pcCommand) {
 		kfree(pcCommand);
 	}

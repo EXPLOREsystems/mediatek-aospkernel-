@@ -122,6 +122,7 @@ WLAN_STATUS authProcessRxAuth2_Auth4Frame(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_
 
 WLAN_STATUS
 authSendDeauthFrame(IN P_ADAPTER_T prAdapter,
+		    IN P_BSS_INFO_T prBssInfo,
 		    IN P_STA_RECORD_T prStaRec,
 		    IN P_SW_RFB_T prClassErrSwRfb,
 		    IN UINT_16 u2ReasonCode, IN PFN_TX_DONE_HANDLER pfTxDoneHandler);

@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: @(#) p2p_rlm.c@@
 */
 
@@ -23,7 +37,7 @@
 #include "precomp.h"
 
 extern VOID
-rlmSyncOperationParams (
+rlmSyncOperationParams(
     P_ADAPTER_T         prAdapter,
     P_BSS_INFO_T        prBssInfo
     );
@@ -86,7 +100,7 @@ rlmBssInitForAP(
     ASSERT(prBssInfo);
 
     if (prBssInfo->eCurrentOPMode != OP_MODE_ACCESS_POINT) {
-        return;
+	return;
     }
 
     /* Operation band, channel shall be ready before invoking this function.
@@ -97,28 +111,28 @@ rlmBssInitForAP(
     prBssInfo->eBssSCO = CHNL_EXT_SCN;
 
     if (RLM_AP_IS_BW_40_ALLOWED(prAdapter, prBssInfo)) {
-        /* In this case, the first BSS's SCO is 40MHz and known, so AP can
-         * apply 40MHz bandwidth, but the first BSS's SCO may be changed
-         * later if its Beacon lost timeout occurs
-         */
-        if (cnmPreferredChannel(prAdapter, &eBand, &ucChannel, &eSCO) &&
-            eSCO != CHNL_EXT_SCN && ucChannel == prBssInfo->ucPrimaryChannel &&
-            eBand == prBssInfo->eBand) {
-            prBssInfo->eBssSCO = eSCO;
-        }
-        else if (cnmBss40mBwPermitted(prAdapter, prBssInfo->ucNetTypeIndex)) {
-            prBssInfo->eBssSCO = rlmDecideScoForAP(prAdapter, prBssInfo);
-        }
+	/* In this case, the first BSS's SCO is 40MHz and known, so AP can
+	 * apply 40MHz bandwidth, but the first BSS's SCO may be changed
+	 * later if its Beacon lost timeout occurs
+	 */
+	if (cnmPreferredChannel(prAdapter, &eBand, &ucChannel, &eSCO) &&
+	    eSCO != CHNL_EXT_SCN && ucChannel == prBssInfo->ucPrimaryChannel &&
+	    eBand == prBssInfo->eBand) {
+	    prBssInfo->eBssSCO = eSCO;
+	}
+	else if (cnmBss40mBwPermitted(prAdapter, prBssInfo->ucNetTypeIndex)) {
+	    prBssInfo->eBssSCO = rlmDecideScoForAP(prAdapter, prBssInfo);
+	}
 
-        if (prBssInfo->eBssSCO != CHNL_EXT_SCN) {
-            prBssInfo->fg40mBwAllowed = TRUE;
-            prBssInfo->fgAssoc40mBwAllowed = TRUE;
+	if (prBssInfo->eBssSCO != CHNL_EXT_SCN) {
+	    prBssInfo->fg40mBwAllowed = TRUE;
+	    prBssInfo->fgAssoc40mBwAllowed = TRUE;
 
-            prBssInfo->ucHtOpInfo1 = (UINT_8)
-                (((UINT_32) prBssInfo->eBssSCO) | HT_OP_INFO1_STA_CHNL_WIDTH);
+	    prBssInfo->ucHtOpInfo1 = (UINT_8)
+		(((UINT_32) prBssInfo->eBssSCO) | HT_OP_INFO1_STA_CHNL_WIDTH);
 
-            rlmUpdateBwByChListForAP(prAdapter, prBssInfo);
-        }
+	    rlmUpdateBwByChListForAP(prAdapter, prBssInfo);
+	}
     }
 
     DBGLOG(RLM, INFO, ("WLAN AP SCO=%d\n", prBssInfo->eBssSCO));
@@ -134,7 +148,7 @@ rlmBssInitForAP(
 */
 /*----------------------------------------------------------------------------*/
 VOID
-rlmRspGenerateObssScanIE (
+rlmRspGenerateObssScanIE(
     P_ADAPTER_T     prAdapter,
     P_MSDU_INFO_T   prMsduInfo
     )
@@ -153,36 +167,36 @@ rlmRspGenerateObssScanIE (
     ASSERT(prBssInfo);
 
     if (RLM_NET_IS_11N(prBssInfo) && !RLM_NET_IS_BOW(prBssInfo) &&
-        prBssInfo->eCurrentOPMode == OP_MODE_ACCESS_POINT &&
-        (!prStaRec || (prStaRec->ucPhyTypeSet & PHY_TYPE_SET_802_11N)) &&
-        prBssInfo->eBand == BAND_2G4 &&
-        prBssInfo->eBssSCO != CHNL_EXT_SCN) {
+	prBssInfo->eCurrentOPMode == OP_MODE_ACCESS_POINT &&
+	(!prStaRec || (prStaRec->ucPhyTypeSet & PHY_TYPE_SET_802_11N)) &&
+	prBssInfo->eBand == BAND_2G4 &&
+	prBssInfo->eBssSCO != CHNL_EXT_SCN) {
 
-        prObssScanIe = (P_IE_OBSS_SCAN_PARAM_T)
-                (((PUINT_8) prMsduInfo->prPacket) + prMsduInfo->u2FrameLength);
+	prObssScanIe = (P_IE_OBSS_SCAN_PARAM_T)
+		(((PUINT_8) prMsduInfo->prPacket) + prMsduInfo->u2FrameLength);
 
-        /* Add 20/40 BSS coexistence IE */
-        prObssScanIe->ucId = ELEM_ID_OBSS_SCAN_PARAMS;
-        prObssScanIe->ucLength = sizeof(IE_OBSS_SCAN_PARAM_T) - ELEM_HDR_LEN;
+	/* Add 20/40 BSS coexistence IE */
+	prObssScanIe->ucId = ELEM_ID_OBSS_SCAN_PARAMS;
+	prObssScanIe->ucLength = sizeof(IE_OBSS_SCAN_PARAM_T) - ELEM_HDR_LEN;
 
-        prObssScanIe->u2ScanPassiveDwell =
-                        dot11OBSSScanPassiveDwell;
-        prObssScanIe->u2ScanActiveDwell =
-                        dot11OBSSScanActiveDwell;
-        prObssScanIe->u2TriggerScanInterval =
-                        dot11BSSWidthTriggerScanInterval;
-        prObssScanIe->u2ScanPassiveTotalPerChnl =
-                        dot11OBSSScanPassiveTotalPerChannel;
-        prObssScanIe->u2ScanActiveTotalPerChnl =
-                        dot11OBSSScanActiveTotalPerChannel;
-        prObssScanIe->u2WidthTransDelayFactor =
-                        dot11BSSWidthChannelTransitionDelayFactor;
-        prObssScanIe->u2ScanActivityThres =
-                        dot11OBSSScanActivityThreshold;
+	prObssScanIe->u2ScanPassiveDwell =
+			dot11OBSSScanPassiveDwell;
+	prObssScanIe->u2ScanActiveDwell =
+			dot11OBSSScanActiveDwell;
+	prObssScanIe->u2TriggerScanInterval =
+			dot11BSSWidthTriggerScanInterval;
+	prObssScanIe->u2ScanPassiveTotalPerChnl =
+			dot11OBSSScanPassiveTotalPerChannel;
+	prObssScanIe->u2ScanActiveTotalPerChnl =
+			dot11OBSSScanActiveTotalPerChannel;
+	prObssScanIe->u2WidthTransDelayFactor =
+			dot11BSSWidthChannelTransitionDelayFactor;
+	prObssScanIe->u2ScanActivityThres =
+			dot11OBSSScanActivityThreshold;
 
-        ASSERT(IE_SIZE(prObssScanIe) <= (ELEM_HDR_LEN+ ELEM_MAX_LEN_OBSS_SCAN));
+        ASSERT(IE_SIZE(prObssScanIe) <= (ELEM_HDR_LEN + ELEM_MAX_LEN_OBSS_SCAN));
 
-        prMsduInfo->u2FrameLength += IE_SIZE(prObssScanIe);
+	prMsduInfo->u2FrameLength += IE_SIZE(prObssScanIe);
     }
 }
 
@@ -196,7 +210,7 @@ rlmRspGenerateObssScanIE (
 */
 /*----------------------------------------------------------------------------*/
 BOOLEAN
-rlmUpdateBwByChListForAP (
+rlmUpdateBwByChListForAP(
     P_ADAPTER_T         prAdapter,
     P_BSS_INFO_T        prBssInfo
     )
@@ -210,23 +224,23 @@ rlmUpdateBwByChListForAP (
     fgBwChange = FALSE;
 
     if (prBssInfo->eBssSCO == CHNL_EXT_SCN) {
-        return fgBwChange;
+	return fgBwChange;
     }
 
     ucLevel = rlmObssChnlLevel(prBssInfo, prBssInfo->eBand,
-                    prBssInfo->ucPrimaryChannel, prBssInfo->eBssSCO);
+		    prBssInfo->ucPrimaryChannel, prBssInfo->eBssSCO);
 
     if (ucLevel == CHNL_LEVEL0) {
-        /* Forced to 20MHz, so extended channel is SCN and STA width is zero */
-        prBssInfo->fgObssActionForcedTo20M = TRUE;
+	/* Forced to 20MHz, so extended channel is SCN and STA width is zero */
+	prBssInfo->fgObssActionForcedTo20M = TRUE;
 
-        if (prBssInfo->ucHtOpInfo1 != (UINT_8) CHNL_EXT_SCN) {
-            prBssInfo->ucHtOpInfo1 = (UINT_8) CHNL_EXT_SCN;
-            fgBwChange = TRUE;
-        }
+	if (prBssInfo->ucHtOpInfo1 != (UINT_8) CHNL_EXT_SCN) {
+	    prBssInfo->ucHtOpInfo1 = (UINT_8) CHNL_EXT_SCN;
+	    fgBwChange = TRUE;
+	}
 
-        cnmTimerStartTimer(prAdapter, &prBssInfo->rObssScanTimer,
-                OBSS_20_40M_TIMEOUT * MSEC_PER_SEC);
+	cnmTimerStartTimer(prAdapter, &prBssInfo->rObssScanTimer,
+		OBSS_20_40M_TIMEOUT * MSEC_PER_SEC);
     }
 
     /* Clear up all channel lists */
@@ -252,7 +266,7 @@ rlmUpdateBwByChListForAP (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-rlmProcessPublicAction (
+rlmProcessPublicAction(
     P_ADAPTER_T     prAdapter,
     P_SW_RFB_T      prSwRfb
     )
@@ -273,37 +287,37 @@ rlmProcessPublicAction (
     prStaRec = cnmGetStaRecByIndex(prAdapter, prSwRfb->ucStaRecIdx);
 
     if (prRxFrame->ucAction != ACTION_PUBLIC_20_40_COEXIST ||
-        !prStaRec || prStaRec->ucStaState != STA_STATE_3 ||
-        prSwRfb->u2PacketLen < (WLAN_MAC_MGMT_HEADER_LEN + 5) ||
-        HIF_RX_HDR_GET_NETWORK_IDX(prSwRfb->prHifRxHdr) !=
-        NETWORK_TYPE_P2P_INDEX) {
-        return;
+	!prStaRec || prStaRec->ucStaState != STA_STATE_3 ||
+	prSwRfb->u2PacketLen < (WLAN_MAC_MGMT_HEADER_LEN + 5) ||
+	HIF_RX_HDR_GET_NETWORK_IDX(prSwRfb->prHifRxHdr) !=
+	NETWORK_TYPE_P2P_INDEX) {
+	return;
     }
 
     prBssInfo = &prAdapter->rWifiVar.arBssInfo[NETWORK_TYPE_P2P_INDEX];
     ASSERT(prBssInfo);
 
     if (!IS_BSS_ACTIVE(prBssInfo) ||
-        prBssInfo->eCurrentOPMode != OP_MODE_ACCESS_POINT ||
-        prBssInfo->eBssSCO == CHNL_EXT_SCN) {
-        return;
+	prBssInfo->eCurrentOPMode != OP_MODE_ACCESS_POINT ||
+	prBssInfo->eBssSCO == CHNL_EXT_SCN) {
+	return;
     }
 
     prCoexist = &prRxFrame->rBssCoexist;
     if (prCoexist->ucData & (BSS_COEXIST_40M_INTOLERANT|BSS_COEXIST_20M_REQ)) {
-        ASSERT(prBssInfo->auc2G_20mReqChnlList[0] <= CHNL_LIST_SZ_2G);
-        for (i = 1; i <= prBssInfo->auc2G_20mReqChnlList[0] &&
-             i <= CHNL_LIST_SZ_2G; i++) {
-            if (prBssInfo->auc2G_20mReqChnlList[i] ==
-                prBssInfo->ucPrimaryChannel) {
-                break;
-            }
-        }
-        if ((i > prBssInfo->auc2G_20mReqChnlList[0]) &&
-            (i <= CHNL_LIST_SZ_2G)){
-            prBssInfo->auc2G_20mReqChnlList[i] = prBssInfo->ucPrimaryChannel;
-            prBssInfo->auc2G_20mReqChnlList[0]++;
-        }
+	ASSERT(prBssInfo->auc2G_20mReqChnlList[0] <= CHNL_LIST_SZ_2G);
+	for (i = 1; i <= prBssInfo->auc2G_20mReqChnlList[0] &&
+	     i <= CHNL_LIST_SZ_2G; i++) {
+	    if (prBssInfo->auc2G_20mReqChnlList[i] ==
+		prBssInfo->ucPrimaryChannel) {
+		break;
+	    }
+	}
+	if ((i > prBssInfo->auc2G_20mReqChnlList[0]) &&
+	    (i <= CHNL_LIST_SZ_2G)) {
+	    prBssInfo->auc2G_20mReqChnlList[i] = prBssInfo->ucPrimaryChannel;
+	    prBssInfo->auc2G_20mReqChnlList[0]++;
+	}
     }
 
     /* Process intolerant channel report IE */
@@ -311,48 +325,48 @@ rlmProcessPublicAction (
     u2IELength = prSwRfb->u2PacketLen - (WLAN_MAC_MGMT_HEADER_LEN + 5);
 
     IE_FOR_EACH(pucIE, u2IELength, u2Offset) {
-        switch (IE_ID(pucIE)) {
-        case ELEM_ID_20_40_INTOLERANT_CHNL_REPORT:
-            prChnlReport = (P_IE_INTOLERANT_CHNL_REPORT_T) pucIE;
+	switch (IE_ID(pucIE)) {
+	case ELEM_ID_20_40_INTOLERANT_CHNL_REPORT:
+	    prChnlReport = (P_IE_INTOLERANT_CHNL_REPORT_T) pucIE;
 
-            if (prChnlReport->ucLength <= 1) {
-                break;
-            }
+	    if (prChnlReport->ucLength <= 1) {
+		break;
+	    }
 
-            /* To do: process regulatory class. Now we assume 2.4G band */
+	    /* To do: process regulatory class. Now we assume 2.4G band */
 
-            for (j = 0; j < prChnlReport->ucLength - 1; j++) {
-                /* Update non-HT channel list */
-                ASSERT(prBssInfo->auc2G_NonHtChnlList[0] <= CHNL_LIST_SZ_2G);
-                for (i = 1; i <= prBssInfo->auc2G_NonHtChnlList[0] &&
-                     i <= CHNL_LIST_SZ_2G; i++) {
-                    if (prBssInfo->auc2G_NonHtChnlList[i] ==
-                        prChnlReport->aucChannelList[j]) {
-                        break;
-                    }
-                }
-                if ((i > prBssInfo->auc2G_NonHtChnlList[0]) &&
-                    (i <= CHNL_LIST_SZ_2G)) {
-                    prBssInfo->auc2G_NonHtChnlList[i] =
-                                    prChnlReport->aucChannelList[j];
-                    prBssInfo->auc2G_NonHtChnlList[0]++;
-                }
-            }
-            break;
+	    for (j = 0; j < prChnlReport->ucLength - 1; j++) {
+		/* Update non-HT channel list */
+		ASSERT(prBssInfo->auc2G_NonHtChnlList[0] <= CHNL_LIST_SZ_2G);
+		for (i = 1; i <= prBssInfo->auc2G_NonHtChnlList[0] &&
+		     i <= CHNL_LIST_SZ_2G; i++) {
+		    if (prBssInfo->auc2G_NonHtChnlList[i] ==
+			prChnlReport->aucChannelList[j]) {
+			break;
+		    }
+		}
+		if ((i > prBssInfo->auc2G_NonHtChnlList[0]) &&
+		    (i <= CHNL_LIST_SZ_2G)) {
+		    prBssInfo->auc2G_NonHtChnlList[i] =
+				    prChnlReport->aucChannelList[j];
+		    prBssInfo->auc2G_NonHtChnlList[0]++;
+		}
+	    }
+	    break;
 
-        default:
-            break;
-        }
+	default:
+	    break;
+	}
     } /* end of IE_FOR_EACH */
 
     if (rlmUpdateBwByChListForAP(prAdapter, prBssInfo)) {
-        bssUpdateBeaconContent(prAdapter, prBssInfo->ucNetTypeIndex);
-        rlmSyncOperationParams(prAdapter, prBssInfo);
+	bssUpdateBeaconContent(prAdapter, prBssInfo->ucNetTypeIndex);
+	rlmSyncOperationParams(prAdapter, prBssInfo);
     }
 
     /* Check if OBSS scan exemption response should be sent */
     if (prCoexist->ucData & BSS_COEXIST_OBSS_SCAN_EXEMPTION_REQ) {
-        rlmObssScanExemptionRsp(prAdapter, prBssInfo, prSwRfb);
+	rlmObssScanExemptionRsp(prAdapter, prBssInfo, prSwRfb);
     }
 }
 
@@ -366,7 +380,7 @@ rlmProcessPublicAction (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-rlmProcessHtAction (
+rlmProcessHtAction(
     P_ADAPTER_T     prAdapter,
     P_SW_RFB_T      prSwRfb
     )
@@ -381,9 +395,9 @@ rlmProcessHtAction (
     prStaRec = cnmGetStaRecByIndex(prAdapter, prSwRfb->ucStaRecIdx);
 
     if (prRxFrame->ucAction != ACTION_HT_NOTIFY_CHANNEL_WIDTH ||
-        !prStaRec || prStaRec->ucStaState != STA_STATE_3 ||
-        prSwRfb->u2PacketLen < sizeof(ACTION_NOTIFY_CHNL_WIDTH_FRAME)) {
-        return;
+	!prStaRec || prStaRec->ucStaState != STA_STATE_3 ||
+	prSwRfb->u2PacketLen < sizeof(ACTION_NOTIFY_CHNL_WIDTH_FRAME)) {
+	return;
     }
 
     /* To do: depending regulation class 13 and 14 based on spec
@@ -391,10 +405,10 @@ rlmProcessHtAction (
      *       not current setting to 40MHz BW here
      */
     if (prRxFrame->ucChannelWidth == 0) {
-        prStaRec->u2HtCapInfo &= ~HT_CAP_INFO_SUP_CHNL_WIDTH;
+	prStaRec->u2HtCapInfo &= ~HT_CAP_INFO_SUP_CHNL_WIDTH;
     }
     else if (prRxFrame->ucChannelWidth == 1) {
-        prStaRec->u2HtCapInfo |= HT_CAP_INFO_SUP_CHNL_WIDTH;
+	prStaRec->u2HtCapInfo |= HT_CAP_INFO_SUP_CHNL_WIDTH;
     }
     cnmStaRecChangeState(prAdapter, prStaRec, STA_STATE_3);
 }
@@ -409,7 +423,7 @@ rlmProcessHtAction (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-rlmHandleObssStatusEventPkt (
+rlmHandleObssStatusEventPkt(
     P_ADAPTER_T                 prAdapter,
     P_EVENT_AP_OBSS_STATUS_T    prObssStatus
     )
@@ -424,15 +438,15 @@ rlmHandleObssStatusEventPkt (
     ASSERT(prBssInfo->eCurrentOPMode == OP_MODE_ACCESS_POINT);
 
     prBssInfo->fgObssErpProtectMode =
-            (BOOLEAN) prObssStatus->ucObssErpProtectMode;
+	    (BOOLEAN) prObssStatus->ucObssErpProtectMode;
     prBssInfo->eObssHtProtectMode =
-            (ENUM_HT_PROTECT_MODE_T) prObssStatus->ucObssHtProtectMode;
+	    (ENUM_HT_PROTECT_MODE_T) prObssStatus->ucObssHtProtectMode;
     prBssInfo->eObssGfOperationMode =
-            (ENUM_GF_MODE_T) prObssStatus->ucObssGfOperationMode;
+	    (ENUM_GF_MODE_T) prObssStatus->ucObssGfOperationMode;
     prBssInfo->fgObssRifsOperationMode =
-            (BOOLEAN) prObssStatus->ucObssRifsOperationMode;
+	    (BOOLEAN) prObssStatus->ucObssRifsOperationMode;
     prBssInfo->fgObssBeaconForcedTo20M =
-            (BOOLEAN) prObssStatus->ucObssBeaconForcedTo20M;
+	    (BOOLEAN) prObssStatus->ucObssBeaconForcedTo20M;
 
     /* Check if Beacon content need to be updated */
     rlmUpdateParamsForAP(prAdapter, prBssInfo, TRUE);
@@ -449,7 +463,7 @@ rlmHandleObssStatusEventPkt (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-rlmUpdateParamsForAP (
+rlmUpdateParamsForAP(
     P_ADAPTER_T     prAdapter,
     P_BSS_INFO_T    prBssInfo,
     BOOLEAN         fgUpdateBeacon
@@ -470,8 +484,8 @@ rlmUpdateParamsForAP (
     ASSERT(prBssInfo);
 
     if (!IS_BSS_ACTIVE(prBssInfo) ||
-        prBssInfo->eCurrentOPMode != OP_MODE_ACCESS_POINT) {
-        return;
+	prBssInfo->eCurrentOPMode != OP_MODE_ACCESS_POINT) {
+	return;
     }
 
     fgErpProtectMode = FALSE;
@@ -485,25 +499,25 @@ rlmUpdateParamsForAP (
     prStaList = &prBssInfo->rStaRecOfClientList;
 
     LINK_FOR_EACH_ENTRY(prStaRec, prStaList, rLinkEntry, STA_RECORD_T) {
-        //ASSERT(prStaRec);
-        if(!prStaRec){
-           DBGLOG(P2P, TRACE, ("prStaRec is NULL in rlmUpdateParamsForAP() \n"));
-        	break;
-        }
-        if (prStaRec->fgIsInUse && prStaRec->ucStaState == STA_STATE_3 &&
-            prStaRec->ucNetTypeIndex == prBssInfo->ucNetTypeIndex) {
-            if (!(prStaRec->ucPhyTypeSet &
-                  (PHY_TYPE_SET_802_11GN | PHY_TYPE_SET_802_11A))) {
-                /* B-only mode, so mode 1 (ERP protection) */
-                fgErpProtectMode = TRUE;
-            }
+	/* ASSERT(prStaRec); */
+	if (!prStaRec) {
+	   DBGLOG(P2P, TRACE, ("prStaRec is NULL in rlmUpdateParamsForAP()\n"));
+		break;
+	}
+	if (prStaRec->fgIsInUse && prStaRec->ucStaState == STA_STATE_3 &&
+	    prStaRec->ucNetTypeIndex == prBssInfo->ucNetTypeIndex) {
+	    if (!(prStaRec->ucPhyTypeSet &
+		  (PHY_TYPE_SET_802_11GN | PHY_TYPE_SET_802_11A))) {
+		/* B-only mode, so mode 1 (ERP protection) */
+		fgErpProtectMode = TRUE;
+	    }
 
-            if (!(prStaRec->ucPhyTypeSet & PHY_TYPE_SET_802_11N)) {
-                /* BG-only or A-only */
-                eHtProtectMode = HT_PROTECT_MODE_NON_HT;
-            }
-            else if (!(prStaRec->u2HtCapInfo & HT_CAP_INFO_SUP_CHNL_WIDTH)) {
-                /* 20MHz-only */
+	    if (!(prStaRec->ucPhyTypeSet & PHY_TYPE_SET_802_11N)) {
+		/* BG-only or A-only */
+		eHtProtectMode = HT_PROTECT_MODE_NON_HT;
+	    }
+	    else if (!(prStaRec->u2HtCapInfo & HT_CAP_INFO_SUP_CHNL_WIDTH)) {
+		/* 20MHz-only */
 				/*
 					The HT Protection field may be set to 20 MHz protection
 					mode only if the following are true:
@@ -516,74 +530,74 @@ rlmUpdateParamsForAP (
 				*/
 				if (eHtProtectMode == HT_PROTECT_MODE_NONE &&
 					prBssInfo->fgAssoc40mBwAllowed) {
-                    eHtProtectMode = HT_PROTECT_MODE_20M;
-                }
-            }
+		    eHtProtectMode = HT_PROTECT_MODE_20M;
+		}
+	    }
 
-            if (!(prStaRec->u2HtCapInfo & HT_CAP_INFO_HT_GF)) {
-                eGfOperationMode = GF_MODE_PROTECT;
-            }
+	    if (!(prStaRec->u2HtCapInfo & HT_CAP_INFO_HT_GF)) {
+		eGfOperationMode = GF_MODE_PROTECT;
+	    }
 
-            if (!(prStaRec->u2CapInfo & CAP_INFO_SHORT_PREAMBLE)) {
-                fgUseShortPreamble = FALSE;
-            }
+	    if (!(prStaRec->u2CapInfo & CAP_INFO_SHORT_PREAMBLE)) {
+		fgUseShortPreamble = FALSE;
+	    }
 
-            if (!(prStaRec->u2CapInfo & CAP_INFO_SHORT_SLOT_TIME)) {
-                fgUseShortSlotTime = FALSE;
-            }
+	    if (!(prStaRec->u2CapInfo & CAP_INFO_SHORT_SLOT_TIME)) {
+		fgUseShortSlotTime = FALSE;
+	    }
 
-            if (prStaRec->u2HtCapInfo & HT_CAP_INFO_40M_INTOLERANT) {
-                fgSta40mIntolerant = TRUE;
-            }
-        }
+	    if (prStaRec->u2HtCapInfo & HT_CAP_INFO_40M_INTOLERANT) {
+		fgSta40mIntolerant = TRUE;
+	    }
+	}
     } /* end of LINK_FOR_EACH_ENTRY */
 
     /* Check if HT operation IE about 20/40M bandwidth shall be updated */
     if (prBssInfo->eBssSCO != CHNL_EXT_SCN) {
-        if (/*!LINK_IS_EMPTY(prStaList) && */ !fgSta40mIntolerant &&
-            !prBssInfo->fgObssActionForcedTo20M &&
-            !prBssInfo->fgObssBeaconForcedTo20M) {
+	if (/*!LINK_IS_EMPTY(prStaList) && */ !fgSta40mIntolerant &&
+	    !prBssInfo->fgObssActionForcedTo20M &&
+	    !prBssInfo->fgObssBeaconForcedTo20M) {
 
-            ucHtOpInfo1 = (UINT_8)
-                (((UINT_32) prBssInfo->eBssSCO) | HT_OP_INFO1_STA_CHNL_WIDTH);
-        }
+	    ucHtOpInfo1 = (UINT_8)
+		(((UINT_32) prBssInfo->eBssSCO) | HT_OP_INFO1_STA_CHNL_WIDTH);
+	}
     }
 
 #if CFG_SUPPORT_HOTSPOT_OPTIMIZATION
     prGlueInfo = prAdapter->prGlueInfo;
     if (prGlueInfo->prP2PInfo->u4PsLevel & BITS(8, 15))
-        fgErpProtectMode = TRUE;
+	fgErpProtectMode = TRUE;
 #endif
 
     /* Check if any new parameter may be updated */
     if (prBssInfo->fgErpProtectMode != fgErpProtectMode ||
-        prBssInfo->eHtProtectMode != eHtProtectMode ||
-        prBssInfo->eGfOperationMode != eGfOperationMode ||
-        prBssInfo->ucHtOpInfo1 != ucHtOpInfo1 ||
-        prBssInfo->fgUseShortPreamble != fgUseShortPreamble ||
-        prBssInfo->fgUseShortSlotTime != fgUseShortSlotTime) {
+	prBssInfo->eHtProtectMode != eHtProtectMode ||
+	prBssInfo->eGfOperationMode != eGfOperationMode ||
+	prBssInfo->ucHtOpInfo1 != ucHtOpInfo1 ||
+	prBssInfo->fgUseShortPreamble != fgUseShortPreamble ||
+	prBssInfo->fgUseShortSlotTime != fgUseShortSlotTime) {
 
-        prBssInfo->fgErpProtectMode = fgErpProtectMode;
-        prBssInfo->eHtProtectMode = eHtProtectMode;
-        prBssInfo->eGfOperationMode = eGfOperationMode;
-        prBssInfo->ucHtOpInfo1 = ucHtOpInfo1;
-        prBssInfo->fgUseShortPreamble = fgUseShortPreamble;
-        prBssInfo->fgUseShortSlotTime = fgUseShortSlotTime;
+	prBssInfo->fgErpProtectMode = fgErpProtectMode;
+	prBssInfo->eHtProtectMode = eHtProtectMode;
+	prBssInfo->eGfOperationMode = eGfOperationMode;
+	prBssInfo->ucHtOpInfo1 = ucHtOpInfo1;
+	prBssInfo->fgUseShortPreamble = fgUseShortPreamble;
+	prBssInfo->fgUseShortSlotTime = fgUseShortSlotTime;
 
-        if (fgUseShortSlotTime) {
-            prBssInfo->u2CapInfo |= CAP_INFO_SHORT_SLOT_TIME;
-        }
-        else {
-            prBssInfo->u2CapInfo &= ~CAP_INFO_SHORT_SLOT_TIME;
-        }
+	if (fgUseShortSlotTime) {
+	    prBssInfo->u2CapInfo |= CAP_INFO_SHORT_SLOT_TIME;
+	}
+	else {
+	    prBssInfo->u2CapInfo &= ~CAP_INFO_SHORT_SLOT_TIME;
+	}
 
-        rlmSyncOperationParams(prAdapter, prBssInfo);
-        fgUpdateBeacon = TRUE;
+	rlmSyncOperationParams(prAdapter, prBssInfo);
+	fgUpdateBeacon = TRUE;
     }
 
     /* Update Beacon content if related IE content is changed */
     if (fgUpdateBeacon) {
-        bssUpdateBeaconContent(prAdapter, prBssInfo->ucNetTypeIndex);
+	bssUpdateBeaconContent(prAdapter, prBssInfo->ucNetTypeIndex);
     }
 }
 
@@ -600,7 +614,7 @@ rlmUpdateParamsForAP (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-rlmFuncInitialChannelList (
+rlmFuncInitialChannelList(
     IN P_ADAPTER_T prAdapter
     )
 {
@@ -615,135 +629,135 @@ rlmFuncInitialChannelList (
 #endif
 
     do {
-        ASSERT_BREAK(prAdapter != NULL);
+	ASSERT_BREAK(prAdapter != NULL);
 
-        prP2pConnSetting = prAdapter->rWifiVar.prP2PConnSettings;
+	prP2pConnSetting = prAdapter->rWifiVar.prP2PConnSettings;
 #if 0
-        ucAutoChnl = prP2pConnSetting->ucOperatingChnl;
+	ucAutoChnl = prP2pConnSetting->ucOperatingChnl;
 #endif
 
-        prDomainInfoEntry = rlmDomainGetDomainInfo(prAdapter);
+	prDomainInfoEntry = rlmDomainGetDomainInfo(prAdapter);
 
-        ASSERT_BREAK((prDomainInfoEntry != NULL) && (prP2pConnSetting != NULL));
+	ASSERT_BREAK((prDomainInfoEntry != NULL) && (prP2pConnSetting != NULL));
 
-        prChannelEntryField = (P_CHANNEL_ENTRY_FIELD_T)prP2pConnSetting->aucChannelEntriesField;
+	prChannelEntryField = (P_CHANNEL_ENTRY_FIELD_T)prP2pConnSetting->aucChannelEntriesField;
 
-        for (u4Idx = 0; u4Idx < MAX_SUBBAND_NUM; u4Idx++) {
-            prDomainSubBand = &prDomainInfoEntry->rSubBand[u4Idx];
-
-
-            if (((prDomainSubBand->ucBand == BAND_5G) && (!prAdapter->fgEnable5GBand)) ||
-                    (prDomainSubBand->ucBand == BAND_NULL)) {
-                continue;
-            }
+	for (u4Idx = 0; u4Idx < MAX_SUBBAND_NUM; u4Idx++) {
+	    prDomainSubBand = &prDomainInfoEntry->rSubBand[u4Idx];
 
 
-            if (ucBufferSize < (P2P_ATTRI_LEN_CHANNEL_ENTRY + prDomainSubBand->ucNumChannels)) {
-                /* Buffer is not enough to include all supported channels. */
-                break; // for
-            }
-
-            prChannelEntryField->ucRegulatoryClass = prDomainSubBand->ucRegClass;
-            prChannelEntryField->ucNumberOfChannels = prDomainSubBand->ucNumChannels;
-
-            for (u4IdxII = 0; u4IdxII < prDomainSubBand->ucNumChannels; u4IdxII++) {
-                prChannelEntryField->aucChannelList[u4IdxII] = prDomainSubBand->ucFirstChannelNum +
-                            (u4IdxII * prDomainSubBand->ucChannelSpan);
-
-#if 0
-                switch (prChannelEntryField->aucChannelList[u4IdxII]) {
-                    case 1:
-                        ucSocialChnlSupport = 1;
-                        break;
-                    case 6:
-                        ucSocialChnlSupport = 6;
-                        break;
-                    case 11:
-                        ucSocialChnlSupport = 11;
-                        break;
-                    default:
-                        break;
-                }
-
-#endif
-            }
-
-            if (ucBufferSize >= (P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntryField->ucNumberOfChannels)) {
-                ucBufferSize -= (P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntryField->ucNumberOfChannels);
-            }
-            else {
-                break;
-            }
+	    if (((prDomainSubBand->ucBand == BAND_5G) && (!prAdapter->fgEnable5GBand)) ||
+		    (prDomainSubBand->ucBand == BAND_NULL)) {
+		continue;
+	    }
 
 
-            prChannelEntryField = (P_CHANNEL_ENTRY_FIELD_T)((UINT_32)prChannelEntryField +
-                                                                                    P2P_ATTRI_LEN_CHANNEL_ENTRY +
-                                                                                    (UINT_32)prChannelEntryField->ucNumberOfChannels);
+	    if (ucBufferSize < (P2P_ATTRI_LEN_CHANNEL_ENTRY + prDomainSubBand->ucNumChannels)) {
+		/* Buffer is not enough to include all supported channels. */
+		break; /* for */
+	    }
 
-        }
+	    prChannelEntryField->ucRegulatoryClass = prDomainSubBand->ucRegClass;
+	    prChannelEntryField->ucNumberOfChannels = prDomainSubBand->ucNumChannels;
+
+	    for (u4IdxII = 0; u4IdxII < prDomainSubBand->ucNumChannels; u4IdxII++) {
+		prChannelEntryField->aucChannelList[u4IdxII] = prDomainSubBand->ucFirstChannelNum +
+			    (u4IdxII * prDomainSubBand->ucChannelSpan);
 
 #if 0
-        if (prP2pConnSetting->ucListenChnl == 0) {
-            prP2pConnSetting->ucListenChnl = P2P_DEFAULT_LISTEN_CHANNEL;
-
-            if (ucSocialChnlSupport != 0) {
-                /* 1. User Not Set LISTEN channel.
-                  * 2. Social channel is not empty.
-                  */
-                prP2pConnSetting->ucListenChnl = ucSocialChnlSupport;
-            }
-        }
+		switch (prChannelEntryField->aucChannelList[u4IdxII]) {
+		    case 1:
+			ucSocialChnlSupport = 1;
+			break;
+		    case 6:
+			ucSocialChnlSupport = 6;
+			break;
+		    case 11:
+			ucSocialChnlSupport = 11;
+			break;
+		    default:
+			break;
+		}
 
 #endif
+	    }
 
-        // TODO: 20110921 frog -
-        /* If LISTEN channel is not set,
-          * a random supported channel would be set.
-          * If no social channel is supported, DEFAULT channel would be set.
-          */
+	    if (ucBufferSize >= (P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntryField->ucNumberOfChannels)) {
+		ucBufferSize -= (P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntryField->ucNumberOfChannels);
+	    }
+	    else {
+		break;
+	    }
 
-        prP2pConnSetting->ucRfChannelListSize = P2P_MAX_SUPPORTED_CHANNEL_LIST_SIZE - ucBufferSize;
+
+	    prChannelEntryField = (P_CHANNEL_ENTRY_FIELD_T)((UINT_32)prChannelEntryField +
+										    P2P_ATTRI_LEN_CHANNEL_ENTRY +
+										    (UINT_32)prChannelEntryField->ucNumberOfChannels);
+
+	}
 
 #if 0
-        if (prP2pConnSetting->ucOperatingChnl == 0) {  /* User not set OPERATE channel. */
+	if (prP2pConnSetting->ucListenChnl == 0) {
+	    prP2pConnSetting->ucListenChnl = P2P_DEFAULT_LISTEN_CHANNEL;
 
-            if (scnQuerySparseChannel(prAdapter, NULL, &ucAutoChnl)) {
-                break; // while
-            }
-
-            ucBufferSize = prP2pConnSetting->ucRfChannelListSize;
-
-            prChannelEntryField = (P_CHANNEL_ENTRY_FIELD_T)prP2pConnSetting->aucChannelEntriesField;
-
-            while (ucBufferSize != 0) {
-                if (prChannelEntryField->ucNumberOfChannels != 0) {
-                    ucAutoChnl = prChannelEntryField->aucChannelList[0];
-                    break; // while
-                }
-
-                else {
-                    prChannelEntryField = (P_CHANNEL_ENTRY_FIELD_T)((UINT_32)prChannelEntryField +
-                                                                                    P2P_ATTRI_LEN_CHANNEL_ENTRY +
-                                                                                    (UINT_32)prChannelEntryField->ucNumberOfChannels);
-
-                    ucBufferSize -= (P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntryField->ucNumberOfChannels);
-                }
-
-            }
-
-
-
-        }
+	    if (ucSocialChnlSupport != 0) {
+		/* 1. User Not Set LISTEN channel.
+		  * 2. Social channel is not empty.
+		  */
+		prP2pConnSetting->ucListenChnl = ucSocialChnlSupport;
+	    }
+	}
 
 #endif
-        /* We assume user would not set a channel not in the channel list.
-          * If so, the operating channel still depends on target deivce supporting capability.
-          */
 
-        // TODO: 20110921 frog -
-        /* If the Operating channel is not set, a channel from supported channel list is set automatically.
-          * If there is no supported channel in channel list, a DEFAULT channel is set.
-          */
+	/* TODO: 20110921 frog - */
+	/* If LISTEN channel is not set,
+	  * a random supported channel would be set.
+	  * If no social channel is supported, DEFAULT channel would be set.
+	  */
+
+	prP2pConnSetting->ucRfChannelListSize = P2P_MAX_SUPPORTED_CHANNEL_LIST_SIZE - ucBufferSize;
+
+#if 0
+	if (prP2pConnSetting->ucOperatingChnl == 0) {  /* User not set OPERATE channel. */
+
+	    if (scnQuerySparseChannel(prAdapter, NULL, &ucAutoChnl)) {
+		break; /* while */
+	    }
+
+	    ucBufferSize = prP2pConnSetting->ucRfChannelListSize;
+
+	    prChannelEntryField = (P_CHANNEL_ENTRY_FIELD_T)prP2pConnSetting->aucChannelEntriesField;
+
+	    while (ucBufferSize != 0) {
+		if (prChannelEntryField->ucNumberOfChannels != 0) {
+		    ucAutoChnl = prChannelEntryField->aucChannelList[0];
+		    break; /* while */
+		}
+
+		else {
+		    prChannelEntryField = (P_CHANNEL_ENTRY_FIELD_T)((UINT_32)prChannelEntryField +
+										    P2P_ATTRI_LEN_CHANNEL_ENTRY +
+										    (UINT_32)prChannelEntryField->ucNumberOfChannels);
+
+		    ucBufferSize -= (P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntryField->ucNumberOfChannels);
+		}
+
+	    }
+
+
+
+	}
+
+#endif
+	/* We assume user would not set a channel not in the channel list.
+	  * If so, the operating channel still depends on target deivce supporting capability.
+	  */
+
+	/* TODO: 20110921 frog - */
+	/* If the Operating channel is not set, a channel from supported channel list is set automatically.
+	  * If there is no supported channel in channel list, a DEFAULT channel is set.
+	  */
 
     } while (FALSE);
 
@@ -763,7 +777,7 @@ rlmFuncInitialChannelList (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-rlmFuncCommonChannelList (
+rlmFuncCommonChannelList(
     IN P_ADAPTER_T prAdapter,
     IN P_CHANNEL_ENTRY_FIELD_T prChannelEntryII,
     IN UINT_8 ucChannelListSize
@@ -777,53 +791,53 @@ rlmFuncCommonChannelList (
 
     do {
 
-        ASSERT_BREAK(prAdapter != NULL);
+	ASSERT_BREAK(prAdapter != NULL);
 
-        prP2pConnSetting = prAdapter->rWifiVar.prP2PConnSettings;
+	prP2pConnSetting = prAdapter->rWifiVar.prP2PConnSettings;
 
-        prChannelEntryIII = (P_CHANNEL_ENTRY_FIELD_T)aucCommonChannelList;
+	prChannelEntryIII = (P_CHANNEL_ENTRY_FIELD_T)aucCommonChannelList;
 
-        while (ucChannelListSize > 0) {
+	while (ucChannelListSize > 0) {
 
-            prChannelEntryI = (P_CHANNEL_ENTRY_FIELD_T)prP2pConnSetting->aucChannelEntriesField;
-            ucOriChnlSize = prP2pConnSetting->ucRfChannelListSize;
+	    prChannelEntryI = (P_CHANNEL_ENTRY_FIELD_T)prP2pConnSetting->aucChannelEntriesField;
+	    ucOriChnlSize = prP2pConnSetting->ucRfChannelListSize;
 
-            while (ucOriChnlSize > 0) {
-                if (prChannelEntryI->ucRegulatoryClass == prChannelEntryII->ucRegulatoryClass) {
-                    prChannelEntryIII->ucRegulatoryClass = prChannelEntryI->ucRegulatoryClass;
-                    // TODO: Currently we assume that the regulatory class the same, the channels are the same.
-                    kalMemCopy(prChannelEntryIII->aucChannelList, prChannelEntryII->aucChannelList, prChannelEntryII->ucNumberOfChannels);
-                    prChannelEntryIII->ucNumberOfChannels = prChannelEntryII->ucNumberOfChannels;
+	    while (ucOriChnlSize > 0) {
+		if (prChannelEntryI->ucRegulatoryClass == prChannelEntryII->ucRegulatoryClass) {
+		    prChannelEntryIII->ucRegulatoryClass = prChannelEntryI->ucRegulatoryClass;
+		    /* TODO: Currently we assume that the regulatory class the same, the channels are the same. */
+		    kalMemCopy(prChannelEntryIII->aucChannelList, prChannelEntryII->aucChannelList, prChannelEntryII->ucNumberOfChannels);
+		    prChannelEntryIII->ucNumberOfChannels = prChannelEntryII->ucNumberOfChannels;
 
-                    ucNewChnlSize += P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntryIII->ucNumberOfChannels;
+		    ucNewChnlSize += P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntryIII->ucNumberOfChannels;
 
-                    prChannelEntryIII = (P_CHANNEL_ENTRY_FIELD_T)((UINT_32)prChannelEntryIII +
-                                                                                P2P_ATTRI_LEN_CHANNEL_ENTRY +
-                                                                                (UINT_32)prChannelEntryIII->ucNumberOfChannels);
-                }
+		    prChannelEntryIII = (P_CHANNEL_ENTRY_FIELD_T)((UINT_32)prChannelEntryIII +
+										P2P_ATTRI_LEN_CHANNEL_ENTRY +
+										(UINT_32)prChannelEntryIII->ucNumberOfChannels);
+		}
 
-                ucOriChnlSize -= (P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntryI->ucNumberOfChannels);
+		ucOriChnlSize -= (P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntryI->ucNumberOfChannels);
 
-                prChannelEntryI = (P_CHANNEL_ENTRY_FIELD_T)((UINT_32)prChannelEntryI +
-                                                                                P2P_ATTRI_LEN_CHANNEL_ENTRY +
-                                                                                (UINT_32)prChannelEntryI->ucNumberOfChannels);
-
-
-            }
+		prChannelEntryI = (P_CHANNEL_ENTRY_FIELD_T)((UINT_32)prChannelEntryI +
+										P2P_ATTRI_LEN_CHANNEL_ENTRY +
+										(UINT_32)prChannelEntryI->ucNumberOfChannels);
 
 
-            ucChannelListSize -= (P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntryII->ucNumberOfChannels);
-
-            prChannelEntryII = (P_CHANNEL_ENTRY_FIELD_T)((UINT_32)prChannelEntryII +
-                                                                                P2P_ATTRI_LEN_CHANNEL_ENTRY +
-                                                                                (UINT_32)prChannelEntryII->ucNumberOfChannels);
+	    }
 
 
-        }
+	    ucChannelListSize -= (P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntryII->ucNumberOfChannels);
+
+	    prChannelEntryII = (P_CHANNEL_ENTRY_FIELD_T)((UINT_32)prChannelEntryII +
+										P2P_ATTRI_LEN_CHANNEL_ENTRY +
+										(UINT_32)prChannelEntryII->ucNumberOfChannels);
 
 
-        kalMemCopy(prP2pConnSetting->aucChannelEntriesField, aucCommonChannelList, ucNewChnlSize);
-        prP2pConnSetting->ucRfChannelListSize = ucNewChnlSize;
+	}
+
+
+	kalMemCopy(prP2pConnSetting->aucChannelEntriesField, aucCommonChannelList, ucNewChnlSize);
+	prP2pConnSetting->ucRfChannelListSize = ucNewChnlSize;
 
     } while (FALSE);
 
@@ -841,7 +855,7 @@ rlmFuncCommonChannelList (
 */
 /*----------------------------------------------------------------------------*/
 UINT_8
-rlmFuncFindOperatingClass (
+rlmFuncFindOperatingClass(
     IN P_ADAPTER_T prAdapter,
     IN UINT_8 ucChannelNum
     )
@@ -852,35 +866,35 @@ rlmFuncFindOperatingClass (
     UINT_32 u4Idx = 0;
 
     do {
-        ASSERT_BREAK(prAdapter != NULL);
+	ASSERT_BREAK(prAdapter != NULL);
 
-        prP2pConnSetting = prAdapter->rWifiVar.prP2PConnSettings;
-        ucBufferSize = prP2pConnSetting->ucRfChannelListSize;
-        prChannelEntryField = (P_CHANNEL_ENTRY_FIELD_T)prP2pConnSetting->aucChannelEntriesField;
+	prP2pConnSetting = prAdapter->rWifiVar.prP2PConnSettings;
+	ucBufferSize = prP2pConnSetting->ucRfChannelListSize;
+	prChannelEntryField = (P_CHANNEL_ENTRY_FIELD_T)prP2pConnSetting->aucChannelEntriesField;
 
-        while (ucBufferSize != 0) {
+	while (ucBufferSize != 0) {
 
-            for (u4Idx = 0; u4Idx < prChannelEntryField->ucNumberOfChannels; u4Idx++) {
-                if (prChannelEntryField->aucChannelList[u4Idx] == ucChannelNum) {
-                    ucRegulatoryClass = prChannelEntryField->ucRegulatoryClass;
-                    break;
-                }
+	    for (u4Idx = 0; u4Idx < prChannelEntryField->ucNumberOfChannels; u4Idx++) {
+		if (prChannelEntryField->aucChannelList[u4Idx] == ucChannelNum) {
+		    ucRegulatoryClass = prChannelEntryField->ucRegulatoryClass;
+		    break;
+		}
 
-            }
+	    }
 
 
-            if (ucRegulatoryClass != 0) {
-                break; //while
-            }
-            else {
-                prChannelEntryField = (P_CHANNEL_ENTRY_FIELD_T)((UINT_32)prChannelEntryField +
-                                                                                            P2P_ATTRI_LEN_CHANNEL_ENTRY +
-                                                                                            (UINT_32)prChannelEntryField->ucNumberOfChannels);
+	    if (ucRegulatoryClass != 0) {
+		break; /* while */
+	    }
+	    else {
+		prChannelEntryField = (P_CHANNEL_ENTRY_FIELD_T)((UINT_32)prChannelEntryField +
+											    P2P_ATTRI_LEN_CHANNEL_ENTRY +
+											    (UINT_32)prChannelEntryField->ucNumberOfChannels);
 
-                            ucBufferSize -= (P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntryField->ucNumberOfChannels);
-            }
+			    ucBufferSize -= (P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntryField->ucNumberOfChannels);
+	    }
 
-        }
+	}
 
 
     } while (FALSE);
@@ -899,7 +913,7 @@ rlmFuncFindOperatingClass (
 */
 /*----------------------------------------------------------------------------*/
 BOOLEAN
-rlmFuncFindAvailableChannel (
+rlmFuncFindAvailableChannel(
     IN P_ADAPTER_T prAdapter,
     IN UINT_8 ucCheckChnl,
     IN PUINT_8 pucSuggestChannel,
@@ -913,59 +927,59 @@ rlmFuncFindAvailableChannel (
     UINT_8 ucBufferSize = 0, ucIdx = 0, ucChannelSelected = 0;
 
     do {
-        ASSERT_BREAK(prAdapter != NULL);
+	ASSERT_BREAK(prAdapter != NULL);
 
-        if (fgIsDefaultChannel) {
-            ucChannelSelected = P2P_DEFAULT_LISTEN_CHANNEL;
-        }
-
-
-        prP2pConnSetting = prAdapter->rWifiVar.prP2PConnSettings;
-        ucBufferSize = prP2pConnSetting->ucRfChannelListSize;
-        prChannelEntry = (P_CHANNEL_ENTRY_FIELD_T)prP2pConnSetting->aucChannelEntriesField;
-
-        while ((ucBufferSize != 0) && (!fgIsResultAvailable)) {
-
-            for (ucIdx = 0; ucIdx < prChannelEntry->ucNumberOfChannels; ucIdx++) {
-                if ((!fgIsSocialChannel) ||
-                        (prChannelEntry->aucChannelList[ucIdx] == 1) ||
-                        (prChannelEntry->aucChannelList[ucIdx] == 6) ||
-                        (prChannelEntry->aucChannelList[ucIdx] == 11)) {
-
-                    if (prChannelEntry->aucChannelList[ucIdx] <= 11) {
-                        /* 2.4G. */
-                        ucChannelSelected = prChannelEntry->aucChannelList[ucIdx];
-                    }
-                    else if ((prChannelEntry->aucChannelList[ucIdx] < 52) &&
-                            (prChannelEntry->aucChannelList[ucIdx] > 14)) {
-                        /* 2.4G + 5G. */
-                        ucChannelSelected = prChannelEntry->aucChannelList[ucIdx];
-                    }
-
-                    if (ucChannelSelected == ucCheckChnl) {
-                        fgIsResultAvailable = TRUE;
-                        break;
-                    }
-                }
-
-            }
+	if (fgIsDefaultChannel) {
+	    ucChannelSelected = P2P_DEFAULT_LISTEN_CHANNEL;
+	}
 
 
-            ucBufferSize -= (P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntry->ucNumberOfChannels);
+	prP2pConnSetting = prAdapter->rWifiVar.prP2PConnSettings;
+	ucBufferSize = prP2pConnSetting->ucRfChannelListSize;
+	prChannelEntry = (P_CHANNEL_ENTRY_FIELD_T)prP2pConnSetting->aucChannelEntriesField;
 
-            prChannelEntry = (P_CHANNEL_ENTRY_FIELD_T)((UINT_32)prChannelEntry +
-                                                                                                P2P_ATTRI_LEN_CHANNEL_ENTRY +
-                                                                                                (UINT_32)prChannelEntry->ucNumberOfChannels);
+	while ((ucBufferSize != 0) && (!fgIsResultAvailable)) {
 
-        }
+	    for (ucIdx = 0; ucIdx < prChannelEntry->ucNumberOfChannels; ucIdx++) {
+		if ((!fgIsSocialChannel) ||
+			(prChannelEntry->aucChannelList[ucIdx] == 1) ||
+			(prChannelEntry->aucChannelList[ucIdx] == 6) ||
+			(prChannelEntry->aucChannelList[ucIdx] == 11)) {
+
+		    if (prChannelEntry->aucChannelList[ucIdx] <= 11) {
+			/* 2.4G. */
+			ucChannelSelected = prChannelEntry->aucChannelList[ucIdx];
+		    }
+		    else if ((prChannelEntry->aucChannelList[ucIdx] < 52) &&
+			    (prChannelEntry->aucChannelList[ucIdx] > 14)) {
+			/* 2.4G + 5G. */
+			ucChannelSelected = prChannelEntry->aucChannelList[ucIdx];
+		    }
+
+		    if (ucChannelSelected == ucCheckChnl) {
+			fgIsResultAvailable = TRUE;
+			break;
+		    }
+		}
+
+	    }
+
+
+	    ucBufferSize -= (P2P_ATTRI_LEN_CHANNEL_ENTRY + prChannelEntry->ucNumberOfChannels);
+
+	    prChannelEntry = (P_CHANNEL_ENTRY_FIELD_T)((UINT_32)prChannelEntry +
+												P2P_ATTRI_LEN_CHANNEL_ENTRY +
+												(UINT_32)prChannelEntry->ucNumberOfChannels);
+
+	}
 
 
 
-        if ((!fgIsResultAvailable) && (pucSuggestChannel != NULL)) {
-            DBGLOG(P2P, TRACE, ("The request channel %d is not available, sugguested channel:%d\n", ucCheckChnl, ucChannelSelected));
-            //  Given a suggested channel.
-            *pucSuggestChannel = ucChannelSelected;
-        }
+	if ((!fgIsResultAvailable) && (pucSuggestChannel != NULL)) {
+	    DBGLOG(P2P, TRACE, ("The request channel %d is not available, sugguested channel:%d\n", ucCheckChnl, ucChannelSelected));
+	    /* Given a suggested channel. */
+	    *pucSuggestChannel = ucChannelSelected;
+	}
 
 
     } while (FALSE);
@@ -983,7 +997,7 @@ rlmFuncFindAvailableChannel (
 */
 /*----------------------------------------------------------------------------*/
 ENUM_CHNL_EXT_T
-rlmDecideScoForAP (
+rlmDecideScoForAP(
     P_ADAPTER_T     prAdapter,
     P_BSS_INFO_T    prBssInfo
     )
@@ -996,43 +1010,42 @@ rlmDecideScoForAP (
     eSCO = CHNL_EXT_SCN;
 
     if (prBssInfo->eBand == BAND_2G4) {
-        if (prBssInfo->ucPrimaryChannel != 14) {
-            eSCO = (prBssInfo->ucPrimaryChannel > 7) ?
-                        CHNL_EXT_SCB : CHNL_EXT_SCA;
-        }
+	if (prBssInfo->ucPrimaryChannel != 14) {
+	    eSCO = (prBssInfo->ucPrimaryChannel > 7) ?
+			CHNL_EXT_SCB : CHNL_EXT_SCA;
+	}
     }
     else {
-        prDomainInfo = rlmDomainGetDomainInfo(prAdapter);
-        ASSERT(prDomainInfo);
+	prDomainInfo = rlmDomainGetDomainInfo(prAdapter);
+	ASSERT(prDomainInfo);
 
-        for (i = 0; i < MAX_SUBBAND_NUM; i++) {
-            prSubband = &prDomainInfo->rSubBand[i];
-            if (prSubband->ucBand == prBssInfo->eBand) {
-                for (j = 0; j < prSubband->ucNumChannels; j++) {
-                    if ((prSubband->ucFirstChannelNum + j*prSubband->ucChannelSpan)
-                        == prBssInfo->ucPrimaryChannel) {
-                        eSCO = (j & 1) ? CHNL_EXT_SCB : CHNL_EXT_SCA;
-                        break;
-                    }
-                }
+	for (i = 0; i < MAX_SUBBAND_NUM; i++) {
+	    prSubband = &prDomainInfo->rSubBand[i];
+	    if (prSubband->ucBand == prBssInfo->eBand) {
+		for (j = 0; j < prSubband->ucNumChannels; j++) {
+		    if ((prSubband->ucFirstChannelNum + j*prSubband->ucChannelSpan)
+			== prBssInfo->ucPrimaryChannel) {
+			eSCO = (j & 1) ? CHNL_EXT_SCB : CHNL_EXT_SCA;
+			break;
+		    }
+		}
 
-                if (j < prSubband->ucNumChannels) {
-                    break; /* Found */
-                }
-            }
-        }
+		if (j < prSubband->ucNumChannels) {
+		    break; /* Found */
+		}
+	    }
+	}
     }
 
     /* Check if it is boundary channel and 40MHz BW is permitted */
     if (eSCO != CHNL_EXT_SCN) {
-        ucSecondChannel = (eSCO == CHNL_EXT_SCA) ?
-            (prBssInfo->ucPrimaryChannel+ 4) : (prBssInfo->ucPrimaryChannel- 4);
+	ucSecondChannel = (eSCO == CHNL_EXT_SCA) ?
+            (prBssInfo->ucPrimaryChannel + 4) : (prBssInfo->ucPrimaryChannel - 4);
 
-        if (!rlmDomainIsLegalChannel(prAdapter, prBssInfo->eBand, ucSecondChannel)){
-            eSCO = CHNL_EXT_SCN;
-        }
+	if (!rlmDomainIsLegalChannel(prAdapter, prBssInfo->eBand, ucSecondChannel)) {
+	    eSCO = CHNL_EXT_SCN;
+	}
     }
 
     return eSCO;
 }
-

@@ -201,6 +201,7 @@ Add per station flow control when STA is in PS
 ********************************************************************************
 */
 #include "precomp.h"
+#include "swcr.h"
 
 #if CFG_SUPPORT_SWCR
 
@@ -213,32 +214,6 @@ Add per station flow control when STA is in PS
 *                            P U B L I C   D A T A
 ********************************************************************************
 */
-#if 0
-extern SWCR_MAP_ENTRY_T g_arRlmArSwCrMap[];
-SWCR_MOD_MAP_ENTRY_T g_arSwCrAllMaps[] = {
-	{SWCR_MAP_NUM(g_arRlmArSwCrMap), g_arRlmArSwCrMap},	/* 0x00nn */
-	{0, NULL}
-};
-#endif
-
-VOID swCtrlCmdCategory0(P_ADAPTER_T prAdapter, UINT_8 ucCate, UINT_8 ucAction, UINT_8 ucOpt0,
-			UINT_8 ucOpt1);
-VOID swCtrlCmdCategory1(P_ADAPTER_T prAdapter, UINT_8 ucCate, UINT_8 ucAction, UINT_8 ucOpt0,
-			UINT_8 ucOpt1);
-VOID testPsCmdCategory0(P_ADAPTER_T prAdapter, UINT_8 ucCate, UINT_8 ucAction, UINT_8 ucOpt0,
-			UINT_8 ucOpt1);
-VOID testPsCmdCategory1(P_ADAPTER_T prAdapter, UINT_8 ucCate, UINT_8 ucAction, UINT_8 ucOpt0,
-			UINT_8 ucOpt1);
-void testWNMCmdCategory0(P_ADAPTER_T prAdapter, UINT_8 ucCate, UINT_8 ucAction, UINT_8 ucOpt0,
-			 UINT_8 ucOpt1);
-VOID swCtrlSwCr(P_ADAPTER_T prAdapter, UINT_8 ucRead, UINT_16 u2Addr, UINT_32 *pu4Data);
-
-/* Support Debug */
-VOID swCrDebugCheck(P_ADAPTER_T prAdapter, P_CMD_SW_DBG_CTRL_T prCmdSwCtrl);
-VOID swCrDebugCheckTimeout(IN P_ADAPTER_T prAdapter, UINT_32 u4Param);
-VOID swCrDebugQuery(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmdInfo, IN PUINT_8 pucEventBuf);
-VOID swCrDebugQueryTimeout(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmdInfo);
-
 UINT_32 g_au4SwCr[SWCR_CR_NUM];	/*: 0: command other: data */
 
 /* JB mDNS Filter*/
@@ -254,9 +229,7 @@ static UINT_32 g_u4SwcrDebugFrameDumpType;
 *                           P R I V A T E   D A T A
 ********************************************************************************
 */
-#define TEST_PS 1
-
-const static PFN_CMD_RW_T g_arSwCtrlCmd[] = {
+static const PFN_CMD_RW_T g_arSwCtrlCmd[] = {
 	swCtrlCmdCategory0,
 	swCtrlCmdCategory1
 #if TEST_PS
@@ -402,11 +375,14 @@ void dumpQueue(P_ADAPTER_T prAdapter)
 	}
 #endif
 
+
+#if QM_FORWARDING_FAIRNESS
 	for (i = 0; i < NUM_OF_PER_STA_TX_QUEUES; i++) {
 		DBGLOG(SW4, INFO,
 		       ("TC %u HeadStaIdx %u ForwardCount %u\n", i, prQM->au4HeadStaRecIndex[i],
-			prQM->au4ForwardCount[i]));
+			prQM->au4ResourceUsedCount[i]));
 	}
+#endif
 
 	DBGLOG(SW4, INFO, ("BMC or unknown TxQueue Len %u\n", prQM->arTxQueue[0].u4NumElem));
 	DBGLOG(SW4, INFO, ("Pending %d\n", prGlueInfo->i4TxPendingFrameNum));
@@ -809,8 +785,10 @@ VOID swCtrlCmdCategory0(P_ADAPTER_T prAdapter, UINT_8 ucCate, UINT_8 ucAction, U
 					break;
 
 				case 1:
-					g_au4SwCr[1] = prQM->au4ForwardCount[ucOpt1];
+#if QM_FORWARDING_FAIRNESS
+					g_au4SwCr[1] = prQM->au4ResourceUsedCount[ucOpt1];
 					g_au4SwCr[2] = prQM->au4HeadStaRecIndex[ucOpt1];
+#endif
 					break;
 
 				case 2:
@@ -931,7 +909,6 @@ testPsSendQoSNullFrame(IN P_ADAPTER_T prAdapter,
 	UINT_16 u2EstimatedFrameLen;
 	P_WLAN_MAC_HEADER_QOS_T prQoSNullFrame;
 
-
 	DEBUGFUNC("testPsSendQoSNullFrame");
 	DBGLOG(SW4, LOUD, ("\n"));
 
@@ -940,13 +917,16 @@ testPsSendQoSNullFrame(IN P_ADAPTER_T prAdapter,
 	u2EstimatedFrameLen = MAC_TX_RESERVED_FIELD + WLAN_MAC_HEADER_QOS_LEN;
 
 	/* Allocate a MSDU_INFO_T */
-	if ((prMsduInfo = cnmMgtPktAlloc(prAdapter, u2EstimatedFrameLen)) == NULL) {
+
+	prMsduInfo = cnmMgtPktAlloc(prAdapter, u2EstimatedFrameLen);
+
+	if (prMsduInfo == NULL) {
 		DBGLOG(SW4, WARN, ("No PKT_INFO_T for sending Null Frame.\n"));
 		return;
 	}
 	/* 4 <2> Compose Null frame in MSDU_INfO_T. */
 	bssComposeQoSNullFrame(prAdapter,
-			       (PUINT_8) ((UINT_32) (prMsduInfo->prPacket) + MAC_TX_RESERVED_FIELD),
+			       (PUINT_8) ((ULONG) (prMsduInfo->prPacket) + MAC_TX_RESERVED_FIELD),
 			       prStaRec, ucUP, fgSetEOSP);
 
 
@@ -961,7 +941,7 @@ testPsSendQoSNullFrame(IN P_ADAPTER_T prAdapter,
 
 	prQoSNullFrame =
 	    (P_WLAN_MAC_HEADER_QOS_T) ((PUINT_8)
-				       ((UINT_32) (prMsduInfo->prPacket) + MAC_TX_RESERVED_FIELD));
+				       ((ULONG) (prMsduInfo->prPacket) + MAC_TX_RESERVED_FIELD));
 
 	if (fgBMC) {
 		prQoSNullFrame->aucAddr1[0] = 0xfd;
@@ -1300,7 +1280,7 @@ VOID swCrDebugInit(P_ADAPTER_T prAdapter)
 
 	cnmTimerInitTimer(prAdapter,
 			  &g_rSwcrDebugTimer,
-			  (PFN_MGMT_TIMEOUT_FUNC) swCrDebugCheckTimeout, (UINT_32) NULL);
+			  (PFN_MGMT_TIMEOUT_FUNC) swCrDebugCheckTimeout, (ULONG) NULL);
 
 	if (g_u4SwcrDebugCheckTimeout) {
 		swCrDebugCheckEnable(prAdapter, TRUE, g_ucSwcrDebugCheckType,
@@ -1461,7 +1441,7 @@ VOID swCrDebugCheck(P_ADAPTER_T prAdapter, P_CMD_SW_DBG_CTRL_T prCmdSwCtrl)
 	}
 }
 
-VOID swCrDebugCheckTimeout(IN P_ADAPTER_T prAdapter, UINT_32 u4Param)
+VOID swCrDebugCheckTimeout(IN P_ADAPTER_T prAdapter, ULONG ulParamPtr)
 {
 	CMD_SW_DBG_CTRL_T rCmdSwCtrl;
 	WLAN_STATUS rStatus;

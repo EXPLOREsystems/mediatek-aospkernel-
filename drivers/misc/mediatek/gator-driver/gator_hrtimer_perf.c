@@ -7,12 +7,12 @@
  *
  */
 
-// gator_hrtimer_gator.c is used if perf is not supported
-//   update, gator_hrtimer_gator.c always used until issues resolved with perf hrtimers
+/* gator_hrtimer_gator.c is used if perf is not supported */
+/* update, gator_hrtimer_gator.c always used until issues resolved with perf hrtimers */
 #if 0
 
-// Note: perf Cortex support added in 2.6.35 and PERF_COUNT_SW_CPU_CLOCK/hrtimer broken on 2.6.35 and 2.6.36
-//       not relevant as this code is not active until 3.0.0, but wanted to document the issue
+/* Note: perf Cortex support added in 2.6.35 and PERF_COUNT_SW_CPU_CLOCK/hrtimer broken on 2.6.35 and 2.6.36 */
+/* not relevant as this code is not active until 3.0.0, but wanted to document the issue */
 
 void (*callback)(void);
 static int profiling_interval;
@@ -76,7 +76,7 @@ static int gator_hrtimer_init(int interval, void (*func)(void))
 
 	callback = func;
 
-	// calculate profiling interval
+	/* calculate profiling interval */
 	profiling_interval = 1000000000 / interval;
 
 	for_each_present_cpu(cpu) {

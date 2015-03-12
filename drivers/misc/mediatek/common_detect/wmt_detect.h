@@ -1,10 +1,10 @@
 /*
 * Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
 * GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 * See the GNU General Public License for more details.
 *
@@ -53,15 +53,15 @@
 
 extern unsigned int gWmtDetectDbgLvl;
 
-#define WMT_DETECT_LOUD_FUNC(fmt, arg...)   if (gWmtDetectDbgLvl >= WMT_DETECT_LOG_LOUD) { printk(KERN_WARNING DFT_TAG"[L]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define WMT_DETECT_DBG_FUNC(fmt, arg...)    if (gWmtDetectDbgLvl >= WMT_DETECT_LOG_DBG) { printk(KERN_WARNING DFT_TAG"[D]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define WMT_DETECT_INFO_FUNC(fmt, arg...)   if (gWmtDetectDbgLvl >= WMT_DETECT_LOG_INFO) { printk(KERN_WARNING DFT_TAG"[I]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define WMT_DETECT_WARN_FUNC(fmt, arg...)   if (gWmtDetectDbgLvl >= WMT_DETECT_LOG_WARN) { printk(KERN_WARNING DFT_TAG"[W]%s(%d):"  fmt, __FUNCTION__ , __LINE__, ##arg);}
-#define WMT_DETECT_ERR_FUNC(fmt, arg...)    if (gWmtDetectDbgLvl >= WMT_DETECT_LOG_ERR) { printk(KERN_WARNING DFT_TAG"[E]%s(%d):"  fmt, __FUNCTION__ , __LINE__, ##arg);}
+#define WMT_DETECT_LOUD_FUNC(fmt, arg...)   if (gWmtDetectDbgLvl >= WMT_DETECT_LOG_LOUD) { printk(KERN_WARNING DFT_TAG"[L]%s:"  fmt, __func__ , ##arg); }
+#define WMT_DETECT_DBG_FUNC(fmt, arg...)    if (gWmtDetectDbgLvl >= WMT_DETECT_LOG_DBG) { printk(KERN_WARNING DFT_TAG"[D]%s:"  fmt, __func__ , ##arg); }
+#define WMT_DETECT_INFO_FUNC(fmt, arg...)   if (gWmtDetectDbgLvl >= WMT_DETECT_LOG_INFO) { printk(KERN_WARNING DFT_TAG"[I]%s:"  fmt, __func__ , ##arg); }
+#define WMT_DETECT_WARN_FUNC(fmt, arg...)   if (gWmtDetectDbgLvl >= WMT_DETECT_LOG_WARN) { printk(KERN_WARNING DFT_TAG"[W]%s(%d):"  fmt, __func__ , __LINE__, ##arg); }
+#define WMT_DETECT_ERR_FUNC(fmt, arg...)    if (gWmtDetectDbgLvl >= WMT_DETECT_LOG_ERR) { printk(KERN_WARNING DFT_TAG"[E]%s(%d):"  fmt, __func__ , __LINE__, ##arg); }
 
-#define WMT_IOC_MAGIC        		'w'
-#define COMBO_IOCTL_GET_CHIP_ID  	  _IOR(WMT_IOC_MAGIC, 0, int)
-#define COMBO_IOCTL_SET_CHIP_ID  	  _IOW(WMT_IOC_MAGIC, 1, int)
+#define WMT_IOC_MAGIC			'w'
+#define COMBO_IOCTL_GET_CHIP_ID		  _IOR(WMT_IOC_MAGIC, 0, int)
+#define COMBO_IOCTL_SET_CHIP_ID		  _IOW(WMT_IOC_MAGIC, 1, int)
 #define COMBO_IOCTL_EXT_CHIP_DETECT   _IOR(WMT_IOC_MAGIC, 2, int)
 #define COMBO_IOCTL_GET_SOC_CHIP_ID   _IOR(WMT_IOC_MAGIC, 3, int)
 #define COMBO_IOCTL_DO_MODULE_INIT    _IOR(WMT_IOC_MAGIC, 4, int)

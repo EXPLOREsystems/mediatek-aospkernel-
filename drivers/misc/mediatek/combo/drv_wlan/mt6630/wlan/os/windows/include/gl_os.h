@@ -720,23 +720,23 @@ typedef struct _MEDIA_STREAMING_INDICATIONS_T {
 
 
 #define GLUE_GET_PKT_TID(_p)        \
-	    ((*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[4])) ) & \
+	    ((*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[4]))) & \
 	     PKT_INFO_RESERVED_TID_MASK)
 
 #define GLUE_GET_PKT_IS_802_11(_p)      \
-	    ((*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[4])) ) & \
+	    ((*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[4]))) & \
 	     PKT_INFO_RESERVED_FLAG_802_11)
 
 #define GLUE_GET_PKT_IS_1X(_p)          \
-	    ((*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[4])) ) & \
+	    ((*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[4]))) & \
 	     PKT_INFO_RESERVED_FLAG_1X)
 
 #define GLUE_GET_PKT_IS_PAL(_p)         \
-	    ((*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[4])) ) & \
+	    ((*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[4]))) & \
 	     PKT_INFO_RESERVED_FLAG_PAL)
 
 #define GLUE_GET_PKT_IS_P2P(_p)         \
-	    ((*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[4])) ) & \
+	    ((*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[4]))) & \
 	     PKT_INFO_RESERVED_FLAG_P2P)
 
 
@@ -745,37 +745,37 @@ typedef struct _MEDIA_STREAMING_INDICATIONS_T {
 	     (_ucMacHeaderLen))
 
 #define GLUE_GET_PKT_HEADER_LEN(_p) \
-	    (*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[5])) )
+	    (*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[5])))
 
 
 #define GLUE_SET_PKT_FRAME_LEN(_p, _u2FrameLen) \
-            (*((PUINT_16) & (((PNDIS_PACKET)(_p))->MiniportReservedEx[6])) = \
+	    (*((PUINT_16) & (((PNDIS_PACKET)(_p))->MiniportReservedEx[6])) = \
 	     (_u2FrameLen))
 
 #define GLUE_GET_PKT_FRAME_LEN(_p)    \
-            (*((PUINT_16) & (((PNDIS_PACKET)(_p))->MiniportReservedEx[6])) )
+	    (*((PUINT_16) & (((PNDIS_PACKET)(_p))->MiniportReservedEx[6])))
 
 
 #define GLUE_SET_PKT_ARRIVAL_TIME(_p, _rSysTime) \
-            (*((POS_SYSTIME) & (((PNDIS_PACKET)(_p))->MiniportReservedEx[8])) = \
+	    (*((POS_SYSTIME) & (((PNDIS_PACKET)(_p))->MiniportReservedEx[8])) = \
 	     (OS_SYSTIME)(_rSysTime))
 
 #define GLUE_GET_PKT_ARRIVAL_TIME(_p)    \
-            (*((POS_SYSTIME) & (((PNDIS_PACKET)(_p))->MiniportReservedEx[8])) )
+	    (*((POS_SYSTIME) & (((PNDIS_PACKET)(_p))->MiniportReservedEx[8])))
 
 #define GLUE_SET_PKT_BSS_IDX(_p, _ucBssIndex) \
 	    (*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[12])) = \
 	     (UINT_8)(_ucBssIndex))
 
 #define GLUE_GET_PKT_BSS_IDX(_p)    \
-	    (*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[12])) )
+	    (*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[12])))
 
 #define GLUE_SET_PKT_FLAG_802_3(_p) \
 	    (*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[13])) |= \
 	     PKT_INFO_RESERVED_FLAG_802_3)
 
 #define GLUE_GET_PKT_IS_802_3(_p) \
-	    ((*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[13])) ) & \
+	    ((*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[13]))) & \
 	     PKT_INFO_RESERVED_FLAG_802_3)
 
 #define GLUE_SET_PKT_FLAG_VLAN_EXIST(_p)  \
@@ -783,7 +783,7 @@ typedef struct _MEDIA_STREAMING_INDICATIONS_T {
 	     PKT_INFO_RESERVED_FLAG_VLAN)
 
 #define GLUE_GET_PKT_IS_VLAN_EXIST(_p)  \
-	    ((*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[13])) ) & \
+	    ((*((PUINT_8) &(((PNDIS_PACKET)(_p))->MiniportReservedEx[13]))) & \
 	     PKT_INFO_RESERVED_FLAG_VLAN)
 
 

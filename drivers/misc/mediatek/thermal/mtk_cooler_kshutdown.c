@@ -1,3 +1,17 @@
+/*
+* Copyright (C) 2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #ifdef pr_fmt
 #undef pr_fmt
 #endif
@@ -12,7 +26,6 @@
 #include <linux/kobject.h>
 
 #include "mach/mtk_thermal_monitor.h"
-#include <mach/system.h>
 
 extern void machine_power_off(void);
 
@@ -26,7 +39,7 @@ extern void machine_power_off(void);
 #define MAX_NUM_INSTANCE_MTK_COOLER_KSHUTDOWN  3
 
 static struct thermal_cooling_device *cl_kshutdown_dev[MAX_NUM_INSTANCE_MTK_COOLER_KSHUTDOWN] =
-    { 0 };
+	{ 0 };
 static unsigned long cl_kshutdown_state[MAX_NUM_INSTANCE_MTK_COOLER_KSHUTDOWN] = { 0 };
 
 static int mtk_cl_kshutdown_get_max_state(struct thermal_cooling_device *cdev, unsigned long *state)
@@ -57,7 +70,7 @@ static int mtk_cl_kshutdown_set_cur_state(struct thermal_cooling_device *cdev, u
 #endif
 	if (1 == state) {
 		mtk_cooler_kshutdown_dprintk("%s %s invokes machine_power_off\n", __func__,
-					     cdev->type);
+						 cdev->type);
 		machine_power_off();
 	}
 
@@ -87,7 +100,7 @@ static int mtk_cooler_kshutdown_register_ltf(void)
 
 #if 0
 	cl_kshutdown_dev = mtk_thermal_cooling_device_register("mtk-cl-shutdown",
-							       NULL, &mtk_cl_kshutdown_ops);
+								   NULL, &mtk_cl_kshutdown_ops);
 #endif
 
 	return 0;

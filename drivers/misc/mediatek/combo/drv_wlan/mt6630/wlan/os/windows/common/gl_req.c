@@ -1016,7 +1016,7 @@ reqQueryAssocInfo(IN P_GLUE_INFO_T prGlueInfo,
 #if DBG
 	PNDIS_802_11_ASSOCIATION_INFORMATION prAssocInfo =
 	    (PNDIS_802_11_ASSOCIATION_INFORMATION) pvQueryBuffer;
-	PUINT8 cp;
+	PUINT_8 cp;
 #endif
 
 	DEBUGFUNC("wlanoidQueryAssocInfo");
@@ -1047,13 +1047,13 @@ reqQueryAssocInfo(IN P_GLUE_INFO_T prGlueInfo,
 			   prAssocInfo->RequestFixedIEs.Capabilities));
 	DBGLOG(REQ, INFO, ("Request Listen Interval: 0x%04x\n",
 			   prAssocInfo->RequestFixedIEs.ListenInterval));
-	cp = (PUINT8) &prAssocInfo->RequestFixedIEs.CurrentAPAddress;
+	cp = (PUINT_8) &prAssocInfo->RequestFixedIEs.CurrentAPAddress;
 	DBGLOG(REQ, INFO, ("CurrentAPAddress: %02x-%02x-%02x-%02x-%02x-%02x\n",
 			   cp[0], cp[1], cp[2], cp[3], cp[4], cp[5]));
 	DBGLOG(REQ, INFO, ("Request IEs: length=%d, offset=%d\n",
 			   prAssocInfo->RequestIELength, prAssocInfo->OffsetRequestIEs));
 
-	cp = (PUINT8) pvQueryBuffer + sizeof(NDIS_802_11_ASSOCIATION_INFORMATION);
+	cp = (PUINT_8) pvQueryBuffer + sizeof(NDIS_802_11_ASSOCIATION_INFORMATION);
 	DBGLOG_MEM8(REQ, INFO, cp, prAssocInfo->RequestIELength);
 	cp += prAssocInfo->RequestIELength;
 

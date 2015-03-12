@@ -1,10 +1,10 @@
 /*
 * Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
 * GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 * See the GNU General Public License for more details.
 *
@@ -43,7 +43,7 @@
 
 #define WMT_OP_BUF_SIZE (16)
 
-typedef enum _ENUM_WMTRSTRET_TYPE_T{
+typedef enum _ENUM_WMTRSTRET_TYPE_T {
     WMTRSTRET_SUCCESS = 0x0,
     WMTRSTRET_FAIL = 0x1,
     WMTRSTRET_ONGOING = 0x2,
@@ -113,7 +113,7 @@ typedef enum {
     WMT_STAT_MAX
 } WMT_STAT;
 
-typedef enum _ENUM_WMTRSTSRC_TYPE_T{
+typedef enum _ENUM_WMTRSTSRC_TYPE_T {
     WMTRSTSRC_RESET_BT = 0x0,
     WMTRSTSRC_RESET_FM = 0x1,
     WMTRSTSRC_RESET_GPS = 0x2,
@@ -133,25 +133,25 @@ typedef struct {
 	UINT32 dowloadSeq;
 	UCHAR addRess[4];
 	UCHAR patchName[256];
-}WMT_PATCH_INFO,*P_WMT_PATCH_INFO;
+} WMT_PATCH_INFO, *P_WMT_PATCH_INFO;
 
 
 /* OS independent wrapper for WMT_OP */
 typedef struct _DEV_WMT_ {
 
-    OSAL_SLEEPABLE_LOCK psm_lock;        
+    OSAL_SLEEPABLE_LOCK psm_lock;
     /* WMTd thread information */
-//    struct task_struct *pWmtd;   /* main thread (wmtd) handle */
+/* struct task_struct *pWmtd;   /* main thread (wmtd) handle */ */
     OSAL_THREAD thread;
-//    wait_queue_head_t rWmtdWq;  /*WMTd command wait queue */
-    OSAL_EVENT rWmtdWq;    //rename
-    //ULONG state; /* bit field of WMT_STAT */
+/* wait_queue_head_t rWmtdWq;  /*WMTd command wait queue */ */
+    OSAL_EVENT rWmtdWq;    /* rename */
+    /* ULONG state; /* bit field of WMT_STAT */ */
     OSAL_BIT_OP_VAR state;
 
     /* STP context information */
-//    wait_queue_head_t rWmtRxWq;  /* STP Rx wait queue */
-    OSAL_EVENT rWmtRxWq; //rename
-//    WMT_STP_FUNC rStpFunc; /* STP functions */
+/* wait_queue_head_t rWmtRxWq;  /* STP Rx wait queue */ */
+    OSAL_EVENT rWmtRxWq; /* rename */
+/* WMT_STP_FUNC rStpFunc; /* STP functions */ */
     WMT_FDRV_CB  rFdrvCb;
 
     /* WMT Configurations */
@@ -168,10 +168,10 @@ typedef struct _DEV_WMT_ {
     const osal_firmware *pWmtCfg;
 
 	const osal_firmware *pNvram;
-	
+
     /* Current used UART port description*/
     CHAR cUartName[NAME_MAX + 1];
-    	
+
     OSAL_OP_Q rFreeOpQ; /* free op queue */
     OSAL_OP_Q rActiveOpQ; /* active op queue */
     OSAL_OP arQue[WMT_OP_BUF_SIZE]; /* real op instances */
@@ -180,23 +180,23 @@ typedef struct _DEV_WMT_ {
     /* cmd str buffer */
     UCHAR cCmd[NAME_MAX + 1];
     INT32 cmdResult;
-//    struct completion cmd_comp;
-//    wait_queue_head_t cmd_wq; /* read command queues */
+/* struct completion cmd_comp; */
+/* wait_queue_head_t cmd_wq; /* read command queues */ */
     OSAL_SIGNAL cmdResp;
     OSAL_EVENT cmdReq;
 
     /* WMT loopback Thread Information */
-//    WMT_CMB_VER combo_ver;
-    //P_WMT_CMB_CHIP_INFO_S pChipInfo;
+/* WMT_CMB_VER combo_ver; */
+    /* P_WMT_CMB_CHIP_INFO_S pChipInfo; */
     UINT32 chip_id;
     UINT32 hw_ver;
     UINT32 fw_ver;
-    // TODO:  [FixMe][GeorgeKuo] remove this translated version code in the
-    // future. Just return the above 3 info to querist
+    /* TODO:  [FixMe][GeorgeKuo] remove this translated version code in the */
+    /* future. Just return the above 3 info to querist */
     ENUM_WMTHWVER_TYPE_T eWmtHwVer;
 
 	P_WMT_PATCH_INFO pWmtPatchInfo;
-}DEV_WMT, *P_DEV_WMT;
+} DEV_WMT, *P_DEV_WMT;
 
 /*******************************************************************************
 *                            P U B L I C   D A T A
@@ -214,8 +214,8 @@ typedef struct _DEV_WMT_ {
 */
 extern INT32 wmt_lib_init(VOID);
 extern INT32 wmt_lib_deinit(VOID);
-extern INT32 wmt_lib_tx (UINT8 *data, UINT32 size, UINT32 *writtenSize);
-extern INT32 wmt_lib_tx_raw (UINT8 *data, UINT32 size, UINT32 *writtenSize);
+extern INT32 wmt_lib_tx(UINT8 *data, UINT32 size, UINT32 *writtenSize);
+extern INT32 wmt_lib_tx_raw(UINT8 *data, UINT32 size, UINT32 *writtenSize);
 extern INT32 wmt_lib_rx(UINT8 *buff, UINT32 buffLen, UINT32 *readSize);
 extern VOID
 wmt_lib_flush_rx(VOID);
@@ -229,7 +229,7 @@ extern INT32
 wmt_lib_ps_deinit(VOID);
 extern INT32
 wmt_lib_ps_enable(VOID);
-extern INT32 
+extern INT32
 wmt_lib_ps_ctrl(UINT32 state);
 
 extern INT32
@@ -238,21 +238,21 @@ extern VOID
 wmt_lib_ps_irq_cb(VOID);
 #endif
 extern VOID
-wmt_lib_ps_set_sdio_psop (
+wmt_lib_ps_set_sdio_psop(
     PF_WMT_SDIO_PSOP own_cb
     );
 
 /* LXOP functions: */
-extern P_OSAL_OP wmt_lib_get_free_op (VOID);
+extern P_OSAL_OP wmt_lib_get_free_op(VOID);
 extern INT32 wmt_lib_put_op_to_free_queue(P_OSAL_OP pOp);
-extern MTK_WCN_BOOL wmt_lib_put_act_op (P_OSAL_OP pOp);
+extern MTK_WCN_BOOL wmt_lib_put_act_op(P_OSAL_OP pOp);
 
-//extern ENUM_WMTHWVER_TYPE_T wmt_lib_get_hwver (VOID);
-extern UINT32 wmt_lib_get_icinfo (ENUM_WMT_CHIPINFO_TYPE_T type);
+/* extern ENUM_WMTHWVER_TYPE_T wmt_lib_get_hwver (VOID); */
+extern UINT32 wmt_lib_get_icinfo(ENUM_WMT_CHIPINFO_TYPE_T type);
 
-extern MTK_WCN_BOOL wmt_lib_is_therm_ctrl_support (VOID);
-extern MTK_WCN_BOOL wmt_lib_is_dsns_ctrl_support (VOID);
-extern INT32 wmt_lib_trigger_cmd_signal (INT32 result);
+extern MTK_WCN_BOOL wmt_lib_is_therm_ctrl_support(VOID);
+extern MTK_WCN_BOOL wmt_lib_is_dsns_ctrl_support(VOID);
+extern INT32 wmt_lib_trigger_cmd_signal(INT32 result);
 extern UCHAR *wmt_lib_get_cmd(VOID);
 extern P_OSAL_EVENT wmt_lib_get_cmd_event(VOID);
 extern INT32 wmt_lib_set_patch_name(UCHAR *cPatchName);
@@ -262,30 +262,30 @@ extern MTK_WCN_BOOL wmt_lib_get_cmd_status(VOID);
 
 /* GeorgeKuo: replace set_chip_gpio() with more specific ones */
 #if 0/* moved to wmt_exp.h */
-extern INT32 wmt_lib_set_aif (CMB_STUB_AIF_X aif, MTK_WCN_BOOL share); /* set AUDIO interface options */
+extern INT32 wmt_lib_set_aif(CMB_STUB_AIF_X aif, MTK_WCN_BOOL share); /* set AUDIO interface options */
 #endif
 extern INT32 wmt_lib_host_awake_get(VOID);
 extern INT32 wmt_lib_host_awake_put(VOID);
 extern UINT32 wmt_lib_dbg_level_set(UINT32 level);
 
-extern INT32 wmt_lib_msgcb_reg (
+extern INT32 wmt_lib_msgcb_reg(
     ENUM_WMTDRV_TYPE_T eType,
     PF_WMT_CB pCb
     );
 
-extern INT32 wmt_lib_msgcb_unreg (
+extern INT32 wmt_lib_msgcb_unreg(
     ENUM_WMTDRV_TYPE_T eType
     );
-ENUM_WMTRSTRET_TYPE_T wmt_lib_cmb_rst( ENUM_WMTRSTSRC_TYPE_T src);
+ENUM_WMTRSTRET_TYPE_T wmt_lib_cmb_rst(ENUM_WMTRSTSRC_TYPE_T src);
 MTK_WCN_BOOL wmt_lib_sw_rst(INT32 baudRst);
 MTK_WCN_BOOL wmt_lib_hw_rst(VOID);
-INT32 wmt_lib_reg_rw (
+INT32 wmt_lib_reg_rw(
     UINT32 isWrite,
     UINT32 offset,
     PUINT32 pvalue,
     UINT32 mask
     );
-INT32 wmt_lib_efuse_rw (
+INT32 wmt_lib_efuse_rw(
     UINT32 isWrite,
     UINT32 offset,
     PUINT32 pvalue,
@@ -303,11 +303,11 @@ extern VOID wmt_lib_set_patch_num(ULONG num);
 extern VOID wmt_lib_set_patch_info(P_WMT_PATCH_INFO pPatchinfo);
 extern INT32 wmt_lib_set_current_op(P_DEV_WMT pWmtDev, P_OSAL_OP pOp);
 extern P_OSAL_OP wmt_lib_get_current_op(P_DEV_WMT pWmtDev);
-extern UINT8 *wmt_lib_get_fwinfor_from_emi(UINT8 section, UINT32 offset,UINT8 *buff,UINT32 len);
-extern INT32 wmt_lib_poll_cpupcr(UINT32 count,UINT16 sleep,UINT16 toAee);
+extern UINT8 *wmt_lib_get_fwinfor_from_emi(UINT8 section, UINT32 offset, UINT8 *buff, UINT32 len);
+extern INT32 wmt_lib_poll_cpupcr(UINT32 count, UINT16 sleep, UINT16 toAee);
 extern UINT8 *wmt_lib_get_cpupcr_xml_format(UINT32 *len);
 extern INT32 wmt_lib_register_thermal_ctrl_cb(thermal_query_ctrl_cb thermal_ctrl);
-extern UINT32 wmt_lib_set_host_assert_info(UINT32 type,UINT32 reason,UINT32 en);
+extern UINT32 wmt_lib_set_host_assert_info(UINT32 type, UINT32 reason, UINT32 en);
 extern CHAR wmt_lib_co_clock_get(VOID);
 #if CFG_WMT_LTE_COEX_HANDLING
 extern MTK_WCN_BOOL wmt_lib_handle_idc_msg(ipc_ilm_t *idc_infor);
@@ -327,4 +327,3 @@ UINT32 wmt_lib_consys_osc_en_ctrl(UINT32 en);
 */
 
 #endif /* _WMT_LIB_H_ */
-

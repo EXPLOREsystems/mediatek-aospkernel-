@@ -1,17 +1,3 @@
-/*
-* Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
-* GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with this program.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
-
 /*****************************************************************************
  *
  * Filename:
@@ -24,20 +10,20 @@
  *
  * Description:
  * ------------
- *   
+ *
  *
  * Author:
  * -------
- *   
+ *
  *
  ****************************************************************************/
 
 #ifndef __CCCI_RPC_H__
 #define __CCCI_RPC_H__
 
-#define CCCI_SED_LEN_BYTES   16 
-typedef struct {unsigned char sed[CCCI_SED_LEN_BYTES]; }sed_t;
-#define SED_INITIALIZER { {[0 ... CCCI_SED_LEN_BYTES-1]=0}}
+#define CCCI_SED_LEN_BYTES   16
+typedef struct {unsigned char sed[CCCI_SED_LEN_BYTES]; } sed_t;
+#define SED_INITIALIZER { {[0 ... CCCI_SED_LEN_BYTES-1] = 0} }
 /*******************************************************************************
  * Define marco or constant.
  *******************************************************************************/
@@ -63,19 +49,19 @@ typedef enum
 	IPC_RPC_GET_EINT_ATTR_OP	= 0x4005,
 	IPC_RPC_GET_GPIO_VAL_OP	    = 0x4006,
 	IPC_RPC_GET_ADC_VAL_OP	    = 0x4007,
-}RPC_OP_ID;
+} RPC_OP_ID;
 
 typedef struct
 {
    unsigned int len;
    void *buf;
-}RPC_PKT;
+} RPC_PKT;
 
 typedef struct
 {
     unsigned int     op_id;
     unsigned char    buf[0];
-}RPC_BUF;
+} RPC_BUF;
 
 #define FS_NO_ERROR										 0
 #define FS_NO_OP										-1
@@ -90,4 +76,4 @@ extern int ccci_rpc_init(int);
 extern void ccci_rpc_exit(int);
 
 
-#endif // __CCCI_RPC_H__
+#endif /* __CCCI_RPC_H__ */

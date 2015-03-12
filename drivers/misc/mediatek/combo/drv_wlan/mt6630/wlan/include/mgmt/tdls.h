@@ -55,6 +55,10 @@
 }
 
 
+#define LR_TDLS_FME_FIELD_FILL(__Len) \
+	pPkt += __Len; \
+	u4PktLen += __Len;
+
 /*******************************************************************************
 *                    E X T E R N A L   R E F E R E N C E S
 ********************************************************************************
@@ -73,7 +77,15 @@ extern int wlanHardStartXmit(struct sk_buff *prSkb, struct net_device *prDev);
 #define TDLS_STATUS_FAIL					WLAN_STATUS_FAILURE
 #define TDLS_STATUS_INVALID_LENGTH			WLAN_STATUS_INVALID_LENGTH
 #define TDLS_STATUS_RESOURCES				WLAN_STATUS_RESOURCES
+#define TDLS_FME_MAC_ADDR_LEN				6
+#define TDLS_EX_CAP_PEER_UAPSD				BIT(0)
+#define TDLS_EX_CAP_CHAN_SWITCH				BIT(1)
+#define TDLS_EX_CAP_TDLS					BIT(2)
+#define TDLS_CMD_PEER_UPDATE_EXT_CAP_MAXLEN			5
+#define TDLS_CMD_PEER_UPDATE_SUP_RATE_MAX			50
+#define TDLS_CMD_PEER_UPDATE_SUP_CHAN_MAX			50
 
+#define MAXNUM_TDLS_PEER            4
 
 /* command */
 typedef enum _TDLS_CMD_ID {
@@ -105,7 +117,8 @@ typedef enum _TDLS_FRM_ACTION_ID {
 	TDLS_FRM_ACTION_PEER_PSM_RSP,
 	TDLS_FRM_ACTION_PTI_RSP,
 	TDLS_FRM_ACTION_DISCOVERY_REQ,
-	TDLS_FRM_ACTION_DISCOVERY_RSP
+	TDLS_FRM_ACTION_DISCOVERY_RSP = 0x0e,
+	TDLS_FRM_ACTION_EVENT_TEAR_DOWN_TO_SUPPLICANT = 0x30
 } TDLS_FRM_ACTION_ID;
 
 /* 7.3.2.62 Link Identifier element */
@@ -157,9 +170,7 @@ typedef struct _PARAM_CUSTOM_TDLS_CMD_STRUC_T {
 	UINT_8 ucCap;
 
 	/* bit0: TDLS, bit1: Peer U-APSD Buffer, bit2: Channel Switching */
-#define TDLS_EX_CAP_PEER_UAPSD				BIT(0)
-#define TDLS_EX_CAP_CHAN_SWITCH				BIT(1)
-#define TDLS_EX_CAP_TDLS					BIT(2)
+
 	UINT_8 ucExCap;
 
 	UINT_8 arSupRate[4];
@@ -167,7 +178,7 @@ typedef struct _PARAM_CUSTOM_TDLS_CMD_STRUC_T {
 
 	UINT_32 u4Timeout;
 
-#define TDLS_FME_MAC_ADDR_LEN				6
+
 	UINT_8 arRspAddr[TDLS_FME_MAC_ADDR_LEN];
 	UINT_8 arBssid[TDLS_FME_MAC_ADDR_LEN];
 
@@ -200,6 +211,18 @@ typedef struct _TDLS_CMD_LINK_OPER_T {
 	UINT_8 aucPeerMac[6];
 	ENUM_TDLS_LINK_OPER oper;
 } TDLS_CMD_LINK_OPER_T;
+
+
+typedef struct _TDLS_CMD_LINK_MGT_T {
+
+	UINT_8 aucPeer[6];
+	UINT_8 ucActionCode;
+	UINT_8 ucDialogToken;
+	UINT_16 u2StatusCode;
+	UINT_32 u4SecBufLen;
+	UINT_8 aucSecBuf[1000];
+
+} TDLS_CMD_LINK_MGT_T;
 
 
 
@@ -247,20 +270,20 @@ typedef struct _TDLS_CMD_PEER_UPDATE_T {
 
 	UINT_8 aucPeerMac[6];
 
-#define TDLS_CMD_PEER_UPDATE_SUP_CHAN_MAX			50
+
 	UINT_8 aucSupChan[TDLS_CMD_PEER_UPDATE_SUP_CHAN_MAX];
 
 	UINT_16 u2StatusCode;
 
-#define TDLS_CMD_PEER_UPDATE_SUP_RATE_MAX			50
+
 	UINT_8 aucSupRate[TDLS_CMD_PEER_UPDATE_SUP_RATE_MAX];
 	UINT_16 u2SupRateLen;
 
 	UINT_8 UapsdBitmap;
 	UINT_8 UapsdMaxSp;	/* MAX_SP */
 
-	UINT16 u2Capability;
-#define TDLS_CMD_PEER_UPDATE_EXT_CAP_MAXLEN			5
+	UINT_16 u2Capability;
+
 	UINT_8 aucExtCap[TDLS_CMD_PEER_UPDATE_EXT_CAP_MAXLEN];
 	UINT_16 u2ExtCapLen;
 
@@ -295,6 +318,39 @@ typedef struct _TDLS_CMD_CORE_T {
 	} Content;
 } TDLS_CMD_CORE_T;
 
+typedef enum _TDLS_EVENT_HOST_ID {
+	TDLS_HOST_EVENT_TEAR_DOWN = 0x00,
+	TDLS_HOST_EVENT_TX_DONE
+} TDLS_EVENT_HOST_ID;
+
+
+typedef enum _TDLS_EVENT_HOST_SUBID_TEAR_DOWN {
+	TDLS_HOST_EVENT_TD_PTI_TIMEOUT = 0x00,
+	TDLS_HOST_EVENT_TD_AGE_TIMEOUT,
+	TDLS_HOST_EVENT_TD_PTI_SEND_FAIL,
+	TDLS_HOST_EVENT_TD_PTI_SEND_MAX_FAIL,
+	TDLS_HOST_EVENT_TD_WRONG_NETWORK_IDX,
+	TDLS_HOST_EVENT_TD_NON_STATE3,
+	TDLS_HOST_EVENT_TD_LOST_TEAR_DOWN
+} TDLS_EVENT_HOST_SUBID_TEAR_DOWN;
+
+typedef enum _TDLS_REASON_CODE {
+	TDLS_REASON_CODE_UNREACHABLE = 25,
+	TDLS_REASON_CODE_UNSPECIFIED = 26,
+
+	TDLS_REASON_CODE_MTK_DIS_BY_US_DUE_TO_UNKNOWN = 0x80,	/* 128 */
+	TDLS_REASON_CODE_MTK_DIS_BY_US_DUE_TO_WIFI_OFF = 0x81,	/* 129 */
+	TDLS_REASON_CODE_MTK_DIS_BY_US_DUE_TO_ROAMING = 0x82,	/* 130 */
+	TDLS_REASON_CODE_MTK_DIS_BY_US_DUE_TO_PTI_TIMEOUT = 0x83,	/* 131 */
+	TDLS_REASON_CODE_MTK_DIS_BY_US_DUE_TO_AGE_TIMEOUT = 0x84,	/* 132 */
+	TDLS_REASON_CODE_MTK_DIS_BY_US_DUE_TO_REKEY = 0x85,	/* 133 */
+	TDLS_REASON_CODE_MTK_DIS_BY_US_DUE_TO_PTI_SEND_FAIL = 0x86,	/* 134 */
+	TDLS_REASON_CODE_MTK_DIS_BY_US_DUE_TO_PTI_SEND_MAX_FAIL = 0x87,	/* 135 */
+	TDLS_REASON_CODE_MTK_DIS_BY_US_DUE_TO_WRONG_NETWORK_IDX = 0x88,	/* 136 */
+	TDLS_REASON_CODE_MTK_DIS_BY_US_DUE_TO_NON_STATE3 = 0x89,	/* 137 */
+	TDLS_REASON_CODE_MTK_DIS_BY_US_DUE_TO_TX_QUOTA_EMPTY = 0x8a,	/* 138 */
+	TDLS_REASON_CODE_MTK_DIS_BY_US_DUE_TO_LOST_TEAR_DOWN = 0x8b	/* 139 */
+} TDLS_REASON_CODE;
 
 
 /*******************************************************************************
@@ -381,6 +437,24 @@ UINT_32
 TdlsexLinkOper(P_ADAPTER_T prAdapter,
 	       PVOID pvSetBuffer, UINT_32 u4SetBufferLen, PUINT_32 pu4SetInfoLen);
 
+
+UINT_32
+TdlsexLinkMgt(P_ADAPTER_T prAdapter,
+	      PVOID pvSetBuffer, UINT_32 u4SetBufferLen, PUINT_32 pu4SetInfoLen);
+
+
+
+VOID TdlsexEventHandle(P_GLUE_INFO_T prGlueInfo, UINT_8 *prInBuf, UINT_32 u4InBufLen);
+
+
+VOID TdlsEventTearDown(GLUE_INFO_T *prGlueInfo, UINT_8 *prInBuf, UINT_32 u4InBufLen);
+
+VOID TdlsBssExtCapParse(P_STA_RECORD_T prStaRec, P_UINT_8 pucIE);
+
+
+WLAN_STATUS
+TdlsSendChSwControlCmd(P_ADAPTER_T prAdapter,
+		       PVOID pvSetBuffer, UINT_32 u4SetBufferLen, PUINT_32 pu4SetInfoLen);
 
 /*******************************************************************************
 *                              F U N C T I O N S

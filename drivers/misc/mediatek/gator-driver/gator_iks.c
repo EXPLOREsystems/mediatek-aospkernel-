@@ -24,7 +24,7 @@ static void calc_first_cluster_size(void)
 	struct device_node *cn = NULL;
 	int mpidr_cpuids_count = 0;
 
-	// Zero is a valid cpuid, so initialize the array to 0xff's
+	/* Zero is a valid cpuid, so initialize the array to 0xff's */
 	memset(&mpidr_cpuids, 0xff, sizeof(mpidr_cpuids));
 
 	while ((cn = of_find_node_by_type(cn, "cpu"))) {
@@ -100,7 +100,7 @@ GATOR_DEFINE_PROBE(cpu_migrate_finish, TP_PROTO(u64 timestamp, u32 cpu_hwid))
 
 	gator_update_cpu_mapping(cpu_hwid);
 
-	// get_physical_cpu must be called after gator_update_cpu_mapping
+	/* get_physical_cpu must be called after gator_update_cpu_mapping */
 	cpu = get_physical_cpu();
 	gator_timer_online_dispatch(cpu, true);
 	gator_timer_online((void *)1);
@@ -121,7 +121,7 @@ static int gator_migrate_start(void)
 	if (retval == 0)
 		retval = GATOR_REGISTER_TRACE(cpu_migrate_current);
 	if (retval == 0) {
-		// Initialize the logical to physical cpu mapping
+		/* Initialize the logical to physical cpu mapping */
 		memset(&__lcpu_to_pcpu, 0xff, sizeof(__lcpu_to_pcpu));
 		bL_switcher_trace_trigger();
 	}

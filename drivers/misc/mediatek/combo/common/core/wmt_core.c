@@ -316,7 +316,7 @@ INT32 wmt_core_deinit(VOID)
 /* parameters shall be copied in/from ctrl buffer, which is also a size-wasting buffer. */
 INT32
 wmt_core_tx(const UINT8 *pData,
-	    const UINT32 size, UINT32 * writtenSize, const MTK_WCN_BOOL bRawFlag)
+	    const UINT32 size, UINT32 *writtenSize, const MTK_WCN_BOOL bRawFlag)
 {
 	INT32 iRet;
 #if 0				/* Test using direct function call instead of wmt_ctrl() interface */
@@ -2067,7 +2067,7 @@ INT32 opfunc_sdio_ctrl(P_WMT_OP pWmtOp)
 		/* Anyway, continue turning STP SDIO to POWER OFF/ON state */
 		gMtkWmtCtx.eDrvStatus[ctrlPa1] = DRV_STS_POWER_OFF;
 	} else {
-		WMT_INFO_FUNC("SDIO hw ctrl succeed \n");
+		WMT_INFO_FUNC("SDIO hw ctrl succeed\n");
 		gMtkWmtCtx.eDrvStatus[ctrlPa1] =
 		    0 == ctrlPa2 ? DRV_STS_POWER_OFF : DRV_STS_POWER_ON;
 	}

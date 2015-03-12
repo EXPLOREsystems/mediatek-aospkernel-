@@ -17,6 +17,10 @@
 /*
 ** $Log: scan.c $
 **
+** 04 15 2014 eason.tsai
+** [ALPS01510349] [6595][KK][HotKnot][Reboot][KE][p2pDevFsmRunEventScanDone]Sender reboot automatically with KE about p2pDevFsmRunEventScanDone.
+** add debug msg for scan
+**
 ** 03 12 2014 eason.tsai
 ** [ALPS01070904] [Need Patch] [Volunteer Patch][MT6630][Driver]MT6630 Wi-Fi Patch
 ** revise for cfg80211 disconnet because of timeout
@@ -792,7 +796,7 @@ VOID scnInit(IN P_ADAPTER_T prAdapter)
 		pucBSSBuff += ALIGN_4(sizeof(BSS_DESC_T));
 	}
 	/* Check if the memory allocation consist with this initialization function */
-	ASSERT(((UINT_32) pucBSSBuff - (UINT_32) &prScanInfo->aucScanBuffer[0]) ==
+	ASSERT(((ULONG) pucBSSBuff - (ULONG) & prScanInfo->aucScanBuffer[0]) ==
 	       SCN_MAX_BUFFER_SIZE);
 
 	/* reset freest channel information */
@@ -901,7 +905,7 @@ scanSearchBssDescByBssidAndSsid(IN P_ADAPTER_T prAdapter,
 				} else if (prDstBssDesc == NULL
 					   && prBssDesc->fgIsHiddenSSID == TRUE) {
 					prDstBssDesc = prBssDesc;
-				} else {
+				} else if (prBssDesc->eBSSType == BSS_TYPE_P2P_DEVICE) {
 					/* 20120206 frog: Equal BSSID but not SSID, SSID not hidden, SSID must be updated. */
 					COPY_SSID(prBssDesc->aucSSID,
 						  prBssDesc->ucSSIDLen,
@@ -1575,7 +1579,7 @@ P_BSS_DESC_T scanAddToBssDesc(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb)
 		/* @TODO: add rule to identify BOW beacons */
 #endif
 
-	default :
+	default:
 		return NULL;
 	}
 
@@ -1650,7 +1654,8 @@ P_BSS_DESC_T scanAddToBssDesc(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb)
 			/* 4 <1.2.2> Hidden is useless, remove the oldest hidden ssid. (for passive scan) */
 			scanRemoveBssDescsByPolicy(prAdapter,
 						   (SCN_RM_POLICY_EXCLUDE_CONNECTED |
-						    SCN_RM_POLICY_OLDEST_HIDDEN));
+						    SCN_RM_POLICY_OLDEST_HIDDEN |
+				SCN_RM_POLICY_TIMEOUT));
 
 			/* 4 <1.2.3> Second tail of allocation */
 			prBssDesc = scanAllocateBssDesc(prAdapter);
@@ -1675,8 +1680,7 @@ P_BSS_DESC_T scanAddToBssDesc(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb)
 			/* ASSERT(0); // still no space available ? */
 			return NULL;
 
-		}
-		while (FALSE);
+		} while (FALSE);
 
 	} else {
 		OS_SYSTIME rCurrentTime;
@@ -1780,6 +1784,9 @@ P_BSS_DESC_T scanAddToBssDesc(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb)
 	prBssDesc->fgIEWAPI = FALSE;
 	prBssDesc->fgIERSN = FALSE;
 	prBssDesc->fgIEWPA = FALSE;
+	prBssDesc->eChannelWidth = CW_20_40MHZ; /*Reset VHT OP IE relative settings*/
+	prBssDesc->ucCenterFreqS1 = 0;
+	prBssDesc->ucCenterFreqS2 = 0;
 
 	/* 4 <3.1> Full IE parsing on SW_RFB_T */
 	pucIE = prWlanBeaconFrame->aucInfoElem;
@@ -1929,22 +1936,16 @@ P_BSS_DESC_T scanAddToBssDesc(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb)
 				if (rsnParseCheckForWFAInfoElem
 				    (prAdapter, pucIE, &ucOuiType, &u2SubTypeVersion)) {
 					if ((ucOuiType == VENDOR_OUI_TYPE_WPA)
-					    && (u2SubTypeVersion == VERSION_WPA)) {
-
-						if (rsnParseWpaIE
-						    (prAdapter, WPA_IE(pucIE),
-						     &prBssDesc->rWPAInfo)) {
+						&& (u2SubTypeVersion == VERSION_WPA)
+						&& (rsnParseWpaIE(prAdapter, WPA_IE(pucIE), &prBssDesc->rWPAInfo))) {
 							prBssDesc->fgIEWPA = TRUE;
-						}
 					}
 				}
 #if CFG_ENABLE_WIFI_DIRECT
 				if (prAdapter->fgIsP2PRegistered) {
-					if (p2pFuncParseCheckForP2PInfoElem
-					    (prAdapter, pucIE, &ucOuiType)) {
-						if (ucOuiType == VENDOR_OUI_TYPE_P2P) {
+					if ((p2pFuncParseCheckForP2PInfoElem(prAdapter, pucIE, &ucOuiType))
+						&& (ucOuiType == VENDOR_OUI_TYPE_P2P)) {
 							prBssDesc->fgIsP2PPresent = TRUE;
-						}
 					}
 				}
 #endif				/* CFG_ENABLE_WIFI_DIRECT */
@@ -2176,6 +2177,9 @@ scanAddScanResult(IN P_ADAPTER_T prAdapter, IN P_BSS_DESC_T prBssDesc, IN P_SW_R
 		break;
 	}
 
+	DBGLOG(SCN, TRACE,
+	       ("ind %s %d %d\n", prBssDesc->aucSSID, prBssDesc->ucChannelNum, prBssDesc->ucRCPI));
+
 	kalIndicateBssInfo(prAdapter->prGlueInfo,
 			   (PUINT_8) prSwRfb->pvHeader,
 			   prSwRfb->u2PacketLen,
@@ -2191,7 +2195,7 @@ scanAddScanResult(IN P_ADAPTER_T prAdapter, IN P_BSS_DESC_T prBssDesc, IN P_SW_R
 			 eOpMode,
 			 aucRatesEx,
 			 prSwRfb->u2PacketLen - prSwRfb->u2HeaderLen,
-			 (PUINT_8) ((UINT_32) (prSwRfb->pvHeader) + WLAN_MAC_MGMT_HEADER_LEN));
+			 (PUINT_8) ((ULONG) (prSwRfb->pvHeader) + WLAN_MAC_MGMT_HEADER_LEN));
 
 	return WLAN_STATUS_SUCCESS;
 
@@ -2214,6 +2218,7 @@ BOOLEAN scanCheckBssIsLegal(IN P_ADAPTER_T prAdapter, P_BSS_DESC_T prBssDesc)
 			fgAddToScanResult = TRUE;
 		}
 	}
+
 	return fgAddToScanResult;
 
 }
@@ -2343,6 +2348,12 @@ WLAN_STATUS scanProcessBeaconAndProbeResp(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_
 			      (prSwRfb->u2PacketLen - prSwRfb->u2HeaderLen) -
 			      (UINT_16) (OFFSET_OF(WLAN_BEACON_FRAME_BODY_T, aucInfoElem[0])));
 
+		mqmProcessBcn(prAdapter,
+			      prSwRfb,
+			      ((P_WLAN_BEACON_FRAME_T) (prSwRfb->pvHeader))->aucInfoElem,
+			      (prSwRfb->u2PacketLen - prSwRfb->u2HeaderLen) -
+			      (UINT_16) (OFFSET_OF(WLAN_BEACON_FRAME_BODY_T, aucInfoElem[0])));
+
 		/* 4 <3> Send SW_RFB_T to HIF when we perform SCAN for HOST */
 		if (prBssDesc->eBSSType == BSS_TYPE_INFRASTRUCTURE
 		    || prBssDesc->eBSSType == BSS_TYPE_IBSS) {
@@ -2426,7 +2437,11 @@ P_BSS_DESC_T scanSearchBssDescByPolicy(IN P_ADAPTER_T prAdapter, IN UINT_8 ucBss
 
 	/* check for fixed channel operation */
 	if (prBssInfo->eNetworkType == NETWORK_TYPE_AIS) {
+#if CFG_SUPPORT_CHNL_CONFLICT_REVISE
+		fgIsFixedChannel = cnmAisDetectP2PChannel(prAdapter, &eBand, &ucChannel);
+#else
 		fgIsFixedChannel = cnmAisInfraChannelFixed(prAdapter, &eBand, &ucChannel);
+#endif
 	} else {
 		fgIsFixedChannel = FALSE;
 	}
@@ -2477,7 +2492,7 @@ P_BSS_DESC_T scanSearchBssDescByPolicy(IN P_ADAPTER_T prAdapter, IN UINT_8 ucBss
 		}
 		/* 4 <2.5> Check if this BSS_DESC_T is stale */
 		if (CHECK_FOR_TIMEOUT(rCurrentTime, prBssDesc->rUpdateTime,
-				      SEC_TO_SYSTIME(SCN_BSS_DESC_REMOVE_TIMEOUT_SEC))) {
+				      SEC_TO_SYSTIME(SCN_BSS_DESC_STALE_SEC))) {
 
 			continue;
 		}
@@ -2802,30 +2817,6 @@ P_BSS_DESC_T scanSearchBssDescByPolicy(IN P_ADAPTER_T prAdapter, IN UINT_8 ucBss
 
 					fgIsFindFirst = FALSE;
 				}
-#if 0
-				/* Update PMKID candicate list. */
-				if (prAdapter->rWifiVar.rConnSettings.eAuthMode == AUTH_MODE_WPA2) {
-					rsnUpdatePmkidCandidateList(prPrimaryBssDesc);
-					if (prAisSpecBssInfo->u4PmkidCandicateCount) {
-						if (rsnCheckPmkidCandicate()) {
-							DBGLOG(RSN, WARN,
-							       ("Prepare a timer to indicate candidate "
-								MACSTR "\n",
-								MAC2STR(prAisSpecBssInfo->
-									arPmkidCache
-									[prAisSpecBssInfo->
-									 u4PmkidCacheCount].
-									rBssidInfo.aucBssid)));
-							cnmTimerStopTimer(&prAisSpecBssInfo->
-									  rPreauthenticationTimer);
-							cnmTimerStartTimer(&prAisSpecBssInfo->
-									   rPreauthenticationTimer,
-									   SEC_TO_MSEC
-									   (WAIT_TIME_IND_PMKID_CANDICATE_SEC));
-						}
-					}
-				}
-#endif
 			} else {
 				/* Can't pass the Encryption Status Check, get next one */
 				continue;
@@ -2846,74 +2837,6 @@ P_BSS_DESC_T scanSearchBssDescByPolicy(IN P_ADAPTER_T prAdapter, IN UINT_8 ucBss
 				break;
 			}
 		} else {
-#if 0				/* TODO(Kevin): For security(TBD) */
-			/* 4 <6B> Condition - Choose the one with best Encryption Score. */
-			if (fgIsFindBestEncryptionLevel) {
-				if (prCandidateBssDesc->ucEncLevel < prPrimaryBssDesc->ucEncLevel) {
-
-					prCandidateBssDesc = prPrimaryBssDesc;
-					prCandidateStaRec = prPrimaryStaRec;
-					continue;
-				}
-			}
-
-			/* If reach here, that means they have the same Encryption Score.
-			 */
-
-			/* 4 <6C> Condition - Give opportunity to the one we didn't connect before. */
-			/* For roaming, only compare the candidates other than current associated BSSID. */
-			if (!prCandidateBssDesc->fgIsConnected && !prPrimaryBssDesc->fgIsConnected) {
-				if ((prCandidateStaRec != (P_STA_RECORD_T) NULL) &&
-				    (prCandidateStaRec->u2StatusCode != STATUS_CODE_SUCCESSFUL)) {
-
-					DBGLOG(SCAN, TRACE,
-					       ("So far -BSS DESC MAC: " MACSTR
-						" has nonzero Status Code = %d\n",
-						MAC2STR(prCandidateBssDesc->aucBSSID),
-						prCandidateStaRec->u2StatusCode));
-
-					if (prPrimaryStaRec != (P_STA_RECORD_T) NULL) {
-						if (prPrimaryStaRec->u2StatusCode !=
-						    STATUS_CODE_SUCCESSFUL) {
-
-							/* Give opportunity to the one with smaller rLastJoinTime */
-							if (TIME_BEFORE
-							    (prCandidateStaRec->rLastJoinTime,
-							     prPrimaryStaRec->rLastJoinTime)) {
-								continue;
-							}
-							/* We've connect to CANDIDATE recently, let us try PRIMARY now */
-							else {
-								prCandidateBssDesc =
-								    prPrimaryBssDesc;
-								prCandidateStaRec = prPrimaryStaRec;
-								continue;
-							}
-						}
-						/* PRIMARY's u2StatusCode = 0 */
-						else {
-							prCandidateBssDesc = prPrimaryBssDesc;
-							prCandidateStaRec = prPrimaryStaRec;
-							continue;
-						}
-					}
-					/* PRIMARY has no StaRec - We didn't connet to PRIMARY before */
-					else {
-						prCandidateBssDesc = prPrimaryBssDesc;
-						prCandidateStaRec = prPrimaryStaRec;
-						continue;
-					}
-				} else {
-					if ((prPrimaryStaRec != (P_STA_RECORD_T) NULL) &&
-					    (prPrimaryStaRec->u2StatusCode !=
-					     STATUS_CODE_SUCCESSFUL)) {
-						continue;
-					}
-				}
-			}
-#endif
-
-
 			/* 4 <6D> Condition - Visible SSID win Hidden SSID. */
 			if (prCandidateBssDesc->fgIsHiddenSSID) {
 				if (!prPrimaryBssDesc->fgIsHiddenSSID) {
@@ -2988,9 +2911,9 @@ VOID
 scanReportBss2Cfg80211(IN P_ADAPTER_T prAdapter,
 		       IN ENUM_BSS_TYPE_T eBSSType, IN P_BSS_DESC_T SpecificprBssDesc)
 {
-	P_SCAN_INFO_T prScanInfo;
-	P_LINK_T prBSSDescList;
-	P_BSS_DESC_T prBssDesc;
+	P_SCAN_INFO_T prScanInfo = NULL;
+	P_LINK_T prBSSDescList = NULL;
+	P_BSS_DESC_T prBssDesc = NULL;
 	RF_CHANNEL_INFO_T rChannelInfo;
 
 
@@ -3041,6 +2964,22 @@ scanReportBss2Cfg80211(IN P_ADAPTER_T prAdapter,
 	} else {
 		/* Search BSS Desc from current SCAN result list. */
 		LINK_FOR_EACH_ENTRY(prBssDesc, prBSSDescList, rLinkEntry, BSS_DESC_T) {
+#if CFG_AUTO_CHANNEL_SEL_SUPPORT
+			/* Auto Channel Selection:Record the AP Number */
+			P_PARAM_CHN_LOAD_INFO prChnLoad = NULL;
+
+			if ((prBssDesc->ucChannelNum <= 48) && (prBssDesc->ucChannelNum >= 1)) {
+				if (prBssDesc->ucChannelNum <= 14)
+					prChnLoad =
+					    (P_PARAM_CHN_LOAD_INFO) &(prAdapter->rWifiVar.rChnLoadInfo.rEachChnLoad[prBssDesc->ucChannelNum - 1]);
+				else
+					prChnLoad =
+					    (P_PARAM_CHN_LOAD_INFO) &(prAdapter->rWifiVar.rChnLoadInfo.rEachChnLoad[(prBssDesc->ucChannelNum / 4) + 5]);
+				prChnLoad->u2APNum++;
+				prChnLoad->ucChannel = prBssDesc->ucChannelNum;
+			}
+			DBGLOG(SCN, TRACE, ("chNum=%d,apNum=%d\n", prBssDesc->ucChannelNum, prChnLoad->u2APNum));
+#endif
 
 			/* check BSSID is legal channel */
 			if (!scanCheckBssIsLegal(prAdapter, prBssDesc)) {
@@ -3107,6 +3046,9 @@ scanReportBss2Cfg80211(IN P_ADAPTER_T prAdapter,
 			}
 
 		}
+#if CFG_AUTO_CHANNEL_SEL_SUPPORT
+		prAdapter->rWifiVar.rChnLoadInfo.fgDataReadyBit = TRUE;
+#endif
 
 	}
 
@@ -3160,3 +3102,32 @@ scanSearchBssDescByBssidAndLatestUpdateTime(IN P_ADAPTER_T prAdapter, IN UINT_8 
 }				/* end of scanSearchBssDescByBssid() */
 
 #endif				/* CFG_SUPPORT_PASSPOINT */
+
+#if CFG_SUPPORT_AGPS_ASSIST
+VOID scanReportScanResultToAgps(P_ADAPTER_T prAdapter) {
+	P_LINK_T prBSSDescList = &prAdapter->rWifiVar.rScanInfo.rBSSDescList;
+	P_BSS_DESC_T prBssDesc = NULL;
+	P_AGPS_AP_LIST_T prAgpsApList = kalMemAlloc(sizeof(AGPS_AP_LIST_T), VIR_MEM_TYPE);
+	P_AGPS_AP_INFO_T prAgpsInfo = &prAgpsApList->arApInfo[0];
+	P_SCAN_INFO_T prScanInfo = &prAdapter->rWifiVar.rScanInfo;
+	UINT_8 ucIndex = 0;
+
+	LINK_FOR_EACH_ENTRY(prBssDesc, prBSSDescList, rLinkEntry, BSS_DESC_T) {
+		if (prBssDesc->rUpdateTime < prScanInfo->rLastScanCompletedTime)
+			continue;
+		COPY_MAC_ADDR(prAgpsInfo->aucBSSID, prBssDesc->aucBSSID);
+		prAgpsInfo->ePhyType = AGPS_PHY_G;
+		prAgpsInfo->u2Channel = prBssDesc->ucChannelNum;
+		prAgpsInfo->i2ApRssi = RCPI_TO_dBm(prBssDesc->ucRCPI);
+		prAgpsInfo++;
+		ucIndex++;
+		if (ucIndex == SCN_AGPS_AP_LIST_MAX_NUM)
+			break;
+	}
+	prAgpsApList->ucNum = ucIndex;
+	GET_CURRENT_SYSTIME(&prScanInfo->rLastScanCompletedTime);
+	/* DBGLOG(SCN, INFO, ("num of scan list:%d\n", ucIndex)); */
+	kalIndicateAgpsNotify(prAdapter, AGPS_EVENT_WLAN_AP_LIST, (PUINT_8)prAgpsApList, sizeof(AGPS_AP_LIST_T));
+	kalMemFree(prAgpsApList, VIR_MEM_TYPE, sizeof(AGPS_AP_LIST_T));
+}
+#endif /* CFG_SUPPORT_AGPS_ASSIST */

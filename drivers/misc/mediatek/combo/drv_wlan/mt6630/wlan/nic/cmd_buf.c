@@ -169,7 +169,7 @@ P_CMD_INFO_T cmdBufAllocateCmdInfo(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Length
 
 	if (prCmdInfo) {
 		DBGLOG(MEM, INFO,
-		       ("CMD[0x%08x] allocated! LEN[%04u], Rest[%u]\n", prCmdInfo, u4Length,
+		       ("CMD[0x%p] allocated! LEN[%04u], Rest[%u]\n", prCmdInfo, u4Length,
 			prAdapter->rFreeCmdList.u4NumElem));
 	} else {
 		DBGLOG(MEM, INFO,
@@ -213,7 +213,7 @@ VOID cmdBufFreeCmdInfo(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmdInfo)
 
 	if (prCmdInfo) {
 		DBGLOG(MEM, INFO,
-		       ("CMD[0x%08x] freed! Rest[%u]\n", prCmdInfo,
+		       ("CMD[0x%p] freed! Rest[%u]\n", prCmdInfo,
 			prAdapter->rFreeCmdList.u4NumElem));
 	}
 

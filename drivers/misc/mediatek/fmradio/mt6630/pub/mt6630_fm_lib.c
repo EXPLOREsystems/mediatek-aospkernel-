@@ -1298,7 +1298,7 @@ static fm_s32 mt6630_I2s_Setting(fm_s32 onoff, fm_s32 mode, fm_s32 sample)
 	ret = mt6630_write(0x60, 0x7);
     if (ret)
     {
-        goto out;
+	goto out;
     }
 
 	ret = mt6630_set_bits(0x5F, tmp_sample, 0xE7FF);
@@ -1322,7 +1322,7 @@ static fm_s32 mt6630_I2s_Setting(fm_s32 onoff, fm_s32 mode, fm_s32 sample)
 	ret = mt6630_write(0x60, 0xf);
     if (ret)
     {
-        goto out;
+	goto out;
     }
 
 	FM_LOG_NTC(CHIP, "[onoff=%s][mode=%s][sample=%d](0)33KHz,(1)44.1KHz,(2)48KHz\n",
@@ -1438,7 +1438,7 @@ static fm_s32 mt6630_soft_mute_tune(fm_u16 freq, fm_s32 *rssi, fm_bool *valid)
 		    && (MR >= mt6630_fm_config.rx_cfg.mr_th)
 		    && (PRX >= mt6630_fm_config.rx_cfg.prx_th)
 		    && (ATDEV >= ATDC)	/* sync scan algorithm */
-		    &&(softmuteGainLvl >= mt6630_fm_config.rx_cfg.smg_th)) {
+ && (softmuteGainLvl >= mt6630_fm_config.rx_cfg.smg_th)) {
 			*valid = fm_true;
 		} else {
 			*valid = fm_false;
@@ -1926,16 +1926,16 @@ static fm_s32 mt6630_TxScan(fm_u16 min_freq,
 		for (i = ((*pFreq - min_freq) / step); i < total_no; i++) {
 			freq = min_freq + step * i;
 
-			//FM desense GPS 
-			if((freq>=TX_ABANDON_BAND_LOW1) && (freq<=TX_ABANDON_BAND_HIGH1))
+			/* FM desense GPS */
+			if ((freq >= TX_ABANDON_BAND_LOW1) && (freq <= TX_ABANDON_BAND_HIGH1))
 			{
 				freq = TX_ABANDON_BAND_HIGH1 + 10;
 				i = (freq-min_freq)/step;
 			}
-				
-			if((freq>=TX_ABANDON_BAND_LOW2) && (freq<=TX_ABANDON_BAND_HIGH2))
+
+			if ((freq >= TX_ABANDON_BAND_LOW2) && (freq <= TX_ABANDON_BAND_HIGH2))
 			{
-				freq = TX_ABANDON_BAND_HIGH2 + 10;				
+				freq = TX_ABANDON_BAND_HIGH2 + 10;
 				i = (freq-min_freq)/step;
 			}
 
@@ -1960,20 +1960,20 @@ static fm_s32 mt6630_TxScan(fm_u16 min_freq,
 			for (i = 0; i < ((*pFreq - min_freq) / step); i++) {
 				freq = min_freq + step * i;
 
-				//FM desense GPS 
-				if((freq>=TX_ABANDON_BAND_LOW1) && (freq<=TX_ABANDON_BAND_HIGH1))
+				/* FM desense GPS */
+				if ((freq >= TX_ABANDON_BAND_LOW1) && (freq <= TX_ABANDON_BAND_HIGH1))
 				{
 					freq = TX_ABANDON_BAND_HIGH1 + 10;
 					i = (freq-min_freq)/step;
 				}
-					
-				if((freq>=TX_ABANDON_BAND_LOW2) && (freq<=TX_ABANDON_BAND_HIGH2))
+
+				if ((freq >= TX_ABANDON_BAND_LOW2) && (freq <= TX_ABANDON_BAND_HIGH2))
 				{
-					freq = TX_ABANDON_BAND_HIGH2 + 10;				
+					freq = TX_ABANDON_BAND_HIGH2 + 10;
 					i = (freq-min_freq)/step;
 				}
 
-				if(i >= ((*pFreq-min_freq)/step))
+				if (i >= ((*pFreq-min_freq)/step))
 					break;
 
 				ret = mt6630_soft_mute_tune_Tx(freq, &rssi, &valid);
@@ -1997,16 +1997,16 @@ static fm_s32 mt6630_TxScan(fm_u16 min_freq,
 		for (i = ((*pFreq - min_freq) / step - 1); i >= 0; i--) {
 			freq = min_freq + step * i;
 
-			//FM desense GPS 
-			if((freq>=TX_ABANDON_BAND_LOW1) && (freq<=TX_ABANDON_BAND_HIGH1))
+			/* FM desense GPS */
+			if ((freq >= TX_ABANDON_BAND_LOW1) && (freq <= TX_ABANDON_BAND_HIGH1))
 			{
 				freq = TX_ABANDON_BAND_LOW1 - 10;
 				i = (freq-min_freq)/step;
 			}
-				
-			if((freq>=TX_ABANDON_BAND_LOW2) && (freq<=TX_ABANDON_BAND_HIGH2))
+
+			if ((freq >= TX_ABANDON_BAND_LOW2) && (freq <= TX_ABANDON_BAND_HIGH2))
 			{
-				freq = TX_ABANDON_BAND_LOW2 - 10;				
+				freq = TX_ABANDON_BAND_LOW2 - 10;
 				i = (freq-min_freq)/step;
 			}
 
@@ -2030,20 +2030,20 @@ static fm_s32 mt6630_TxScan(fm_u16 min_freq,
 			for (i = (total_no - 1); i > ((*pFreq - min_freq) / step); i--) {
 				freq = min_freq + step * i;
 
-				//FM desense GPS 
-				if((freq>=TX_ABANDON_BAND_LOW1) && (freq<=TX_ABANDON_BAND_HIGH1))
+				/* FM desense GPS */
+				if ((freq >= TX_ABANDON_BAND_LOW1) && (freq <= TX_ABANDON_BAND_HIGH1))
 				{
 					freq = TX_ABANDON_BAND_LOW1 - 10;
 					i = (freq-min_freq)/step;
 				}
-					
-				if((freq>=TX_ABANDON_BAND_LOW2) && (freq<=TX_ABANDON_BAND_HIGH2))
+
+				if ((freq >= TX_ABANDON_BAND_LOW2) && (freq <= TX_ABANDON_BAND_HIGH2))
 				{
-					freq = TX_ABANDON_BAND_LOW2 - 10;				
+					freq = TX_ABANDON_BAND_LOW2 - 10;
 					i = (freq-min_freq)/step;
 				}
 
-				if(i <= ((*pFreq-min_freq)/step))
+				if (i <= ((*pFreq-min_freq)/step))
 					break;
 
 				ret = mt6630_soft_mute_tune_Tx(freq, &rssi, &valid);

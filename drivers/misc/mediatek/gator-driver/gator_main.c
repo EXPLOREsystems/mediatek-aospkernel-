@@ -7,7 +7,7 @@
  *
  */
 
-// This version must match the gator daemon version
+/* This version must match the gator daemon version */
 static unsigned long gator_protocol_version = 14;
 
 #include <linux/slab.h>
@@ -62,12 +62,12 @@ static unsigned long gator_protocol_version = 14;
 #define SUMMARY_BUFFER_SIZE       (1*1024)
 #define BACKTRACE_BUFFER_SIZE     (128*1024)
 #define NAME_BUFFER_SIZE          (64*1024)
-#define COUNTER_BUFFER_SIZE       (64*1024)	// counters have the core as part of the data and the core value in the frame header may be discarded
+#define COUNTER_BUFFER_SIZE       (64*1024)	/* counters have the core as part of the data and the core value in the frame header may be discarded */
 #define BLOCK_COUNTER_BUFFER_SIZE (128*1024)
-#define ANNOTATE_BUFFER_SIZE      (64*1024)	// annotate counters have the core as part of the data and the core value in the frame header may be discarded
+#define ANNOTATE_BUFFER_SIZE      (64*1024)	/* annotate counters have the core as part of the data and the core value in the frame header may be discarded */
 #define SCHED_TRACE_BUFFER_SIZE   (128*1024)
-#define GPU_TRACE_BUFFER_SIZE     (64*1024)	// gpu trace counters have the core as part of the data and the core value in the frame header may be discarded
-#define IDLE_BUFFER_SIZE          (32*1024)	// idle counters have the core as part of the data and the core value in the frame header may be discarded
+#define GPU_TRACE_BUFFER_SIZE     (64*1024)	/* gpu trace counters have the core as part of the data and the core value in the frame header may be discarded */
+#define IDLE_BUFFER_SIZE          (32*1024)	/* idle counters have the core as part of the data and the core value in the frame header may be discarded */
 
 #define NO_COOKIE      0U
 #define INVALID_COOKIE ~0U
@@ -127,10 +127,10 @@ enum {
  * Globals
  ******************************************************************************/
 static unsigned long gator_cpu_cores;
-// Size of the largest buffer. Effectively constant, set in gator_op_create_files
+/* Size of the largest buffer. Effectively constant, set in gator_op_create_files */
 static unsigned long userspace_buffer_size;
 static unsigned long gator_backtrace_depth;
-// How often to commit the buffers for live in nanoseconds
+/* How often to commit the buffers for live in nanoseconds */
 static u64 gator_live_rate;
 
 static unsigned long gator_started;
@@ -170,24 +170,24 @@ static void gator_add_trace(int cpu, unsigned long address);
 static void gator_add_sample(int cpu, struct pt_regs *const regs);
 static u64 gator_get_time(void);
 
-// Size of the buffer, must be a power of 2. Effectively constant, set in gator_op_setup.
+/* Size of the buffer, must be a power of 2. Effectively constant, set in gator_op_setup. */
 static uint32_t gator_buffer_size[NUM_GATOR_BUFS];
-// gator_buffer_size - 1, bitwise and with pos to get offset into the array. Effectively constant, set in gator_op_setup.
+/* gator_buffer_size - 1, bitwise and with pos to get offset into the array. Effectively constant, set in gator_op_setup. */
 static uint32_t gator_buffer_mask[NUM_GATOR_BUFS];
-// Read position in the buffer. Initialized to zero in gator_op_setup and incremented after bytes are read by userspace in userspace_buffer_read
+/* Read position in the buffer. Initialized to zero in gator_op_setup and incremented after bytes are read by userspace in userspace_buffer_read */
 static DEFINE_PER_CPU(int[NUM_GATOR_BUFS], gator_buffer_read);
-// Write position in the buffer. Initialized to zero in gator_op_setup and incremented after bytes are written to the buffer
+/* Write position in the buffer. Initialized to zero in gator_op_setup and incremented after bytes are written to the buffer */
 static DEFINE_PER_CPU(int[NUM_GATOR_BUFS], gator_buffer_write);
-// Commit position in the buffer. Initialized to zero in gator_op_setup and incremented after a frame is ready to be read by userspace
+/* Commit position in the buffer. Initialized to zero in gator_op_setup and incremented after a frame is ready to be read by userspace */
 static DEFINE_PER_CPU(int[NUM_GATOR_BUFS], gator_buffer_commit);
-// If set to false, decreases the number of bytes returned by buffer_bytes_available. Set in buffer_check_space if no space is remaining. Initialized to true in gator_op_setup
-// This means that if we run out of space, continue to report that no space is available until bytes are read by userspace
+/* If set to false, decreases the number of bytes returned by buffer_bytes_available. Set in buffer_check_space if no space is remaining. Initialized to true in gator_op_setup */
+/* This means that if we run out of space, continue to report that no space is available until bytes are read by userspace */
 static DEFINE_PER_CPU(int[NUM_GATOR_BUFS], buffer_space_available);
-// The buffer. Allocated in gator_op_setup
-static DEFINE_PER_CPU(char *[NUM_GATOR_BUFS], gator_buffer);
+/* The buffer. Allocated in gator_op_setup */
+static DEFINE_PER_CPU(char * [NUM_GATOR_BUFS], gator_buffer);
 
 #if GATOR_LIVE
-// The time after which the buffer should be committed for live display
+/* The time after which the buffer should be committed for live display */
 static DEFINE_PER_CPU(u64, gator_buffer_commit_time);
 #endif
 
@@ -409,10 +409,10 @@ static int buffer_bytes_available(int cpu, int buftype)
 	remaining = gator_buffer_size[buftype] - filled;
 
 	if (per_cpu(buffer_space_available, cpu)[buftype]) {
-		// Give some extra room; also allows space to insert the overflow error packet
+		/* Give some extra room; also allows space to insert the overflow error packet */
 		remaining -= 200;
 	} else {
-		// Hysteresis, prevents multiple overflow messages
+		/* Hysteresis, prevents multiple overflow messages */
 		remaining -= 2000;
 	}
 
@@ -471,7 +471,7 @@ static void gator_commit_buffer(int cpu, int buftype, u64 time)
 	if (!per_cpu(gator_buffer, cpu)[buftype])
 		return;
 
-	// post-populate the length, which does not include the response type length nor the length itself, i.e. only the length of the payload
+	/* post-populate the length, which does not include the response type length nor the length itself, i.e. only the length of the payload */
 	type_length = gator_response_type ? 1 : 0;
 	commit = per_cpu(gator_buffer_commit, cpu)[buftype];
 	length = per_cpu(gator_buffer_write, cpu)[buftype] - commit;
@@ -481,7 +481,7 @@ static void gator_commit_buffer(int cpu, int buftype, u64 time)
 	length = length - type_length - sizeof(s32);
 
 	if (length <= FRAME_HEADER_SIZE) {
-		// Nothing to write, only the frame header is present
+		/* Nothing to write, only the frame header is present */
 		return;
 	}
 
@@ -501,7 +501,7 @@ static void gator_commit_buffer(int cpu, int buftype, u64 time)
 
 	marshal_frame(cpu, buftype);
 
-	// had to delay scheduling work as attempting to schedule work during the context switch is illegal in kernel versions 3.5 and greater
+	/* had to delay scheduling work as attempting to schedule work during the context switch is illegal in kernel versions 3.5 and greater */
 	mod_timer(&gator_buffer_wake_up_timer, jiffies + 1);
 }
 
@@ -545,10 +545,10 @@ static void gator_add_sample(int cpu, struct pt_regs *const regs)
 	if (inKernel) {
 		kernel_backtrace(cpu, regs);
 	} else {
-		// Cookie+PC
+		/* Cookie+PC */
 		gator_add_trace(cpu, PC_REG);
 
-		// Backtrace
+		/* Backtrace */
 		if (gator_backtrace_depth)
 			arm_backtrace_eabi(cpu, regs, gator_backtrace_depth);
 	}
@@ -569,10 +569,10 @@ void gator_backtrace_handler(struct pt_regs *const regs)
 {
 	int cpu = get_physical_cpu();
 
-	// Output backtrace
+	/* Output backtrace */
 	gator_add_sample(cpu, regs);
 
-	// Collect counters
+	/* Collect counters */
 	if (!per_cpu(collecting, cpu)) {
 		collect_counters();
 	}
@@ -580,7 +580,7 @@ void gator_backtrace_handler(struct pt_regs *const regs)
 
 static int gator_running;
 
-// This function runs in interrupt context and on the appropriate core
+/* This function runs in interrupt context and on the appropriate core */
 static void gator_timer_offline(void *migrate)
 {
 	struct gator_interface *gi;
@@ -595,7 +595,7 @@ static void gator_timer_offline(void *migrate)
 		gator_hrtimer_offline();
 	}
 
-	// Offline any events and output counters
+	/* Offline any events and output counters */
 	time = gator_get_time();
 	if (marshal_event_header(time)) {
 		list_for_each_entry(gi, &gator_events, list) {
@@ -604,16 +604,16 @@ static void gator_timer_offline(void *migrate)
 				marshal_event(len, buffer);
 			}
 		}
-		// Only check after writing all counters so that time and corresponding counters appear in the same frame
+		/* Only check after writing all counters so that time and corresponding counters appear in the same frame */
 		buffer_check(cpu, BLOCK_COUNTER_BUF, time);
 	}
 
-	// Flush all buffers on this core
+	/* Flush all buffers on this core */
 	for (i = 0; i < NUM_GATOR_BUFS; i++)
 		gator_commit_buffer(cpu, i, time);
 }
 
-// This function runs in interrupt context and may be running on a core other than core 'cpu'
+/* This function runs in interrupt context and may be running on a core other than core 'cpu' */
 static void gator_timer_offline_dispatch(int cpu, bool migrate)
 {
 	struct gator_interface *gi;
@@ -640,7 +640,7 @@ static void gator_timer_stop(void)
 	}
 }
 
-// This function runs in interrupt context and on the appropriate core
+/* This function runs in interrupt context and on the appropriate core */
 static void gator_timer_online(void *migrate)
 {
 	struct gator_interface *gi;
@@ -650,7 +650,7 @@ static void gator_timer_online(void *migrate)
 
 	gator_trace_power_online();
 
-	// online any events and output counters
+	/* online any events and output counters */
 	time = gator_get_time();
 	if (marshal_event_header(time)) {
 		list_for_each_entry(gi, &gator_events, list) {
@@ -659,7 +659,7 @@ static void gator_timer_online(void *migrate)
 				marshal_event(len, buffer);
 			}
 		}
-		// Only check after writing all counters so that time and corresponding counters appear in the same frame
+		/* Only check after writing all counters so that time and corresponding counters appear in the same frame */
 		buffer_check(cpu, BLOCK_COUNTER_BUF, time);
 	}
 
@@ -687,7 +687,7 @@ static void gator_timer_online(void *migrate)
 #endif
 }
 
-// This function runs in interrupt context and may be running on a core other than core 'cpu'
+/* This function runs in interrupt context and may be running on a core other than core 'cpu' */
 static void gator_timer_online_dispatch(int cpu, bool migrate)
 {
 	struct gator_interface *gi;
@@ -710,7 +710,7 @@ int gator_timer_start(unsigned long sample_rate)
 
 	gator_running = 1;
 
-	// event based sampling trumps hr timer based sampling
+	/* event based sampling trumps hr timer based sampling */
 	if (event_based_sampling) {
 		sample_rate = 0;
 	}
@@ -734,20 +734,20 @@ static u64 gator_get_time(void)
 	u64 delta;
 	int cpu = smp_processor_id();
 
-	// Match clock_gettime(CLOCK_MONOTONIC_RAW, &ts) from userspace
+	/* Match clock_gettime(CLOCK_MONOTONIC_RAW, &ts) from userspace */
 	getrawmonotonic(&ts);
 	timestamp = timespec_to_ns(&ts);
 
-	// getrawmonotonic is not monotonic on all systems. Detect and attempt to correct these cases.
-	// up to 0.5ms delta has been seen on some systems, which can skew Streamline data when viewing at high resolution.
+	/* getrawmonotonic is not monotonic on all systems. Detect and attempt to correct these cases. */
+	/* up to 0.5ms delta has been seen on some systems, which can skew Streamline data when viewing at high resolution. */
 	prev_timestamp = per_cpu(last_timestamp, cpu);
 	if (prev_timestamp <= timestamp) {
 		per_cpu(last_timestamp, cpu) = timestamp;
 	} else {
 		delta = prev_timestamp - timestamp;
-		// Log the error once
+		/* Log the error once */
 		if (!printed_monotonic_warning && delta > 500000) {
-			pr_err("%s: getrawmonotonic is not monotonic  cpu: %i  delta: %lli\nSkew in Streamline data may be present at the fine zoom levels\n", __FUNCTION__, cpu, delta);
+			pr_err("%s: getrawmonotonic is not monotonic  cpu: %i  delta: %lli\nSkew in Streamline data may be present at the fine zoom levels\n", __func__, cpu, delta);
 			printed_monotonic_warning = true;
 		}
 		timestamp = prev_timestamp;
@@ -785,8 +785,8 @@ static struct notifier_block __refdata gator_hotcpu_notifier = {
 	.notifier_call = gator_hotcpu_notify,
 };
 
-// n.b. calling "on_each_cpu" only runs on those that are online
-// Registered linux events are not disabled, so their counters will continue to collect
+/* n.b. calling "on_each_cpu" only runs on those that are online */
+/* Registered linux events are not disabled, so their counters will continue to collect */
 static int gator_pm_notify(struct notifier_block *nb, unsigned long event, void *dummy)
 {
 	int cpu;
@@ -851,16 +851,16 @@ static void gator_summary(void)
 	timestamp = timespec_to_ns(&ts);
 
 	do_posix_clock_monotonic_gettime(&ts);
-	// monotonic_to_bootbased is not defined for some versions of Android
+	/* monotonic_to_bootbased is not defined for some versions of Android */
 	m2b = symbol_get(monotonic_to_bootbased);
 	if (m2b) {
 		m2b(&ts);
 	}
 	uptime = timespec_to_ns(&ts);
 
-	// Disable interrupts as gator_get_time calls smp_processor_id to verify time is monotonic
+	/* Disable interrupts as gator_get_time calls smp_processor_id to verify time is monotonic */
 	local_irq_save(flags);
-	// Set monotonic_started to zero as gator_get_time is uptime minus monotonic_started
+	/* Set monotonic_started to zero as gator_get_time is uptime minus monotonic_started */
 	gator_monotonic_started = 0;
 	gator_monotonic_started = gator_get_time();
 	local_irq_restore(flags);
@@ -877,7 +877,7 @@ int gator_events_install(struct gator_interface *interface)
 
 int gator_events_get_key(void)
 {
-	// key of zero is reserved as a timestamp
+	/* key of zero is reserved as a timestamp */
 	static int key = 1;
 
 	const int ret = key;
@@ -891,7 +891,7 @@ static int gator_init(void)
 
 	calc_first_cluster_size();
 
-	// events sources (gator_events.h, generated by gator_events.sh)
+	/* events sources (gator_events.h, generated by gator_events.sh) */
 	for (i = 0; i < ARRAY_SIZE(gator_events_list); i++)
 		if (gator_events_list[i])
 			gator_events_list[i]();
@@ -919,7 +919,7 @@ static int gator_start(void)
 	if (gator_migrate_start())
 		goto migrate_failure;
 
-	// Initialize the buffer with the frame type and core
+	/* Initialize the buffer with the frame type and core */
 	for_each_present_cpu(cpu) {
 		for (i = 0; i < NUM_GATOR_BUFS; i++) {
 			marshal_frame(cpu, i);
@@ -928,10 +928,10 @@ static int gator_start(void)
 	}
 	printed_monotonic_warning = false;
 
-	// Capture the start time
+	/* Capture the start time */
 	gator_summary();
 
-	// start all events
+	/* start all events */
 	list_for_each_entry(gi, &gator_events, list) {
 		if (gi->start && gi->start() != 0) {
 			struct list_head *ptr = gi->list.prev;
@@ -948,7 +948,7 @@ static int gator_start(void)
 		}
 	}
 
-	// cookies shall be initialized before trace_sched_start() and gator_timer_start()
+	/* cookies shall be initialized before trace_sched_start() and gator_timer_start() */
 	if (cookies_initialize())
 		goto cookies_failure;
 	if (gator_annotate_start())
@@ -979,7 +979,7 @@ sched_failure:
 annotate_failure:
 	cookies_release();
 cookies_failure:
-	// stop all events
+	/* stop all events */
 	list_for_each_entry(gi, &gator_events, list)
 		if (gi->stop)
 			gi->stop();
@@ -999,11 +999,11 @@ static void gator_stop(void)
 	gator_trace_power_stop();
 	gator_trace_gpu_stop();
 
-	// stop all interrupt callback reads before tearing down other interfaces
-	gator_notifier_stop();	// should be called before gator_timer_stop to avoid re-enabling the hrtimer after it has been offlined
+	/* stop all interrupt callback reads before tearing down other interfaces */
+	gator_notifier_stop();	/* should be called before gator_timer_stop to avoid re-enabling the hrtimer after it has been offlined */
 	gator_timer_stop();
 
-	// stop all events
+	/* stop all events */
 	list_for_each_entry(gi, &gator_events, list)
 		if (gi->stop)
 			gi->stop();
@@ -1049,9 +1049,9 @@ static int gator_op_setup(void)
 	gator_buffer_size[IDLE_BUF] = IDLE_BUFFER_SIZE;
 	gator_buffer_mask[IDLE_BUF] = IDLE_BUFFER_SIZE - 1;
 
-	// Initialize percpu per buffer variables
+	/* Initialize percpu per buffer variables */
 	for (i = 0; i < NUM_GATOR_BUFS; i++) {
-		// Verify buffers are a power of 2
+		/* Verify buffers are a power of 2 */
 		if (gator_buffer_size[i] & (gator_buffer_size[i] - 1)) {
 			err = -ENOEXEC;
 			goto setup_error;
@@ -1066,7 +1066,7 @@ static int gator_op_setup(void)
 			per_cpu(gator_buffer_commit_time, cpu) = gator_live_rate;
 #endif
 
-			// Annotation is a special case that only uses a single buffer
+			/* Annotation is a special case that only uses a single buffer */
 			if (cpu > 0 && i == ANNOTATE_BUF) {
 				per_cpu(gator_buffer, cpu)[i] = NULL;
 				continue;
@@ -1238,13 +1238,13 @@ static ssize_t userspace_buffer_read(struct file *file, char __user *buf, size_t
 	int cpu, buftype;
 	int written = 0;
 
-	// ensure there is enough space for a whole frame
+	/* ensure there is enough space for a whole frame */
 	if (count < userspace_buffer_size || *offset) {
 		return -EINVAL;
 	}
 
-	// sleep until the condition is true or a signal is received
-	// the condition is checked each time gator_buffer_wait is woken up
+	/* sleep until the condition is true or a signal is received */
+	/* the condition is checked each time gator_buffer_wait is woken up */
 	wait_event_interruptible(gator_buffer_wait, buffer_commit_ready(&cpu, &buftype) || !gator_started);
 
 	if (signal_pending(current)) {
@@ -1261,12 +1261,12 @@ static ssize_t userspace_buffer_read(struct file *file, char __user *buf, size_t
 		read = per_cpu(gator_buffer_read, cpu)[buftype];
 		commit = per_cpu(gator_buffer_commit, cpu)[buftype];
 
-		// May happen if the buffer is freed during pending reads.
+		/* May happen if the buffer is freed during pending reads. */
 		if (!per_cpu(gator_buffer, cpu)[buftype]) {
 			break;
 		}
 
-		// determine the size of two halves
+		/* determine the size of two halves */
 		length1 = commit - read;
 		length2 = 0;
 		buffer1 = &(per_cpu(gator_buffer, cpu)[buftype][read]);
@@ -1280,12 +1280,12 @@ static ssize_t userspace_buffer_read(struct file *file, char __user *buf, size_t
 			break;
 		}
 
-		// start, middle or end
+		/* start, middle or end */
 		if (length1 > 0 && copy_to_user(&buf[written], buffer1, length1)) {
 			break;
 		}
 
-		// possible wrap around
+		/* possible wrap around */
 		if (length2 > 0 && copy_to_user(&buf[written + length1], buffer2, length2)) {
 			break;
 		}
@@ -1293,7 +1293,7 @@ static ssize_t userspace_buffer_read(struct file *file, char __user *buf, size_t
 		per_cpu(gator_buffer_read, cpu)[buftype] = commit;
 		written += length1 + length2;
 
-		// Wake up annotate_write if more space is available
+		/* Wake up annotate_write if more space is available */
 		if (buftype == ANNOTATE_BUF) {
 			wake_up(&gator_annotate_wait);
 		}
@@ -1301,7 +1301,7 @@ static ssize_t userspace_buffer_read(struct file *file, char __user *buf, size_t
 
 	mutex_unlock(&gator_buffer_mutex);
 
-	// kick just in case we've lost an SMP event
+	/* kick just in case we've lost an SMP event */
 	wake_up(&gator_buffer_wait);
 
 	return written > 0 ? written : -EFAULT;
@@ -1368,19 +1368,19 @@ void gator_op_create_files(struct super_block *sb, struct dentry *root)
 	gatorfs_create_ro_u64(sb, root, "started", &gator_monotonic_started);
 	gatorfs_create_u64(sb, root, "live_rate", &gator_live_rate);
 
-	// Annotate interface
+	/* Annotate interface */
 	gator_annotate_create_files(sb, root);
 
-	// Linux Events
+	/* Linux Events */
 	dir = gatorfs_mkdir(sb, root, "events");
 	list_for_each_entry(gi, &gator_events, list)
 		if (gi->create_files)
 			gi->create_files(sb, dir);
 
-	// Sched Events
+	/* Sched Events */
 	sched_trace_create_files(sb, dir);
 
-	// Power interface
+	/* Power interface */
 	gator_trace_power_create_files(sb, dir);
 }
 
@@ -1410,7 +1410,6 @@ static void __exit gator_module_exit(void)
 	gator_exit();
 	gatorfs_unregister();
 }
-
 module_init(gator_module_init);
 module_exit(gator_module_exit);
 

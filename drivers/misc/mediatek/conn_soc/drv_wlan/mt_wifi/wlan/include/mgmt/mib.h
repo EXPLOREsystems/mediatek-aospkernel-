@@ -1,10 +1,24 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/mgmt/mib.h#1 $
 */
 
 /*! \file  mib.h
     \brief This file contains the IEEE 802.11 family related MIB definition
-           for MediaTek 802.11 Wireless LAN Adapters.
+	   for MediaTek 802.11 Wireless LAN Adapters.
 */
 
 
@@ -17,7 +31,7 @@
  * add the message check code from mt5921.
  *
  * 07 24 2010 wh.su
- * 
+ *
  * .support the Wi-Fi RSN
  *
  * 07 08 2010 cp.wu
@@ -95,7 +109,7 @@ typedef struct _IEEE_802_11_MIB_T {
     /* dot11RSNAConfigAuthenticationSuitesTable     (dot11smt 10) */
     DOT11_RSNA_CONFIG_AUTHENTICATION_SUITES_ENTRY dot11RSNAConfigAuthenticationSuitesTable[MAX_NUM_SUPPORTED_AKM_SUITES];
 
-#if 0 //SUPPORT_WAPI
+#if 0 /* SUPPORT_WAPI */
     BOOLEAN            fgWapiKeyInstalled;
     PARAM_WPI_KEY_T    rWapiPairwiseKey[2];
     BOOLEAN            fgPairwiseKeyUsed[2];
@@ -154,4 +168,3 @@ extern NON_HT_AP_MODE_ATTRIBUTE_T rNonHTApModeAttributes[];
 */
 
 #endif /* _MIB_H */
-

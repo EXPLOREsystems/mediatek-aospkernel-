@@ -36,14 +36,12 @@ void gator_annotate_channel(int channel, const char *str)
 	kannotate_write((char *)&header, sizeof(header));
 	kannotate_write(str, str_size);
 }
-
 EXPORT_SYMBOL(gator_annotate_channel);
 
 void gator_annotate(const char *str)
 {
 	gator_annotate_channel(0, str);
 }
-
 EXPORT_SYMBOL(gator_annotate);
 
 void gator_annotate_channel_color(int channel, int color, const char *str)
@@ -58,14 +56,12 @@ void gator_annotate_channel_color(int channel, int color, const char *str)
 	kannotate_write((char *)&header, sizeof(header));
 	kannotate_write(str, str_size - 4);
 }
-
 EXPORT_SYMBOL(gator_annotate_channel_color);
 
 void gator_annotate_color(int color, const char *str)
 {
 	gator_annotate_channel_color(0, color, str);
 }
-
 EXPORT_SYMBOL(gator_annotate_color);
 
 void gator_annotate_channel_end(int channel)
@@ -73,17 +69,15 @@ void gator_annotate_channel_end(int channel)
 	long long header = ESCAPE_CODE | (STRING_ANNOTATION << 8) | (channel << 16);
 	kannotate_write((char *)&header, sizeof(header));
 }
-
 EXPORT_SYMBOL(gator_annotate_channel_end);
 
 void gator_annotate_end(void)
 {
 	gator_annotate_channel_end(0);
 }
-
 EXPORT_SYMBOL(gator_annotate_end);
 
-void gator_annotate_name_channel(int channel, int group, const char* str)
+void gator_annotate_name_channel(int channel, int group, const char *str)
 {
 	int str_size = strlen(str) & 0xffff;
 	char header[12];
@@ -95,17 +89,15 @@ void gator_annotate_name_channel(int channel, int group, const char* str)
 	kannotate_write((char *)&header, sizeof(header));
 	kannotate_write(str, str_size);
 }
-
 EXPORT_SYMBOL(gator_annotate_name_channel);
 
-void gator_annotate_name_group(int group, const char* str)
+void gator_annotate_name_group(int group, const char *str)
 {
 	int str_size = strlen(str) & 0xffff;
 	long long header = ESCAPE_CODE | (NAME_GROUP_ANNOTATION << 8) | (group << 16) | ((long long)str_size << 48);
 	kannotate_write((char *)&header, sizeof(header));
 	kannotate_write(str, str_size);
 }
-
 EXPORT_SYMBOL(gator_annotate_name_group);
 
 void gator_annotate_visual(const char *data, unsigned int length, const char *str)
@@ -117,7 +109,6 @@ void gator_annotate_visual(const char *data, unsigned int length, const char *st
 	kannotate_write((char *)&length, sizeof(length));
 	kannotate_write(data, length);
 }
-
 EXPORT_SYMBOL(gator_annotate_visual);
 
 void gator_annotate_marker(void)
@@ -125,7 +116,6 @@ void gator_annotate_marker(void)
 	int header = ESCAPE_CODE | (MARKER_ANNOTATION << 8);
 	kannotate_write((char *)&header, sizeof(header));
 }
-
 EXPORT_SYMBOL(gator_annotate_marker);
 
 void gator_annotate_marker_str(const char *str)
@@ -135,7 +125,6 @@ void gator_annotate_marker_str(const char *str)
 	kannotate_write((char *)&header, sizeof(header));
 	kannotate_write(str, str_size);
 }
-
 EXPORT_SYMBOL(gator_annotate_marker_str);
 
 void gator_annotate_marker_color(int color)
@@ -143,7 +132,6 @@ void gator_annotate_marker_color(int color)
 	long long header = (ESCAPE_CODE | (MARKER_ANNOTATION << 8) | 0x00040000 | ((long long)color << 32));
 	kannotate_write((char *)&header, sizeof(header));
 }
-
 EXPORT_SYMBOL(gator_annotate_marker_color);
 
 void gator_annotate_marker_color_str(int color, const char *str)
@@ -153,5 +141,4 @@ void gator_annotate_marker_color_str(int color, const char *str)
 	kannotate_write((char *)&header, sizeof(header));
 	kannotate_write(str, str_size - 4);
 }
-
 EXPORT_SYMBOL(gator_annotate_marker_color_str);

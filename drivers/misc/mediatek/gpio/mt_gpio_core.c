@@ -39,8 +39,6 @@ struct mt_gpio_ops {
 	int (*get_dir) (unsigned long pin);
 	int (*set_pull_enable) (unsigned long pin, unsigned long enable);
 	int (*get_pull_enable) (unsigned long pin);
-	int (*set_smt) (unsigned long pin, unsigned long enable);
-	int (*get_smt) (unsigned long pin);
 	int (*set_ies) (unsigned long pin, unsigned long enable);
 	int (*get_ies) (unsigned long pin);
 	int (*set_pull_select) (unsigned long pin, unsigned long select);
@@ -60,8 +58,6 @@ static struct mt_gpio_ops mt_base_ops = {
 	.get_dir = mt_get_gpio_dir_base,
 	.set_pull_enable = mt_set_gpio_pull_enable_base,
 	.get_pull_enable = mt_get_gpio_pull_enable_base,
-	.set_smt = mt_set_gpio_smt_base,	
-	.get_smt = mt_get_gpio_smt_base,
 	.set_ies = mt_set_gpio_ies_base,
 	.get_ies = mt_get_gpio_ies_base,
 	.set_pull_select = mt_set_gpio_pull_select_base,
@@ -80,8 +76,6 @@ static struct mt_gpio_ops mt_ext_ops = {
 	.get_dir = mt_get_gpio_dir_ext,
 	.set_pull_enable = mt_set_gpio_pull_enable_ext,
 	.get_pull_enable = mt_get_gpio_pull_enable_ext,
-	.set_smt = mt_set_gpio_smt_ext,	
-	.get_smt = mt_get_gpio_smt_ext,
 	.set_ies = mt_set_gpio_ies_ext,
 	.get_ies = mt_get_gpio_ies_ext,
 	.set_pull_select = mt_set_gpio_pull_select_ext,
@@ -218,22 +212,6 @@ int mt_get_gpio_pull_enable(unsigned long pin)
 	return MT_GPIO_OPS_GET(pin, get_pull_enable);
 }
 EXPORT_SYMBOL(mt_get_gpio_pull_enable);
-/*---------------------------------------------------------------------------*/
-int mt_set_gpio_smt(unsigned long pin, unsigned long enable)
-{
-	if (enable >= GPIO_SMT_MAX){
-		GPIOERR("Parameter enable error: %d\n",(int)enable);
-		return -ERINVAL;
-	}
-	return MT_GPIO_OPS_SET(pin,set_smt,enable);
-}
-EXPORT_SYMBOL(mt_set_gpio_smt);
-/*---------------------------------------------------------------------------*/
-int mt_get_gpio_smt(unsigned long pin)
-{
-	return MT_GPIO_OPS_GET(pin,get_smt);
-}
-EXPORT_SYMBOL(mt_get_gpio_smt);
 /*---------------------------------------------------------------------------*/
 int mt_set_gpio_ies(unsigned long pin, unsigned long enable)
 {
@@ -541,18 +519,6 @@ static int mt_gpio_probe(struct platform_device *dev)
 	int err;
 	struct miscdevice *misc = &mt_gpio_device;
 
-#ifdef CONFIG_OF
-	if (dev->dev.of_node) {
-		/* Setup IO addresses */
-		get_gpio_vbase(dev->dev.of_node);
-	}
-
-	get_io_cfg_vbase();
-#endif
-#ifdef CONFIG_MD32_SUPPORT
-	md32_gpio_handle_init();
-#endif
-
 	/* printk(KERN_ALERT"[GPIO]%5d,<%s> gpio devices probe\n", __LINE__, __func__); */
 	GPIOLOG("Registering GPIO device\n");
 
@@ -608,13 +574,6 @@ static int mtk_gpio_resume(struct platform_device *pdev)
 #endif				/*CONFIG_PM */
 /*---------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
-#ifdef CONFIG_OF
-static const struct of_device_id apgpio_of_ids[] = {
-	{ .compatible = "mediatek,GPIO", },
-	{}
-};
-#endif
-
 static struct platform_driver gpio_driver = {
 	.probe = mt_gpio_probe,
 	.remove = mt_gpio_remove,
@@ -623,11 +582,8 @@ static struct platform_driver gpio_driver = {
 	.resume = mtk_gpio_resume,
 #endif
 	.driver = {
-		.name = GPIO_DEVICE,
-#ifdef CONFIG_OF
-		.of_match_table = apgpio_of_ids,
-#endif
-		},
+		   .name = GPIO_DEVICE,
+		   },
 };
 
 /*---------------------------------------------------------------------------*/

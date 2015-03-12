@@ -173,7 +173,7 @@ static u32 get_difference(u32 start, u32 end)
 		return start - end;
 	}
 
-	// Mali counters are unsigned 32 bit values that wrap.
+	/* Mali counters are unsigned 32 bit values that wrap. */
 	return (4294967295u - end) + start;
 }
 
@@ -229,13 +229,13 @@ static u32 scale_sw_counter_value(unsigned int event_id, signed long long value)
 #endif
 
 /* Probe for continuously sampled counter */
-#if 0				//WE_DONT_CURRENTLY_USE_THIS_SO_SUPPRESS_WARNING
+#if 0				/* WE_DONT_CURRENTLY_USE_THIS_SO_SUPPRESS_WARNING */
 GATOR_DEFINE_PROBE(mali_sample_address, TP_PROTO(unsigned int event_id, u32 *addr))
 {
 	/* Turning on too many pr_debug statements in frequently called functions
 	 * can cause stability and/or performance problems
 	 */
-	//pr_debug("gator: mali_sample_address %d %d\n", event_id, addr);
+	/* pr_debug("gator: mali_sample_address %d %d\n", event_id, addr); */
 	if (event_id >= ACTIVITY_VP && event_id <= COUNTER_FP3_C1) {
 		counter_address[event_id] = addr;
 	}
@@ -248,7 +248,7 @@ GATOR_DEFINE_PROBE(mali_hw_counter, TP_PROTO(unsigned int event_id, unsigned int
 	/* Turning on too many pr_debug statements in frequently called functions
 	 * can cause stability and/or performance problems
 	 */
-	//pr_debug("gator: mali_hw_counter %d %d\n", event_id, value);
+	/* pr_debug("gator: mali_hw_counter %d %d\n", event_id, value); */
 	if (is_hw_counter(event_id)) {
 		counter_data[event_id] = value;
 	}
@@ -287,13 +287,13 @@ static int create_files(struct super_block *sb, struct dentry *root)
 
 	/*
 	 * Create the filesystem entries for vertex processor, fragment processor
-	 * and L2 cache timeline and hardware counters. Software counters get 
+	 * and L2 cache timeline and hardware counters. Software counters get
 	 * special handling after this block.
 	 */
 	for (event = FIRST_ACTIVITY_EVENT; event <= LAST_HW_COUNTER; event++) {
 		char buf[40];
 
-		/* 
+		/*
 		 * We can skip this event if it's for a non-existent fragment
 		 * processor.
 		 */
@@ -305,23 +305,23 @@ static int create_files(struct super_block *sb, struct dentry *root)
 		/* Otherwise, set up the filesystem entry for this event. */
 		switch (event) {
 		case ACTIVITY_VP:
-			snprintf(buf, sizeof buf, "ARM_%s_VP_active", mali_name);
+			snprintf(buf, sizeof(buf), "ARM_%s_VP_active", mali_name);
 			break;
 		case ACTIVITY_FP0:
 		case ACTIVITY_FP1:
 		case ACTIVITY_FP2:
 		case ACTIVITY_FP3:
-			snprintf(buf, sizeof buf, "ARM_%s_FP%d_active",
+			snprintf(buf, sizeof(buf), "ARM_%s_FP%d_active",
 				 mali_name, event - ACTIVITY_FP0);
 			break;
 		case COUNTER_L2_C0:
 		case COUNTER_L2_C1:
-			snprintf(buf, sizeof buf, "ARM_%s_L2_cnt%d",
+			snprintf(buf, sizeof(buf), "ARM_%s_L2_cnt%d",
 				 mali_name, event - COUNTER_L2_C0);
 			break;
 		case COUNTER_VP_C0:
 		case COUNTER_VP_C1:
-			snprintf(buf, sizeof buf, "ARM_%s_VP_cnt%d",
+			snprintf(buf, sizeof(buf), "ARM_%s_VP_cnt%d",
 				 mali_name, event - COUNTER_VP_C0);
 			break;
 		case COUNTER_FP0_C0:
@@ -332,7 +332,7 @@ static int create_files(struct super_block *sb, struct dentry *root)
 		case COUNTER_FP2_C1:
 		case COUNTER_FP3_C0:
 		case COUNTER_FP3_C1:
-			snprintf(buf, sizeof buf, "ARM_%s_FP%d_cnt%d",
+			snprintf(buf, sizeof(buf), "ARM_%s_FP%d_cnt%d",
 				 mali_name, (event - COUNTER_FP0_C0) / 2,
 				 (event - COUNTER_FP0_C0) % 2);
 			break;
@@ -412,7 +412,7 @@ static int create_files(struct super_block *sb, struct dentry *root)
  * Local store for the get_counters entry point into the DDK.
  * This is stored here since it is used very regularly.
  */
-static mali_profiling_get_counters_type *mali_get_counters = NULL;
+static mali_profiling_get_counters_type *mali_get_counters;
 
 /*
  * Examine list of software counters and determine if any one is enabled.
@@ -561,7 +561,7 @@ static void mali_counter_deinitialize(void)
 
 static int start(void)
 {
-	// register tracepoints
+	/* register tracepoints */
 	if (GATOR_REGISTER_TRACE(mali_hw_counter)) {
 		pr_debug("gator: mali_hw_counter tracepoint failed to activate\n");
 		return -1;
@@ -633,36 +633,36 @@ static int read(int **buffer)
 	if (!on_primary_core())
 		return 0;
 
-	// Read the L2 C0 and C1 here.
+	/* Read the L2 C0 and C1 here. */
 	if (counter_enabled[COUNTER_L2_C0] || counter_enabled[COUNTER_L2_C1]) {
 		u32 src0 = 0;
 		u32 val0 = 0;
 		u32 src1 = 0;
 		u32 val1 = 0;
 
-		// Poke the driver to get the counter values
+		/* Poke the driver to get the counter values */
 		if (mali_get_counters) {
 			mali_get_counters(&src0, &val0, &src1, &val1);
 		}
 
 		if (counter_enabled[COUNTER_L2_C0]) {
-			// Calculate and save src0's counter val0
+			/* Calculate and save src0's counter val0 */
 			counter_dump[len++] = counter_key[COUNTER_L2_C0];
 			counter_dump[len++] = get_difference(val0, counter_prev[COUNTER_L2_C0]);
 		}
 
 		if (counter_enabled[COUNTER_L2_C1]) {
-			// Calculate and save src1's counter val1
+			/* Calculate and save src1's counter val1 */
 			counter_dump[len++] = counter_key[COUNTER_L2_C1];
 			counter_dump[len++] = get_difference(val1, counter_prev[COUNTER_L2_C1]);
 		}
 
-		// Save the previous values for the counters.
+		/* Save the previous values for the counters. */
 		counter_prev[COUNTER_L2_C0] = val0;
 		counter_prev[COUNTER_L2_C1] = val1;
 	}
 
-	// Process other (non-timeline) counters.
+	/* Process other (non-timeline) counters. */
 	for (cnt = COUNTER_VP_C0; cnt <= LAST_SW_COUNTER; cnt++) {
 		if (counter_enabled[cnt]) {
 			counter_dump[len++] = counter_key[cnt];

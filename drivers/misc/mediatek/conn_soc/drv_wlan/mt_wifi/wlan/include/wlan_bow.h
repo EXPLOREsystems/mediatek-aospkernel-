@@ -1,11 +1,25 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/wlan_bow.h#1 $
 */
 
 /*! \file   "wlan_bow.h"
-    \brief This file contains the declairations of 802.11 PAL 
-           command processing routines for 
-           MediaTek Inc. 802.11 Wireless LAN Adapters.
+    \brief This file contains the declairations of 802.11 PAL
+	   command processing routines for
+	   MediaTek Inc. 802.11 Wireless LAN Adapters.
 */
 
 
@@ -76,41 +90,41 @@
  * 3) add handling for RX_PKT_DESTINATION_HOST_WITH_FORWARD for GO-broadcast frames
  *
  * 07 15 2010 cp.wu
- * 
+ *
  * sync. bluetooth-over-Wi-Fi interface to driver interface document v0.2.6.
  *
  * 07 08 2010 cp.wu
- * 
+ *
  * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
  *
  * 06 06 2010 kevin.huang
- * [WPD00003832][MT6620 5931] Create driver base 
+ * [WPD00003832][MT6620 5931] Create driver base
  * [MT6620 5931] Create driver base
  *
  * 05 17 2010 cp.wu
- * [WPD00003831][MT6620 Wi-Fi] Add framework for Wi-Fi Direct support 
+ * [WPD00003831][MT6620 Wi-Fi] Add framework for Wi-Fi Direct support
  * 1) add timeout handler mechanism for pending command packets
  * 2) add p2p add/removal key
  *
  * 05 13 2010 cp.wu
- * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support 
+ * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support
  * 1) all BT physical handles shares the same RSSI/Link Quality.
  * 2) simplify BT command composing
  *
  * 04 28 2010 cp.wu
- * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support 
+ * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support
  * change prefix for data structure used to communicate with 802.11 PAL
  * to avoid ambiguous naming with firmware interface
  *
  * 04 27 2010 cp.wu
- * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support 
+ * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support
  * add multiple physical link support
  *
  * 04 13 2010 cp.wu
- * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support 
+ * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support
  * add framework for BT-over-Wi-Fi support.
  *  *  *  *  *  *  *  *  *  *  *  * 1) prPendingCmdInfo is replaced by queue for multiple handler capability
- *  *  *  *  *  *  *  *  *  *  *  * 2) command sequence number is now increased atomically 
+ *  *  *  *  *  *  *  *  *  *  *  * 2) command sequence number is now increased atomically
  *  *  *  *  *  *  *  *  *  *  *  * 3) private data could be hold and taken use for other purpose
 **
 */
@@ -163,12 +177,12 @@ typedef struct _BOW_TABLE_T {
     BOOLEAN                     fgIsValid;
     ENUM_BOW_DEVICE_STATE       eState;
     UINT_8                      aucPeerAddress[6];
-    //UINT_8                      ucRole;
-    //UINT_8                      ucChannelNum;
+    /* UINT_8                      ucRole; */
+    /* UINT_8                      ucChannelNum; */
     UINT_16                     u2Reserved;
 } BOW_TABLE_T, *P_BOW_TABLE_T;
 
-typedef WLAN_STATUS (*PFN_BOW_CMD_HANDLE)(P_ADAPTER_T, P_AMPC_COMMAND);
+typedef WLAN_STATUS(*PFN_BOW_CMD_HANDLE)(P_ADAPTER_T, P_AMPC_COMMAND);
 
 typedef struct _BOW_CMD_T {
     UINT_8              uCmdID;
@@ -226,7 +240,7 @@ typedef struct _BOW_ACTIVITY_REPORT_T {
 /* Firmware Command Packer                                      */
 /*--------------------------------------------------------------*/
 WLAN_STATUS
-wlanoidSendSetQueryBowCmd (
+wlanoidSendSetQueryBowCmd(
     IN P_ADAPTER_T  prAdapter,
     UINT_8          ucCID,
     BOOLEAN         fgSetQuery,
@@ -311,49 +325,49 @@ wlanbowCmdEventSetStatus(
 /* Callbacks for event indication                               */
 /*--------------------------------------------------------------*/
 VOID
-wlanbowCmdEventSetCommon (
+wlanbowCmdEventSetCommon(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo,
     IN PUINT_8      pucEventBuf
     );
 
 VOID
-wlanbowCmdEventLinkConnected (
+wlanbowCmdEventLinkConnected(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo,
     IN PUINT_8      pucEventBuf
     );
 
 VOID
-wlanbowCmdEventLinkDisconnected (
+wlanbowCmdEventLinkDisconnected(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo,
     IN PUINT_8      pucEventBuf
     );
 
 VOID
-wlanbowCmdEventSetSetupConnection (
+wlanbowCmdEventSetSetupConnection(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo,
     IN PUINT_8      pucEventBuf
     );
 
 VOID
-wlanbowCmdEventReadLinkQuality (
+wlanbowCmdEventReadLinkQuality(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo,
     IN PUINT_8      pucEventBuf
     );
 
 VOID
-wlanbowCmdEventReadRssi (
+wlanbowCmdEventReadRssi(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo,
     IN PUINT_8      pucEventBuf
     );
 
 VOID
-wlanbowCmdTimeoutHandler (
+wlanbowCmdTimeoutHandler(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo
     );
@@ -363,18 +377,18 @@ bowStopping(
     IN P_ADAPTER_T prAdapter);
 
 VOID
-bowStarting (
+bowStarting(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-bowAssignSsid (
+bowAssignSsid(
     IN PUINT_8 pucSsid,
     IN PUINT_8 pucSsidLen
     );
 
 BOOLEAN
-bowValidateProbeReq (
+bowValidateProbeReq(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T prSwRfb,
     OUT PUINT_32 pu4ControlFlags
@@ -398,7 +412,7 @@ bowResponderScanDone(
     );
 
 VOID
-bowResponderCancelScan (
+bowResponderCancelScan(
     IN P_ADAPTER_T prAdapter,
     IN BOOLEAN fgIsChannelExtention
     );
@@ -435,14 +449,14 @@ bowRunEventAAAComplete(
     );
 
 WLAN_STATUS
-bowRunEventRxDeAuth (
+bowRunEventRxDeAuth(
     IN P_ADAPTER_T prAdapter,
     IN P_STA_RECORD_T prStaRec,
     IN P_SW_RFB_T prSwRfb
     );
 
 VOID
-bowDisconnectLink (
+bowDisconnectLink(
     IN P_ADAPTER_T            prAdapter,
     IN P_MSDU_INFO_T          prMsduInfo,
     IN ENUM_TX_RESULT_CODE_T  rTxDoneStatus
@@ -464,18 +478,18 @@ bowValidateAuth(
     );
 
 VOID
-bowRunEventChGrant (
+bowRunEventChGrant(
     IN P_ADAPTER_T prAdapter,
     IN P_MSG_HDR_T prMsgHdr
     );
 
 VOID
-bowRequestCh (
+bowRequestCh(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-bowReleaseCh (
+bowReleaseCh(
     IN P_ADAPTER_T prAdapter
     );
 
@@ -486,7 +500,7 @@ bowChGrantedTimeout(
     );
 
 BOOLEAN
-bowNotifyAllLinkDisconnected (
+bowNotifyAllLinkDisconnected(
     IN P_ADAPTER_T     prAdapter
     );
 
@@ -544,4 +558,3 @@ bowSetBowTableContent(
 
 #endif
 #endif /* _WLAN_BOW_H */
-

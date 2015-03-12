@@ -156,6 +156,8 @@
 *                    E X T E R N A L   R E F E R E N C E S
 ********************************************************************************
 */
+#include "wlan_def.h"
+extern const PUINT_8 apucNetworkType[NETWORK_TYPE_NUM];
 
 /*******************************************************************************
 *                              C O N S T A N T S
@@ -177,7 +179,7 @@
 
 
 /* NOTE(Kevin): change define for george */
-/* #define MAX_LEN_TIM_PARTIAL_BMP     (((MAX_ASSOC_ID + 1) + 7) / 8)  */ /* Required bits = (MAX_ASSOC_ID + 1) */ 
+/* #define MAX_LEN_TIM_PARTIAL_BMP     (((MAX_ASSOC_ID + 1) + 7) / 8) */ /* Required bits = (MAX_ASSOC_ID + 1) */
 #define MAX_LEN_TIM_PARTIAL_BMP                     ((CFG_STA_REC_NUM + 7) / 8)  /* reserve length greater than maximum size of STA_REC */	/* obsoleted: Assume we only use AID:1~15 */
 
 /* CTRL FLAGS for Probe Response */
@@ -267,16 +269,28 @@ bssSendBeaconProbeResponse(IN P_ADAPTER_T prAdapter,
 
 WLAN_STATUS bssProcessProbeRequest(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb);
 
-VOID bssInitializeClientList(IN P_ADAPTER_T prAdapter, IN P_BSS_INFO_T prBssInfo);
+VOID bssInitializeClientList(IN P_ADAPTER_T prAdapter,
+    IN P_BSS_INFO_T prBssInfo);
 
-VOID
-bssAddStaRecToClientList(IN P_ADAPTER_T prAdapter,
-			 IN P_BSS_INFO_T prBssInfo, IN P_STA_RECORD_T prStaRec);
+VOID bssAddClient(IN P_ADAPTER_T prAdapter,
+    IN P_BSS_INFO_T prBssInfo, IN P_STA_RECORD_T prStaRec);
 
-VOID
-bssRemoveStaRecFromClientList(IN P_ADAPTER_T prAdapter,
-			      IN P_BSS_INFO_T prBssInfo, IN P_STA_RECORD_T prStaRec);
+BOOLEAN bssRemoveClient(IN P_ADAPTER_T prAdapter,
+	IN P_BSS_INFO_T prBssInfo, IN P_STA_RECORD_T prStaRec);
 
+P_STA_RECORD_T bssRemoveClientByMac(
+    IN P_ADAPTER_T prAdapter, IN P_BSS_INFO_T prBssInfo, IN PUINT_8 pucMac);
+
+P_STA_RECORD_T bssRemoveHeadClient(
+    IN P_ADAPTER_T prAdapter, IN P_BSS_INFO_T prBssInfo);
+
+UINT_32 bssGetClientCount(IN P_ADAPTER_T prAdapter,
+    IN P_BSS_INFO_T prBssInfo);
+
+VOID bssDumpClientList(IN P_ADAPTER_T prAdapter,
+    IN P_BSS_INFO_T prBssInfo);
+
+VOID bssCheckClientList(IN P_ADAPTER_T prAdapter, IN P_BSS_INFO_T prBssInfo);
 
 /*----------------------------------------------------------------------------*/
 /* Routines for IBSS(AdHoc) only                                              */

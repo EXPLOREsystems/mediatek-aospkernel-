@@ -124,7 +124,7 @@ static const struct file_operations ram_console2_file_ops = {
 	.release = single_release,
 };
 
-#ifdef CONFIG_MTK_GPT_SCHEME_SUPPORT
+#ifdef MTK_GPT_SCHEME_SUPPORT
 extern int get_emmc_dump_status(void);
 
 #endif
@@ -135,7 +135,7 @@ static int emmc_read_last_kmsg(void)
 	struct proc_dir_entry *entry;
 	struct ram_console_buffer *bufp = NULL;
 
-#ifdef CONFIG_MTK_GPT_SCHEME_SUPPORT
+#ifdef MTK_GPT_SCHEME_SUPPORT
 	int emmc_ready_flag = 0;
 	int count = 0;
 
@@ -613,7 +613,7 @@ static int __init ram_console_late_init(void)
 
 #ifdef CONFIG_MTK_EMMC_SUPPORT
 #ifdef CONFIG_MTK_AEE_IPANIC
-#ifdef CONFIG_MTK_GPT_SCHEME_SUPPORT
+#ifdef MTK_GPT_SCHEME_SUPPORT
 	int err;
 	static struct task_struct *thread;
 	thread = kthread_run(emmc_read_last_kmsg, 0, "read_poweroff_log");

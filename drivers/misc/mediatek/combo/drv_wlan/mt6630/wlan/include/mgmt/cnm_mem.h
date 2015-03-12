@@ -716,6 +716,7 @@ struct _STA_RECORD_T {
 					 * the network (for example, P2P GO)
 					 */
 
+
 	UINT_8 ucBssIndex;	/* BSS_INFO_I index */
 
 	UINT_8 ucStaState;	/* STATE_1,2,3 */
@@ -915,6 +916,15 @@ struct _STA_RECORD_T {
     /*------------------------------------------------------------------------------------------*/
 	PVOID aprTxDescTemplate[TX_DESC_TID_NUM];
 
+#if CFG_ENABLE_PKT_LIFETIME_PROFILE && CFG_ENABLE_PER_STA_STATISTICS
+	UINT_32 u4TotalTxPktsNumber;
+	UINT_32 u4TotalTxPktsTime;
+	UINT_32 u4TotalRxPktsNumber;
+	UINT_32 u4MaxTxPktsTime;
+	UINT_32 u4ThresholdCounter;
+#endif
+
+
 #if 1
     /*------------------------------------------------------------------------------------------*/
 	/* To be removed, this is to make que_mgt compilation success only                          */
@@ -945,7 +955,7 @@ struct _STA_RECORD_T {
 	UINT_32 u4FixedPhyRate;	/* */
 	UINT_16 u2MaxLinkSpeed;	/* unit is 0.5 Mbps */
 	UINT_16 u2MinLinkSpeed;
-	UINT_32 u4Flags;
+	UINT_32 u4Flags;	/* reserved for MTK Synergies */
 
 
 #if CFG_SUPPORT_TDLS
@@ -966,7 +976,7 @@ struct _STA_RECORD_T {
 /* MSDU_INFO and SW_RFB structure */
 typedef struct _MSDU_INFO_T {
 
-	/* 4 */ /* ----------------MSDU_INFO and SW_RFB Common Fields------------------ */
+	/* 4 ----------------MSDU_INFO and SW_RFB Common Fields------------------ */
 
 	LINK_ENTRY_T rLinkEntry;
 	PUINT_8 pucBuffer;	/* Pointer to the associated buffer */
@@ -995,7 +1005,7 @@ typedef struct _MSDU_INFO_T {
 
 	UINT_8 ucControlFlag;	/* For specify some Control Flags, e.g. Basic Rate */
 
-	/* 4 */  /* -----------------------Non-Common ------------------------- */
+	/* 4 -----------------------Non-Common ------------------------- */
 	/* TODO: move flags to ucControlFlag */
 
 	BOOLEAN fgIs1xFrame;	/* Set to TRUE for 802.1x frame */
@@ -1039,7 +1049,8 @@ typedef struct _MSDU_INFO_T {
 /* nic_rx.h */
 typedef struct _SW_RFB_T {
 
-	/* 4 */ /* ----------------MSDU_INFO and SW_RFB Common Fields------------------ */
+	/* 4 ----------------MSDU_INFO and SW_RFB Common Fields------------------ */
+
 	LINK_ENTRY_T rLinkEntry;
 	PUINT_8 pucBuffer;	/* Pointer to the associated buffer */
 
@@ -1067,7 +1078,8 @@ typedef struct _SW_RFB_T {
 
 	UINT_8 ucControlFlag;	/* For specify some Control Flags, e.g. Basic Rate */
 
-	/* 4 */ /* -----------------------Non-Common ------------------------- */
+	/* 4 -----------------------Non-Common ------------------------- */
+
 	/* For composing the HIF RX Header (TODO: move flags to ucControlFlag) */
 	PUINT_8 pucHifRxPacket;	/* Pointer to the Response packet to HIF RX0 or RX1 */
 	UINT_16 u2HifRxPacketLength;
@@ -1155,7 +1167,7 @@ typedef struct _CMD_PEER_UPDATE_T {
 	UINT_8 UapsdBitmap;
 	UINT_8 UapsdMaxSp;	/* MAX_SP */
 
-	UINT16 u2Capability;
+	UINT_16 u2Capability;
 #define CMD_PEER_UPDATE_EXT_CAP_MAXLEN			5
 	UINT_8 aucExtCap[CMD_PEER_UPDATE_EXT_CAP_MAXLEN];
 	UINT_16 u2ExtCapLen;
@@ -1212,14 +1224,29 @@ typedef struct _CMD_PEER_UPDATE_T {
 ********************************************************************************
 */
 
+#if CFG_DBG_MGT_BUF
+#define cnmMgtPktAlloc(_prAdapter, _u4Length) \
+	cnmPktAllocWrapper((_prAdapter), (_u4Length), (PUINT_8)__func__)
+
+#define cnmMgtPktFree(_prAdapter, _prMsduInfo) \
+	cnmPktFreeWrapper((_prAdapter), (_prMsduInfo), (PUINT_8)__func__)
+#else
+#define cnmMgtPktAlloc cnmPktAlloc
+#define cnmMgtPktFree cnmPktFree
+#endif
+
 /*******************************************************************************
 *                   F U N C T I O N   D E C L A R A T I O N S
 ********************************************************************************
 */
 
-P_MSDU_INFO_T cnmMgtPktAlloc(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Length);
+P_MSDU_INFO_T cnmPktAllocWrapper(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Length, IN PUINT_8 pucStr);
 
-VOID cnmMgtPktFree(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T prMsduInfo);
+VOID cnmPktFreeWrapper(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T prMsduInfo, IN PUINT_8 pucStr);
+
+P_MSDU_INFO_T cnmPktAlloc(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Length);
+
+VOID cnmPktFree(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T prMsduInfo);
 
 VOID cnmMemInit(IN P_ADAPTER_T prAdapter);
 
@@ -1241,14 +1268,15 @@ cnmStaFreeAllStaByNetwork(P_ADAPTER_T prAdapter, UINT_8 ucBssIndex, UINT_8 ucSta
 P_STA_RECORD_T cnmGetStaRecByIndex(IN P_ADAPTER_T prAdapter, IN UINT_8 ucIndex);
 
 P_STA_RECORD_T
-cnmGetStaRecByAddress(P_ADAPTER_T prAdapter, UINT_8 ucBssIndex, UINT_8 aucPeerMACAddress[]
-    );
+cnmGetStaRecByAddress(P_ADAPTER_T prAdapter, UINT_8 ucBssIndex, UINT_8 aucPeerMACAddress[]);
 
 VOID
 cnmStaRecChangeState(IN P_ADAPTER_T prAdapter,
 		     IN OUT P_STA_RECORD_T prStaRec, IN UINT_8 ucNewState);
 
 VOID cnmDumpStaRec(IN P_ADAPTER_T prAdapter, IN UINT_8 ucStaRecIdx);
+
+VOID cnmDumpMemoryStatus(IN P_ADAPTER_T prAdapter);
 
 #if CFG_SUPPORT_TDLS
 WLAN_STATUS			/* TDLS_STATUS */
@@ -1262,9 +1290,7 @@ cnmPeerUpdate(P_ADAPTER_T prAdapter,
 	      PVOID pvSetBuffer, UINT_32 u4SetBufferLen, PUINT_32 pu4SetInfoLen);
 
 P_STA_RECORD_T
-cnmGetTdlsPeerByAddress(P_ADAPTER_T prAdapter, UINT_8 ucBssIndex, UINT_8 aucPeerMACAddress[]
-
-    );
+cnmGetTdlsPeerByAddress(P_ADAPTER_T prAdapter, UINT_8 ucBssIndex, UINT_8 aucPeerMACAddress[]);
 #endif
 /*******************************************************************************
 *                              F U N C T I O N S
@@ -1275,7 +1301,7 @@ cnmGetTdlsPeerByAddress(P_ADAPTER_T prAdapter, UINT_8 ucBssIndex, UINT_8 aucPeer
  * It will check automatically while at compile time.
  * We'll need this for porting driver to different RTOS.
  */
-__KAL_INLINE__ VOID cnmMemDataTypeCheck(VOID)
+static __KAL_INLINE__ VOID cnmMemDataTypeCheck(VOID)
 {
 #if 0
 	DATA_STRUC_INSPECTING_ASSERT(OFFSET_OF(MSDU_INFO_T, rLinkEntry) == 0);

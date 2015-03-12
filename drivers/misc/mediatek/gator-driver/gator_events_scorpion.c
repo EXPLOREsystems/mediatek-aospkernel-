@@ -8,13 +8,13 @@
 
 #include "gator.h"
 
-// gator_events_perf_pmu.c is used if perf is supported
+/* gator_events_perf_pmu.c is used if perf is supported */
 #if GATOR_NO_PERF_SUPPORT
 
 static const char *pmnc_name;
 static int pmnc_counters;
 
-// Per-CPU PMNC: config reg
+/* Per-CPU PMNC: config reg */
 #define PMNC_E		(1 << 0)	/* Enable all counters */
 #define PMNC_P		(1 << 1)	/* Reset all counters */
 #define PMNC_C		(1 << 2)	/* Cycle counter reset */
@@ -23,12 +23,12 @@ static int pmnc_counters;
 #define PMNC_DP		(1 << 5)	/* Disable CCNT if non-invasive debug */
 #define	PMNC_MASK	0x3f	/* Mask for writable bits */
 
-// ccnt reg
+/* ccnt reg */
 #define CCNT_REG	(1 << 31)
 
-#define CCNT 		0
+#define CCNT		0
 #define CNT0		1
-#define CNTMAX 		(4+1)
+#define CNTMAX		(4+1)
 
 static unsigned long pmnc_enabled[CNTMAX];
 static unsigned long pmnc_event[CNTMAX];
@@ -463,7 +463,7 @@ static inline void scorpion_pmnc_write_evtsel(unsigned int cnt, u32 val)
 		} else {
 			u32 zero = 0;
 			struct scorp_evt evtinfo;
-			// extract evtinfo.grp and evtinfo.tevt_type_act from val
+			/* extract evtinfo.grp and evtinfo.tevt_type_act from val */
 			if (get_scorpion_evtinfo(val, &evtinfo) == 0)
 				return;
 			asm volatile("mcr p15, 0, %0, c9, c13, 1" : : "r" (evtinfo.evt_type_act));
@@ -506,9 +506,9 @@ static int gator_events_scorpion_create_files(struct super_block *sb, struct den
 	for (i = 0; i < pmnc_counters; i++) {
 		char buf[40];
 		if (i == 0) {
-			snprintf(buf, sizeof buf, "%s_ccnt", pmnc_name);
+			snprintf(buf, sizeof(buf), "%s_ccnt", pmnc_name);
 		} else {
-			snprintf(buf, sizeof buf, "%s_cnt%d", pmnc_name, i - 1);
+			snprintf(buf, sizeof(buf), "%s_cnt%d", pmnc_name, i - 1);
 		}
 		dir = gatorfs_mkdir(sb, root, buf);
 		if (!dir) {
@@ -541,26 +541,26 @@ static int gator_events_scorpion_online(int **buffer, bool migrate)
 		if (!pmnc_enabled[cnt])
 			continue;
 
-		// disable counter
+		/* disable counter */
 		scorpion_pmnc_disable_counter(cnt);
 
 		event = pmnc_event[cnt] & 255;
 
-		// Set event (if destined for PMNx counters), We don't need to set the event if it's a cycle count
+		/* Set event (if destined for PMNx counters), We don't need to set the event if it's a cycle count */
 		if (cnt != CCNT)
 			scorpion_pmnc_write_evtsel(cnt, event);
 
-		// reset counter
+		/* reset counter */
 		scorpion_pmnc_reset_counter(cnt);
 
-		// Enable counter, do not enable interrupt for this counter
+		/* Enable counter, do not enable interrupt for this counter */
 		scorpion_pmnc_enable_counter(cnt);
 	}
 
-	// enable
+	/* enable */
 	scorpion_pmnc_write(scorpion_pmnc_read() | PMNC_E);
 
-	// read the counters and toss the invalid data, return zero instead
+	/* read the counters and toss the invalid data, return zero instead */
 	for (cnt = 0; cnt < pmnc_counters; cnt++) {
 		if (pmnc_enabled[cnt]) {
 			if (cnt == CCNT) {
@@ -602,7 +602,7 @@ static int gator_events_scorpion_read(int **buffer)
 	int cnt, len = 0;
 	int cpu = smp_processor_id();
 
-	// a context switch may occur before the online hotplug event, thus need to check that the pmu is enabled
+	/* a context switch may occur before the online hotplug event, thus need to check that the pmu is enabled */
 	if (!(scorpion_pmnc_read() & PMNC_E)) {
 		return 0;
 	}
@@ -655,7 +655,7 @@ int gator_events_scorpion_init(void)
 		return -1;
 	}
 
-	pmnc_counters++;	// CNT[n] + CCNT
+	pmnc_counters++;	/* CNT[n] + CCNT */
 
 	for (cnt = CCNT; cnt < CNTMAX; cnt++) {
 		pmnc_enabled[cnt] = 0;

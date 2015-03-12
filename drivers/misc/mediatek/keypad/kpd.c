@@ -17,25 +17,15 @@
 
 /*kpd.h file path: ALPS/mediatek/kernel/include/linux */
 #include <linux/kpd.h>
-#include <mach/hal_priv_kpd.h>
-#ifdef CONFIG_OF
-#include <linux/of.h>
-#include <linux/of_address.h>
-#include <linux/of_irq.h>
-#endif
 
 #define KPD_NAME	"mtk-kpd"
 #define MTK_KP_WAKESOURCE	/* this is for auto set wake up source */
 
-#ifdef CONFIG_OF
-void __iomem *kp_base;
-static unsigned int kp_irqnr;
-#endif	
 struct input_dev *kpd_input_dev;
-static bool kpd_suspend = false;
+static bool kpd_suspend;
 static int kpd_show_hw_keycode = 1;
 static int kpd_show_register = 1;
-static volatile int call_status = 0;
+static volatile int call_status;
 
 /*for kpd_memory_setting() function*/
 static u16 kpd_keymap[KPD_NUM_KEYS];
@@ -70,12 +60,6 @@ static int kpd_pdrv_suspend(struct platform_device *pdev, pm_message_t state);
 static int kpd_pdrv_resume(struct platform_device *pdev);
 #endif
 
-#ifdef CONFIG_OF
-static const struct of_device_id kpd_of_match[] = {
-	{ .compatible = "mediatek,KP", },
-	{},
-};
-#endif
 
 static struct platform_driver kpd_pdrv = {
 	.probe = kpd_pdrv_probe,
@@ -85,12 +69,9 @@ static struct platform_driver kpd_pdrv = {
 	.resume = kpd_pdrv_resume,
 #endif
 	.driver = {
-		.name = KPD_NAME,
-		.owner = THIS_MODULE,
-#ifdef CONFIG_OF
-		.of_match_table = kpd_of_match,
-#endif
-	},
+		   .name = KPD_NAME,
+		   .owner = THIS_MODULE,
+		   },
 };
 
 /********************************************************************/
@@ -104,8 +85,7 @@ static void kpd_memory_setting(void)
 
 /*****************for kpd auto set wake up source*************************/
 
-static ssize_t kpd_store_call_state(struct device* dev, struct device_attribute *attr, const char *buf, size_t
-count)
+static ssize_t kpd_store_call_state(struct device_driver *ddri, const char *buf, size_t count)
 {
 	if (sscanf(buf, "%u", &call_status) != 1) {
 		kpd_print("kpd call state: Invalid values\n");
@@ -130,49 +110,11 @@ count)
 	return count;
 }
 
-static ssize_t kpd_show_call_state(struct device* dev, struct device_attribute *attr, char *buf)
+static ssize_t kpd_show_call_state(struct device_driver *ddri, char *buf)
 {
-    int len = 0;
-    u16 reg_kpstaus;
-    u16 reg_kpstate1;
-    u16 reg_kpstate2;
-    u16 reg_kpstate3;
-    u16 reg_kpstate4;
-    u16 reg_kpstate5;
-    u16 reg_kpdebounce;
-    u16 reg_kpscantime;
-    u16 reg_kpsel;
-    u16 reg_kpen;
-    u32 reg_kpd_irq;
-
-    reg_kpstaus = *(volatile u16 *)KP_STA;
-    reg_kpstate1 = *(volatile u16 *)KP_MEM1;
-    reg_kpstate2 = *(volatile u16 *)KP_MEM2;
-    reg_kpstate3 = *(volatile u16 *)KP_MEM3;
-    reg_kpstate4 = *(volatile u16 *)KP_MEM4;
-    reg_kpstate5 = *(volatile u16 *)KP_MEM5;
-    reg_kpdebounce = *(volatile u16 *)KP_DEBOUNCE;
-    reg_kpscantime = *(volatile u16 *)KP_SCAN_TIMING;
-    reg_kpsel = *(volatile u16 *)KP_SEL;
-    reg_kpen = *(volatile u16 *)KP_EN;
-
-    reg_kpd_irq = *(volatile u32 *)(0xF0211196);
-
-    len += snprintf(buf+len, PAGE_SIZE-len, "kp_status: 0x%x\n", reg_kpstaus);
-    len += snprintf(buf+len, PAGE_SIZE-len, "reg_kpmem1: 0x%x\n", reg_kpstate1);
-    len += snprintf(buf+len, PAGE_SIZE-len, "reg_kpmem2: 0x%x\n", reg_kpstate2);
-    len += snprintf(buf+len, PAGE_SIZE-len, "reg_kpmem3: 0x%x\n", reg_kpstate3);
-    len += snprintf(buf+len, PAGE_SIZE-len, "reg_kpmem4: 0x%x\n", reg_kpstate4);
-    len += snprintf(buf+len, PAGE_SIZE-len, "reg_kpmem5: 0x%x\n", reg_kpstate5);
-    len += snprintf(buf+len, PAGE_SIZE-len, "kp_debounce: 0x%x\n", reg_kpdebounce);
-    len += snprintf(buf+len, PAGE_SIZE-len, "kp_scantime: 0x%x\n", reg_kpscantime);
-    len += snprintf(buf+len, PAGE_SIZE-len, "kp_sel: 0x%x\n", reg_kpsel);
-    len += snprintf(buf+len, PAGE_SIZE-len, "kp_en: 0x%x\n", reg_kpen);
-    len += snprintf(buf+len, PAGE_SIZE-len, "kp_irq_status: 0x%x\n", ((reg_kpd_irq&0x80000) >> 20));
-
-    len += snprintf(buf+len, PAGE_SIZE-len, "call status: %d\n", call_status);
-    printk("debug: %s \n", buf);
-    return len;
+	ssize_t res;
+	res = snprintf(buf, PAGE_SIZE, "%d\n", call_status);
+	return res;
 }
 
 static DRIVER_ATTR(kpd_call_state, S_IWUSR | S_IRUGO, kpd_show_call_state, kpd_store_call_state);
@@ -459,21 +401,13 @@ static void kpd_keymap_handler(unsigned long data)
 
 	memcpy(kpd_keymap_state, new_state, sizeof(new_state));
 	kpd_print("save new keymap state\n");
-#ifdef CONFIG_OF
-	enable_irq(kp_irqnr);
-#else
 	enable_irq(MT_KP_IRQ_ID);
-#endif
 }
 
 static irqreturn_t kpd_irq_handler(int irq, void *dev_id)
 {
 	/* use _nosync to avoid deadlock */
-#ifdef CONFIG_OF
-	disable_irq_nosync(kp_irqnr);
-#else
 	disable_irq_nosync(MT_KP_IRQ_ID);
-#endif
 	tasklet_schedule(&kpd_keymap_tasklet);
 	return IRQ_HANDLED;
 }
@@ -805,21 +739,6 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 	int i, r;
 	int err = 0;
 
-#ifdef CONFIG_OF
-	kp_base = of_iomap(pdev->dev.of_node, 0);
-	if (!kp_base) {
-		pr_info(KPD_SAY "KP iomap failed\n");
-		return -ENODEV;
-	};
-
-	kp_irqnr = irq_of_parse_and_map(pdev->dev.of_node, 0);
-	if (!kp_irqnr) {
-		pr_info(KPD_SAY "KP get irqnr failed\n");
-		return -ENODEV;
-	}
-	pr_info(KPD_SAY "kp base: 0x%p  kp irq: %d\n", kp_base, kp_irqnr);
-#endif
-
 	kpd_ldvt_test_init();	/* API 2 for kpd LFVT test enviroment settings */
 
 	/* initialize and register input device (/dev/input/eventX) */
@@ -843,11 +762,8 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 	__set_bit(KPD_PWRKEY_MAP, kpd_input_dev->keybit);
 	kpd_keymap[8] = 0;
 #endif
-
-#if !KPD_USE_EXTEND_TYPE
 	for (i = 17; i < KPD_NUM_KEYS; i += 9)	/* only [8] works for Power key */
 		kpd_keymap[i] = 0;
-#endif
 
 	for (i = 0; i < KPD_NUM_KEYS; i++) {
 		if (kpd_keymap[i] != 0)
@@ -887,11 +803,7 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 
 	/* register IRQ and EINT */
 	kpd_set_debounce(KPD_KEY_DEBOUNCE);
-#ifdef CONFIG_OF
-	r = request_irq(kp_irqnr, kpd_irq_handler, IRQF_TRIGGER_NONE, KPD_NAME, NULL);
-#else
 	r = request_irq(MT_KP_IRQ_ID, kpd_irq_handler, IRQF_TRIGGER_FALLING, KPD_NAME, NULL);
-#endif
 	if (r) {
 		printk(KPD_SAY "register IRQ failed (%d)\n", r);
 		misc_deregister(&kpd_dev);

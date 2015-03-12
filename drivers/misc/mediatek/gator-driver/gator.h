@@ -22,7 +22,7 @@
 
 #define GATOR_LIVE 1
 
-// cpu ids
+/* cpu ids */
 #define ARM1136     0xb36
 #define ARM1156     0xb56
 #define ARM1176     0xb76
@@ -98,20 +98,20 @@ void gator_op_create_files(struct super_block *sb, struct dentry *root);
  * Events
  ******************************************************************************/
 struct gator_interface {
-	void (*shutdown)(void);	// Complementary function to init
+	void (*shutdown)(void);	/* Complementary function to init */
 	int (*create_files)(struct super_block *sb, struct dentry *root);
 	int (*start)(void);
-	void (*stop)(void);		// Complementary function to start
+	void (*stop)(void);		/* Complementary function to start */
 	int (*online)(int **buffer, bool migrate);
 	int (*offline)(int **buffer, bool migrate);
-	void (*online_dispatch)(int cpu, bool migrate);	// called in process context but may not be running on core 'cpu'
-	void (*offline_dispatch)(int cpu, bool migrate);	// called in process context but may not be running on core 'cpu'
+	void (*online_dispatch)(int cpu, bool migrate);	/* called in process context but may not be running on core 'cpu' */
+	void (*offline_dispatch)(int cpu, bool migrate);	/* called in process context but may not be running on core 'cpu' */
 	int (*read)(int **buffer);
 	int (*read64)(long long **buffer);
 	struct list_head list;
 };
 
-// gator_events_init is used as a search term in gator_events.sh
+/* gator_events_init is used as a search term in gator_events.sh */
 #define gator_events_init(initfn) \
 	static inline int __gator_events_init_test(void) \
 	{ return initfn(); }
@@ -139,4 +139,4 @@ int pcpu_to_lcpu(const int pcpu);
 #define get_logical_cpu() smp_processor_id()
 #define on_primary_core() (get_logical_cpu() == 0)
 
-#endif // GATOR_H_
+#endif /* GATOR_H_ */

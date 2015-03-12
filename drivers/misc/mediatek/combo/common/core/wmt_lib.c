@@ -387,7 +387,7 @@ INT32 wmt_lib_set_patch_name(UCHAR *cPatchName)
 #if WMT_PLAT_ALPS
 extern PCHAR wmt_uart_port_desc;	/* defined in mtk_wcn_cmb_stub_alps.cpp */
 #endif
-INT32 wmt_lib_set_uart_name(CHAR * cUartName)
+INT32 wmt_lib_set_uart_name(CHAR *cUartName)
 {
 #if WMT_PLAT_ALPS
 
@@ -720,7 +720,7 @@ static INT32 wmt_lib_ps_handler(MTKSTP_PSM_ACTION_T action)
 			wmt_plat_eirq_ctrl(PIN_BGF_EINT, PIN_STA_EINT_DIS);
 			ret = mtk_wcn_stp_psm_notify_stp(EIRQ);
 		} else {
-			WMT_ERR_FUNC("[SDIO-PS]sdio own-back eirq!######\n");
+	    /* WMT_INFO_FUNC("[SDIO-PS]sdio own-back eirq!######\n"); */
 			ret = mtk_wcn_stp_psm_notify_stp(EIRQ);
 		}
 

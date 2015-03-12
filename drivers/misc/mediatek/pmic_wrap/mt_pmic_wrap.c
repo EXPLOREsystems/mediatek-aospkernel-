@@ -37,7 +37,7 @@ struct mt_pmic_wrap_driver *get_mt_pmic_wrap_drv(void)
 /* ****************************************************************************** */
 /* --external API for pmic_wrap user------------------------------------------------- */
 /* ****************************************************************************** */
-S32 pwrap_wacs2(U32 write, U32 adr, U32 wdata, U32 * rdata)
+S32 pwrap_wacs2(U32 write, U32 adr, U32 wdata, U32 *rdata)
 {
 	if (mt_wrp.wacs2_hal != NULL)
 		return mt_wrp.wacs2_hal(write, adr, wdata, rdata);
@@ -67,9 +67,7 @@ EXPORT_SYMBOL(pwrap_write);
 /********************************************************************/
 U32 pmic_wrap_eint_status(void)
 {
-	//FIX-ME
-	//return mt_pmic_wrap_eint_status();
-	return 0;
+	return mt_pmic_wrap_eint_status();
 }
 EXPORT_SYMBOL(pmic_wrap_eint_status);
 
@@ -82,8 +80,7 @@ EXPORT_SYMBOL(pmic_wrap_eint_status);
 /********************************************************************/
 void pmic_wrap_eint_clr(int offset)
 {
-	//FIX-ME
-	//mt_pmic_wrap_eint_clr(offset);
+	mt_pmic_wrap_eint_clr(offset);
 }
 EXPORT_SYMBOL(pmic_wrap_eint_clr);
 /************************************************************************/

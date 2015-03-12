@@ -293,6 +293,7 @@ VOID nicpmSetFWOwn(IN P_ADAPTER_T prAdapter, IN BOOLEAN fgEnableGlobalInt)
 		return;
 	} else {
 		if (nicProcessIST(prAdapter) != WLAN_STATUS_NOT_INDICATING) {
+			DBGLOG(INIT, STATE, ("FW OWN Failed due to pending INT\n"));
 			/* pending interrupts */
 			return;
 		}
@@ -313,8 +314,25 @@ VOID nicpmSetFWOwn(IN P_ADAPTER_T prAdapter, IN BOOLEAN fgEnableGlobalInt)
 		}
 
 		prAdapter->fgIsFwOwn = TRUE;
+
+		DBGLOG(INIT, INFO, ("FW OWN\n"));
 	}
 }
+
+VOID nicPmTriggerDriverOwn(IN P_ADAPTER_T prAdapter)
+{
+	UINT_32 u4RegValue = 0;
+
+	HAL_MCR_RD(prAdapter, MCR_WHLPCR, &u4RegValue);
+
+	if (u4RegValue & WHLPCR_FW_OWN_REQ_SET) {
+		prAdapter->fgIsFwOwn = FALSE;
+	}
+	else {
+		HAL_MCR_WR(prAdapter, MCR_WHLPCR, WHLPCR_FW_OWN_REQ_CLR);
+	}
+}
+
 
 /*----------------------------------------------------------------------------*/
 /*!
@@ -327,30 +345,66 @@ VOID nicpmSetFWOwn(IN P_ADAPTER_T prAdapter, IN BOOLEAN fgEnableGlobalInt)
 /*----------------------------------------------------------------------------*/
 BOOLEAN nicpmSetDriverOwn(IN P_ADAPTER_T prAdapter)
 {
-#define LP_OWN_BACK_TOTAL_DELAY_MS      8192	/* exponential of 2 */
-#define LP_OWN_BACK_LOOP_DELAY_MS       1	/* exponential of 2 */
-#define LP_OWN_BACK_CLR_OWN_ITERATION   256	/* exponential of 2 */
+#define LP_OWN_BACK_TOTAL_DELAY_MS      2048    /* exponential of 2 */
+#define LP_OWN_BACK_LOOP_DELAY_MS       1       /* exponential of 2 */
+#define LP_OWN_BACK_CLR_OWN_ITERATION   256     /* exponential of 2 */
+#define LP_OWN_BACK_FAILED_RETRY_CNT    5
+#define LP_OWN_BACK_FAILED_LOG_SKIP_MS  2000
+#define LP_OWN_BACK_FAILED_RESET_CNT    5
 
 	BOOLEAN fgStatus = TRUE;
 	UINT_32 i, u4CurrTick, u4RegValue = 0;
+	BOOLEAN fgTimeout;
 
 	ASSERT(prAdapter);
 
 	if (prAdapter->fgIsFwOwn == FALSE)
 		return fgStatus;
 
+	DBGLOG(INIT, INFO, ("DRIVER OWN\n"));
+
 	u4CurrTick = kalGetTimeTick();
 	i = 0;
 	while (1) {
 		HAL_MCR_RD(prAdapter, MCR_WHLPCR, &u4RegValue);
 
+		fgTimeout =
+		    ((kalGetTimeTick() - u4CurrTick) > LP_OWN_BACK_TOTAL_DELAY_MS) ? TRUE : FALSE;
+
 		if (u4RegValue & WHLPCR_FW_OWN_REQ_SET) {
 			prAdapter->fgIsFwOwn = FALSE;
+	    prAdapter->u4OwnFailedCount = 0;
+	    prAdapter->u4OwnFailedLogCount = 0;
 			break;
-		} else if (kalIsCardRemoved(prAdapter->prGlueInfo) == TRUE
-			   || fgIsBusAccessFailed == TRUE
-			   || (kalGetTimeTick() - u4CurrTick) > LP_OWN_BACK_TOTAL_DELAY_MS) {
-			/* ERRORLOG(("LP cannot be own back (for %ld ms)", kalGetTimeTick() - u4CurrTick)); */
+	}
+	else if ((i > LP_OWN_BACK_FAILED_RETRY_CNT) &&
+	    (kalIsCardRemoved(prAdapter->prGlueInfo) || fgIsBusAccessFailed || fgTimeout || wlanIsChipNoAck(prAdapter))) {
+
+	    if ((prAdapter->u4OwnFailedCount == 0) ||
+		CHECK_FOR_TIMEOUT(u4CurrTick, prAdapter->rLastOwnFailedLogTime, MSEC_TO_SYSTIME(LP_OWN_BACK_FAILED_LOG_SKIP_MS))) {
+
+		DBGLOG(INIT, ERROR, ("LP cannot be own back, Timeout[%u](%ums), BusAccessError[%u], Reseting[%u], CardRemoved[%u] NoAck[%u] Cnt[%u]\n",
+		    fgTimeout,
+		    kalGetTimeTick() - u4CurrTick,
+		    fgIsBusAccessFailed,
+		    kalIsResetting(),
+		    kalIsCardRemoved(prAdapter->prGlueInfo),
+		    wlanIsChipNoAck(prAdapter),
+		    prAdapter->u4OwnFailedCount));
+
+		DBGLOG(INIT, INFO, ("Skip LP own back failed log for next %ums\n", LP_OWN_BACK_FAILED_LOG_SKIP_MS));
+
+		prAdapter->u4OwnFailedLogCount++;
+		if (prAdapter->u4OwnFailedLogCount > LP_OWN_BACK_FAILED_RESET_CNT) {
+		    /* Trigger RESET */
+#if CFG_CHIP_RESET_SUPPORT
+		    glResetTrigger(prAdapter);
+#endif
+		}
+		GET_CURRENT_SYSTIME(&prAdapter->rLastOwnFailedLogTime);
+	    }
+
+	    prAdapter->u4OwnFailedCount++;
 			fgStatus = FALSE;
 			break;
 		} else {
@@ -384,11 +438,10 @@ BOOLEAN nicpmSetAcpiPowerD0(IN P_ADAPTER_T prAdapter)
 	UINT_16 au2TxCount[16];
 	UINT_32 i;
 #if CFG_ENABLE_FW_DOWNLOAD
-	UINT_32 u4FwImgLength, u4FwLoadAddr, u4ImgSecSize;
+	UINT_32 u4FwImgLength, u4FwLoadAddr;
 	PVOID prFwMappingHandle;
 	PVOID pvFwImageMapFile = NULL;
 #if CFG_ENABLE_FW_DIVIDED_DOWNLOAD
-	UINT_32 j;
 	P_FIRMWARE_DIVIDED_DOWNLOAD_T prFwHead;
 	BOOLEAN fgValidHead;
 	const UINT_32 u4CRCOffset = offsetof(FIRMWARE_DIVIDED_DOWNLOAD_T, u4NumOfEntries);
@@ -414,7 +467,8 @@ BOOLEAN nicpmSetAcpiPowerD0(IN P_ADAPTER_T prAdapter)
 #endif
 
 		/* 2. Initialize the Adapter */
-		if ((u4Status = nicInitializeAdapter(prAdapter)) != WLAN_STATUS_SUCCESS) {
+		u4Status = nicInitializeAdapter(prAdapter);
+		if (u4Status != WLAN_STATUS_SUCCESS) {
 			DBGLOG(INIT, ERROR, ("nicInitializeAdapter failed!\n"));
 			u4Status = WLAN_STATUS_FAILURE;
 			break;
@@ -454,54 +508,7 @@ BOOLEAN nicpmSetAcpiPowerD0(IN P_ADAPTER_T prAdapter)
 
 			/* 3b. engage divided firmware downloading */
 			if (fgValidHead == TRUE) {
-				for (i = 0; i < prFwHead->u4NumOfEntries; i++) {
-					if (wlanImageSectionConfig(prAdapter,
-								   prFwHead->arSection[i].
-								   u4DestAddr,
-								   prFwHead->arSection[i].u4Length,
-								   i == 0 ? TRUE : FALSE) !=
-					    WLAN_STATUS_SUCCESS) {
-						DBGLOG(INIT, ERROR,
-						       ("Firmware download configuration failed!\n"));
-
-						u4Status = WLAN_STATUS_FAILURE;
-						break;
-					} else {
-						for (j = 0; j < prFwHead->arSection[i].u4Length;
-						     j += CMD_PKT_SIZE_FOR_IMAGE) {
-							if (j + CMD_PKT_SIZE_FOR_IMAGE <
-							    prFwHead->arSection[i].u4Length)
-								u4ImgSecSize =
-								    CMD_PKT_SIZE_FOR_IMAGE;
-							else
-								u4ImgSecSize =
-								    prFwHead->arSection[i].
-								    u4Length - j;
-
-							if (wlanImageSectionDownload(prAdapter,
-										     u4ImgSecSize,
-										     (PUINT_8)
-										     pvFwImageMapFile
-										     +
-										     prFwHead->
-										     arSection[i].
-										     u4Offset +
-										     j) !=
-							    WLAN_STATUS_SUCCESS) {
-								DBGLOG(INIT, ERROR,
-								       ("Firmware scatter download failed!\n"));
-
-								u4Status = WLAN_STATUS_FAILURE;
-								break;
-							}
-						}
-
-						/* escape from loop if any pending error occurs */
-						if (u4Status == WLAN_STATUS_FAILURE) {
-							break;
-						}
-					}
-				}
+				wlanFwDvdDwnloadHandler(prAdapter, prFwHead, pvFwImageMapFile, &u4Status);
 			} else
 #endif
 			{
@@ -515,28 +522,9 @@ BOOLEAN nicpmSetAcpiPowerD0(IN P_ADAPTER_T prAdapter)
 					u4Status = WLAN_STATUS_FAILURE;
 					break;
 				} else {
-					for (i = 0; i < u4FwImgLength; i += CMD_PKT_SIZE_FOR_IMAGE) {
-						if (i + CMD_PKT_SIZE_FOR_IMAGE < u4FwImgLength)
-							u4ImgSecSize = CMD_PKT_SIZE_FOR_IMAGE;
-						else
-							u4ImgSecSize = u4FwImgLength - i;
-
-						if (wlanImageSectionDownload(prAdapter,
-									     u4ImgSecSize,
-									     (PUINT_8)
-									     pvFwImageMapFile +
-									     i) !=
-						    WLAN_STATUS_SUCCESS) {
-							DBGLOG(INIT, ERROR,
-							       ("wlanImageSectionDownload failed!\n"));
-
-							u4Status = WLAN_STATUS_FAILURE;
-							break;
-						}
-					}
+					wlanFwDwnloadHandler(prAdapter, u4FwImgLength, pvFwImageMapFile, &u4Status);
 				}
 			}
-
 			/* escape to top */
 			if (u4Status != WLAN_STATUS_SUCCESS) {
 				kalFirmwareImageUnmapping(prAdapter->prGlueInfo, prFwMappingHandle,
@@ -630,6 +618,7 @@ BOOLEAN nicpmSetAcpiPowerD0(IN P_ADAPTER_T prAdapter)
 	}
 }
 
+
 /*----------------------------------------------------------------------------*/
 /*!
 * @brief This routine is used to set ACPI power mode to D3.
@@ -661,7 +650,7 @@ BOOLEAN nicpmSetAcpiPowerD3(IN P_ADAPTER_T prAdapter)
 	};
 
 	/* 5. Remove pending TX */
-	nicTxRelease(prAdapter);
+	nicTxRelease(prAdapter, TRUE);
 
 	/* 5.1 clear pending Security / Management Frames */
 	kalClearSecurityFrames(prAdapter->prGlueInfo);

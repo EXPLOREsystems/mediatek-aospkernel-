@@ -1,13 +1,27 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/mgmt/cnm_mem.c#2 $
 */
 
 /*! \file   "cnm_mem.c"
     \brief  This file contain the management function of packet buffers and
-            generic memory alloc/free functioin for mailbox message.
+	    generic memory alloc/free functioin for mailbox message.
 
-            A data packet has a fixed size of buffer, but a management
-            packet can be equipped with a variable size of buffer.
+	    A data packet has a fixed size of buffer, but a management
+	    packet can be equipped with a variable size of buffer.
 */
 
 
@@ -394,21 +408,21 @@
 ********************************************************************************
 */
 static VOID
-cnmStaRecHandleEventPkt (
+cnmStaRecHandleEventPkt(
     P_ADAPTER_T     prAdapter,
     P_CMD_INFO_T    prCmdInfo,
     PUINT_8         pucEventBuf
     );
 
 static VOID
-cnmStaSendUpdateCmd (
+cnmStaSendUpdateCmd(
     P_ADAPTER_T     prAdapter,
     P_STA_RECORD_T  prStaRec,
     BOOLEAN         fgNeedResp
     );
 
 static VOID
-cnmStaSendRemoveCmd (
+cnmStaSendRemoveCmd(
     P_ADAPTER_T     prAdapter,
     P_STA_RECORD_T  prStaRec
     );
@@ -428,7 +442,7 @@ cnmStaSendRemoveCmd (
 */
 /*----------------------------------------------------------------------------*/
 P_MSDU_INFO_T
-cnmMgtPktAlloc (
+cnmMgtPktAlloc(
     P_ADAPTER_T     prAdapter,
     UINT_32         u4Length
     )
@@ -446,19 +460,19 @@ cnmMgtPktAlloc (
     KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
 
     if (prMsduInfo) {
-        prMsduInfo->prPacket = cnmMemAlloc(prAdapter, RAM_TYPE_BUF, u4Length);
-        prMsduInfo->eSrc = TX_PACKET_MGMT;
+	prMsduInfo->prPacket = cnmMemAlloc(prAdapter, RAM_TYPE_BUF, u4Length);
+	prMsduInfo->eSrc = TX_PACKET_MGMT;
 
-        if (prMsduInfo->prPacket == NULL) {
-            KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
-            QUEUE_INSERT_TAIL(prQueList, &prMsduInfo->rQueEntry);
-            KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
-            prMsduInfo = NULL;
-        }
-        prMsduInfo->eCmdType = COMMAND_TYPE_NUM;
-        prMsduInfo->ucCID = 0xff;
-        prMsduInfo->u4InqueTime = 0;
-        prMsduInfo->ucPacketType = TX_PACKET_NUM;
+	if (prMsduInfo->prPacket == NULL) {
+	    KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
+	    QUEUE_INSERT_TAIL(prQueList, &prMsduInfo->rQueEntry);
+	    KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
+	    prMsduInfo = NULL;
+	}
+	prMsduInfo->eCmdType = COMMAND_TYPE_NUM;
+	prMsduInfo->ucCID = 0xff;
+	prMsduInfo->u4InqueTime = 0;
+	prMsduInfo->ucPacketType = TX_PACKET_NUM;
     }
 	else {
 		P_QUE_T prTxingQue;
@@ -494,17 +508,17 @@ cnmMgtPktAlloc (
 
 #if DBG
     if (prMsduInfo == NULL) {
-        DBGLOG(MEM, WARN, ("\n"));
-        DBGLOG(MEM, WARN, ("MgtDesc#=%ld\n", prQueList->u4NumElem));
+	DBGLOG(MEM, WARN, ("\n"));
+	DBGLOG(MEM, WARN, ("MgtDesc#=%ld\n", prQueList->u4NumElem));
 
 #if CFG_DBG_MGT_BUF
-        DBGLOG(MEM, WARN, ("rMgtBufInfo: alloc#=%ld, free#=%ld, null#=%ld\n",
-            prAdapter->rMgtBufInfo.u4AllocCount,
-            prAdapter->rMgtBufInfo.u4FreeCount,
-            prAdapter->rMgtBufInfo.u4AllocNullCount));
+	DBGLOG(MEM, WARN, ("rMgtBufInfo: alloc#=%ld, free#=%ld, null#=%ld\n",
+	    prAdapter->rMgtBufInfo.u4AllocCount,
+	    prAdapter->rMgtBufInfo.u4FreeCount,
+	    prAdapter->rMgtBufInfo.u4AllocNullCount));
 #endif
 
-        DBGLOG(MEM, WARN, ("\n"));
+	DBGLOG(MEM, WARN, ("\n"));
     }
 #endif
 
@@ -521,7 +535,7 @@ cnmMgtPktAlloc (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-cnmMgtPktFree (
+cnmMgtPktFree(
     P_ADAPTER_T     prAdapter,
     P_MSDU_INFO_T   prMsduInfo
     )
@@ -536,8 +550,8 @@ cnmMgtPktFree (
 
     ASSERT(prMsduInfo->prPacket);
     if (prMsduInfo->prPacket) {
-        cnmMemFree(prAdapter, prMsduInfo->prPacket);
-        prMsduInfo->prPacket = NULL;
+	cnmMemFree(prAdapter, prMsduInfo->prPacket);
+	prMsduInfo->prPacket = NULL;
     }
 
     KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
@@ -555,7 +569,7 @@ cnmMgtPktFree (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-cnmMemInit (
+cnmMemInit(
     P_ADAPTER_T     prAdapter
     )
 {
@@ -568,7 +582,7 @@ cnmMemInit (
 
     /* Setup available memory blocks. 1 indicates FREE */
     prBufInfo->rFreeBlocksBitmap =
-        (BUF_BITMAP) BITS(0, MAX_NUM_OF_BUF_BLOCKS - 1);
+	(BUF_BITMAP) BITS(0, MAX_NUM_OF_BUF_BLOCKS - 1);
 
 
     /* Initialize Message buffer pool */
@@ -578,7 +592,7 @@ cnmMemInit (
 
     /* Setup available memory blocks. 1 indicates FREE */
     prBufInfo->rFreeBlocksBitmap =
-        (BUF_BITMAP) BITS(0, MAX_NUM_OF_BUF_BLOCKS - 1);
+	(BUF_BITMAP) BITS(0, MAX_NUM_OF_BUF_BLOCKS - 1);
 
     return;
 
@@ -597,9 +611,9 @@ cnmMemInit (
 * \retval NULL     Fail to allocat memory
 */
 /*----------------------------------------------------------------------------*/
-UINT32 u4MemAllocCnt=0, u4MemFreeCnt=0;
+UINT32 u4MemAllocCnt = 0, u4MemFreeCnt = 0;
 PVOID
-cnmMemAlloc (
+cnmMemAlloc(
     IN P_ADAPTER_T      prAdapter,
     IN ENUM_RAM_TYPE_T  eRamType,
     IN UINT_32          u4Length
@@ -615,27 +629,27 @@ cnmMemAlloc (
     ASSERT(prAdapter);
     ASSERT(u4Length);
 
-	u4MemAllocCnt ++;
+	u4MemAllocCnt++;
 
     if (eRamType == RAM_TYPE_MSG && u4Length <= 256) {
-        prBufInfo = &prAdapter->rMsgBufInfo;
-        u4BlkSzInPower = MSG_BUF_BLOCK_SIZE_IN_POWER_OF_2;
+	prBufInfo = &prAdapter->rMsgBufInfo;
+	u4BlkSzInPower = MSG_BUF_BLOCK_SIZE_IN_POWER_OF_2;
 
-        u4Length += (MSG_BUF_BLOCK_SIZE - 1);
-        u4BlockNum = u4Length >> MSG_BUF_BLOCK_SIZE_IN_POWER_OF_2;
+	u4Length += (MSG_BUF_BLOCK_SIZE - 1);
+	u4BlockNum = u4Length >> MSG_BUF_BLOCK_SIZE_IN_POWER_OF_2;
 
-        ASSERT(u4BlockNum <= MAX_NUM_OF_BUF_BLOCKS);
+	ASSERT(u4BlockNum <= MAX_NUM_OF_BUF_BLOCKS);
     }
     else {
-        eRamType = RAM_TYPE_BUF;
+	eRamType = RAM_TYPE_BUF;
 
-        prBufInfo = &prAdapter->rMgtBufInfo;
-        u4BlkSzInPower = MGT_BUF_BLOCK_SIZE_IN_POWER_OF_2;
+	prBufInfo = &prAdapter->rMgtBufInfo;
+	u4BlkSzInPower = MGT_BUF_BLOCK_SIZE_IN_POWER_OF_2;
 
-        u4Length += (MGT_BUF_BLOCK_SIZE - 1);
-        u4BlockNum = u4Length >> MGT_BUF_BLOCK_SIZE_IN_POWER_OF_2;
+	u4Length += (MGT_BUF_BLOCK_SIZE - 1);
+	u4BlockNum = u4Length >> MGT_BUF_BLOCK_SIZE_IN_POWER_OF_2;
 
-        ASSERT(u4BlockNum <= MAX_NUM_OF_BUF_BLOCKS);
+	ASSERT(u4BlockNum <= MAX_NUM_OF_BUF_BLOCKS);
     }
 
 #if CFG_DBG_MGT_BUF
@@ -643,40 +657,40 @@ cnmMemAlloc (
 #endif
 
     KAL_ACQUIRE_SPIN_LOCK(prAdapter,
-        eRamType == RAM_TYPE_MSG ? SPIN_LOCK_MSG_BUF : SPIN_LOCK_MGT_BUF);
+	eRamType == RAM_TYPE_MSG ? SPIN_LOCK_MSG_BUF : SPIN_LOCK_MGT_BUF);
 
     if ((u4BlockNum > 0) && (u4BlockNum <= MAX_NUM_OF_BUF_BLOCKS)) {
 
-        /* Convert number of block into bit cluster */
-        rRequiredBitmap = BITS(0, u4BlockNum-1);
+	/* Convert number of block into bit cluster */
+	rRequiredBitmap = BITS(0, u4BlockNum-1);
 
-        for (i = 0; i <= (MAX_NUM_OF_BUF_BLOCKS - u4BlockNum); i++) {
+	for (i = 0; i <= (MAX_NUM_OF_BUF_BLOCKS - u4BlockNum); i++) {
 
-            /* Have available memory blocks */
-            if ((prBufInfo->rFreeBlocksBitmap & rRequiredBitmap)
-                == rRequiredBitmap) {
+	    /* Have available memory blocks */
+	    if ((prBufInfo->rFreeBlocksBitmap & rRequiredBitmap)
+		== rRequiredBitmap) {
 
-                /* Clear corresponding bits of allocated memory blocks */
-                prBufInfo->rFreeBlocksBitmap &= ~rRequiredBitmap;
+		/* Clear corresponding bits of allocated memory blocks */
+		prBufInfo->rFreeBlocksBitmap &= ~rRequiredBitmap;
 
-                /* Store how many blocks be allocated */
-                prBufInfo->aucAllocatedBlockNum[i] = (UINT_8) u4BlockNum;
+		/* Store how many blocks be allocated */
+		prBufInfo->aucAllocatedBlockNum[i] = (UINT_8) u4BlockNum;
 
-                KAL_RELEASE_SPIN_LOCK(prAdapter,
-                        eRamType == RAM_TYPE_MSG ?
-                        SPIN_LOCK_MSG_BUF : SPIN_LOCK_MGT_BUF);
+		KAL_RELEASE_SPIN_LOCK(prAdapter,
+			eRamType == RAM_TYPE_MSG ?
+			SPIN_LOCK_MSG_BUF : SPIN_LOCK_MGT_BUF);
 
-                /* Return the start address of allocated memory */
-                return (PVOID)(prBufInfo->pucBuf + (i << u4BlkSzInPower));
+		/* Return the start address of allocated memory */
+		return (PVOID)(prBufInfo->pucBuf + (i << u4BlkSzInPower));
 
-            }
+	    }
 
-            rRequiredBitmap <<= 1;
-        }
+	    rRequiredBitmap <<= 1;
+	}
     }
 
     KAL_RELEASE_SPIN_LOCK(prAdapter,
-        eRamType == RAM_TYPE_MSG ? SPIN_LOCK_MSG_BUF : SPIN_LOCK_MGT_BUF);
+	eRamType == RAM_TYPE_MSG ? SPIN_LOCK_MSG_BUF : SPIN_LOCK_MGT_BUF);
 
 	/* cannot move the allocation between spin_lock_irqsave and spin_unlock_irqrestore */
 #ifdef LINUX
@@ -686,18 +700,18 @@ cnmMemAlloc (
 #endif
 
     KAL_ACQUIRE_SPIN_LOCK(prAdapter,
-        eRamType == RAM_TYPE_MSG ? SPIN_LOCK_MSG_BUF : SPIN_LOCK_MGT_BUF);
+	eRamType == RAM_TYPE_MSG ? SPIN_LOCK_MSG_BUF : SPIN_LOCK_MGT_BUF);
 
 #if CFG_DBG_MGT_BUF
     prBufInfo->u4AllocNullCount++;
 
     if (pvMemory) {
-        prAdapter->u4MemAllocDynamicCount++;
+	prAdapter->u4MemAllocDynamicCount++;
     }
 #endif
 
     KAL_RELEASE_SPIN_LOCK(prAdapter,
-        eRamType == RAM_TYPE_MSG ? SPIN_LOCK_MSG_BUF : SPIN_LOCK_MGT_BUF);
+	eRamType == RAM_TYPE_MSG ? SPIN_LOCK_MSG_BUF : SPIN_LOCK_MGT_BUF);
 
     return pvMemory;
 
@@ -714,7 +728,7 @@ cnmMemAlloc (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-cnmMemFree (
+cnmMemFree(
     IN P_ADAPTER_T      prAdapter,
     IN PVOID            pvMemory
     )
@@ -729,46 +743,46 @@ cnmMemFree (
     ASSERT(prAdapter);
     ASSERT(pvMemory);
     if (!pvMemory) {
-        return;
+	return;
     }
 
-	u4MemFreeCnt ++;
+	u4MemFreeCnt++;
 
     /* Judge it belongs to which RAM type */
-    if ( ((UINT_32)pvMemory >= (UINT_32)&prAdapter->aucMsgBuf[0]) &&
-         ((UINT_32)pvMemory <= (UINT_32)&prAdapter->aucMsgBuf[MSG_BUFFER_SIZE-1])) {
+    if (((UINT_32)pvMemory >= (UINT_32)&prAdapter->aucMsgBuf[0]) &&
+	 ((UINT_32)pvMemory <= (UINT_32)&prAdapter->aucMsgBuf[MSG_BUFFER_SIZE-1])) {
 
-        prBufInfo = &prAdapter->rMsgBufInfo;
-        u4BlockIndex = ((UINT_32)pvMemory - (UINT_32)prBufInfo->pucBuf)
-                       >> MSG_BUF_BLOCK_SIZE_IN_POWER_OF_2;
-        ASSERT(u4BlockIndex < MAX_NUM_OF_BUF_BLOCKS);
-        eRamType = RAM_TYPE_MSG;
+	prBufInfo = &prAdapter->rMsgBufInfo;
+	u4BlockIndex = ((UINT_32)pvMemory - (UINT_32)prBufInfo->pucBuf)
+		       >> MSG_BUF_BLOCK_SIZE_IN_POWER_OF_2;
+	ASSERT(u4BlockIndex < MAX_NUM_OF_BUF_BLOCKS);
+	eRamType = RAM_TYPE_MSG;
     }
-    else if ( ((UINT_32)pvMemory >= (UINT_32)prAdapter->pucMgtBufCached) &&
-              ((UINT_32)pvMemory <= ((UINT_32)prAdapter->pucMgtBufCached + MGT_BUFFER_SIZE -1))) {
-        prBufInfo = &prAdapter->rMgtBufInfo;
-        u4BlockIndex = ((UINT_32)pvMemory - (UINT_32)prBufInfo->pucBuf)
-                       >> MGT_BUF_BLOCK_SIZE_IN_POWER_OF_2;
-        ASSERT(u4BlockIndex < MAX_NUM_OF_BUF_BLOCKS);
-        eRamType = RAM_TYPE_BUF;
+    else if (((UINT_32)pvMemory >= (UINT_32)prAdapter->pucMgtBufCached) &&
+              ((UINT_32)pvMemory <= ((UINT_32)prAdapter->pucMgtBufCached + MGT_BUFFER_SIZE - 1))) {
+	prBufInfo = &prAdapter->rMgtBufInfo;
+	u4BlockIndex = ((UINT_32)pvMemory - (UINT_32)prBufInfo->pucBuf)
+		       >> MGT_BUF_BLOCK_SIZE_IN_POWER_OF_2;
+	ASSERT(u4BlockIndex < MAX_NUM_OF_BUF_BLOCKS);
+	eRamType = RAM_TYPE_BUF;
     }
     else {
     #ifdef LINUX
-        /* For Linux, it is supported because size is not needed */
-        kalMemFree(pvMemory, VIR_MEM_TYPE, 0);
+	/* For Linux, it is supported because size is not needed */
+	kalMemFree(pvMemory, VIR_MEM_TYPE, 0);
     #else
-        /* For Windows, it is not supported because of no size argument */
-        ASSERT(0);
+	/* For Windows, it is not supported because of no size argument */
+	ASSERT(0);
     #endif
 
     #if CFG_DBG_MGT_BUF
-        prAdapter->u4MemFreeDynamicCount++;
+	prAdapter->u4MemFreeDynamicCount++;
     #endif
-        return;
+	return;
     }
 
     KAL_ACQUIRE_SPIN_LOCK(prAdapter,
-        eRamType == RAM_TYPE_MSG ? SPIN_LOCK_MSG_BUF : SPIN_LOCK_MGT_BUF);
+	eRamType == RAM_TYPE_MSG ? SPIN_LOCK_MSG_BUF : SPIN_LOCK_MGT_BUF);
 
 #if CFG_DBG_MGT_BUF
     prBufInfo->u4FreeCount++;
@@ -778,7 +792,7 @@ cnmMemFree (
     ASSERT(prBufInfo->aucAllocatedBlockNum[u4BlockIndex] > 0);
 
     rAllocatedBlocksBitmap =
-        BITS(0, prBufInfo->aucAllocatedBlockNum[u4BlockIndex] - 1);
+	BITS(0, prBufInfo->aucAllocatedBlockNum[u4BlockIndex] - 1);
     rAllocatedBlocksBitmap <<= u4BlockIndex;
 
     /* Clear saved block count for this memory segment */
@@ -788,7 +802,7 @@ cnmMemFree (
     prBufInfo->rFreeBlocksBitmap |= rAllocatedBlocksBitmap;
 
     KAL_RELEASE_SPIN_LOCK(prAdapter,
-        eRamType == RAM_TYPE_MSG ? SPIN_LOCK_MSG_BUF : SPIN_LOCK_MGT_BUF);
+	eRamType == RAM_TYPE_MSG ? SPIN_LOCK_MSG_BUF : SPIN_LOCK_MGT_BUF);
 
     return;
 
@@ -805,7 +819,7 @@ cnmMemFree (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-cnmStaRecInit (
+cnmStaRecInit(
     P_ADAPTER_T     prAdapter
     )
 {
@@ -813,10 +827,10 @@ cnmStaRecInit (
     UINT_16         i;
 
     for (i = 0; i < CFG_STA_REC_NUM; i++) {
-        prStaRec = &prAdapter->arStaRec[i];
+	prStaRec = &prAdapter->arStaRec[i];
 
-        prStaRec->ucIndex = (UINT_8) i;
-        prStaRec->fgIsInUse = FALSE;
+	prStaRec->ucIndex = (UINT_8) i;
+	prStaRec->fgIsInUse = FALSE;
     }
 }
 
@@ -831,7 +845,7 @@ cnmStaRecInit (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-cnmStaRecUninit (
+cnmStaRecUninit(
     IN P_ADAPTER_T  prAdapter
     )
 {
@@ -839,11 +853,11 @@ cnmStaRecUninit (
     UINT_16         i;
 
     for (i = 0; i < CFG_STA_REC_NUM; i++) {
-        prStaRec = &prAdapter->arStaRec[i];
+	prStaRec = &prAdapter->arStaRec[i];
 
-        if (prStaRec->fgIsInUse) {
-            cnmStaRecFree(prAdapter, prStaRec, FALSE);
-        }
+	if (prStaRec->fgIsInUse) {
+	    cnmStaRecFree(prAdapter, prStaRec, FALSE);
+	}
     }
 }
 
@@ -858,7 +872,7 @@ cnmStaRecUninit (
 */
 /*----------------------------------------------------------------------------*/
 P_STA_RECORD_T
-cnmStaRecAlloc (
+cnmStaRecAlloc(
     P_ADAPTER_T     prAdapter,
     UINT_8          ucNetTypeIndex
     )
@@ -869,47 +883,47 @@ cnmStaRecAlloc (
     ASSERT(prAdapter);
 
     for (i = 0; i < CFG_STA_REC_NUM; i++) {
-        prStaRec = &prAdapter->arStaRec[i];
+	prStaRec = &prAdapter->arStaRec[i];
 
-        if (!prStaRec->fgIsInUse) {
-            /*---- Initialize STA_REC_T here ----*/
-            kalMemZero(prStaRec, sizeof(STA_RECORD_T));
-            prStaRec->ucIndex = (UINT_8) i;
-            prStaRec->ucNetTypeIndex = ucNetTypeIndex;
-            prStaRec->fgIsInUse = TRUE;
+	if (!prStaRec->fgIsInUse) {
+	    /*---- Initialize STA_REC_T here ----*/
+	    kalMemZero(prStaRec, sizeof(STA_RECORD_T));
+	    prStaRec->ucIndex = (UINT_8) i;
+	    prStaRec->ucNetTypeIndex = ucNetTypeIndex;
+	    prStaRec->fgIsInUse = TRUE;
 
-            if (prStaRec->pucAssocReqIe) {
-                kalMemFree(prStaRec->pucAssocReqIe, VIR_MEM_TYPE, prStaRec->u2AssocReqIeLen);
-                prStaRec->pucAssocReqIe = NULL;
-                prStaRec->u2AssocReqIeLen = 0;
-            }
+	    if (prStaRec->pucAssocReqIe) {
+		kalMemFree(prStaRec->pucAssocReqIe, VIR_MEM_TYPE, prStaRec->u2AssocReqIeLen);
+		prStaRec->pucAssocReqIe = NULL;
+		prStaRec->u2AssocReqIeLen = 0;
+	    }
 
-            /* Initialize the SN caches for duplicate detection */
-            for (k = 0; k < TID_NUM + 1; k++) {
-                prStaRec->au2CachedSeqCtrl[k] = 0xFFFF;
-            }
+	    /* Initialize the SN caches for duplicate detection */
+	    for (k = 0; k < TID_NUM + 1; k++) {
+		prStaRec->au2CachedSeqCtrl[k] = 0xFFFF;
+	    }
 
-            /* Initialize SW TX queues in STA_REC */
-            for (k = 0; k < STA_WAIT_QUEUE_NUM; k++) {
-                LINK_INITIALIZE(&prStaRec->arStaWaitQueue[k]);
-            }
+	    /* Initialize SW TX queues in STA_REC */
+	    for (k = 0; k < STA_WAIT_QUEUE_NUM; k++) {
+		LINK_INITIALIZE(&prStaRec->arStaWaitQueue[k]);
+	    }
 
-            /* Default enable TX/RX AMPDU */
-            prStaRec->fgTxAmpduEn = TRUE;
-            prStaRec->fgRxAmpduEn = TRUE;
+	    /* Default enable TX/RX AMPDU */
+	    prStaRec->fgTxAmpduEn = TRUE;
+	    prStaRec->fgRxAmpduEn = TRUE;
 
-            #if CFG_ENABLE_PER_STA_STATISTICS && CFG_ENABLE_PKT_LIFETIME_PROFILE
-            prStaRec->u4TotalTxPktsNumber = 0;
-            prStaRec->u4TotalTxPktsTime = 0;
+	    #if CFG_ENABLE_PER_STA_STATISTICS && CFG_ENABLE_PKT_LIFETIME_PROFILE
+	    prStaRec->u4TotalTxPktsNumber = 0;
+	    prStaRec->u4TotalTxPktsTime = 0;
 			prStaRec->u4MaxTxPktsTime = 0;
-            #endif
+	    #endif
 
-            for (k = 0; k < NUM_OF_PER_STA_TX_QUEUES; k++) {
-                QUEUE_INITIALIZE(&prStaRec->arTxQueue[k]);
-            }
+	    for (k = 0; k < NUM_OF_PER_STA_TX_QUEUES; k++) {
+		QUEUE_INITIALIZE(&prStaRec->arTxQueue[k]);
+	    }
 
-            break;
-        }
+	    break;
+	}
     }
 
     return (i < CFG_STA_REC_NUM) ? prStaRec : NULL;
@@ -926,7 +940,7 @@ cnmStaRecAlloc (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-cnmStaRecFree (
+cnmStaRecFree(
     P_ADAPTER_T     prAdapter,
     P_STA_RECORD_T  prStaRec,
     BOOLEAN         fgSyncToChip
@@ -941,15 +955,15 @@ cnmStaRecFree (
     prStaRec->fgSetPwrMgtBit = FALSE;
 
     if (prStaRec->pucAssocReqIe) {
-        kalMemFree(prStaRec->pucAssocReqIe, VIR_MEM_TYPE, prStaRec->u2AssocReqIeLen);
-        prStaRec->pucAssocReqIe = NULL;
-        prStaRec->u2AssocReqIeLen = 0;
+	kalMemFree(prStaRec->pucAssocReqIe, VIR_MEM_TYPE, prStaRec->u2AssocReqIeLen);
+	prStaRec->pucAssocReqIe = NULL;
+	prStaRec->u2AssocReqIeLen = 0;
     }
 
     qmDeactivateStaRec(prAdapter, prStaRec->ucIndex);
 
     if (fgSyncToChip) {
-        cnmStaSendRemoveCmd(prAdapter, prStaRec);
+	cnmStaSendRemoveCmd(prAdapter, prStaRec);
     }
 
     prStaRec->fgIsInUse = FALSE;
@@ -967,7 +981,7 @@ cnmStaRecFree (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-cnmStaFreeAllStaByNetType (
+cnmStaFreeAllStaByNetType(
     P_ADAPTER_T                 prAdapter,
     ENUM_NETWORK_TYPE_INDEX_T   eNetTypeIndex,
     BOOLEAN                     fgSyncToChip
@@ -977,13 +991,13 @@ cnmStaFreeAllStaByNetType (
     UINT_16         i;
 
     for (i = 0; i < CFG_STA_REC_NUM; i++) {
-        prStaRec = (P_STA_RECORD_T) &prAdapter->arStaRec[i];
+	prStaRec = (P_STA_RECORD_T) &prAdapter->arStaRec[i];
 
-        if (prStaRec->fgIsInUse &&
-            prStaRec->ucNetTypeIndex == (UINT_8) eNetTypeIndex) {
+	if (prStaRec->fgIsInUse &&
+	    prStaRec->ucNetTypeIndex == (UINT_8) eNetTypeIndex) {
 
-            cnmStaRecFree(prAdapter, prStaRec, fgSyncToChip);
-        }
+	    cnmStaRecFree(prAdapter, prStaRec, fgSyncToChip);
+	}
     } /* end of for loop */
 }
 
@@ -997,7 +1011,7 @@ cnmStaFreeAllStaByNetType (
 */
 /*----------------------------------------------------------------------------*/
 P_STA_RECORD_T
-cnmGetStaRecByIndex (
+cnmGetStaRecByIndex(
     P_ADAPTER_T     prAdapter,
     UINT_8          ucIndex
     )
@@ -1007,10 +1021,10 @@ cnmGetStaRecByIndex (
     ASSERT(prAdapter);
 
     prStaRec = (ucIndex < CFG_STA_REC_NUM) ?
-               &prAdapter->arStaRec[ucIndex] : NULL;
+	       &prAdapter->arStaRec[ucIndex] : NULL;
 
     if (prStaRec && prStaRec->fgIsInUse == FALSE) {
-        prStaRec = NULL;
+	prStaRec = NULL;
     }
 
     return prStaRec;
@@ -1026,7 +1040,7 @@ cnmGetStaRecByIndex (
 */
 /*----------------------------------------------------------------------------*/
 P_STA_RECORD_T
-cnmGetStaRecByAddress (
+cnmGetStaRecByAddress(
     P_ADAPTER_T     prAdapter,
     UINT_8          ucNetTypeIndex,
     PUINT_8         pucPeerMacAddr
@@ -1039,13 +1053,13 @@ cnmGetStaRecByAddress (
     ASSERT(pucPeerMacAddr);
 
     for (i = 0; i < CFG_STA_REC_NUM; i++) {
-        prStaRec = &prAdapter->arStaRec[i];
+	prStaRec = &prAdapter->arStaRec[i];
 
-        if (prStaRec->fgIsInUse &&
-            prStaRec->ucNetTypeIndex == ucNetTypeIndex &&
-            EQUAL_MAC_ADDR(prStaRec->aucMacAddr, pucPeerMacAddr)) {
-            break;
-        }
+	if (prStaRec->fgIsInUse &&
+	    prStaRec->ucNetTypeIndex == ucNetTypeIndex &&
+	    EQUAL_MAC_ADDR(prStaRec->aucMacAddr, pucPeerMacAddr)) {
+	    break;
+	}
     }
 
     return (i < CFG_STA_REC_NUM) ? prStaRec : NULL;
@@ -1062,7 +1076,7 @@ cnmGetStaRecByAddress (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-cnmStaRecResetStatus (
+cnmStaRecResetStatus(
     P_ADAPTER_T                 prAdapter,
     ENUM_NETWORK_TYPE_INDEX_T   eNetTypeIndex
     )
@@ -1076,22 +1090,22 @@ cnmStaRecResetStatus (
     ASSERT(prAdapter);
 
     for (i = 0; i < CFG_STA_REC_NUM; i++) {
-        prStaRec = &prAdapter->arStaRec[i];
+	prStaRec = &prAdapter->arStaRec[i];
 
-        if (prStaRec->fgIsInUse) {
-            if ((NETWORK_TYPE_AIS_INDEX == eNetTypeIndex) &&
-                IS_STA_IN_AIS(prStaRec->eStaType)) {
+	if (prStaRec->fgIsInUse) {
+	    if ((NETWORK_TYPE_AIS_INDEX == eNetTypeIndex) &&
+		IS_STA_IN_AIS(prStaRec->eStaType)) {
 
-                prStaRec->u2StatusCode = STATUS_CODE_SUCCESSFUL;
-                prStaRec->u2ReasonCode = REASON_CODE_RESERVED;
-                prStaRec->ucJoinFailureCount = 0;
-                prStaRec->fgTransmitKeyExist = FALSE;
+		prStaRec->u2StatusCode = STATUS_CODE_SUCCESSFUL;
+		prStaRec->u2ReasonCode = REASON_CODE_RESERVED;
+		prStaRec->ucJoinFailureCount = 0;
+		prStaRec->fgTransmitKeyExist = FALSE;
 
-                prStaRec->fgSetPwrMgtBit = FALSE;
-            }
+		prStaRec->fgSetPwrMgtBit = FALSE;
+	    }
 
-            /* TODO(Kevin): For P2P and BOW */
-        }
+	    /* TODO(Kevin): For P2P and BOW */
+	}
     }
 
     return;
@@ -1110,7 +1124,7 @@ cnmStaRecResetStatus (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-cnmStaRecChangeState (
+cnmStaRecChangeState(
     P_ADAPTER_T     prAdapter,
     P_STA_RECORD_T  prStaRec,
     UINT_8          ucNewState
@@ -1126,24 +1140,24 @@ cnmStaRecChangeState (
      * other 6 conditions should be sync to FW, including 1-->1, 3-->3
      */
     if ((ucNewState == STA_STATE_2 && prStaRec->ucStaState != STA_STATE_3) ||
-        (ucNewState == STA_STATE_1 && prStaRec->ucStaState == STA_STATE_2)) {
-        prStaRec->ucStaState = ucNewState;
-        return;
+	(ucNewState == STA_STATE_1 && prStaRec->ucStaState == STA_STATE_2)) {
+	prStaRec->ucStaState = ucNewState;
+	return;
     }
 
     fgNeedResp = FALSE;
     if (ucNewState == STA_STATE_3) {
-        secFsmEventStart(prAdapter, prStaRec);
-        if (ucNewState != prStaRec->ucStaState) {
-            fgNeedResp = TRUE;
-        }
+	secFsmEventStart(prAdapter, prStaRec);
+	if (ucNewState != prStaRec->ucStaState) {
+	    fgNeedResp = TRUE;
+	}
     }
     else {
-        if (ucNewState != prStaRec->ucStaState &&
-            prStaRec->ucStaState == STA_STATE_3) {
-            qmDeactivateStaRec(prAdapter, prStaRec->ucIndex);
-        }
-        fgNeedResp = FALSE;
+	if (ucNewState != prStaRec->ucStaState &&
+	    prStaRec->ucStaState == STA_STATE_3) {
+	    qmDeactivateStaRec(prAdapter, prStaRec->ucIndex);
+	}
+	fgNeedResp = FALSE;
     }
     prStaRec->ucStaState = ucNewState;
 
@@ -1155,48 +1169,17 @@ cnmStaRecChangeState (
      * Update system operation parameters for AP mode
      */
     if (prAdapter->fgIsP2PRegistered && (IS_STA_IN_P2P(prStaRec))) {
-        P_BSS_INFO_T    prBssInfo;
+	P_BSS_INFO_T    prBssInfo;
 
-        prBssInfo = &prAdapter->rWifiVar.arBssInfo[prStaRec->ucNetTypeIndex];
+	prBssInfo = &prAdapter->rWifiVar.arBssInfo[prStaRec->ucNetTypeIndex];
 
-        if (prBssInfo->eCurrentOPMode == OP_MODE_ACCESS_POINT) {
-            rlmUpdateParamsForAP(prAdapter, prBssInfo, FALSE);
-        }
+	if (prBssInfo->eCurrentOPMode == OP_MODE_ACCESS_POINT) {
+	    rlmUpdateParamsForAP(prAdapter, prBssInfo, FALSE);
+	}
     }
 #endif
     return;
 }
-
-
-/* ++ TDLS */
-P_STA_RECORD_T
-cnmStaTheTypeGet (
-    P_ADAPTER_T                 prAdapter,
-    ENUM_NETWORK_TYPE_INDEX_T   eNetTypeIndex,
-    ENUM_STA_TYPE_T				eStaType,
-	UINT32						*pu4StartIdx
-    )
-{
-    P_STA_RECORD_T  prStaRec = NULL;
-    UINT_16         i;
-
-    for (i = *pu4StartIdx; i < CFG_STA_REC_NUM; i++) {
-        prStaRec = (P_STA_RECORD_T) &prAdapter->arStaRec[i];
-
-        if (prStaRec->fgIsInUse &&
-            prStaRec->ucNetTypeIndex == (UINT_8) eNetTypeIndex &&
-			prStaRec->eStaType == eStaType) {
-			i++;
-            break;
-        }
-
-		prStaRec = NULL; /* reset */
-    } /* end of for loop */
-
-	*pu4StartIdx = i;
-	return prStaRec;
-}
-/* -- TDLS */
 
 /*----------------------------------------------------------------------------*/
 /*!
@@ -1208,7 +1191,7 @@ cnmStaTheTypeGet (
 */
 /*----------------------------------------------------------------------------*/
 static VOID
-cnmStaRecHandleEventPkt (
+cnmStaRecHandleEventPkt(
     P_ADAPTER_T     prAdapter,
     P_CMD_INFO_T    prCmdInfo,
     PUINT_8         pucEventBuf
@@ -1221,10 +1204,10 @@ cnmStaRecHandleEventPkt (
     prStaRec = cnmGetStaRecByIndex(prAdapter, prEventContent->ucStaRecIdx);
 
     if (prStaRec && prStaRec->ucStaState == STA_STATE_3 &&
-        !kalMemCmp(&prStaRec->aucMacAddr[0], &prEventContent->aucMacAddr[0],
-                    MAC_ADDR_LEN)) {
+	!kalMemCmp(&prStaRec->aucMacAddr[0], &prEventContent->aucMacAddr[0],
+		    MAC_ADDR_LEN)) {
 
-        qmActivateStaRec(prAdapter, prStaRec);
+	qmActivateStaRec(prAdapter, prStaRec);
     }
 
 }
@@ -1239,7 +1222,7 @@ cnmStaRecHandleEventPkt (
 */
 /*----------------------------------------------------------------------------*/
 static VOID
-cnmStaSendUpdateCmd (
+cnmStaSendUpdateCmd(
     P_ADAPTER_T     prAdapter,
     P_STA_RECORD_T  prStaRec,
     BOOLEAN         fgNeedResp
@@ -1261,18 +1244,18 @@ cnmStaSendUpdateCmd (
      *        One is here, the other is in wlanSendQueryCmd()
      */
     prCmdContent = cnmMemAlloc(prAdapter,
-                        RAM_TYPE_BUF, sizeof(CMD_UPDATE_STA_RECORD_T));
+			RAM_TYPE_BUF, sizeof(CMD_UPDATE_STA_RECORD_T));
     ASSERT(prCmdContent);
 
     /* To do: exception handle */
     if (!prCmdContent) {
-        return;
+	return;
     }
 
     prCmdContent->ucIndex = prStaRec->ucIndex;
     prCmdContent->ucStaType = (UINT_8) prStaRec->eStaType;
     kalMemCopy(&prCmdContent->aucMacAddr[0], &prStaRec->aucMacAddr[0],
-               MAC_ADDR_LEN);
+	       MAC_ADDR_LEN);
     prCmdContent->u2AssocId = prStaRec->u2AssocId;
     prCmdContent->u2ListenInterval = prStaRec->u2ListenInterval;
     prCmdContent->ucNetTypeIndex = prStaRec->ucNetTypeIndex;
@@ -1286,16 +1269,16 @@ cnmStaSendUpdateCmd (
     prCmdContent->ucNeedResp = (UINT_8) fgNeedResp;
 
 #if !CFG_SLT_SUPPORT
-    if(prAdapter->rWifiVar.eRateSetting != FIXED_RATE_NONE) {
-        /* override rate configuration */
-        nicUpdateRateParams(prAdapter,
-                prAdapter->rWifiVar.eRateSetting,
-                &(prCmdContent->ucDesiredPhyTypeSet),
-                &(prCmdContent->u2DesiredNonHTRateSet),
-                &(prCmdContent->u2BSSBasicRateSet),
-                &(prCmdContent->ucMcsSet),
-                &(prCmdContent->ucSupMcs32),
-                &(prCmdContent->u2HtCapInfo));
+    if (prAdapter->rWifiVar.eRateSetting != FIXED_RATE_NONE) {
+	/* override rate configuration */
+	nicUpdateRateParams(prAdapter,
+		prAdapter->rWifiVar.eRateSetting,
+		&(prCmdContent->ucDesiredPhyTypeSet),
+		&(prCmdContent->u2DesiredNonHTRateSet),
+		&(prCmdContent->u2BSSBasicRateSet),
+		&(prCmdContent->ucMcsSet),
+		&(prCmdContent->ucSupMcs32),
+		&(prCmdContent->u2HtCapInfo));
     }
 #endif
 
@@ -1312,19 +1295,19 @@ cnmStaSendUpdateCmd (
     prCmdContent->ucUapsdAc = prStaRec->ucBmpTriggerAC | (prStaRec->ucBmpDeliveryAC << 4);
     prCmdContent->ucUapsdSp = prStaRec->ucUapsdSp;
 
-    rStatus = wlanSendSetQueryCmd (
-                prAdapter,                  /* prAdapter */
-                CMD_ID_UPDATE_STA_RECORD,   /* ucCID */
-                TRUE,                       /* fgSetQuery */
-                fgNeedResp,                /* fgNeedResp */
-                FALSE,                      /* fgIsOid */
-                fgNeedResp? cnmStaRecHandleEventPkt : NULL,
-                NULL,                       /* pfCmdTimeoutHandler */
-                sizeof(CMD_UPDATE_STA_RECORD_T),    /* u4SetQueryInfoLen */
-                (PUINT_8) prCmdContent,     /* pucInfoBuffer */
-                NULL,                       /* pvSetQueryBuffer */
-                0                           /* u4SetQueryBufferLen */
-                );
+    rStatus = wlanSendSetQueryCmd(
+		prAdapter,                  /* prAdapter */
+		CMD_ID_UPDATE_STA_RECORD,   /* ucCID */
+		TRUE,                       /* fgSetQuery */
+		fgNeedResp,                /* fgNeedResp */
+		FALSE,                      /* fgIsOid */
+                fgNeedResp ? cnmStaRecHandleEventPkt : NULL,
+		NULL,                       /* pfCmdTimeoutHandler */
+		sizeof(CMD_UPDATE_STA_RECORD_T),    /* u4SetQueryInfoLen */
+		(PUINT_8) prCmdContent,     /* pucInfoBuffer */
+		NULL,                       /* pvSetQueryBuffer */
+		0                           /* u4SetQueryBufferLen */
+		);
 
     ASSERT(rStatus == WLAN_STATUS_PENDING);
 
@@ -1341,7 +1324,7 @@ cnmStaSendUpdateCmd (
 */
 /*----------------------------------------------------------------------------*/
 static VOID
-cnmStaSendRemoveCmd (
+cnmStaSendRemoveCmd(
     P_ADAPTER_T     prAdapter,
     P_STA_RECORD_T  prStaRec
     )
@@ -1354,23 +1337,21 @@ cnmStaSendRemoveCmd (
 
     rCmdContent.ucIndex = prStaRec->ucIndex;
     kalMemCopy(&rCmdContent.aucMacAddr[0], &prStaRec->aucMacAddr[0],
-               MAC_ADDR_LEN);
+	       MAC_ADDR_LEN);
 
-    rStatus = wlanSendSetQueryCmd (
-                prAdapter,                  /* prAdapter */
-                CMD_ID_REMOVE_STA_RECORD,   /* ucCID */
-                TRUE,                       /* fgSetQuery */
-                FALSE,                      /* fgNeedResp */
-                FALSE,                      /* fgIsOid */
-                NULL,                       /* pfCmdDoneHandler */
-                NULL,                       /* pfCmdTimeoutHandler */
-                sizeof(CMD_REMOVE_STA_RECORD_T),    /* u4SetQueryInfoLen */
-                (PUINT_8) &rCmdContent,     /* pucInfoBuffer */
-                NULL,                       /* pvSetQueryBuffer */
-                0                           /* u4SetQueryBufferLen */
-                );
+    rStatus = wlanSendSetQueryCmd(
+		prAdapter,                  /* prAdapter */
+		CMD_ID_REMOVE_STA_RECORD,   /* ucCID */
+		TRUE,                       /* fgSetQuery */
+		FALSE,                      /* fgNeedResp */
+		FALSE,                      /* fgIsOid */
+		NULL,                       /* pfCmdDoneHandler */
+		NULL,                       /* pfCmdTimeoutHandler */
+		sizeof(CMD_REMOVE_STA_RECORD_T),    /* u4SetQueryInfoLen */
+                (PUINT_8) & rCmdContent,     /* pucInfoBuffer */
+		NULL,                       /* pvSetQueryBuffer */
+		0                           /* u4SetQueryBufferLen */
+		);
 
     ASSERT(rStatus == WLAN_STATUS_PENDING);
 }
-
-

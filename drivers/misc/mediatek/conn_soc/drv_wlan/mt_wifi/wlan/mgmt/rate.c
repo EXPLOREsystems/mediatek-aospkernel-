@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/mgmt/rate.c#1 $
 */
 
@@ -16,19 +30,19 @@
 ** $Log: rate.c $
  *
  * 07 08 2010 cp.wu
- * 
+ *
  * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
  *
  * 06 08 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * add rate.c.
  *
  * 03 16 2010 kevin.huang
- * [BORA00000663][WIFISYS][New Feature] AdHoc Mode Support 
+ * [BORA00000663][WIFISYS][New Feature] AdHoc Mode Support
  * Add AdHoc Mode
  *
  * 12 18 2009 cm.chang
- * [BORA00000018]Integrate WIFI part into BORA for the 1st time 
+ * [BORA00000018]Integrate WIFI part into BORA for the 1st time
  * .
  *
  * Nov 23 2009 mtk01461
@@ -177,7 +191,7 @@ const BOOLEAN afgIsOFDMRate[RATE_NUM] = {
 */
 /*----------------------------------------------------------------------------*/
 VOID
-rateGetRateSetFromIEs (
+rateGetRateSetFromIEs(
     IN P_IE_SUPPORTED_RATE_T prIeSupportedRate,
     IN P_IE_EXT_SUPPORTED_RATE_T prIeExtSupportedRate,
     OUT PUINT_16 pu2OperationalRateSet,
@@ -197,61 +211,61 @@ rateGetRateSetFromIEs (
     ASSERT(pfgIsUnknownBSSBasicRate);
 
     if (prIeSupportedRate) {
-        /* NOTE(Kevin): Buffalo WHR-G54S's supported rate set IE exceed 8.
-         * IE_LEN(pucIE) == 12, "1(B), 2(B), 5.5(B), 6(B), 9(B), 11(B),
-         * 12(B), 18(B), 24(B), 36(B), 48(B), 54(B)"
-         */
-        //ASSERT(prIeSupportedRate->ucLength <= ELEM_MAX_LEN_SUP_RATES);
-        ASSERT(prIeSupportedRate->ucLength <= RATE_NUM);
+	/* NOTE(Kevin): Buffalo WHR-G54S's supported rate set IE exceed 8.
+	 * IE_LEN(pucIE) == 12, "1(B), 2(B), 5.5(B), 6(B), 9(B), 11(B),
+	 * 12(B), 18(B), 24(B), 36(B), 48(B), 54(B)"
+	 */
+	/* ASSERT(prIeSupportedRate->ucLength <= ELEM_MAX_LEN_SUP_RATES); */
+	ASSERT(prIeSupportedRate->ucLength <= RATE_NUM);
 
-        for (i = 0; i < prIeSupportedRate->ucLength; i++) {
-            ucRate = prIeSupportedRate->aucSupportedRates[i] & RATE_MASK;
+	for (i = 0; i < prIeSupportedRate->ucLength; i++) {
+	    ucRate = prIeSupportedRate->aucSupportedRates[i] & RATE_MASK;
 
-            /* Search all valid data rates */
-            for (j = 0; j < sizeof(aucDataRate)/sizeof(UINT_8); j++) {
-                if (ucRate == aucDataRate[j]) {
-                    u2OperationalRateSet |= BIT(j);
+	    /* Search all valid data rates */
+	    for (j = 0; j < sizeof(aucDataRate)/sizeof(UINT_8); j++) {
+		if (ucRate == aucDataRate[j]) {
+		    u2OperationalRateSet |= BIT(j);
 
-                    if (prIeSupportedRate->aucSupportedRates[i] & RATE_BASIC_BIT) {
-                        u2BSSBasicRateSet |= BIT(j);
-                    }
+		    if (prIeSupportedRate->aucSupportedRates[i] & RATE_BASIC_BIT) {
+			u2BSSBasicRateSet |= BIT(j);
+		    }
 
-                    break;
-                }
-            }
+		    break;
+		}
+	    }
 
-            if ((j == sizeof(aucDataRate)/sizeof(UINT_8)) &&
-                (prIeSupportedRate->aucSupportedRates[i] & RATE_BASIC_BIT)) {
-                fgIsUnknownBSSBasicRate = TRUE; /* A data rate not list in the aucDataRate[] */
-            }
-        }
+	    if ((j == sizeof(aucDataRate)/sizeof(UINT_8)) &&
+		(prIeSupportedRate->aucSupportedRates[i] & RATE_BASIC_BIT)) {
+		fgIsUnknownBSSBasicRate = TRUE; /* A data rate not list in the aucDataRate[] */
+	    }
+	}
     }
 
 
     if (prIeExtSupportedRate) {
-        //ASSERT(prIeExtSupportedRate->ucLength <= ELEM_MAX_LEN_EXTENDED_SUP_RATES);
+	/* ASSERT(prIeExtSupportedRate->ucLength <= ELEM_MAX_LEN_EXTENDED_SUP_RATES); */
 
-        for (i = 0; i < prIeExtSupportedRate->ucLength; i++) {
-            ucRate = prIeExtSupportedRate->aucExtSupportedRates[i] & RATE_MASK;
+	for (i = 0; i < prIeExtSupportedRate->ucLength; i++) {
+	    ucRate = prIeExtSupportedRate->aucExtSupportedRates[i] & RATE_MASK;
 
-            /* Search all valid data rates */
-            for (j = 0; j < sizeof(aucDataRate)/sizeof(UINT_8); j++) {
-                if (ucRate == aucDataRate[j]) {
-                    u2OperationalRateSet |= BIT(j);
+	    /* Search all valid data rates */
+	    for (j = 0; j < sizeof(aucDataRate)/sizeof(UINT_8); j++) {
+		if (ucRate == aucDataRate[j]) {
+		    u2OperationalRateSet |= BIT(j);
 
-                    if (prIeExtSupportedRate->aucExtSupportedRates[i] & RATE_BASIC_BIT) {
-                        u2BSSBasicRateSet |= BIT(j);
-                    }
+		    if (prIeExtSupportedRate->aucExtSupportedRates[i] & RATE_BASIC_BIT) {
+			u2BSSBasicRateSet |= BIT(j);
+		    }
 
-                    break;
-                }
-            }
+		    break;
+		}
+	    }
 
-            if ((j == sizeof(aucDataRate)/sizeof(UINT_8)) &&
-                (prIeExtSupportedRate->aucExtSupportedRates[i] & RATE_BASIC_BIT)) {
-                fgIsUnknownBSSBasicRate = TRUE; /* A data rate not list in the aucDataRate[] */
-            }
-        }
+	    if ((j == sizeof(aucDataRate)/sizeof(UINT_8)) &&
+		(prIeExtSupportedRate->aucExtSupportedRates[i] & RATE_BASIC_BIT)) {
+		fgIsUnknownBSSBasicRate = TRUE; /* A data rate not list in the aucDataRate[] */
+	    }
+	}
     }
 
     *pu2OperationalRateSet = u2OperationalRateSet;
@@ -277,7 +291,7 @@ rateGetRateSetFromIEs (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-rateGetDataRatesFromRateSet (
+rateGetDataRatesFromRateSet(
     IN UINT_16 u2OperationalRateSet,
     IN UINT_16 u2BSSBasicRateSet,
     OUT PUINT_8 pucDataRates,
@@ -293,16 +307,16 @@ rateGetDataRatesFromRateSet (
     ASSERT(u2BSSBasicRateSet == (u2OperationalRateSet & u2BSSBasicRateSet));
 
     for (i = RATE_1M_INDEX, j = 0; i < RATE_NUM; i++) {
-        if (u2OperationalRateSet & BIT(i)) {
+	if (u2OperationalRateSet & BIT(i)) {
 
-            *(pucDataRates + j) = aucDataRate[i];
+	    *(pucDataRates + j) = aucDataRate[i];
 
-            if (u2BSSBasicRateSet & BIT(i)) {
-                *(pucDataRates + j) |= RATE_BASIC_BIT;
-            }
+	    if (u2BSSBasicRateSet & BIT(i)) {
+		*(pucDataRates + j) |= RATE_BASIC_BIT;
+	    }
 
-            j++;
-        }
+	    j++;
+	}
     }
 
     *pucDataRatesLen = (UINT_8)j;
@@ -324,7 +338,7 @@ rateGetDataRatesFromRateSet (
 */
 /*----------------------------------------------------------------------------*/
 BOOLEAN
-rateGetHighestRateIndexFromRateSet (
+rateGetHighestRateIndexFromRateSet(
     IN UINT_16 u2RateSet,
     OUT PUINT_8 pucHighestRateIndex
     )
@@ -335,10 +349,10 @@ rateGetHighestRateIndexFromRateSet (
     ASSERT(pucHighestRateIndex);
 
     for (i = RATE_54M_INDEX; i >= RATE_1M_INDEX; i--) {
-        if (u2RateSet & BIT(i)) {
-            *pucHighestRateIndex = (UINT_8)i;
-            return TRUE;
-        }
+	if (u2RateSet & BIT(i)) {
+	    *pucHighestRateIndex = (UINT_8)i;
+	    return TRUE;
+	}
     }
 
     return FALSE;
@@ -358,7 +372,7 @@ rateGetHighestRateIndexFromRateSet (
 */
 /*----------------------------------------------------------------------------*/
 BOOLEAN
-rateGetLowestRateIndexFromRateSet (
+rateGetLowestRateIndexFromRateSet(
     IN UINT_16 u2RateSet,
     OUT PUINT_8 pucLowestRateIndex
     )
@@ -368,10 +382,10 @@ rateGetLowestRateIndexFromRateSet (
     ASSERT(pucLowestRateIndex);
 
     for (i = RATE_1M_INDEX; i <= RATE_54M_INDEX; i++) {
-        if (u2RateSet & BIT(i)) {
-            *pucLowestRateIndex = (UINT_8)i;
-            return TRUE;
-        }
+	if (u2RateSet & BIT(i)) {
+	    *pucLowestRateIndex = (UINT_8)i;
+	    return TRUE;
+	}
     }
 
     return FALSE;
@@ -379,7 +393,7 @@ rateGetLowestRateIndexFromRateSet (
 } /* end of rateGetLowestRateIndexFromRateSet() */
 
 
-#if 0 // NOTE(Kevin): For reference
+#if 0 /* NOTE(Kevin): For reference */
 /*----------------------------------------------------------------------------*/
 /*!
 * \brief Convert the given Data Rates to the Rate Set.
@@ -392,7 +406,7 @@ rateGetLowestRateIndexFromRateSet (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-rateGetRateSetFromDataRates (
+rateGetRateSetFromDataRates(
     IN PUINT_8 pucDataRates,
     IN UINT_8 ucDataRatesLen,
     OUT PUINT_16 pu2RateSet
@@ -407,17 +421,17 @@ rateGetRateSetFromDataRates (
     ASSERT(pu2RateSet);
 
     if (pucDataRates) {
-        for (i = 0; i < ucDataRatesLen; i++) {
-            ucRate = pucDataRates[i] & RATE_MASK;
+	for (i = 0; i < ucDataRatesLen; i++) {
+	    ucRate = pucDataRates[i] & RATE_MASK;
 
-            /* Search all valid data rates */
-            for (j = 0; j < sizeof(aucDataRate)/sizeof(UINT_8); j++) {
-                if (ucRate == aucDataRate[j]) {
-                    u2RateSet |= BIT(j);
-                    break;
-                }
-            }
-        }
+	    /* Search all valid data rates */
+	    for (j = 0; j < sizeof(aucDataRate)/sizeof(UINT_8); j++) {
+		if (ucRate == aucDataRate[j]) {
+		    u2RateSet |= BIT(j);
+		    break;
+		}
+	    }
+	}
     }
 
     *pu2RateSet = u2RateSet;
@@ -440,13 +454,13 @@ rateGetRateSetFromDataRates (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-rateSetAckCtsDataRatesFromRateSet (
+rateSetAckCtsDataRatesFromRateSet(
     IN UINT_16 u2OperationalRateSet,
     IN UINT_16 u2BSSBasicRateSet,
     IN OUT UINT_8 aucAckCtsRateIndex[]
     )
 {
-    INT_32 i,j;
+    INT_32 i, j;
 
 
     ASSERT(aucAckCtsRateIndex);
@@ -457,29 +471,29 @@ rateSetAckCtsDataRatesFromRateSet (
 
 
     for (i = RATE_54M_INDEX; i >= RATE_1M_INDEX; i--) {
-        if (u2OperationalRateSet & BIT(i)) {
-            for (j = i; j >= RATE_1M_INDEX; j--) {
-                if (u2BSSBasicRateSet & BIT(j)) {
-                    if ((afgIsOFDMRate[i] && afgIsOFDMRate[j]) || (!afgIsOFDMRate[i] && !afgIsOFDMRate[j])) // Reply ACK Frame at the same Modulation Scheme.
-                        aucAckCtsRateIndex[i] = (UINT_8)j;
-                    break;
-                }
-            }
+	if (u2OperationalRateSet & BIT(i)) {
+	    for (j = i; j >= RATE_1M_INDEX; j--) {
+		if (u2BSSBasicRateSet & BIT(j)) {
+		    if ((afgIsOFDMRate[i] && afgIsOFDMRate[j]) || (!afgIsOFDMRate[i] && !afgIsOFDMRate[j])) /* Reply ACK Frame at the same Modulation Scheme. */
+			aucAckCtsRateIndex[i] = (UINT_8)j;
+		    break;
+		}
+	    }
 
-            /* NOTE(Kevin 2008/03/25): Following code is used for those AP which has
-             * NULL BasicRateSet.
-             * e.g. If input Operational Rate Set = [18M 12M 9M], Basic Rate Set = NULL.
-             * Originally we'll get Ack Rate for [18M 12M 9M] is [12M 12M "6M"].
-             * Now we'll get Ack Rate for [18M 12M 9M] is [12M 12M 9M],
-             * The Ack Rate for Tx Rates which are not list in Operational Rate Set is still
-             * use highest mandatory rate as default.
-             */
-            if (j < RATE_1M_INDEX) { /* The ACK/CTS rate was not found in BasicRateSet */
-                if (!(BIT(aucAckCtsRateIndex[i]) & u2OperationalRateSet)) {
-                    aucAckCtsRateIndex[i] = (UINT_8)i;
-                }
-            }
-        }
+	    /* NOTE(Kevin 2008/03/25): Following code is used for those AP which has
+	     * NULL BasicRateSet.
+	     * e.g. If input Operational Rate Set = [18M 12M 9M], Basic Rate Set = NULL.
+	     * Originally we'll get Ack Rate for [18M 12M 9M] is [12M 12M "6M"].
+	     * Now we'll get Ack Rate for [18M 12M 9M] is [12M 12M 9M],
+	     * The Ack Rate for Tx Rates which are not list in Operational Rate Set is still
+	     * use highest mandatory rate as default.
+	     */
+	    if (j < RATE_1M_INDEX) { /* The ACK/CTS rate was not found in BasicRateSet */
+		if (!(BIT(aucAckCtsRateIndex[i]) & u2OperationalRateSet)) {
+		    aucAckCtsRateIndex[i] = (UINT_8)i;
+		}
+	    }
+	}
     }
 
     return;
@@ -500,7 +514,7 @@ rateSetAckCtsDataRatesFromRateSet (
 */
 /*----------------------------------------------------------------------------*/
 BOOLEAN
-rateGetBestInitialRateIndex (
+rateGetBestInitialRateIndex(
     IN UINT_16 u2RateSet,
     IN RCPI rRcpi,
     OUT PUINT_8 pucInitialRateIndex
@@ -515,33 +529,32 @@ rateGetBestInitialRateIndex (
     DBGLOG(MGT, TRACE, ("rRcpi = %d\n", rRcpi));
 
     if (rRcpi >= RCPI_100) { /* Best Signal */
-        u2InitRateSet = INITIAL_RATE_SET(RCPI_100);
+	u2InitRateSet = INITIAL_RATE_SET(RCPI_100);
     }
     else if (rRcpi >= RCPI_80) { /* Better Signal */
-        u2InitRateSet = INITIAL_RATE_SET(RCPI_80);
+	u2InitRateSet = INITIAL_RATE_SET(RCPI_80);
     }
     else if (rRcpi >= RCPI_60) { /* Good Signal */
-        u2InitRateSet = INITIAL_RATE_SET(RCPI_60);
+	u2InitRateSet = INITIAL_RATE_SET(RCPI_60);
     }
     else { /* Worse Signal */
-        /* NOTE(Kevin): If return FALSE, we should assign the BSS Basic Rate Index
-         * (prBssInfo->ucBasicRateIndex) to the initial rate. It was determined in
-         * function - bssUpdateTxRateForControlFrame().
-         */
-        return FALSE;
+	/* NOTE(Kevin): If return FALSE, we should assign the BSS Basic Rate Index
+	 * (prBssInfo->ucBasicRateIndex) to the initial rate. It was determined in
+	 * function - bssUpdateTxRateForControlFrame().
+	 */
+	return FALSE;
     }
 
     u2RateSet &= u2InitRateSet;
 
     for (i = RATE_54M_INDEX; i >= RATE_1M_INDEX; i--) {
-        if (u2RateSet & BIT(i)) {
-            *pucInitialRateIndex = (UINT_8)i;
-            return TRUE;
-        }
+	if (u2RateSet & BIT(i)) {
+	    *pucInitialRateIndex = (UINT_8)i;
+	    return TRUE;
+	}
     }
 
     return FALSE;
 
 } /* end of rateGetBestInitialRateIndex() */
 #endif
-

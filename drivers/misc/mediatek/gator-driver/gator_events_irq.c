@@ -63,7 +63,7 @@ static int gator_events_irq_online(int **buffer, bool migrate)
 {
 	int len = 0, cpu = get_physical_cpu();
 
-	// synchronization with the irq_exit functions is not necessary as the values are being reset
+	/* synchronization with the irq_exit functions is not necessary as the values are being reset */
 	if (hardirq_enabled) {
 		atomic_set(&per_cpu(irqCnt, cpu)[HARDIRQ], 0);
 		per_cpu(irqGet, cpu)[len++] = hardirq_key;
@@ -84,7 +84,7 @@ static int gator_events_irq_online(int **buffer, bool migrate)
 
 static int gator_events_irq_start(void)
 {
-	// register tracepoints
+	/* register tracepoints */
 	if (hardirq_enabled)
 		if (GATOR_REGISTER_TRACE(irq_handler_exit))
 			goto fail_hardirq_exit;
@@ -95,8 +95,8 @@ static int gator_events_irq_start(void)
 
 	return 0;
 
-	// unregister tracepoints on error
-fail_softirq_exit:
+	/* unregister tracepoints on error */
+fail_softirq_exit :
 	if (hardirq_enabled)
 		GATOR_UNREGISTER_TRACE(irq_handler_exit);
 fail_hardirq_exit:

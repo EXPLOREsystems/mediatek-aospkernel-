@@ -267,10 +267,10 @@ extern PINT_16 g_wbuf_p;
 extern PINT_8 g_buf_p;
 
     /* If __FUNCTION__ is already defined by compiler, we just use it. */
-#if defined(__FUNCTION__)
+#if defined(__func__)
 #define DEBUGFUNC(_Func)
 #else
-#define DEBUGFUNC(_Func) static const char __FUNCTION__[] = _Func;
+#define DEBUGFUNC(_Func) static const char __func__[] = _Func;
 #endif
 
     /* The following macros are used for future debug message. */
@@ -342,7 +342,7 @@ extern PINT_8 g_buf_p;
 #ifdef _lint
 #define ASSERT(_exp) \
 	{ \
-            if (!(_exp)) {do {} while (1); } \
+	    if (!(_exp)) {do {} while (1); } \
 	}
 #else
 #define ASSERT(_exp) \
@@ -492,7 +492,7 @@ extern PINT_8 g_buf_p;
 /* The following macro is used for debugging packed structures. */
 #ifndef DATA_STRUC_INSPECTING_ASSERT
 #define DATA_STRUC_INSPECTING_ASSERT(expr) \
-        switch (0) {case 0: case (expr): default:; }
+	switch (0) {case 0: case (expr): default:; }
 #endif
 
 /*******************************************************************************

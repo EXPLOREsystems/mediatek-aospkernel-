@@ -179,7 +179,7 @@ VOID cnmTimerDestroy(IN P_ADAPTER_T prAdapter)
 /*----------------------------------------------------------------------------*/
 VOID
 cnmTimerInitTimer(IN P_ADAPTER_T prAdapter,
-		  IN P_TIMER_T prTimer, IN PFN_MGMT_TIMEOUT_FUNC pfFunc, IN UINT_32 u4Data)
+		  IN P_TIMER_T prTimer, IN PFN_MGMT_TIMEOUT_FUNC pfFunc, IN ULONG ulDataPtr)
 {
 	ASSERT(prAdapter);
 
@@ -212,7 +212,7 @@ cnmTimerInitTimer(IN P_ADAPTER_T prAdapter,
 	LINK_ENTRY_INITIALIZE(&prTimer->rLinkEntry);
 
 	prTimer->pfMgmtTimeOutFunc = pfFunc;
-	prTimer->u4Data = u4Data;
+	prTimer->ulDataPtr = ulDataPtr;
 
 	return;
 }
@@ -368,7 +368,7 @@ VOID cnmTimerDoTimeOutCheck(IN P_ADAPTER_T prAdapter)
 	P_TIMER_T prTimer;
 	OS_SYSTIME rCurSysTime;
 	PFN_MGMT_TIMEOUT_FUNC pfMgmtTimeOutFunc;
-	UINT_32 u4TimeoutData;
+	ULONG ulTimeoutDataPtr;
 	BOOLEAN fgNeedWakeLock;
 	KAL_SPIN_LOCK_DECLARATION();
 
@@ -394,7 +394,7 @@ VOID cnmTimerDoTimeOutCheck(IN P_ADAPTER_T prAdapter)
 			cnmTimerStopTimer_impl(prAdapter, prTimer, FALSE);
 
 			pfMgmtTimeOutFunc = prTimer->pfMgmtTimeOutFunc;
-			u4TimeoutData = prTimer->u4Data;
+			ulTimeoutDataPtr = prTimer->ulDataPtr;
 
 			if (prTimer->u2Minutes > 0) {
 				prTimer->u2Minutes--;
@@ -403,7 +403,7 @@ VOID cnmTimerDoTimeOutCheck(IN P_ADAPTER_T prAdapter)
 				LINK_INSERT_TAIL(prTimerList, &prTimer->rLinkEntry);
 			} else if (pfMgmtTimeOutFunc) {
 				KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TIMER);
-				(pfMgmtTimeOutFunc) (prAdapter, u4TimeoutData);
+				(pfMgmtTimeOutFunc) (prAdapter, ulTimeoutDataPtr);
 				KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TIMER);
 			}
 

@@ -222,6 +222,16 @@ config CUSTOM_SEC_AUTH_SUPPORT
 	  Support customer to implement and apply their own RSA security
 	  functions
 
+config CUSTOM_KERNEL_SENSORHUB
+	bool "CUSTOM_KERNEL_SENSORHUB"
+	help
+	  sensorhub support
+
+config INPUT_CWSTM32
+	bool "CONFIG_INPUT_CWSTM32"
+	help
+	  Cywee on STM32
+
 config CUSTOM_KERNEL_MAGNETOMETER
 	bool "CUSTOM_KERNEL_MAGNETOMETER"
 	help

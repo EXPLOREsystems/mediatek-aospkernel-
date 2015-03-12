@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/os/linux/hif/sdio/include/hif.h#1 $
 */
 
@@ -30,15 +44,15 @@
  * add ENE SDIO host workaround for x86 linux platform.
  *
  * 07 08 2010 cp.wu
- * 
+ *
  * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
  *
  * 06 06 2010 kevin.huang
- * [WPD00003832][MT6620 5931] Create driver base 
+ * [WPD00003832][MT6620 5931] Create driver base
  * [MT6620 5931] Create driver base
  *
  * 03 24 2010 jeffrey.chang
- * [WPD00003826]Initial import for Linux port 
+ * [WPD00003826]Initial import for Linux port
  * initial import for Linux port
 **  \main\maintrunk.MT5921\4 2009-10-20 17:38:28 GMT mtk01090
 **  Refine driver unloading and clean up procedure. Block requests, stop main thread and clean up queued requests, and then stop hw.
@@ -61,7 +75,6 @@
 #ifndef _HIF_H
 #define _HIF_H
 
-#include "gl_typedef.h"
 #include "mtk_porting.h"
 
 
@@ -73,7 +86,7 @@
 
 #define CONF_HIF_DEV_MISC        0  /* register as misc device */
 #define CONF_HIF_LOOPBACK_AUTO   0  /* hif loopback test triggered by open() */
-                                    /* only for development test */
+				    /* only for development test */
 
 #define CONF_HIF_PMIC_TEST       0  /* test purpose: power on CONNSYS */
 #define CONF_HIF_CONNSYS_DBG     1  /* test purpose: when you want to use ICE on CONNSYS */
@@ -93,15 +106,11 @@
 ********************************************************************************
 */
 #ifndef CONN_MCU_CONFIG_BASE
-#define CONN_MCU_CONFIG_BASE         0xF8070000 //MT6572
+#define CONN_MCU_CONFIG_BASE         0xF8070000 /* MT6572 */
 #endif /* CONN_MCU_CONFIG_BASE */
 
 #define CONSYS_CPUPCR_REG		    (CONN_MCU_CONFIG_BASE + 0x00000160)
 #define CONSYS_REG_READ(addr)       (*((volatile UINT32*)(addr)))
-
-#define CONN_MCU_DRV_BASE                0x18070000
-#define CONN_MCU_REG_LENGTH              0x0200
-#define CONN_MCU_CPUPCR                  0x0160
 
 
 /*******************************************************************************
@@ -113,42 +122,42 @@
 ** layer info structure.
  */
 typedef struct _GL_HIF_DMA_OPS_T { /* DMA Operators */
-    VOID (*DmaConfig)(
-        IN VOID                     *HifInfo,
-        IN VOID                     *Conf
-        );
+    VOID(*DmaConfig)(
+        IN VOID * HifInfo,
+        IN VOID * Conf
+	);
 
-    VOID (*DmaStart)(
-        IN VOID                     *HifInfo
-        );
+    VOID(*DmaStart)(
+        IN VOID * HifInfo
+	);
 
-    VOID (*DmaStop)(
-        IN VOID                     *HifInfo
-        );
+    VOID(*DmaStop)(
+        IN VOID * HifInfo
+	);
 
-    MTK_WCN_BOOL (*DmaPollStart)(
-        IN VOID                     *HifInfo
-        );
+    MTK_WCN_BOOL(*DmaPollStart)(
+        IN VOID * HifInfo
+	);
 
-    MTK_WCN_BOOL (*DmaPollIntr)(
-        IN VOID                     *HifInfo
-        );
+    MTK_WCN_BOOL(*DmaPollIntr)(
+        IN VOID * HifInfo
+	);
 
-    VOID (*DmaAckIntr)(
-        IN VOID                     *HifInfo
-        );
+    VOID(*DmaAckIntr)(
+        IN VOID * HifInfo
+	);
 
-    VOID (*DmaClockCtrl)(
-        IN UINT32                   FlgIsEnabled
-        );
+    VOID(*DmaClockCtrl)(
+	IN UINT32                   FlgIsEnabled
+	);
 
-    VOID (*DmaRegDump)(
-        IN VOID                     *HifInfo
-        );
+    VOID(*DmaRegDump)(
+        IN VOID * HifInfo
+	);
 
-    VOID (*DmaReset)(
-        IN VOID                     *HifInfo
-        );
+    VOID(*DmaReset)(
+        IN VOID * HifInfo
+	);
 
 } GL_HIF_DMA_OPS_T;
 
@@ -161,7 +170,6 @@ typedef struct _GL_HIF_INFO_T {
 #define MTK_CHIP_ID_6572    0x6572
 #define MTK_CHIP_ID_6582    0X6582
 #define MTK_CHIP_ID_8127    0X8127
-#define MTK_CHIP_ID_6752    0X6752
     UINT32                  ChipID;
 
     /* Control flag */
@@ -171,7 +179,6 @@ typedef struct _GL_HIF_INFO_T {
 
     /* HIF related */
     UINT8                   *HifRegBaseAddr; /* HIF register base */
-    UINT8                   *McuRegBaseAddr; /* CONN MCU register base */
 
 #if (CONF_HIF_LOOPBACK_AUTO == 1)
     struct timer_list       HifTmrLoopbkFn; /* HIF loopback test trigger timer */
@@ -186,8 +193,8 @@ typedef struct _GL_HIF_INFO_T {
 #endif /* CONF_HIF_DMA_INT */
 
     /* DMA related */
-#define AP_DMA_HIF_LOCK(_lock)      //spin_lock_bh(&(_lock)->DdmaLock)
-#define AP_DMA_HIF_UNLOCK(_lock)    //spin_unlock_bh(&(_lock)->DdmaLock)
+#define AP_DMA_HIF_LOCK(_lock)      /* spin_lock_bh(&(_lock)->DdmaLock) */
+#define AP_DMA_HIF_UNLOCK(_lock)    /* spin_unlock_bh(&(_lock)->DdmaLock) */
     spinlock_t              DdmaLock; /* protect DMA access */
 
     UINT8                   *DmaRegBaseAddr; /* DMA register base */
@@ -249,25 +256,23 @@ typedef struct _MTK_WCN_HIF_DMA_CONF {
 *                                 M A C R O S
 ********************************************************************************
 */
-#define MCU_REG_READL(_hif, _addr)          \
-            readl((volatile UINT_32 *)((_hif)->McuRegBaseAddr + _addr))
 
 /* PIO mode HIF register read/write */
 #define HIF_REG_READL(_hif, _addr)          \
-            readl((volatile UINT32 *)((_hif)->HifRegBaseAddr + _addr))
+	    readl((volatile UINT32 *)((_hif)->HifRegBaseAddr + _addr))
 
 #define HIF_REG_WRITEL(_hif, _addr, _val)   \
-            writel(_val, ((volatile UINT32 *)((_hif)->HifRegBaseAddr + _addr)))
+	    writel(_val, ((volatile UINT32 *)((_hif)->HifRegBaseAddr + _addr)))
 
 #define HIF_REG_WRITEB(_hif, _addr, _val)   \
-            writeb(_val, ((volatile UINT32 *)((_hif)->HifRegBaseAddr + _addr)))
+	    writeb(_val, ((volatile UINT32 *)((_hif)->HifRegBaseAddr + _addr)))
 
 /* PIO mode DMA register read/write */
 #define HIF_DMAR_READL(_hif, _addr)          \
-            readl((volatile UINT32 *)((_hif)->DmaRegBaseAddr + _addr))
+	    readl((volatile UINT32 *)((_hif)->DmaRegBaseAddr + _addr))
 
 #define HIF_DMAR_WRITEL(_hif, _addr, _val)   \
-            writel(_val, ((volatile UINT32 *)((_hif)->DmaRegBaseAddr + _addr)))
+	    writel(_val, ((volatile UINT32 *)((_hif)->DmaRegBaseAddr + _addr)))
 
 
 /*******************************************************************************
@@ -299,65 +304,62 @@ glUnregisterBus(
     );
 
 VOID
-glResetHif (
-    GLUE_INFO_T *GlueInfo
+glResetHif(
+    GLUE_INFO_T * GlueInfo
     );
 
 VOID
-glSetHifInfo (
+glSetHifInfo(
     P_GLUE_INFO_T prGlueInfo,
     UINT_32 u4Cookie
     );
 
 VOID
-glClearHifInfo (
+glClearHifInfo(
     P_GLUE_INFO_T prGlueInfo
     );
 
 VOID
-glGetChipInfo (
-    GLUE_INFO_T *GlueInfo,
-	UINT_8 *pucChipBuf
+glGetChipInfo(
+    GLUE_INFO_T * GlueInfo,
+	UINT_8 * pucChipBuf
     );
 
 #if CFG_SPM_WORKAROUND_FOR_HOTSPOT
 BOOLEAN
-glIsChipNeedWakelock (
-    GLUE_INFO_T *GlueInfo
+glIsChipNeedWakelock(
+    GLUE_INFO_T * GlueInfo
     );
 #endif
 
 BOOL
-glBusInit (
+glBusInit(
     PVOID pvData
     );
 
 VOID
-glBusRelease (
+glBusRelease(
     PVOID pData
     );
 
 INT_32
-glBusSetIrq (
+glBusSetIrq(
     PVOID pvData,
     PVOID pfnIsr,
     PVOID pvCookie
     );
 
 VOID
-glBusFreeIrq (
+glBusFreeIrq(
     PVOID pvData,
     PVOID pvCookie
     );
 
 VOID
-glSetPowerState (
+glSetPowerState(
     IN P_GLUE_INFO_T  prGlueInfo,
     IN UINT_32 ePowerMode
     );
-
-VOID glDumpConnSysCpuInfo(P_GLUE_INFO_T prGlueInfo);
-
 #endif /* MODULE_AHB_DMA */
 
 /*----------------------------------------------------------------------------*/
@@ -371,8 +373,8 @@ VOID glDumpConnSysCpuInfo(P_GLUE_INFO_T prGlueInfo);
 */
 /*----------------------------------------------------------------------------*/
 VOID
-HifGdmaInit (
-    GL_HIF_INFO_T               *HifInfo
+HifGdmaInit(
+    GL_HIF_INFO_T * HifInfo
     );
 
 /*----------------------------------------------------------------------------*/
@@ -386,8 +388,8 @@ HifGdmaInit (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-HifPdmaInit (
-    GL_HIF_INFO_T               *HifInfo
+HifPdmaInit(
+    GL_HIF_INFO_T * HifInfo
     );
 
 /*******************************************************************************

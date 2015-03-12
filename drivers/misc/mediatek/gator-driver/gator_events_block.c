@@ -77,7 +77,7 @@ static int gator_events_block_create_files(struct super_block *sb, struct dentry
 
 static int gator_events_block_start(void)
 {
-	// register tracepoints
+	/* register tracepoints */
 	if (block_rq_wr_enabled || block_rq_rd_enabled)
 		if (GATOR_REGISTER_TRACE(block_rq_complete))
 			goto fail_block_rq_exit;
@@ -85,8 +85,8 @@ static int gator_events_block_start(void)
 
 	return 0;
 
-	// unregister tracepoints on error
-fail_block_rq_exit:
+	/* unregister tracepoints on error */
+fail_block_rq_exit :
 	pr_err("gator: block event tracepoints failed to activate, please verify that tracepoints are enabled in the linux kernel\n");
 
 	return -1;
@@ -114,7 +114,7 @@ static int gator_events_block_read(int **buffer)
 	if (block_rq_wr_enabled && (value = atomic_read(&blockCnt[BLOCK_RQ_WR])) > 0) {
 		atomic_sub(value, &blockCnt[BLOCK_RQ_WR]);
 		blockGet[len++] = block_rq_wr_key;
-		blockGet[len++] = 0;	// indicates to Streamline that value bytes were written now, not since the last message
+		blockGet[len++] = 0;	/* indicates to Streamline that value bytes were written now, not since the last message */
 		blockGet[len++] = block_rq_wr_key;
 		blockGet[len++] = value;
 		data += value;
@@ -122,7 +122,7 @@ static int gator_events_block_read(int **buffer)
 	if (block_rq_rd_enabled && (value = atomic_read(&blockCnt[BLOCK_RQ_RD])) > 0) {
 		atomic_sub(value, &blockCnt[BLOCK_RQ_RD]);
 		blockGet[len++] = block_rq_rd_key;
-		blockGet[len++] = 0;	// indicates to Streamline that value bytes were read now, not since the last message
+		blockGet[len++] = 0;	/* indicates to Streamline that value bytes were read now, not since the last message */
 		blockGet[len++] = block_rq_rd_key;
 		blockGet[len++] = value;
 		data += value;

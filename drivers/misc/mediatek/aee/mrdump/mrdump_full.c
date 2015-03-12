@@ -370,6 +370,9 @@ static int param_set_mrdump_device(const char *val, const struct kernel_param *k
 static int param_get_mrdump_device(char *buffer, const struct kernel_param *kp)
 {
 	char *dev;
+	if (mrdump_cb == NULL) {
+		return 0;
+	}
 	switch (mrdump_cb->machdesc.output_device) {
 	case MRDUMP_DEV_NULL:
 		dev = "null";

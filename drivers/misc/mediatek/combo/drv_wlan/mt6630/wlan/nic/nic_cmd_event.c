@@ -14,6 +14,12 @@
 /*
 ** $Log: nic_cmd_event.c $
 **
+** 06 12 2014 eason.tsai
+** [ALPS01070904] [Need Patch] [Volunteer Patch]
+**	update BLBIST dump burst mode
+**
+**	Review: http://mtksap20:8080/go?page=NewReview&reviewid=110351
+**
 ** 04 08 2014 eason.tsai
 ** [ALPS01070904] [Need Patch] [Volunteer Patch]
 ** add for BLBIST dump index
@@ -387,9 +393,6 @@
 */
 #include "precomp.h"
 
-extern BOOLEAN g_bCaptureDone;
-extern BOOLEAN g_bIcapEnable;
-extern UINT_16 g_u2DumpIndex;
 /*******************************************************************************
 *                              C O N S T A N T S
 ********************************************************************************
@@ -769,7 +772,7 @@ nicCmdEventEnterRfTest(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmdInfo, IN P
 					     WLAN_STATUS_MEDIA_DISCONNECT, NULL, 0);
 	}
 	/* 1. Remove pending TX */
-	nicTxRelease(prAdapter);
+	nicTxRelease(prAdapter, TRUE);
 
 	/* 1.1 clear pending Security / Management Frames */
 	kalClearSecurityFrames(prAdapter->prGlueInfo);
@@ -827,7 +830,11 @@ nicCmdEventEnterRfTest(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmdInfo, IN P
 	}
 #if CFG_SUPPORT_NVRAM
 	/* 9. load manufacture data */
-	wlanLoadManufactureData(prAdapter, kalGetConfiguration(prAdapter->prGlueInfo));
+	if (kalIsConfigurationExist(prAdapter->prGlueInfo) == TRUE) {
+		wlanLoadManufactureData(prAdapter, kalGetConfiguration(prAdapter->prGlueInfo));
+	} else {
+		DBGLOG(REQ, WARN, ("%s: load manufacture data fail\n", __func__));
+	}
 #endif
 
 	return;
@@ -899,7 +906,11 @@ nicCmdEventLeaveRfTest(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmdInfo, IN P
 	}
 #if CFG_SUPPORT_NVRAM
 	/* 9. load manufacture data */
-	wlanLoadManufactureData(prAdapter, kalGetConfiguration(prAdapter->prGlueInfo));
+	if (kalIsConfigurationExist(prAdapter->prGlueInfo) == TRUE) {
+		wlanLoadManufactureData(prAdapter, kalGetConfiguration(prAdapter->prGlueInfo));
+	} else {
+		DBGLOG(REQ, WARN, ("%s: load manufacture data fail\n", __func__));
+	}
 #endif
 
 	/* 10. Override network address */
@@ -1402,7 +1413,10 @@ VOID nicOidCmdTimeoutCommon(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmdInfo)
 {
 	ASSERT(prAdapter);
 
-	kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_FAILURE);
+	if (prCmdInfo->fgIsOid) {
+		kalOidComplete(prAdapter->prGlueInfo,
+			       prCmdInfo->fgSetQuery, 0, WLAN_STATUS_FAILURE);
+	}
 }
 
 
@@ -1438,7 +1452,7 @@ VOID nicOidCmdEnterRFTestTimeout(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmd
 	ASSERT(prAdapter);
 
 	/* 1. Remove pending TX frames */
-	nicTxRelease(prAdapter);
+	nicTxRelease(prAdapter, TRUE);
 
 	/* 1.1 clear pending Security / Management Frames */
 	kalClearSecurityFrames(prAdapter->prGlueInfo);
@@ -1451,6 +1465,91 @@ VOID nicOidCmdEnterRFTestTimeout(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmd
 	kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_FAILURE);
 }
 
+
+/*----------------------------------------------------------------------------*/
+/*!
+* @brief This function is called to handle dump burst event
+*
+* @param prAdapter          Pointer to the Adapter structure.
+* @param prCmdInfo         Pointer to the command information
+* @param pucEventBuf       Pointer to event buffer
+*
+* @return none
+*
+*/
+/*----------------------------------------------------------------------------*/
+
+
+VOID nicEventQueryMemDump(IN P_ADAPTER_T prAdapter, IN PUINT_8 pucEventBuf)
+{
+	P_EVENT_DUMP_MEM_T prEventDumpMem;
+	static UINT_8 aucPath[256];
+	static UINT_8 aucPath_done[300];
+	static UINT_32 u4CurTimeTick;
+
+	ASSERT(prAdapter);
+	ASSERT(pucEventBuf);
+
+	sprintf(aucPath, "/data/blbist/dump_%05ld.hex", g_u2DumpIndex);
+
+	prEventDumpMem = (P_EVENT_DUMP_MEM_T) (pucEventBuf);
+
+	if (kalCheckPath(aucPath) == -1) {
+		kalMemSet(aucPath, 0x00, 256);
+		sprintf(aucPath, "/data/dump_%05ld.hex", g_u2DumpIndex);
+	}
+
+
+	if (prEventDumpMem->ucFragNum == 1) {
+		/* Store memory dump into sdcard,
+		 * path /sdcard/dump_<current  system tick>_<memory address>_<memory length>.hex
+		 */
+		u4CurTimeTick = kalGetTimeTick();
+#if defined(LINUX)
+
+		/*if blbist mkdir undre /data/blbist, the dump files wouls put on it */
+		sprintf(aucPath, "/data/blbist/dump_%05ld.hex", g_u2DumpIndex);
+		if (kalCheckPath(aucPath) == -1) {
+			kalMemSet(aucPath, 0x00, 256);
+			sprintf(aucPath, "/data/dump_%05ld.hex", g_u2DumpIndex);
+		}
+#else
+		kal_sprintf_ddk(aucPath, sizeof(aucPath),
+				u4CurTimeTick,
+				prEventDumpMem->u4Address,
+				prEventDumpMem->u4Length + prEventDumpMem->u4RemainLength);
+#endif
+		kalWriteToFile(aucPath, FALSE, &prEventDumpMem->aucBuffer[0],
+			       prEventDumpMem->u4Length);
+	} else {
+		/* Append current memory dump to the hex file */
+		kalWriteToFile(aucPath, TRUE, &prEventDumpMem->aucBuffer[0],
+			       prEventDumpMem->u4Length);
+	}
+	DBGLOG(INIT, INFO,
+	       (": ==> (u4RemainLength = %x, u4Address=%x )\n", prEventDumpMem->u4RemainLength,
+		prEventDumpMem->u4Address));
+
+	if (prEventDumpMem->u4RemainLength == 0 || prEventDumpMem->u4Address == 0xFFFFFFFF) {
+
+		/* The request is finished or firmware response a error */
+		/* Reply time tick to iwpriv */
+
+		g_bIcapEnable = FALSE;
+		g_bCaptureDone = TRUE;
+
+		sprintf(aucPath_done, "/data/blbist/file_dump_done.txt");
+		if (kalCheckPath(aucPath_done) == -1) {
+			kalMemSet(aucPath_done, 0x00, 256);
+			sprintf(aucPath_done, "/data/file_dump_done.txt");
+		}
+		DBGLOG(INIT, INFO, (": ==> gen done_file\n"));
+		kalWriteToFile(aucPath_done, FALSE, aucPath_done, sizeof(aucPath_done));
+		g_u2DumpIndex++;
+
+	}
+
+}
 
 /*----------------------------------------------------------------------------*/
 /*!
@@ -1525,10 +1624,10 @@ nicCmdEventQueryMemDump(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmdInfo, IN 
 #else
 
 			/*if blbist mkdir undre /data/blbist, the dump files wouls put on it */
-			sprintf(aucPath, "/data/blbist/dump_%ld.hex", g_u2DumpIndex);
+			sprintf(aucPath, "/data/blbist/dump_%05ld.hex", g_u2DumpIndex);
 			if (kalCheckPath(aucPath) == -1) {
 				kalMemSet(aucPath, 0x00, 256);
-				sprintf(aucPath, "/data/dump_%ld.hex", g_u2DumpIndex);
+				sprintf(aucPath, "/data/dump_%05ld.hex", g_u2DumpIndex);
 			}
 #endif
 #else
@@ -1567,6 +1666,7 @@ nicCmdEventQueryMemDump(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmdInfo, IN 
 				kalMemSet(aucPath_done, 0x00, 256);
 				sprintf(aucPath_done, "/data/file_dump_done.txt");
 			}
+			DBGLOG(INIT, INFO, (": ==> gen done_file\n"));
 			kalWriteToFile(aucPath_done, FALSE, aucPath_done, sizeof(aucPath_done));
 			g_u2DumpIndex++;
 
@@ -1575,10 +1675,14 @@ nicCmdEventQueryMemDump(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmdInfo, IN 
 			kalWriteToFile(aucPath_done, FALSE, aucPath_done, sizeof(aucPath_done));
 #endif
 		} else {
+#if defined(LINUX)
+
+#else				/* 2013/05/26 fw would try to send the buffer successfully */
 			/* The memory dump request is not finished, Send next command */
 			wlanSendMemDumpCmd(prAdapter,
 					   prCmdInfo->pvInformationBuffer,
 					   prCmdInfo->u4InformationBufferLength);
+#endif
 		}
 	}
 
@@ -1628,5 +1732,204 @@ nicCmdEventBatchScanResult(IN P_ADAPTER_T prAdapter,
 	}
 
 	return;
+}
+#endif
+
+
+#if CFG_SUPPORT_BUILD_DATE_CODE
+/*----------------------------------------------------------------------------*/
+/*!
+* @brief This function is called when event for build date code information
+*        has been retrieved
+*
+* @param prAdapter          Pointer to the Adapter structure.
+* @param prCmdInfo          Pointer to the command information
+* @param pucEventBuf        Pointer to the event buffer
+*
+* @return none
+*
+*/
+/*----------------------------------------------------------------------------*/
+VOID
+nicCmdEventBuildDateCode(IN P_ADAPTER_T prAdapter,
+			 IN P_CMD_INFO_T prCmdInfo, IN PUINT_8 pucEventBuf)
+{
+	UINT_32 u4QueryInfoLen;
+	P_EVENT_BUILD_DATE_CODE prEvent;
+	P_GLUE_INFO_T prGlueInfo;
+
+	ASSERT(prAdapter);
+	ASSERT(prCmdInfo);
+	ASSERT(pucEventBuf);
+
+	/* 4 <2> Update information of OID */
+	if (prCmdInfo->fgIsOid) {
+		prGlueInfo = prAdapter->prGlueInfo;
+		prEvent = (P_EVENT_BUILD_DATE_CODE) pucEventBuf;
+
+		u4QueryInfoLen = sizeof(UINT_8) * 16;
+		kalMemCopy(prCmdInfo->pvInformationBuffer, prEvent->aucDateCode,
+			   sizeof(UINT_8) * 16);
+
+		kalOidComplete(prGlueInfo, prCmdInfo->fgSetQuery, u4QueryInfoLen,
+			       WLAN_STATUS_SUCCESS);
+	}
+
+	return;
+}
+#endif
+
+
+
+/*----------------------------------------------------------------------------*/
+/*!
+* @brief This function is called when event for query STA link status
+*        has been retrieved
+*
+* @param prAdapter          Pointer to the Adapter structure.
+* @param prCmdInfo          Pointer to the command information
+* @param pucEventBuf        Pointer to the event buffer
+*
+* @return none
+*
+*/
+/*----------------------------------------------------------------------------*/
+VOID
+nicCmdEventQueryStaStatistics(IN P_ADAPTER_T prAdapter,
+			      IN P_CMD_INFO_T prCmdInfo, IN PUINT_8 pucEventBuf)
+{
+	UINT_32 u4QueryInfoLen;
+	P_EVENT_STA_STATISTICS_T prEvent;
+	P_GLUE_INFO_T prGlueInfo;
+	P_PARAM_GET_STA_STATISTICS prStaStatistics;
+
+	ASSERT(prAdapter);
+	ASSERT(prCmdInfo);
+	ASSERT(pucEventBuf);
+	ASSERT(prCmdInfo->pvInformationBuffer);
+
+	if (prCmdInfo->fgIsOid) {
+		prGlueInfo = prAdapter->prGlueInfo;
+		prEvent = (P_EVENT_STA_STATISTICS_T) pucEventBuf;
+		prStaStatistics = (P_PARAM_GET_STA_STATISTICS) prCmdInfo->pvInformationBuffer;
+
+		u4QueryInfoLen = sizeof(PARAM_GET_STA_STA_STATISTICS);
+
+		/* Statistics from FW is valid */
+		if (prEvent->u4Flags & BIT(0)) {
+			prStaStatistics->ucPer = prEvent->ucPer;
+			prStaStatistics->ucRcpi = prEvent->ucRcpi;
+			prStaStatistics->u4PhyMode = prEvent->u4PhyMode;
+			prStaStatistics->u2LinkSpeed = prEvent->u2LinkSpeed;
+
+			prStaStatistics->u4TxFailCount = prEvent->u4TxFailCount;
+			prStaStatistics->u4TxLifeTimeoutCount = prEvent->u4TxLifeTimeoutCount;
+
+			if (prEvent->u4TxCount) {
+				UINT_32 u4TxDoneAirTimeMs =
+				    USEC_TO_MSEC(prEvent->u4TxDoneAirTime * 32);
+
+				prStaStatistics->u4TxAverageAirTime =
+				    (u4TxDoneAirTimeMs / prEvent->u4TxCount);
+			} else {
+				prStaStatistics->u4TxAverageAirTime = 0;
+			}
+		}
+
+		kalOidComplete(prGlueInfo, prCmdInfo->fgSetQuery, u4QueryInfoLen,
+			       WLAN_STATUS_SUCCESS);
+	}
+
+}
+
+#if CFG_AUTO_CHANNEL_SEL_SUPPORT
+
+/* 4  Auto Channel Selection */
+
+/*----------------------------------------------------------------------------*/
+/*!
+* @brief This function is called when event for query STA link status
+*        has been retrieved
+*
+* @param prAdapter          Pointer to the Adapter structure.
+* @param prCmdInfo          Pointer to the command information
+* @param pucEventBuf        Pointer to the event buffer
+*
+* @return none
+*
+*/
+/*----------------------------------------------------------------------------*/
+VOID
+nicCmdEventQueryChannelLoad(IN P_ADAPTER_T prAdapter,
+			    IN P_CMD_INFO_T prCmdInfo, IN PUINT_8 pucEventBuf)
+{
+	UINT_32 u4QueryInfoLen;
+	P_EVENT_CHN_LOAD_T prEvent;
+	P_GLUE_INFO_T prGlueInfo;
+	P_PARAM_GET_CHN_LOAD prChnLoad;
+
+	ASSERT(prAdapter);
+	ASSERT(prCmdInfo);
+	ASSERT(pucEventBuf);
+	ASSERT(prCmdInfo->pvInformationBuffer);
+
+	if (prCmdInfo->fgIsOid) {
+		prGlueInfo = prAdapter->prGlueInfo;
+		prEvent = (P_EVENT_CHN_LOAD_T) pucEventBuf;	/* 4 The firmware responsed data */
+		prChnLoad = (P_PARAM_GET_CHN_LOAD) prCmdInfo->pvInformationBuffer;	/* 4 Fill the firmware data in and send it back to host */
+
+		u4QueryInfoLen = sizeof(PARAM_GET_CHN_LOAD);
+
+		/* Statistics from FW is valid */
+		if (prEvent->u4Flags & BIT(0)) {
+			prChnLoad->rEachChnLoad[0].ucChannel = prEvent->ucChannel;
+			prChnLoad->rEachChnLoad[0].u2ChannelLoad = prEvent->u2ChannelLoad;
+			printk("CHN[%d]=%d\n", prEvent->ucChannel, prEvent->u2ChannelLoad);
+
+		}
+
+		kalOidComplete(prGlueInfo, prCmdInfo->fgSetQuery, u4QueryInfoLen,
+			       WLAN_STATUS_SUCCESS);
+	}
+
+}
+
+VOID
+nicCmdEventQueryLTESafeChn(IN P_ADAPTER_T prAdapter,
+			   IN P_CMD_INFO_T prCmdInfo, IN PUINT_8 pucEventBuf)
+{
+	UINT_32 u4QueryInfoLen;
+	P_EVENT_LTE_MODE_T prEvent;
+	P_GLUE_INFO_T prGlueInfo;
+	P_PARAM_GET_CHN_LOAD prLteSafeChnInfo;
+
+	ASSERT(prAdapter);
+	ASSERT(prCmdInfo);
+	ASSERT(pucEventBuf);
+	ASSERT(prCmdInfo->pvInformationBuffer);
+	if (prCmdInfo->fgIsOid) {
+		prGlueInfo = prAdapter->prGlueInfo;
+		prEvent = (P_EVENT_LTE_MODE_T) pucEventBuf;	/* 4 The firmware responsed data */
+
+		prLteSafeChnInfo = (P_PARAM_GET_CHN_LOAD) prCmdInfo->pvInformationBuffer;
+
+		u4QueryInfoLen = sizeof(PARAM_GET_CHN_LOAD);
+
+		/* Statistics from FW is valid */
+		if (prEvent->u4Flags & BIT(0)) {
+			/* prLteSafeChnInfo->rLteSafeChnList.ucChannelHigh= prEvent->rLteSafeChn.ucChannelHigh; */
+			/* prLteSafeChnInfo->rLteSafeChnList.ucChannelLow= prEvent->rLteSafeChn.ucChannelLow; */
+			prLteSafeChnInfo->rLteSafeChnList.u4SafeChannelBitmask[0] = prEvent->rLteSafeChn.u4SafeChannelBitmask[0];
+			if (prEvent->ucVersion != 0) {
+				prLteSafeChnInfo->rLteSafeChnList.u4SafeChannelBitmask[1] = prEvent->rLteSafeChn.u4SafeChannelBitmask[1];
+				prLteSafeChnInfo->rLteSafeChnList.u4SafeChannelBitmask[2] = prEvent->rLteSafeChn.u4SafeChannelBitmask[2];
+				prLteSafeChnInfo->rLteSafeChnList.u4SafeChannelBitmask[3] = prEvent->rLteSafeChn.u4SafeChannelBitmask[3];
+			}
+			DBGLOG(P2P, INFO, ("[Query-info Auto Channel]LTE safe channels 0x%08x\n", prLteSafeChnInfo->rLteSafeChnList.u4SafeChannelBitmask[0]));
+		}
+		kalOidComplete(prGlueInfo, prCmdInfo->fgSetQuery, u4QueryInfoLen,
+			       WLAN_STATUS_SUCCESS);
+	}
+
 }
 #endif

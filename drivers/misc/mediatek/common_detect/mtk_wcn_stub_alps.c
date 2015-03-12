@@ -1,10 +1,10 @@
 /*
 * Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
 * GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 * See the GNU General Public License for more details.
 *
@@ -42,8 +42,9 @@
 #include <linux/module.h>
 #include <mach/mtk_wcn_cmb_stub.h>
 
-//#include <cust_gpio_usage.h>
-//#include <mach/mt6573_pll.h> /* clr_device_working_ability, MT65XX_PDN_PERI_UART3, DEEP_IDLE_STATE, MT65XX_PDN_PERI_MSDC2 */
+/* #include <cust_gpio_usage.h> */
+/* #include <mach/mt6573_pll.h> */
+/* clr_device_working_ability, MT65XX_PDN_PERI_UART3, DEEP_IDLE_STATE, MT65XX_PDN_PERI_MSDC2 */
 
 #include <mach/mt_dcm.h>
 
@@ -71,7 +72,7 @@
 int gConnectivityChipId = -1;
 
 #ifdef MTK_WCN_COMBO_CHIP_SUPPORT
-char *wmt_uart_port_desc = "ttyMT2";  // current used uart port name, default is "ttyMT2", will be changed when wmt driver init
+char *wmt_uart_port_desc = "ttyMT2";	/* current used uart port name, default is "ttyMT2", will be changed when wmt driver init */
 EXPORT_SYMBOL(wmt_uart_port_desc);
 #endif
 
@@ -80,22 +81,22 @@ EXPORT_SYMBOL(wmt_uart_port_desc);
 ********************************************************************************
 */
 
-static wmt_aif_ctrl_cb cmb_stub_aif_ctrl_cb = NULL;
-static wmt_func_ctrl_cb cmb_stub_func_ctrl_cb = NULL;
-static wmt_thermal_query_cb cmb_stub_thermal_ctrl_cb = NULL;
+static wmt_aif_ctrl_cb cmb_stub_aif_ctrl_cb;
+static wmt_func_ctrl_cb cmb_stub_func_ctrl_cb;
+static wmt_thermal_query_cb cmb_stub_thermal_ctrl_cb;
 static CMB_STUB_AIF_X cmb_stub_aif_stat = CMB_STUB_AIF_0;
-static wmt_deep_idle_ctrl_cb cmb_stub_deep_idle_ctrl_cb = NULL;
+static wmt_deep_idle_ctrl_cb cmb_stub_deep_idle_ctrl_cb;
 /* A temp translation table between COMBO_AUDIO_STATE_X and CMB_STUB_AIF_X.
  * This is used for ALPS backward compatible ONLY!!! Remove this table, related
  * functions, and type definition after modifying other kernel built-in modules,
  * such as AUDIO. [FixMe][GeorgeKuo]
  */
- #if 0
+#if 0
 static CMB_STUB_AIF_X audio2aif[] = {
-    [COMBO_AUDIO_STATE_0] = CMB_STUB_AIF_0,
-    [COMBO_AUDIO_STATE_1] = CMB_STUB_AIF_1,
-    [COMBO_AUDIO_STATE_2] = CMB_STUB_AIF_2,
-    [COMBO_AUDIO_STATE_3] = CMB_STUB_AIF_3,
+	[COMBO_AUDIO_STATE_0] = CMB_STUB_AIF_0,
+	[COMBO_AUDIO_STATE_1] = CMB_STUB_AIF_1,
+	[COMBO_AUDIO_STATE_2] = CMB_STUB_AIF_2,
+	[COMBO_AUDIO_STATE_3] = CMB_STUB_AIF_3,
 };
 #endif
 /*******************************************************************************
@@ -104,7 +105,7 @@ static CMB_STUB_AIF_X audio2aif[] = {
 */
 
 #ifdef MTK_WCN_COMBO_CHIP_SUPPORT
-/* mtk_uart_pdn_enable -- request uart port enter/exit deep idle mode, this API is defined in uart driver 
+/* mtk_uart_pdn_enable -- request uart port enter/exit deep idle mode, this API is defined in uart driver
  *
  * @ port - uart port name, Eg: "ttyMT0", "ttyMT1", "ttyMT2"
  * @ enable - "1", enable deep idle; "0", disable deep idle
@@ -130,25 +131,24 @@ extern unsigned int mtk_uart_pdn_enable(char *port, int enable);
  * \retval 0 operation success
  * \retval -1 invalid parameters
  */
-int
-mtk_wcn_cmb_stub_reg (P_CMB_STUB_CB p_stub_cb)
+int mtk_wcn_cmb_stub_reg(P_CMB_STUB_CB p_stub_cb)
 {
-    if ( (!p_stub_cb )
-        || (p_stub_cb->size != sizeof(CMB_STUB_CB)) ) {
-        CMB_STUB_LOG_WARN( "[cmb_stub] invalid p_stub_cb:0x%p size(%d)\n",
-            p_stub_cb, (p_stub_cb) ? p_stub_cb->size: 0);
-        return -1;
-    }
+	if ((!p_stub_cb)
+	    || (p_stub_cb->size != sizeof(CMB_STUB_CB))) {
+		CMB_STUB_LOG_WARN("[cmb_stub] invalid p_stub_cb:0x%p size(%d)\n",
+				  p_stub_cb, (p_stub_cb) ? p_stub_cb->size : 0);
+		return -1;
+	}
 
-    CMB_STUB_LOG_DBG( "[cmb_stub] registered, p_stub_cb:0x%p size(%d)\n",
-        p_stub_cb, p_stub_cb->size);
+	CMB_STUB_LOG_DBG("[cmb_stub] registered, p_stub_cb:0x%p size(%d)\n",
+			 p_stub_cb, p_stub_cb->size);
 
-    cmb_stub_aif_ctrl_cb = p_stub_cb->aif_ctrl_cb;
-    cmb_stub_func_ctrl_cb = p_stub_cb->func_ctrl_cb;
-    cmb_stub_thermal_ctrl_cb = p_stub_cb->thermal_query_cb;
-    cmb_stub_deep_idle_ctrl_cb = p_stub_cb->deep_idle_ctrl_cb;
-	
-    return 0;
+	cmb_stub_aif_ctrl_cb = p_stub_cb->aif_ctrl_cb;
+	cmb_stub_func_ctrl_cb = p_stub_cb->func_ctrl_cb;
+	cmb_stub_thermal_ctrl_cb = p_stub_cb->thermal_query_cb;
+	cmb_stub_deep_idle_ctrl_cb = p_stub_cb->deep_idle_ctrl_cb;
+
+	return 0;
 }
 
 /*!
@@ -159,44 +159,41 @@ mtk_wcn_cmb_stub_reg (P_CMB_STUB_CB p_stub_cb)
  *
  * \retval 0 operation success
  */
-int
-mtk_wcn_cmb_stub_unreg (void)
+int mtk_wcn_cmb_stub_unreg(void)
 {
-    cmb_stub_aif_ctrl_cb = NULL;
-    cmb_stub_func_ctrl_cb = NULL;
+	cmb_stub_aif_ctrl_cb = NULL;
+	cmb_stub_func_ctrl_cb = NULL;
 	cmb_stub_thermal_ctrl_cb = NULL;
 	cmb_stub_deep_idle_ctrl_cb = NULL;
-	
-    CMB_STUB_LOG_INFO("[cmb_stub] unregistered \n"); /* KERN_DEBUG */
 
-    return 0;
+	CMB_STUB_LOG_INFO("[cmb_stub] unregistered\n");	/* KERN_DEBUG */
+
+	return 0;
 }
 
 /* stub functions for kernel to control audio path pin mux */
-int mtk_wcn_cmb_stub_aif_ctrl (CMB_STUB_AIF_X state, CMB_STUB_AIF_CTRL ctrl)
+int mtk_wcn_cmb_stub_aif_ctrl(CMB_STUB_AIF_X state, CMB_STUB_AIF_CTRL ctrl)
 {
-    int ret;
+	int ret;
 
-    if ( (CMB_STUB_AIF_MAX <= state)
-        || (CMB_STUB_AIF_CTRL_MAX <= ctrl) ) {
+	if ((CMB_STUB_AIF_MAX <= state)
+	    || (CMB_STUB_AIF_CTRL_MAX <= ctrl)) {
 
-        CMB_STUB_LOG_WARN("[cmb_stub] aif_ctrl invalid (%d, %d)\n", state, ctrl);
-        return -1;
-    }
+		CMB_STUB_LOG_WARN("[cmb_stub] aif_ctrl invalid (%d, %d)\n", state, ctrl);
+		return -1;
+	}
 
-    /* avoid the early interrupt before we register the eirq_handler */
-    if (cmb_stub_aif_ctrl_cb){
-        ret = (*cmb_stub_aif_ctrl_cb)(state, ctrl);
-        CMB_STUB_LOG_INFO( "[cmb_stub] aif_ctrl_cb state(%d->%d) ctrl(%d) ret(%d)\n",
-            cmb_stub_aif_stat , state, ctrl, ret); /* KERN_DEBUG */
+	/* avoid the early interrupt before we register the eirq_handler */
+	if (cmb_stub_aif_ctrl_cb) {
+		ret = (*cmb_stub_aif_ctrl_cb) (state, ctrl);
+		CMB_STUB_LOG_INFO("[cmb_stub] aif_ctrl_cb state(%d->%d) ctrl(%d) ret(%d)\n", cmb_stub_aif_stat, state, ctrl, ret);	/* KERN_DEBUG */
 
-        cmb_stub_aif_stat = state;
-        return ret;
-    }
-    else {
-        CMB_STUB_LOG_WARN("[cmb_stub] aif_ctrl_cb null \n");
-        return -2;
-    }
+		cmb_stub_aif_stat = state;
+		return ret;
+	} else {
+		CMB_STUB_LOG_WARN("[cmb_stub] aif_ctrl_cb null\n");
+		return -2;
+	}
 }
 
 /* Use a temp translation table between COMBO_AUDIO_STATE_X and CMB_STUB_AIF_X
@@ -205,25 +202,22 @@ int mtk_wcn_cmb_stub_aif_ctrl (CMB_STUB_AIF_X state, CMB_STUB_AIF_CTRL ctrl)
  * AUDIO. [FixMe][GeorgeKuo]
  */
 
-void mtk_wcn_cmb_stub_func_ctrl (unsigned int type, unsigned int on) {
-    if (cmb_stub_func_ctrl_cb) {
-        (*cmb_stub_func_ctrl_cb)(type, on);
-    }
-    else {
-        CMB_STUB_LOG_WARN("[cmb_stub] func_ctrl_cb null \n");
-    }
+void mtk_wcn_cmb_stub_func_ctrl(unsigned int type, unsigned int on)
+{
+	if (cmb_stub_func_ctrl_cb) {
+		(*cmb_stub_func_ctrl_cb) (type, on);
+	} else {
+		CMB_STUB_LOG_WARN("[cmb_stub] func_ctrl_cb null\n");
+	}
 }
 
-signed long mtk_wcn_cmb_stub_query_ctrl()
+signed long mtk_wcn_cmb_stub_query_ctrl(void)
 {
 	signed long temp = 0;
 
-	if(cmb_stub_thermal_ctrl_cb)
-	{
-		temp = (*cmb_stub_thermal_ctrl_cb)();
-	}
-	else
-	{
+	if (cmb_stub_thermal_ctrl_cb) {
+		temp = (*cmb_stub_thermal_ctrl_cb) ();
+	} else {
 		CMB_STUB_LOG_WARN("[cmb_stub] thermal_ctrl_cb null\n");
 	}
 
@@ -231,109 +225,102 @@ signed long mtk_wcn_cmb_stub_query_ctrl()
 }
 
 /*platform-related APIs*/
-//void clr_device_working_ability(UINT32 clockId, MT6573_STATE state);
-//void set_device_working_ability(UINT32 clockId, MT6573_STATE state);
+/* void clr_device_working_ability(UINT32 clockId, MT6573_STATE state); */
+/* void set_device_working_ability(UINT32 clockId, MT6573_STATE state); */
 
-static int
-_mt_combo_plt_do_deep_idle(COMBO_IF src, int enter) {
-    int ret = -1;
+static int _mt_combo_plt_do_deep_idle(COMBO_IF src, int enter)
+{
+	int ret = -1;
 
 #if 0
-    const char *combo_if_name[] =
-    {   "COMBO_IF_UART",
-        "COMBO_IF_MSDC"
-    };
+	const char *combo_if_name[] = { "COMBO_IF_UART",
+		"COMBO_IF_MSDC"
+	};
 #endif
 
-    if(src != COMBO_IF_UART && src!= COMBO_IF_MSDC && src != COMBO_IF_BTIF){
-        CMB_STUB_LOG_WARN("src = %d is error\n", src);
-        return ret;
-    }
+	if (src != COMBO_IF_UART && src != COMBO_IF_MSDC && src != COMBO_IF_BTIF) {
+		CMB_STUB_LOG_WARN("src = %d is error\n", src);
+		return ret;
+	}
 #if 0
-    if(src >= 0 && src < COMBO_IF_MAX){
-        CMB_STUB_LOG_INFO("src = %s, to enter deep idle? %d \n",
-            combo_if_name[src],
-            enter);
-    }
+	if (src >= 0 && src < COMBO_IF_MAX) {
+		CMB_STUB_LOG_INFO("src = %s, to enter deep idle? %d\n", combo_if_name[src], enter);
+	}
 #endif
-    /*TODO: For Common SDIO configuration, we need to do some judgement between STP and WIFI
-            to decide if the msdc will enter deep idle safely*/
+	/*TODO: For Common SDIO configuration, we need to do some judgement between STP and WIFI
+	   to decide if the msdc will enter deep idle safely */
 
-    switch(src){
-        case COMBO_IF_UART:
-            if(enter == 0){
-                //clr_device_working_ability(MT65XX_PDN_PERI_UART3, DEEP_IDLE_STATE);
-                //disable_dpidle_by_bit(MT65XX_PDN_PERI_UART2);
+	switch (src) {
+	case COMBO_IF_UART:
+		if (enter == 0) {
+			/* clr_device_working_ability(MT65XX_PDN_PERI_UART3, DEEP_IDLE_STATE); */
+			/* disable_dpidle_by_bit(MT65XX_PDN_PERI_UART2); */
 #ifdef MTK_WCN_COMBO_CHIP_SUPPORT
-                ret = mtk_uart_pdn_enable(wmt_uart_port_desc, 0);
-                if (ret < 0) {
-                    CMB_STUB_LOG_WARN("[CMB] %s exit deep idle failed\n", wmt_uart_port_desc);
-                }
+			ret = mtk_uart_pdn_enable(wmt_uart_port_desc, 0);
+			if (ret < 0) {
+				CMB_STUB_LOG_WARN("[CMB] %s exit deep idle failed\n",
+						  wmt_uart_port_desc);
+			}
 #endif
-            } else {
-                //set_device_working_ability(MT65XX_PDN_PERI_UART3, DEEP_IDLE_STATE);
-                //enable_dpidle_by_bit(MT65XX_PDN_PERI_UART2);
+		} else {
+			/* set_device_working_ability(MT65XX_PDN_PERI_UART3, DEEP_IDLE_STATE); */
+			/* enable_dpidle_by_bit(MT65XX_PDN_PERI_UART2); */
 #ifdef MTK_WCN_COMBO_CHIP_SUPPORT
-                ret = mtk_uart_pdn_enable(wmt_uart_port_desc, 1);
-                if (ret < 0) {
-                    CMB_STUB_LOG_WARN("[CMB] %s enter deep idle failed\n", wmt_uart_port_desc);
-                }
+			ret = mtk_uart_pdn_enable(wmt_uart_port_desc, 1);
+			if (ret < 0) {
+				CMB_STUB_LOG_WARN("[CMB] %s enter deep idle failed\n",
+						  wmt_uart_port_desc);
+			}
 #endif
-            }
-            ret = 0;
-            break;
+		}
+		ret = 0;
+		break;
 
-        case COMBO_IF_MSDC:
-            if(enter == 0){
-                //clr_device_working_ability(MT65XX_PDN_PERI_MSDC2, DEEP_IDLE_STATE);
-            } else {
-                //set_device_working_ability(MT65XX_PDN_PERI_MSDC2, DEEP_IDLE_STATE);
-            }
-            ret = 0;
-            break;
-			
-		case COMBO_IF_BTIF:
-			if(cmb_stub_deep_idle_ctrl_cb)
-			{
-				ret = (*cmb_stub_deep_idle_ctrl_cb)(enter);
-			}else
-			{
-				CMB_STUB_LOG_WARN("NULL function pointer\n");
-			}
-			if(ret)
-			{
-				CMB_STUB_LOG_WARN("%s deep idle fail(%d)\n",enter == 1?"enter":"exit",ret);
-			}else
-			{
-				CMB_STUB_LOG_DBG("%s deep idle ok(%d)\n",enter == 1?"enter":"exit",ret);
-			}
-			
-            break;
+	case COMBO_IF_MSDC:
+		if (enter == 0) {
+			/* clr_device_working_ability(MT65XX_PDN_PERI_MSDC2, DEEP_IDLE_STATE); */
+		} else {
+			/* set_device_working_ability(MT65XX_PDN_PERI_MSDC2, DEEP_IDLE_STATE); */
+		}
+		ret = 0;
+		break;
 
-        default:
-            ret = -1;
-            break;
-    }
+	case COMBO_IF_BTIF:
+		if (cmb_stub_deep_idle_ctrl_cb) {
+			ret = (*cmb_stub_deep_idle_ctrl_cb) (enter);
+		} else {
+			CMB_STUB_LOG_WARN("NULL function pointer\n");
+		}
+		if (ret) {
+			CMB_STUB_LOG_WARN("%s deep idle fail(%d)\n", enter == 1 ? "enter" : "exit",
+					  ret);
+		} else {
+			CMB_STUB_LOG_DBG("%s deep idle ok(%d)\n", enter == 1 ? "enter" : "exit",
+					 ret);
+		}
 
-    return ret;
+		break;
+
+	default:
+		ret = -1;
+		break;
+	}
+
+	return ret;
 }
 
-int
-mt_combo_plt_enter_deep_idle (
-    COMBO_IF src
-    ) {
-    //return 0;
-    // TODO: [FixMe][GeorgeKuo] handling this depends on common UART or common SDIO
-    return _mt_combo_plt_do_deep_idle(src, 1);
+int mt_combo_plt_enter_deep_idle(COMBO_IF src)
+{
+	/* return 0; */
+	/* TODO: [FixMe][GeorgeKuo] handling this depends on common UART or common SDIO */
+	return _mt_combo_plt_do_deep_idle(src, 1);
 }
 
-int
-mt_combo_plt_exit_deep_idle (
-    COMBO_IF src
-    ) {
-    //return 0;
-    // TODO: [FixMe][GeorgeKuo] handling this depends on common UART or common SDIO
-    return _mt_combo_plt_do_deep_idle(src, 0);
+int mt_combo_plt_exit_deep_idle(COMBO_IF src)
+{
+	/* return 0; */
+	/* TODO: [FixMe][GeorgeKuo] handling this depends on common UART or common SDIO */
+	return _mt_combo_plt_do_deep_idle(src, 0);
 }
 
 int mtk_wcn_wmt_chipid_query(void)
@@ -343,10 +330,9 @@ int mtk_wcn_wmt_chipid_query(void)
 
 void mtk_wcn_wmt_set_chipid(int chipid)
 {
-	CMB_STUB_LOG_INFO("set current consys chipid (0x%x)\n",chipid);
+	CMB_STUB_LOG_INFO("set current consys chipid (0x%x)\n", chipid);
 	gConnectivityChipId = chipid;
 }
-
 EXPORT_SYMBOL(mt_combo_plt_exit_deep_idle);
 EXPORT_SYMBOL(mt_combo_plt_enter_deep_idle);
 EXPORT_SYMBOL(mtk_wcn_cmb_stub_func_ctrl);
@@ -355,4 +341,3 @@ EXPORT_SYMBOL(mtk_wcn_cmb_stub_unreg);
 EXPORT_SYMBOL(mtk_wcn_cmb_stub_reg);
 EXPORT_SYMBOL(mtk_wcn_wmt_chipid_query);
 EXPORT_SYMBOL(mtk_wcn_wmt_set_chipid);
-

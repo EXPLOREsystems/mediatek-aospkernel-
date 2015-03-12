@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/nic/wlan_def.h#1 $
 */
 
@@ -25,7 +39,7 @@
  *
  * 06 22 2011 wh.su
  * [WCXRP00000806] [MT6620 Wi-Fi][Driver] Move the WPA/RSN IE and WAPI IE structure to mac.h and let the sw structure not align at byte
- * Move the WAPI/RSN IE to mac.h and SW structure not align to byte, 
+ * Move the WAPI/RSN IE to mac.h and SW structure not align to byte,
  * Notice needed update P2P.ko.
  *
  * 04 08 2011 eddie.chen
@@ -274,10 +288,10 @@
 #define RATE_GF_MCS_7           (TX_MODE_HT_GF | PHY_RATE_MCS7)
 #define RATE_GF_MCS_32          (TX_MODE_HT_GF | PHY_RATE_MCS32)
 
-#define RATE_TX_MODE_MASK                   BITS(6,7)
+#define RATE_TX_MODE_MASK                   BITS(6, 7)
 #define RATE_TX_MODE_OFFSET                 6
 #define RATE_CODE_GET_TX_MODE(_ucRateCode)  ((_ucRateCode & RATE_TX_MODE_MASK) >> RATE_TX_MODE_OFFSET)
-#define RATE_PHY_RATE_MASK                  BITS(0,5)
+#define RATE_PHY_RATE_MASK                  BITS(0, 5)
 #define RATE_PHY_RATE_OFFSET                0
 #define RATE_CODE_GET_PHY_RATE(_ucRateCode) ((_ucRateCode & RATE_PHY_RATE_MASK) >> RATE_PHY_RATE_OFFSET)
 #define RATE_PHY_RATE_SHORT_PREAMBLE        BIT(4)
@@ -299,26 +313,26 @@
 
 /* PHY TYPE set definitions */
 #define PHY_TYPE_SET_802_11ABGN (PHY_TYPE_BIT_OFDM | \
-                                 PHY_TYPE_BIT_HR_DSSS | \
-                                 PHY_TYPE_BIT_ERP | \
-                                 PHY_TYPE_BIT_HT)
+				 PHY_TYPE_BIT_HR_DSSS | \
+				 PHY_TYPE_BIT_ERP | \
+				 PHY_TYPE_BIT_HT)
 
 #define PHY_TYPE_SET_802_11BGN  (PHY_TYPE_BIT_HR_DSSS | \
-                                 PHY_TYPE_BIT_ERP | \
-                                 PHY_TYPE_BIT_HT)
+				 PHY_TYPE_BIT_ERP | \
+				 PHY_TYPE_BIT_HT)
 
 #define PHY_TYPE_SET_802_11GN   (PHY_TYPE_BIT_ERP | \
-                                 PHY_TYPE_BIT_HT)
+				 PHY_TYPE_BIT_HT)
 
 #define PHY_TYPE_SET_802_11AN   (PHY_TYPE_BIT_OFDM | \
-                                 PHY_TYPE_BIT_HT)
+				 PHY_TYPE_BIT_HT)
 
 #define PHY_TYPE_SET_802_11ABG  (PHY_TYPE_BIT_OFDM | \
-                                 PHY_TYPE_BIT_HR_DSSS | \
-                                 PHY_TYPE_BIT_ERP)
+				 PHY_TYPE_BIT_HR_DSSS | \
+				 PHY_TYPE_BIT_ERP)
 
 #define PHY_TYPE_SET_802_11BG   (PHY_TYPE_BIT_HR_DSSS | \
-                                 PHY_TYPE_BIT_ERP)
+				 PHY_TYPE_BIT_ERP)
 
 #define PHY_TYPE_SET_802_11A    (PHY_TYPE_BIT_OFDM)
 
@@ -349,87 +363,87 @@
 
 /* Rate set definitions */
 #define RATE_SET_HR_DSSS            (RATE_SET_BIT_1M | \
-                                     RATE_SET_BIT_2M | \
-                                     RATE_SET_BIT_5_5M | \
-                                     RATE_SET_BIT_11M)
+				     RATE_SET_BIT_2M | \
+				     RATE_SET_BIT_5_5M | \
+				     RATE_SET_BIT_11M)
 
 #define RATE_SET_ERP                (RATE_SET_BIT_1M | \
-                                     RATE_SET_BIT_2M | \
-                                     RATE_SET_BIT_5_5M | \
-                                     RATE_SET_BIT_11M | \
-                                     RATE_SET_BIT_6M | \
-                                     RATE_SET_BIT_9M | \
-                                     RATE_SET_BIT_12M | \
-                                     RATE_SET_BIT_18M | \
-                                     RATE_SET_BIT_24M | \
-                                     RATE_SET_BIT_36M | \
-                                     RATE_SET_BIT_48M | \
-                                     RATE_SET_BIT_54M)
+				     RATE_SET_BIT_2M | \
+				     RATE_SET_BIT_5_5M | \
+				     RATE_SET_BIT_11M | \
+				     RATE_SET_BIT_6M | \
+				     RATE_SET_BIT_9M | \
+				     RATE_SET_BIT_12M | \
+				     RATE_SET_BIT_18M | \
+				     RATE_SET_BIT_24M | \
+				     RATE_SET_BIT_36M | \
+				     RATE_SET_BIT_48M | \
+				     RATE_SET_BIT_54M)
 
 #define RATE_SET_ERP_P2P            (RATE_SET_BIT_6M | \
-                                     RATE_SET_BIT_9M | \
-                                     RATE_SET_BIT_12M | \
-                                     RATE_SET_BIT_18M | \
-                                     RATE_SET_BIT_24M | \
-                                     RATE_SET_BIT_36M | \
-                                     RATE_SET_BIT_48M | \
-                                     RATE_SET_BIT_54M)
+				     RATE_SET_BIT_9M | \
+				     RATE_SET_BIT_12M | \
+				     RATE_SET_BIT_18M | \
+				     RATE_SET_BIT_24M | \
+				     RATE_SET_BIT_36M | \
+				     RATE_SET_BIT_48M | \
+				     RATE_SET_BIT_54M)
 
 #define RATE_SET_OFDM               (RATE_SET_BIT_6M | \
-                                     RATE_SET_BIT_9M | \
-                                     RATE_SET_BIT_12M | \
-                                     RATE_SET_BIT_18M | \
-                                     RATE_SET_BIT_24M | \
-                                     RATE_SET_BIT_36M | \
-                                     RATE_SET_BIT_48M | \
-                                     RATE_SET_BIT_54M)
+				     RATE_SET_BIT_9M | \
+				     RATE_SET_BIT_12M | \
+				     RATE_SET_BIT_18M | \
+				     RATE_SET_BIT_24M | \
+				     RATE_SET_BIT_36M | \
+				     RATE_SET_BIT_48M | \
+				     RATE_SET_BIT_54M)
 
 #define RATE_SET_HT                 (RATE_SET_ERP)
-//#define RATE_SET_HT                 (RATE_SET_ERP | RATE_SET_BIT_HT_PHY) /* NOTE(Kevin): TBD */
+/* #define RATE_SET_HT                 (RATE_SET_ERP | RATE_SET_BIT_HT_PHY) /* NOTE(Kevin): TBD */ */
 
 
 #define RATE_SET_ALL_ABG             RATE_SET_ERP
 
 #define BASIC_RATE_SET_HR_DSSS      (RATE_SET_BIT_1M | \
-                                     RATE_SET_BIT_2M)
+				     RATE_SET_BIT_2M)
 
 #define BASIC_RATE_SET_HR_DSSS_ERP  (RATE_SET_BIT_1M | \
-                                     RATE_SET_BIT_2M | \
-                                     RATE_SET_BIT_5_5M | \
-                                     RATE_SET_BIT_11M)
+				     RATE_SET_BIT_2M | \
+				     RATE_SET_BIT_5_5M | \
+				     RATE_SET_BIT_11M)
 
 #define BASIC_RATE_SET_ERP          (RATE_SET_BIT_1M | \
-                                     RATE_SET_BIT_2M | \
-                                     RATE_SET_BIT_5_5M | \
-                                     RATE_SET_BIT_11M | \
-                                     RATE_SET_BIT_6M | \
-                                     RATE_SET_BIT_12M | \
-                                     RATE_SET_BIT_24M)
+				     RATE_SET_BIT_2M | \
+				     RATE_SET_BIT_5_5M | \
+				     RATE_SET_BIT_11M | \
+				     RATE_SET_BIT_6M | \
+				     RATE_SET_BIT_12M | \
+				     RATE_SET_BIT_24M)
 
 #define BASIC_RATE_SET_OFDM         (RATE_SET_BIT_6M | \
-                                     RATE_SET_BIT_12M | \
-                                     RATE_SET_BIT_24M)
+				     RATE_SET_BIT_12M | \
+				     RATE_SET_BIT_24M)
 
 #define BASIC_RATE_SET_ERP_P2P      (RATE_SET_BIT_6M | \
-                                     RATE_SET_BIT_12M | \
-                                     RATE_SET_BIT_24M)
+				     RATE_SET_BIT_12M | \
+				     RATE_SET_BIT_24M)
 
 #define INITIAL_RATE_SET_RCPI_100    RATE_SET_ALL_ABG
 
 #define INITIAL_RATE_SET_RCPI_80    (RATE_SET_BIT_1M | \
-                                     RATE_SET_BIT_2M | \
-                                     RATE_SET_BIT_5_5M | \
-                                     RATE_SET_BIT_11M | \
-                                     RATE_SET_BIT_6M | \
-                                     RATE_SET_BIT_9M | \
-                                     RATE_SET_BIT_12M | \
-                                     RATE_SET_BIT_24M)
+				     RATE_SET_BIT_2M | \
+				     RATE_SET_BIT_5_5M | \
+				     RATE_SET_BIT_11M | \
+				     RATE_SET_BIT_6M | \
+				     RATE_SET_BIT_9M | \
+				     RATE_SET_BIT_12M | \
+				     RATE_SET_BIT_24M)
 
 #define INITIAL_RATE_SET_RCPI_60    (RATE_SET_BIT_1M | \
-                                     RATE_SET_BIT_2M | \
-                                     RATE_SET_BIT_5_5M | \
-                                     RATE_SET_BIT_11M | \
-                                     RATE_SET_BIT_6M)
+				     RATE_SET_BIT_2M | \
+				     RATE_SET_BIT_5_5M | \
+				     RATE_SET_BIT_11M | \
+				     RATE_SET_BIT_6M)
 
 #define INITIAL_RATE_SET(_rcpi)     (INITIAL_RATE_SET_ ## _rcpi)
 
@@ -461,7 +475,9 @@
 #define AUTH_TYPE_FAST_BSS_TRANSITION               BIT(AUTH_ALGORITHM_NUM_FAST_BSS_TRANSITION)
 
 /* Authentication Retry Limit */
-#define TX_AUTH_ASSOCI_RETRY_LIMIT                  6
+#define AIS_TX_AUTH_ASSOCI_RETRY_LIMIT                  2
+#define P2P_TX_AUTH_ASSOCI_RETRY_LIMIT                  6
+#define BOW_TX_AUTH_ASSOCI_RETRY_LIMIT                  6
 #define TX_AUTH_ASSOCI_RETRY_LIMIT_FOR_ROAMING      1
 
 /* WMM-2.2.1 WMM Information Element */
@@ -538,11 +554,10 @@ ENUM_STA_TYPE_INDEX_T;
 #define STA_ROLE_BASE_INDEX     4
 
 typedef enum _ENUM_STA_ROLE_INDEX_T {
-    STA_ROLE_ADHOC_INDEX = STA_ROLE_BASE_INDEX, //4
+    STA_ROLE_ADHOC_INDEX = STA_ROLE_BASE_INDEX, /* 4 */
     STA_ROLE_CLIENT_INDEX,
     STA_ROLE_AP_INDEX,
-	STA_ROLE_TDLS_INDEX, /* ++ TDLS */
-	STA_ROLE_DLS_INDEX /* Note: need to extend P_CMD_UPDATE_STA_RECORD_T */
+    STA_ROLE_DLS_INDEX
 } ENUM_STA_ROLE_INDEX_T;
 
 /* The Power State of a specific Network */
@@ -554,13 +569,13 @@ typedef enum _ENUM_PWR_STATE_T {
 } ENUM_PWR_STATE_T;
 
 typedef enum _ENUM_PHY_TYPE_INDEX_T {
-    //PHY_TYPE_DSSS_INDEX,      /* DSSS PHY (clause 15) -- Not used anymore */
+    /* PHY_TYPE_DSSS_INDEX,      /* DSSS PHY (clause 15) -- Not used anymore */ */
     PHY_TYPE_HR_DSSS_INDEX = 0, /* HR/DSSS PHY (clause 18) */
     PHY_TYPE_ERP_INDEX,         /* ERP PHY (clause 19) */
     PHY_TYPE_ERP_P2P_INDEX,     /* ERP PHY (clause 19) w/o HR/DSSS */
     PHY_TYPE_OFDM_INDEX,        /* OFDM 5 GHz PHY (clause 17) */
     PHY_TYPE_HT_INDEX,          /* HT PHY (clause 20) */
-    PHY_TYPE_INDEX_NUM // 5
+    PHY_TYPE_INDEX_NUM /* 5 */
 } ENUM_PHY_TYPE_INDEX_T, *P_ENUM_PHY_TYPE_INDEX_T;
 
 typedef enum _ENUM_ACPI_STATE_T {
@@ -617,7 +632,7 @@ typedef enum _ENUM_RATE_INDEX_T {
     RATE_48M_INDEX,         /* 48M */
     RATE_54M_INDEX,         /* 54M */
     RATE_HT_PHY_INDEX,      /* BSS Selector - HT PHY */
-    RATE_NUM // 15
+    RATE_NUM /* 15 */
 } ENUM_RATE_INDEX_T, *P_ENUM_RATE_INDEX_T;
 
 typedef enum _ENUM_HT_RATE_INDEX_T {
@@ -630,7 +645,7 @@ typedef enum _ENUM_HT_RATE_INDEX_T {
     HT_RATE_MCS6_INDEX,
     HT_RATE_MCS7_INDEX,
     HT_RATE_MCS32_INDEX,
-    HT_RATE_NUM // 9
+    HT_RATE_NUM /* 9 */
 } ENUM_HT_RATE_INDEX_T, *P_ENUM_HT_RATE_INDEX_T;
 
 typedef enum _ENUM_PREMABLE_OPTION_T {
@@ -673,10 +688,10 @@ typedef struct _DEAUTH_INFO_T {
 /*----------------------------------------------------------------------------*/
 /* Information Element (IE) handlers                                          */
 /*----------------------------------------------------------------------------*/
-typedef VOID (*PFN_APPEND_IE_FUNC)(P_ADAPTER_T, P_MSDU_INFO_T);
-typedef VOID (*PFN_HANDLE_IE_FUNC)(P_ADAPTER_T, P_SW_RFB_T, P_IE_HDR_T);
-typedef VOID (*PFN_VERIFY_IE_FUNC)(P_ADAPTER_T, P_SW_RFB_T, P_IE_HDR_T, PUINT_16);
-typedef UINT_32 (*PFN_CALCULATE_VAR_IE_LEN_FUNC)(P_ADAPTER_T, ENUM_NETWORK_TYPE_INDEX_T, P_STA_RECORD_T);
+typedef VOID(*PFN_APPEND_IE_FUNC)(P_ADAPTER_T, P_MSDU_INFO_T);
+typedef VOID(*PFN_HANDLE_IE_FUNC)(P_ADAPTER_T, P_SW_RFB_T, P_IE_HDR_T);
+typedef VOID(*PFN_VERIFY_IE_FUNC)(P_ADAPTER_T, P_SW_RFB_T, P_IE_HDR_T, PUINT_16);
+typedef UINT_32(*PFN_CALCULATE_VAR_IE_LEN_FUNC)(P_ADAPTER_T, ENUM_NETWORK_TYPE_INDEX_T, P_STA_RECORD_T);
 
 typedef struct _APPEND_IE_ENTRY_T {
     UINT_16             u2EstimatedIELen;
@@ -727,7 +742,7 @@ typedef enum _ENUM_PARAM_PHY_CONFIG_T {
     PHY_CONFIG_802_11BGN,               /*!< Can associated with 802_11bgn AP, Scan single band and not report 5G BSSs. */
     PHY_CONFIG_802_11AN,                /*!< Can associated with 802_11an AP, Scan single band and not report 2.4G BSSs. */
     PHY_CONFIG_802_11GN,                /*!< Can associated with 802_11gn AP, Scan single band and not report 5G BSSs. */
-    PHY_CONFIG_NUM // 9
+    PHY_CONFIG_NUM /* 9 */
 } ENUM_PARAM_PHY_CONFIG_T, *P_ENUM_PARAM_PHY_CONFIG_T;
 
 /* This is enum defined for user to select an AP Mode */
@@ -737,7 +752,7 @@ typedef enum _ENUM_PARAM_AP_MODE_T {
     AP_MODE_11G,                    /*!< Create 11g only BSS if we support 802.11abg/802.11bg/802.11g. */
     AP_MODE_11G_P2P,                /*!< Create 11g only BSS for P2P if we support 802.11abg/802.11bg/802.11g. */
     AP_MODE_11A,                    /*!< Create 11a only BSS if we support 802.11abg. */
-    AP_MODE_NUM // 4
+    AP_MODE_NUM /* 4 */
 } ENUM_PARAM_AP_MODE_T, *P_ENUM_PARAM_AP_MODE_T;
 
 
@@ -752,7 +767,6 @@ typedef enum _ENUM_PARAM_AP_MODE_T {
 #define STA_TYPE_CLIENT_MASK                BIT(STA_ROLE_CLIENT_INDEX)
 #define STA_TYPE_AP_MASK                    BIT(STA_ROLE_AP_INDEX)
 #define STA_TYPE_DLS_MASK                   BIT(STA_ROLE_DLS_INDEX)
-#define STA_TYPE_TDLS_MASK                  BIT(STA_ROLE_TDLS_INDEX) /* ++ TDLS */
 
 /* Macros for obtaining the Network Type or the Station Role, given the ENUM_STA_TYPE_T */
 #define IS_STA_IN_AIS(_prStaRec)        ((_prStaRec)->ucNetTypeIndex == NETWORK_TYPE_AIS_INDEX)
@@ -765,7 +779,6 @@ typedef enum _ENUM_PARAM_AP_MODE_T {
 #define IS_CLIENT_STA(_prStaRec)        ((_prStaRec->eStaType) & STA_TYPE_CLIENT_MASK)
 #define IS_AP_STA(_prStaRec)            ((_prStaRec->eStaType) & STA_TYPE_AP_MASK)
 #define IS_DLS_STA(_prStaRec)           ((_prStaRec->eStaType) & STA_TYPE_DLS_MASK)
-#define IS_TDLS_STA(_prStaRec)          ((_prStaRec->eStaType) & STA_TYPE_TDLS_MASK) /* ++ TDLS */
 
 /* The ENUM_STA_TYPE_T accounts for ENUM_NETWORK_TYPE_T and ENUM_STA_ROLE_INDEX_T.
  * *   It is a merged version of Network Type and STA Role.
@@ -782,8 +795,7 @@ typedef enum _ENUM_STA_TYPE_T {
     STA_TYPE_BOW_AP         = (STA_TYPE_BOW_MASK | STA_TYPE_AP_MASK),
     STA_TYPE_BOW_CLIENT     = (STA_TYPE_BOW_MASK | STA_TYPE_CLIENT_MASK),
 #endif
-    STA_TYPE_DLS_PEER       = (STA_TYPE_LEGACY_MASK | STA_TYPE_DLS_MASK), /* ++ TDLS */
-    STA_TYPE_TDLS_PEER		= (STA_TYPE_LEGACY_MASK | STA_TYPE_TDLS_MASK) /* ++ TDLS */
+    STA_TYPE_DLS_PEER       = (STA_TYPE_LEGACY_MASK | STA_TYPE_DLS_MASK)
 } ENUM_STA_TYPE_T, *P_ENUM_STA_TYPE_T;
 
 /* The type of BSS we discovered */
@@ -798,9 +810,9 @@ typedef enum _ENUM_BSS_TYPE_T {
 /*----------------------------------------------------------------------------*/
 /* RSN structures                                                             */
 /*----------------------------------------------------------------------------*/
-//#if defined(WINDOWS_DDK) || defined(WINDOWS_CE)
-//#pragma pack(1)
-//#endif
+/* #if defined(WINDOWS_DDK) || defined(WINDOWS_CE) */
+/* #pragma pack(1) */
+/* #endif */
 
 #define MAX_NUM_SUPPORTED_CIPHER_SUITES 8     /* max number of supported cipher suites */
 #if CFG_SUPPORT_802_11W
@@ -840,9 +852,9 @@ typedef struct _WAPI_INFO_T {
     UINT_8          aucBkid[1][16];
 } /* __KAL_ATTRIB_PACKED__*/ WAPI_INFO_T, *P_WAPI_INFO_T;
 
-//#if defined(WINDOWS_DDK) || defined(WINDOWS_CE)
-//#pragma pack()
-//#endif
+/* #if defined(WINDOWS_DDK) || defined(WINDOWS_CE) */
+/* #pragma pack() */
+/* #endif */
 
 
 #if CFG_ENABLE_WIFI_DIRECT
@@ -862,10 +874,10 @@ typedef struct _P2P_DEVICE_DESC_T {
     UINT_16             u2ConfigMethod; /* Configure Method support. */
     P2P_DEVICE_TYPE_T   rPriDevType;
     UINT_8              ucSecDevTypeNum;
-    P2P_DEVICE_TYPE_T   arSecDevType[8];   // Reference to P2P_GC_MAX_CACHED_SEC_DEV_TYPE_COUNT
+    P2P_DEVICE_TYPE_T   arSecDevType[8];   /* Reference to P2P_GC_MAX_CACHED_SEC_DEV_TYPE_COUNT */
     UINT_16             u2NameLength;
-    UINT_8              aucName[32];                // Reference to WPS_ATTRI_MAX_LEN_DEVICE_NAME
-    // TODO: Service Information or PasswordID valid?
+    UINT_8              aucName[32];                /* Reference to WPS_ATTRI_MAX_LEN_DEVICE_NAME */
+    /* TODO: Service Information or PasswordID valid? */
 } P2P_DEVICE_DESC_T, *P_P2P_DEVICE_DESC_T;
 
 #endif
@@ -882,58 +894,58 @@ typedef struct _P2P_DEVICE_DESC_T {
 */
 static const UINT_8 aucRateIndex2RateCode[PREAMBLE_OPTION_NUM][RATE_NUM] = {
     { /* Long Preamble */
-        RATE_CCK_1M_LONG,       /* RATE_1M_INDEX = 0 */
-        RATE_CCK_2M_LONG,       /* RATE_2M_INDEX */
-        RATE_CCK_5_5M_LONG,     /* RATE_5_5M_INDEX */
-        RATE_CCK_11M_LONG,      /* RATE_11M_INDEX */
-        RATE_CCK_1M_LONG,       /* RATE_22M_INDEX - Not supported */
-        RATE_CCK_1M_LONG,       /* RATE_33M_INDEX - Not supported */
-        RATE_OFDM_6M,           /* RATE_6M_INDEX */
-        RATE_OFDM_9M,           /* RATE_9M_INDEX */
-        RATE_OFDM_12M,          /* RATE_12M_INDEX */
-        RATE_OFDM_18M,          /* RATE_18M_INDEX */
-        RATE_OFDM_24M,          /* RATE_24M_INDEX */
-        RATE_OFDM_36M,          /* RATE_36M_INDEX */
-        RATE_OFDM_48M,          /* RATE_48M_INDEX */
-        RATE_OFDM_54M,           /* RATE_54M_INDEX */
+	RATE_CCK_1M_LONG,       /* RATE_1M_INDEX = 0 */
+	RATE_CCK_2M_LONG,       /* RATE_2M_INDEX */
+	RATE_CCK_5_5M_LONG,     /* RATE_5_5M_INDEX */
+	RATE_CCK_11M_LONG,      /* RATE_11M_INDEX */
+	RATE_CCK_1M_LONG,       /* RATE_22M_INDEX - Not supported */
+	RATE_CCK_1M_LONG,       /* RATE_33M_INDEX - Not supported */
+	RATE_OFDM_6M,           /* RATE_6M_INDEX */
+	RATE_OFDM_9M,           /* RATE_9M_INDEX */
+	RATE_OFDM_12M,          /* RATE_12M_INDEX */
+	RATE_OFDM_18M,          /* RATE_18M_INDEX */
+	RATE_OFDM_24M,          /* RATE_24M_INDEX */
+	RATE_OFDM_36M,          /* RATE_36M_INDEX */
+	RATE_OFDM_48M,          /* RATE_48M_INDEX */
+	RATE_OFDM_54M,           /* RATE_54M_INDEX */
     },
     { /* Short Preamble */
-        RATE_CCK_1M_LONG,       /* RATE_1M_INDEX = 0 */
-        RATE_CCK_2M_SHORT,      /* RATE_2M_INDEX */
-        RATE_CCK_5_5M_SHORT,    /* RATE_5_5M_INDEX */
-        RATE_CCK_11M_SHORT,     /* RATE_11M_INDEX */
-        RATE_CCK_1M_LONG,       /* RATE_22M_INDEX - Not supported */
-        RATE_CCK_1M_LONG,       /* RATE_33M_INDEX - Not supported */
-        RATE_OFDM_6M,           /* RATE_6M_INDEX */
-        RATE_OFDM_9M,           /* RATE_9M_INDEX */
-        RATE_OFDM_12M,          /* RATE_12M_INDEX */
-        RATE_OFDM_18M,          /* RATE_18M_INDEX */
-        RATE_OFDM_24M,          /* RATE_24M_INDEX */
-        RATE_OFDM_36M,          /* RATE_36M_INDEX */
-        RATE_OFDM_48M,          /* RATE_48M_INDEX */
-        RATE_OFDM_54M,           /* RATE_54M_INDEX */
+	RATE_CCK_1M_LONG,       /* RATE_1M_INDEX = 0 */
+	RATE_CCK_2M_SHORT,      /* RATE_2M_INDEX */
+	RATE_CCK_5_5M_SHORT,    /* RATE_5_5M_INDEX */
+	RATE_CCK_11M_SHORT,     /* RATE_11M_INDEX */
+	RATE_CCK_1M_LONG,       /* RATE_22M_INDEX - Not supported */
+	RATE_CCK_1M_LONG,       /* RATE_33M_INDEX - Not supported */
+	RATE_OFDM_6M,           /* RATE_6M_INDEX */
+	RATE_OFDM_9M,           /* RATE_9M_INDEX */
+	RATE_OFDM_12M,          /* RATE_12M_INDEX */
+	RATE_OFDM_18M,          /* RATE_18M_INDEX */
+	RATE_OFDM_24M,          /* RATE_24M_INDEX */
+	RATE_OFDM_36M,          /* RATE_36M_INDEX */
+	RATE_OFDM_48M,          /* RATE_48M_INDEX */
+	RATE_OFDM_54M,           /* RATE_54M_INDEX */
     },
     { /* Mixed Mode(Option) */
-        RATE_MM_MCS_0,               /* RATE_MCS0_INDEX, */
-        RATE_MM_MCS_1,               /* RATE_MCS1_INDEX, */
-        RATE_MM_MCS_2,               /* RATE_MCS2_INDEX, */
-        RATE_MM_MCS_3,               /* RATE_MCS3_INDEX, */
-        RATE_MM_MCS_4,               /* RATE_MCS4_INDEX, */
-        RATE_MM_MCS_5,               /* RATE_MCS5_INDEX, */
-        RATE_MM_MCS_6,               /* RATE_MCS6_INDEX, */
-        RATE_MM_MCS_7,               /* RATE_MCS7_INDEX, */
-        RATE_MM_MCS_32               /* RATE_MCS32_INDEX, */
+	RATE_MM_MCS_0,               /* RATE_MCS0_INDEX, */
+	RATE_MM_MCS_1,               /* RATE_MCS1_INDEX, */
+	RATE_MM_MCS_2,               /* RATE_MCS2_INDEX, */
+	RATE_MM_MCS_3,               /* RATE_MCS3_INDEX, */
+	RATE_MM_MCS_4,               /* RATE_MCS4_INDEX, */
+	RATE_MM_MCS_5,               /* RATE_MCS5_INDEX, */
+	RATE_MM_MCS_6,               /* RATE_MCS6_INDEX, */
+	RATE_MM_MCS_7,               /* RATE_MCS7_INDEX, */
+	RATE_MM_MCS_32               /* RATE_MCS32_INDEX, */
     },
     { /* Green Field(Option) */
-        RATE_GF_MCS_0,               /* RATE_MCS0_INDEX, */
-        RATE_GF_MCS_1,               /* RATE_MCS1_INDEX, */
-        RATE_GF_MCS_2,               /* RATE_MCS2_INDEX, */
-        RATE_GF_MCS_3,               /* RATE_MCS3_INDEX, */
-        RATE_GF_MCS_4,               /* RATE_MCS4_INDEX, */
-        RATE_GF_MCS_5,               /* RATE_MCS5_INDEX, */
-        RATE_GF_MCS_6,               /* RATE_MCS6_INDEX, */
-        RATE_GF_MCS_7,               /* RATE_MCS7_INDEX, */
-        RATE_GF_MCS_32               /* RATE_MCS32_INDEX, */
+	RATE_GF_MCS_0,               /* RATE_MCS0_INDEX, */
+	RATE_GF_MCS_1,               /* RATE_MCS1_INDEX, */
+	RATE_GF_MCS_2,               /* RATE_MCS2_INDEX, */
+	RATE_GF_MCS_3,               /* RATE_MCS3_INDEX, */
+	RATE_GF_MCS_4,               /* RATE_MCS4_INDEX, */
+	RATE_GF_MCS_5,               /* RATE_MCS5_INDEX, */
+	RATE_GF_MCS_6,               /* RATE_MCS6_INDEX, */
+	RATE_GF_MCS_7,               /* RATE_MCS7_INDEX, */
+	RATE_GF_MCS_32               /* RATE_MCS32_INDEX, */
     }
 };
 
@@ -952,56 +964,56 @@ static const UINT_8 aucRateTableSize[PREAMBLE_OPTION_NUM] = {
 /* Macros to get and set the wireless LAN frame fields those are 16/32 bits in
    length. */
 #define WLAN_GET_FIELD_16(_memAddr_p, _value_p) \
-        { \
-            PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
-            *(PUINT_16)(_value_p) = ((UINT_16) __cp[0]) | ((UINT_16) __cp[1] << 8); \
-        }
+	{ \
+	    PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
+	    *(PUINT_16)(_value_p) = ((UINT_16) __cp[0]) | ((UINT_16) __cp[1] << 8); \
+	}
 
 #define WLAN_GET_FIELD_BE16(_memAddr_p, _value_p) \
-        { \
-            PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
-            *(PUINT_16)(_value_p) = ((UINT_16) __cp[0] << 8) | ((UINT_16) __cp[1]); \
-        }
+	{ \
+	    PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
+	    *(PUINT_16)(_value_p) = ((UINT_16) __cp[0] << 8) | ((UINT_16) __cp[1]); \
+	}
 
 #define WLAN_GET_FIELD_32(_memAddr_p, _value_p) \
-        { \
-            PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
-            *(PUINT_32)(_value_p) = ((UINT_32) __cp[0])       | ((UINT_32) __cp[1] << 8) | \
-                                    ((UINT_32) __cp[2] << 16) | ((UINT_32) __cp[3] << 24); \
-        }
+	{ \
+	    PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
+	    *(PUINT_32)(_value_p) = ((UINT_32) __cp[0])       | ((UINT_32) __cp[1] << 8) | \
+				    ((UINT_32) __cp[2] << 16) | ((UINT_32) __cp[3] << 24); \
+	}
 
 #define WLAN_GET_FIELD_64(_memAddr_p, _value_p) \
-        { \
-            PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
-            *(PUINT_64)(_value_p) = \
-                ((UINT_64) __cp[0])       | ((UINT_64) __cp[1] << 8)  | \
-                ((UINT_64) __cp[2] << 16) | ((UINT_64) __cp[3] << 24) | \
-                ((UINT_64) __cp[4] << 32) | ((UINT_64) __cp[5] << 40) | \
-                ((UINT_64) __cp[6] << 48) | ((UINT_64) __cp[7] << 56); \
-        }
+	{ \
+	    PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
+	    *(PUINT_64)(_value_p) = \
+		((UINT_64) __cp[0])       | ((UINT_64) __cp[1] << 8)  | \
+		((UINT_64) __cp[2] << 16) | ((UINT_64) __cp[3] << 24) | \
+		((UINT_64) __cp[4] << 32) | ((UINT_64) __cp[5] << 40) | \
+		((UINT_64) __cp[6] << 48) | ((UINT_64) __cp[7] << 56); \
+	}
 
 #define WLAN_SET_FIELD_16(_memAddr_p, _value) \
-        { \
-            PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
-            __cp[0] = (UINT_8) (_value); \
-            __cp[1] = (UINT_8) ((_value) >> 8); \
-        }
+	{ \
+	    PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
+	    __cp[0] = (UINT_8) (_value); \
+	    __cp[1] = (UINT_8) ((_value) >> 8); \
+	}
 
 #define WLAN_SET_FIELD_BE16(_memAddr_p, _value) \
        { \
-            PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
-            __cp[0] = (UINT_8) ((_value) >> 8); \
-            __cp[1] = (UINT_8) (_value); \
+	    PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
+	    __cp[0] = (UINT_8) ((_value) >> 8); \
+	    __cp[1] = (UINT_8) (_value); \
        }
 
 #define WLAN_SET_FIELD_32(_memAddr_p, _value) \
-        { \
-            PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
-            __cp[0] = (UINT_8) (_value); \
-            __cp[1] = (UINT_8) ((_value) >> 8); \
-            __cp[2] = (UINT_8) ((_value) >> 16); \
-            __cp[3] = (UINT_8) ((_value) >> 24); \
-        }
+	{ \
+	    PUINT_8 __cp = (PUINT_8) (_memAddr_p); \
+	    __cp[0] = (UINT_8) (_value); \
+	    __cp[1] = (UINT_8) ((_value) >> 8); \
+	    __cp[2] = (UINT_8) ((_value) >> 16); \
+	    __cp[3] = (UINT_8) ((_value) >> 24); \
+	}
 
 
 
@@ -1017,4 +1029,3 @@ static const UINT_8 aucRateTableSize[PREAMBLE_OPTION_NUM] = {
 */
 
 #endif /* _WLAN_DEF_H */
-

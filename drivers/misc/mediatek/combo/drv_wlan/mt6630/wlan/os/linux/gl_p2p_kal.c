@@ -21,18 +21,7 @@
 */
 #include "net/cfg80211.h"
 #include "precomp.h"
-
-extern BOOLEAN
-wextSrchDesiredWPAIE(IN PUINT_8 pucIEStart,
-		     IN INT_32 i4TotalIeLen,
-		     IN UINT_8 ucDesiredElemId, OUT PUINT_8 * ppucDesiredIE);
-
-#if CFG_SUPPORT_WPS
-extern BOOLEAN
-wextSrchDesiredWPSIE(IN PUINT_8 pucIEStart,
-		     IN INT_32 i4TotalIeLen,
-		     IN UINT_8 ucDesiredElemId, OUT PUINT_8 * ppucDesiredIE);
-#endif
+#include "gl_wext.h"
 
 /*******************************************************************************
 *                              C O N S T A N T S
@@ -175,7 +164,7 @@ kalP2PUpdateAssocInfo(IN P_GLUE_INFO_T prGlueInfo,
 	wireless_send_event(prGlueInfo->prP2PInfo->prDevHandler, IWEVASSOCREQIE, &wrqu,
 			    pucExtraInfo);
 
- skip_indicate_event:
+skip_indicate_event:
 	return;
 
 }
@@ -451,7 +440,7 @@ UINT_8 kalP2PGetWscMode(IN P_GLUE_INFO_T prGlueInfo)
 	ASSERT(prGlueInfo);
 	ASSERT(prGlueInfo->prP2PInfo);
 
-	return (prGlueInfo->prP2PInfo->ucWSCRunning);
+	return prGlueInfo->prP2PInfo->ucWSCRunning;
 }
 
 
@@ -920,14 +909,14 @@ kalP2PIndicateChannelReady(IN P_GLUE_INFO_T prGlueInfo,
 					  u8SeqNum,	/* u64 cookie, */
 					  prIEEE80211ChnlStruct,	/* struct ieee80211_channel * chan, */
 					  u4Duration,	/* unsigned int duration, */
-					  GFP_KERNEL);	/* gfp_t gfp   */ /* allocation flags */
+					  GFP_KERNEL);	/* gfp_t gfp */ /* allocation flags */
 #else
 		cfg80211_ready_on_channel(prGlueInfo->prP2PInfo->prDevHandler,	/* struct net_device * dev, */
 					  u8SeqNum,	/* u64 cookie, */
 					  prIEEE80211ChnlStruct,	/* struct ieee80211_channel * chan, */
 					  eChnlType,	/* enum nl80211_channel_type channel_type, */
 					  u4Duration,	/* unsigned int duration, */
-					  GFP_KERNEL);	/* gfp_t gfp  */ /* allocation flags */ 
+					  GFP_KERNEL);	/* gfp_t gfp */ /* allocation flags */
 #endif
 	} while (FALSE);
 
@@ -985,6 +974,7 @@ kalP2PIndicateScanDone(IN P_GLUE_INFO_T prGlueInfo, IN UINT_8 ucRoleIndex, IN BO
 {
 	P_GL_P2P_INFO_T prGlueP2pInfo = (P_GL_P2P_INFO_T) NULL;
 	struct cfg80211_scan_request *prScanRequest = NULL;
+	GLUE_SPIN_LOCK_DECLARATION();
 
 	do {
 		if (prGlueInfo == NULL) {
@@ -1000,20 +990,22 @@ kalP2PIndicateScanDone(IN P_GLUE_INFO_T prGlueInfo, IN UINT_8 ucRoleIndex, IN BO
 			break;
 		}
 
-		DBGLOG(INIT, TRACE, ("[p2p] scan complete %p\n", prGlueP2pInfo->prScanRequest));
+		DBGLOG(INIT, INFO, ("[p2p] scan complete %p\n", prGlueP2pInfo->prScanRequest));
 
-		if (prGlueP2pInfo->prScanRequest) {
-			cfg80211_scan_done(prGlueP2pInfo->prScanRequest, fgIsAbort);
+		GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_NET_DEV);
 
+		if (prGlueP2pInfo->prScanRequest != NULL) {
+			prScanRequest = prGlueP2pInfo->prScanRequest;
 			prGlueP2pInfo->prScanRequest = NULL;
 		}
+		GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_NET_DEV);
 
 		if (prScanRequest != NULL) {
 
 			/* report all queued beacon/probe response frames  to upper layer */
 			scanReportBss2Cfg80211(prGlueInfo->prAdapter, BSS_TYPE_P2P_DEVICE, NULL);
 
-			DBGLOG(INIT, TRACE, ("DBG:p2p_cfg_scan_done\n"));
+			DBGLOG(INIT, INFO, ("DBG:p2p_cfg_scan_done\n"));
 			cfg80211_scan_done(prScanRequest, fgIsAbort);
 		}
 
@@ -1095,8 +1087,8 @@ kalP2PIndicateMgmtTxStatus(IN P_GLUE_INFO_T prGlueInfo,
 		prGlueP2pInfo = prGlueInfo->prP2PInfo;
 
 		pu8GlCookie =
-		    (PUINT_64) ((UINT_32) prMsduInfo->prPacket +
-				(UINT_32) prMsduInfo->u2FrameLength + MAC_TX_RESERVED_FIELD);
+		    (PUINT_64) ((ULONG) prMsduInfo->prPacket +
+				(ULONG) prMsduInfo->u2FrameLength + MAC_TX_RESERVED_FIELD);
 
 		if (prMsduInfo->ucBssIndex == P2P_DEV_BSS_INDEX) {
 			prNetdevice = prGlueP2pInfo->prDevHandler;
@@ -1113,7 +1105,7 @@ kalP2PIndicateMgmtTxStatus(IN P_GLUE_INFO_T prGlueInfo,
 		cfg80211_mgmt_tx_status(prGlueP2pInfo->prDevHandler,	/* struct net_device * dev, */
 #endif				/* LINUX_VERSION_CODE */
 					*pu8GlCookie,
-					(PUINT_8) ((UINT_32) prMsduInfo->prPacket +
+					(PUINT_8) ((ULONG) prMsduInfo->prPacket +
 						   MAC_TX_RESERVED_FIELD),
 					prMsduInfo->u2FrameLength, fgIsAck, GFP_KERNEL);
 
@@ -1210,7 +1202,7 @@ kalP2PGCIndicateConnectionStatus(IN P_GLUE_INFO_T prGlueInfo,
 
 		if (prP2pConnInfo) {
 			cfg80211_connect_result(prGlueP2pInfo->aprRoleHandler[ucRoleIndex],	/* struct net_device * dev, */
-						prP2pConnInfo->aucBssid, prP2pConnInfo->aucIEBuf, prP2pConnInfo->u4BufLength, pucRxIEBuf, u2RxIELen, u2StatusReason, GFP_KERNEL);	/* gfp_t gfp  */ /* allocation flags */
+						prP2pConnInfo->aucBssid, prP2pConnInfo->aucIEBuf, prP2pConnInfo->u4BufLength, pucRxIEBuf, u2RxIELen, u2StatusReason, GFP_KERNEL);	/* gfp_t gfp *//* allocation flags */
 
 			prP2pConnInfo->eConnRequest = P2P_CONNECTION_TYPE_IDLE;
 		} else {
@@ -1379,7 +1371,7 @@ kalP2PSetBlackList(IN P_GLUE_INFO_T prGlueInfo, IN PARAM_MAC_ADDRESS rbssid, IN 
 	ASSERT(prGlueInfo->prP2PInfo);
 
 	if (fgIsblock) {
-		for (i = 0; i < 8; i++) {
+		for (i = 0; i < P2P_MAXIMUM_CLIENT_COUNT; i++) {
 			if (UNEQUAL_MAC_ADDR(rbssid, aucNullAddr)) {
 				if (UNEQUAL_MAC_ADDR
 				    (&(prGlueInfo->prP2PInfo->aucblackMACList[i]), rbssid)) {
@@ -1387,8 +1379,7 @@ kalP2PSetBlackList(IN P_GLUE_INFO_T prGlueInfo, IN PARAM_MAC_ADDRESS rbssid, IN 
 					    (&(prGlueInfo->prP2PInfo->aucblackMACList[i]),
 					     aucNullAddr)) {
 						COPY_MAC_ADDR(&
-							      (prGlueInfo->prP2PInfo->
-							       aucblackMACList[i]), rbssid);
+							      (prGlueInfo->prP2PInfo->aucblackMACList[i]), rbssid);
 						fgIsValid = FALSE;
 						return fgIsValid;
 					}
@@ -1396,7 +1387,7 @@ kalP2PSetBlackList(IN P_GLUE_INFO_T prGlueInfo, IN PARAM_MAC_ADDRESS rbssid, IN 
 			}
 		}
 	} else {
-		for (i = 0; i < 8; i++) {
+		for (i = 0; i < P2P_MAXIMUM_CLIENT_COUNT; i++) {
 			if (EQUAL_MAC_ADDR(&(prGlueInfo->prP2PInfo->aucblackMACList[i]), rbssid)) {
 				COPY_MAC_ADDR(&(prGlueInfo->prP2PInfo->aucblackMACList[i]),
 					      aucNullAddr);
@@ -1430,7 +1421,7 @@ BOOLEAN kalP2PCmpBlackList(IN P_GLUE_INFO_T prGlueInfo, IN PARAM_MAC_ADDRESS rbs
 	ASSERT(prGlueInfo);
 	ASSERT(prGlueInfo->prP2PInfo);
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < P2P_MAXIMUM_CLIENT_COUNT; i++) {
 		if (UNEQUAL_MAC_ADDR(rbssid, aucNullAddr)) {
 			if (EQUAL_MAC_ADDR(&(prGlueInfo->prP2PInfo->aucblackMACList[i]), rbssid)) {
 				fgIsExsit = TRUE;

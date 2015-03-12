@@ -821,7 +821,7 @@ INT32 mtk_wcn_hif_sdio_readb(MTK_WCN_HIF_SDIO_CLTCTX ctx, UINT32 offset, PUINT8 
 
 	/* 4 <3> check result code and return proper error code */
 
- out :
+ out:
 	HIF_SDIO_DBG_FUNC("end!\n");
 	return ret;
 }				/* end of mtk_wcn_hif_sdio_client_unreg() */
@@ -883,7 +883,7 @@ INT32 mtk_wcn_hif_sdio_writeb(MTK_WCN_HIF_SDIO_CLTCTX ctx, UINT32 offset, UINT8 
 
 	/* 4 <3> check result code and return proper error code */
 
- out :
+ out:
 	HIF_SDIO_DBG_FUNC("end!\n");
 	return ret;
 }				/* end of mtk_wcn_hif_sdio_client_unreg() */
@@ -944,7 +944,7 @@ INT32 mtk_wcn_hif_sdio_readl(MTK_WCN_HIF_SDIO_CLTCTX ctx, UINT32 offset, PUINT32
 
 	/* 4 <3> check result code and return proper error code */
 
- out :
+ out:
 	HIF_SDIO_DBG_FUNC("end!\n");
 	return ret;
 }				/* end of mtk_wcn_hif_sdio_client_unreg() */
@@ -1005,7 +1005,7 @@ INT32 mtk_wcn_hif_sdio_writel(MTK_WCN_HIF_SDIO_CLTCTX ctx, UINT32 offset, UINT32
 
 	/* 4 <3> check result code and return proper error code */
 
- out :
+ out:
 	HIF_SDIO_DBG_FUNC("end!\n");
 	return ret;
 }				/* end of mtk_wcn_hif_sdio_client_unreg() */
@@ -1067,7 +1067,7 @@ INT32 mtk_wcn_hif_sdio_read_buf(MTK_WCN_HIF_SDIO_CLTCTX ctx,
 
 	/* 4 <3> check result code and return proper error code */
 
- out :
+ out:
 	HIF_SDIO_DBG_FUNC("end!\n");
 	return ret;
 }				/* end of mtk_wcn_hif_sdio_read_buf() */
@@ -1131,7 +1131,7 @@ INT32 mtk_wcn_hif_sdio_write_buf(MTK_WCN_HIF_SDIO_CLTCTX ctx,
 
 	/* 4 <3> check result code and return proper error code */
 
- out :
+ out:
 	HIF_SDIO_DBG_FUNC("ret(%d) end!\n", ret);
 
 	return ret;
@@ -2677,7 +2677,7 @@ INT32 mtk_wcn_hif_sdio_f0_readb(MTK_WCN_HIF_SDIO_CLTCTX ctx, UINT32 offset, PUIN
 
 	/* 4 <3> check result code and return proper error code */
 
- out :
+ out:
 	HIF_SDIO_DBG_FUNC("end!\n");
 	return ret;
 }				/* end of mtk_wcn_hif_sdio_f0_readb() */
@@ -2740,7 +2740,7 @@ INT32 mtk_wcn_hif_sdio_f0_writeb(MTK_WCN_HIF_SDIO_CLTCTX ctx, UINT32 offset, UIN
 
 	/* 4 <3> check result code and return proper error code */
 
- out :
+ out:
 	HIF_SDIO_DBG_FUNC("end!\n");
 	return ret;
 }				/* end of mtk_wcn_hif_sdio_f0_writeb() */

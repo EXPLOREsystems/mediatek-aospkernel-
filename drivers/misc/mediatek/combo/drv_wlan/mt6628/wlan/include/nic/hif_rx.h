@@ -187,13 +187,13 @@ typedef enum _ENUM_HIF_RX_PKT_TYPE_T {
 
 
 #define HIF_RX_HDR_GET_CHNL_NUM(_prHifRxHdr) \
-    (( ((_prHifRxHdr)->ucHwChannelNum) > HW_CHNL_NUM_MAX_4G_5G) ? \
+    ((((_prHifRxHdr)->ucHwChannelNum) > HW_CHNL_NUM_MAX_4G_5G) ? \
       (((_prHifRxHdr)->ucHwChannelNum) - HW_CHNL_NUM_MAX_4G_5G) : \
       ((_prHifRxHdr)->ucHwChannelNum))
 
 /* To do: support more bands other than 2.4G and 5G */
 #define HIF_RX_HDR_GET_RF_BAND(_prHifRxHdr) \
-    (( ((_prHifRxHdr)->ucHwChannelNum) <= HW_CHNL_NUM_MAX_2G4) ? \
+    ((((_prHifRxHdr)->ucHwChannelNum) <= HW_CHNL_NUM_MAX_2G4) ? \
       BAND_2G4 : BAND_5G)
 
 /*******************************************************************************

@@ -12,6 +12,11 @@
 /*
 ** $Log: scan.h $
 **
+** 04 21 2014 eason.tsai
+** [ALPS01511962] [WFD][Case Fail]Device can't connect to another AP successfully after connect to WFD.
+**	BSS descipt timeout set 10s , or it would always trigger full channel scan before connection  and
+**	and connection fail
+**
 ** 03 12 2014 eason.tsai
 ** [ALPS01070904] [Need Patch] [Volunteer Patch][MT6630][Driver]MT6630 Wi-Fi Patch
 ** revise for cfg80211 disconnet because of timeout
@@ -321,13 +326,16 @@
 						 * If exceed this value, remove weakest BSS_DESC_T
 						 * with same SSID first in large network.
 						 */
-
+#if 1
+#define SCN_BSS_DESC_REMOVE_TIMEOUT_SEC     30
+#define SCN_BSS_DESC_STALE_SEC				10 /* 2.4G + 5G need 8.1s */
+#else
 #define SCN_BSS_DESC_REMOVE_TIMEOUT_SEC     5	/* Second. */
 					      /* This is used by POLICY TIMEOUT,
 					       * If exceed this value, remove timeout BSS_DESC_T.
 					       */
 
-
+#endif
 
 
 #define SCN_PROBE_DELAY_MSEC                0
@@ -350,6 +358,9 @@
 #define SCN_SSID_MAX_NUM                    CFG_SCAN_SSID_MAX_NUM
 #define SCN_SSID_MATCH_MAX_NUM              CFG_SCAN_SSID_MATCH_MAX_NUM
 
+#if CFG_SUPPORT_AGPS_ASSIST
+#define SCN_AGPS_AP_LIST_MAX_NUM					32
+#endif
 
 #if CFG_SUPPORT_BATCH_SCAN
 /*----------------------------------------------------------------------------*/
@@ -360,6 +371,8 @@
 #define SCAN_BATCH_REQ_RESULT               BIT(2)
 #endif
 
+#define SCAN_NLO_CHECK_SSID_ONLY    0x00000001
+#define SCAN_NLO_DEFAULT_INTERVAL           30000
 /*******************************************************************************
 *                             D A T A   T Y P E S
 ********************************************************************************
@@ -691,6 +704,27 @@ typedef struct _MSG_SCN_SCAN_DONE_T {
 	ENUM_SCAN_STATUS eScanStatus;
 } MSG_SCN_SCAN_DONE, *P_MSG_SCN_SCAN_DONE;
 
+#if CFG_SUPPORT_AGPS_ASSIST
+typedef enum {
+	AGPS_PHY_A,
+	AGPS_PHY_B,
+	AGPS_PHY_G,
+} AP_PHY_TYPE;
+
+typedef struct _AGPS_AP_INFO_T {
+    UINT_8 aucBSSID[MAC_ADDR_LEN];
+    INT_16 i2ApRssi; /* -127..128 */
+    UINT_16 u2Channel;   /* 0..256 */
+    AP_PHY_TYPE ePhyType;
+} AGPS_AP_INFO_T, *P_AGPS_AP_INFO_T;
+
+typedef struct _AGPS_AP_LIST_T {
+	UINT_8 ucNum;
+	AGPS_AP_INFO_T arApInfo[SCN_AGPS_AP_LIST_MAX_NUM];
+} AGPS_AP_LIST_T, *P_AGPS_AP_LIST_T;
+#endif
+
+
 typedef enum _ENUM_NLO_STATUS_T {
 	NLO_STATUS_FOUND = 0,
 	NLO_STATUS_CANCELLED,
@@ -874,5 +908,8 @@ scanSearchBssDescByBssidAndLatestUpdateTime(IN P_ADAPTER_T prAdapter, IN UINT_8 
     );
 #endif				/* CFG_SUPPORT_PASSPOINT */
 
+#if CFG_SUPPORT_AGPS_ASSIST
+VOID scanReportScanResultToAgps(P_ADAPTER_T prAdapter);
+#endif
 
 #endif				/* _SCAN_H */

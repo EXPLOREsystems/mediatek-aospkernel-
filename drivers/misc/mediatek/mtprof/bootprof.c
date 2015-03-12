@@ -151,8 +151,8 @@ static int mt_bootprof_show(struct seq_file *m, void *v)
 	if (bootprof_pl_t > 0 && bootprof_lk_t > 0) {
 		SEQ_printf(m, "%10d        : %s\n", bootprof_pl_t, "preloader");
 		SEQ_printf(m, "%10d        : %s\n", bootprof_lk_t, "lk");
-		//SEQ_printf(m, "%10d        : %s\n",
-		//	   gpt_boot_time() - bootprof_pl_t - bootprof_lk_t, "lk->Kernel");
+		SEQ_printf(m, "%10d        : %s\n",
+			   gpt_boot_time() - bootprof_pl_t - bootprof_lk_t, "lk->Kernel");
 		SEQ_printf(m, "----------------------------------------\n");
 	}
 

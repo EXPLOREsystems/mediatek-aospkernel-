@@ -72,8 +72,8 @@ VOID p2pGenerate_IEForAssocReq(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T prMsdu
 		prConnReqInfo = &(prP2pRoleFsmInfo->rConnReqInfo);
 
 		pucIEBuf =
-		    (PUINT_8) ((UINT_32) prMsduInfo->prPacket +
-			       (UINT_32) prMsduInfo->u2FrameLength);
+		    (PUINT_8) ((ULONG) prMsduInfo->prPacket +
+			       (ULONG) prMsduInfo->u2FrameLength);
 
 		kalMemCopy(pucIEBuf, prConnReqInfo->aucIEBuf, prConnReqInfo->u4BufLength);
 
@@ -94,3 +94,55 @@ VOID p2pGenerate_IEForAssocReq(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T prMsdu
 	return;
 
 }				/* p2pGenerate_IEForAssocReq */
+
+
+UINT_32
+wfdFuncAppendAttriDevInfo(IN P_ADAPTER_T prAdapter,
+			  IN BOOLEAN fgIsAssocFrame,
+			  IN PUINT_16 pu2Offset, IN PUINT_8 pucBuf, IN UINT_16 u2BufSize)
+{
+	UINT_32 u4AttriLen = 0;
+	PUINT_8 pucBuffer = NULL;
+	P_WFD_DEVICE_INFORMATION_IE_T prWfdDevInfo = (P_WFD_DEVICE_INFORMATION_IE_T) NULL;
+	P_WFD_CFG_SETTINGS_T prWfdCfgSettings = (P_WFD_CFG_SETTINGS_T) NULL;
+
+	do {
+		ASSERT_BREAK((prAdapter != NULL) && (pucBuf != NULL) && (pu2Offset != NULL));
+
+		prWfdCfgSettings = &(prAdapter->rWifiVar.rWfdConfigureSettings);
+
+		ASSERT_BREAK((prWfdCfgSettings != NULL));
+
+		if ((prWfdCfgSettings->ucWfdEnable == 0) ||
+		    ((prWfdCfgSettings->u4WfdFlag & WFD_FLAGS_DEV_INFO_VALID) == 0)) {
+			break;
+		}
+
+		pucBuffer = (PUINT_8) ((ULONG) pucBuf + (ULONG) (*pu2Offset));
+
+		ASSERT_BREAK(pucBuffer != NULL);
+
+		prWfdDevInfo = (P_WFD_DEVICE_INFORMATION_IE_T) pucBuffer;
+
+		prWfdDevInfo->ucElemID = WFD_ATTRI_ID_DEV_INFO;
+
+		WLAN_SET_FIELD_BE16(&prWfdDevInfo->u2WfdDevInfo, prWfdCfgSettings->u2WfdDevInfo);
+
+		WLAN_SET_FIELD_BE16(&prWfdDevInfo->u2SessionMgmtCtrlPort,
+				    prWfdCfgSettings->u2WfdControlPort);
+
+		WLAN_SET_FIELD_BE16(&prWfdDevInfo->u2WfdDevMaxSpeed,
+				    prWfdCfgSettings->u2WfdMaximumTp);
+
+		WLAN_SET_FIELD_BE16(&prWfdDevInfo->u2Length, WFD_ATTRI_MAX_LEN_DEV_INFO);
+
+		u4AttriLen = WFD_ATTRI_MAX_LEN_DEV_INFO + WFD_ATTRI_HDR_LEN;
+
+	} while (FALSE);
+
+	(*pu2Offset) += (UINT_16) u4AttriLen;
+
+	return u4AttriLen;
+}
+
+/* wfdFuncAppendAttriDevInfo */

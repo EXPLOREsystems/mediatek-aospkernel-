@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/TRUNK/WiFi_P2P_Driver/include/nic/p2p_mac.h#2 $
 */
 
@@ -114,10 +128,10 @@ typedef struct _P2P_ACTION_FRAME_T {
     UINT_8      aucBSSID[MAC_ADDR_LEN];     /* BSSID */
     UINT_16     u2SeqCtrl;                  /* Sequence Control */
     /* P2P Action Frame Body */
-    UINT_8 ucCategory;             // 0x7F
-    UINT_8 aucOui[3];               // 0x50, 0x6F, 0x9A
-    UINT_8 ucOuiType;              // 0x09
-    UINT_8 ucOuiSubtype;         //
+    UINT_8 ucCategory;             /* 0x7F */
+    UINT_8 aucOui[3];               /* 0x50, 0x6F, 0x9A */
+    UINT_8 ucOuiType;              /* 0x09 */
+    UINT_8 ucOuiSubtype;         /*  */
     UINT_8 ucDialogToken;
     UINT_8 aucInfoElem[1];
 } __KAL_ATTRIB_PACKED__ P2P_ACTION_FRAME_T, *P_P2P_ACTION_FRAME_T;
@@ -196,7 +210,7 @@ typedef struct _GAS_PUBLIC_ACTION_COMEBACK_RESPONSE_FRAME_T {
 
 typedef struct _P2P_SD_VENDER_SPECIFIC_CONTENT_T {
     /* Service Discovery Vendor-specific Content. */
-    UINT_8 ucOuiSubtype;         // 0x09
+    UINT_8 ucOuiSubtype;         /* 0x09 */
     UINT_16 u2ServiceUpdateIndicator;
     UINT_8 aucServiceTLV[1];
 } __KAL_ATTRIB_PACKED__ P2P_SD_VENDER_SPECIFIC_CONTENT_T, *P_P2P_SD_VENDER_SPECIFIC_CONTENT_T;

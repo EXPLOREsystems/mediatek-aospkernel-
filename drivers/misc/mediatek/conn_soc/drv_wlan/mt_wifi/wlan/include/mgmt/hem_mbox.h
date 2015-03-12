@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/mgmt/hem_mbox.h#2 $
 */
 
@@ -11,11 +25,11 @@
 
 /*
 ** $Log: hem_mbox.h $
-** 
+**
 ** 07 26 2012 yuche.tsai
 ** [ALPS00324337] [ALPS.JB][Hot-Spot] Driver update for Hot-Spot
 ** Update driver code of ALPS.JB for hot-spot.
-** 
+**
 ** 07 19 2012 yuche.tsai
 ** NULL
 ** Code update for JB.
@@ -302,7 +316,7 @@ typedef enum _ENUM_MSG_ID_T {
     MID_MNY_P2P_MGMT_FRAME_UPDATE,
 #if CFG_SUPPORT_WFD
     MID_MNY_P2P_WFD_CFG_UPDATE,
-#endif    
+#endif
 #endif
 
 #if CFG_SUPPORT_ADHOC
@@ -327,7 +341,7 @@ struct _MSG_HDR_T {
     ENUM_MSG_ID_T   eMsgId;
 };
 
-typedef VOID (*PFN_MSG_HNDL_FUNC)(P_ADAPTER_T, P_MSG_HDR_T);
+typedef VOID(*PFN_MSG_HNDL_FUNC)(P_ADAPTER_T, P_MSG_HDR_T);
 
 typedef struct _MSG_HNDL_ENTRY {
     ENUM_MSG_ID_T       eMsgId;
@@ -336,9 +350,9 @@ typedef struct _MSG_HNDL_ENTRY {
 
 typedef enum _EUNM_MSG_SEND_METHOD_T {
     MSG_SEND_METHOD_BUF = 0,    /* Message is put in the queue and will be
-                                   executed when mailbox is checked. */
+				   executed when mailbox is checked. */
     MSG_SEND_METHOD_UNBUF       /* The handler function is called immediately
-                                   in the same context of the sender */
+				   in the same context of the sender */
 } EUNM_MSG_SEND_METHOD_T, *P_EUNM_MSG_SEND_METHOD_T;
 
 
@@ -425,14 +439,14 @@ typedef MSG_SAA_FSM_ABORT_T MSG_JOIN_ABORT_T, *P_MSG_JOIN_ABORT_T;
 ********************************************************************************
 */
 VOID
-mboxSetup (
+mboxSetup(
     IN P_ADAPTER_T  prAdapter,
     IN ENUM_MBOX_ID_T  eMboxId
     );
 
 
 VOID
-mboxSendMsg (
+mboxSendMsg(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_MBOX_ID_T eMboxId,
     IN P_MSG_HDR_T prMsg,
@@ -440,23 +454,23 @@ mboxSendMsg (
     );
 
 VOID
-mboxRcvAllMsg (
+mboxRcvAllMsg(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_MBOX_ID_T eMboxId
     );
 
 VOID
-mboxInitialize (
+mboxInitialize(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-mboxDestroy (
+mboxDestroy(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-mboxDummy (
+mboxDummy(
     IN P_ADAPTER_T prAdapter,
     P_MSG_HDR_T prMsgHdr
     );
@@ -467,5 +481,3 @@ mboxDummy (
 */
 
 #endif /* _HEM_MBOX_H */
-
-

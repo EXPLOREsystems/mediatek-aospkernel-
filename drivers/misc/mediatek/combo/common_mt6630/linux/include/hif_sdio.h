@@ -81,7 +81,7 @@ typedef struct _MTK_WCN_HIF_SDIO_FUNCINFO MTK_WCN_HIF_SDIO_FUNCINFO;
 typedef UINT32 MTK_WCN_HIF_SDIO_CLTCTX;
 
 /* Callback functions provided by client driver */
-typedef INT32(*MTK_WCN_HIF_SDIO_PROBE)(MTK_WCN_HIF_SDIO_CLTCTX, const MTK_WCN_HIF_SDIO_FUNCINFO *);
+typedef INT32(*MTK_WCN_HIF_SDIO_PROBE)(MTK_WCN_HIF_SDIO_CLTCTX, const MTK_WCN_HIF_SDIO_FUNCINFO * );
 typedef INT32(*MTK_WCN_HIF_SDIO_REMOVE)(MTK_WCN_HIF_SDIO_CLTCTX);
 typedef INT32(*MTK_WCN_HIF_SDIO_IRQ)(MTK_WCN_HIF_SDIO_CLTCTX);
 
@@ -143,7 +143,7 @@ typedef enum {
     HIF_SDIO_ERR_ALRDY_ON = HIF_SDIO_ERR_NOT_PROBED - 1,
     HIF_SDIO_ERR_ALRDY_OFF = HIF_SDIO_ERR_ALRDY_ON - 1,
     HIF_SDIO_ERR_CLT_NOT_REG = HIF_SDIO_ERR_ALRDY_OFF - 1,
-} MTK_WCN_HIF_SDIO_ERR ;
+} MTK_WCN_HIF_SDIO_ERR;
 
 typedef struct _MTK_WCN_HIF_SDIO_CHIP_INFO_ {
     struct sdio_device_id deviceId;
@@ -186,24 +186,24 @@ typedef struct _MTK_WCN_HIF_SDIO_CHIP_INFO_ {
 
 extern UINT32 gHifSdioDbgLvl;
 
-#define HIF_SDIO_LOUD_FUNC(fmt, arg...)   if (gHifSdioDbgLvl >= HIF_SDIO_LOG_LOUD) { printk(KERN_INFO DFT_TAG"[L]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define HIF_SDIO_DBG_FUNC(fmt, arg...)    if (gHifSdioDbgLvl >= HIF_SDIO_LOG_DBG) { printk(KERN_INFO DFT_TAG"[D]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define HIF_SDIO_INFO_FUNC(fmt, arg...)   if (gHifSdioDbgLvl >= HIF_SDIO_LOG_INFO) { printk(KERN_INFO DFT_TAG"[I]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define HIF_SDIO_WARN_FUNC(fmt, arg...)   if (gHifSdioDbgLvl >= HIF_SDIO_LOG_WARN) { printk(KERN_WARNING DFT_TAG"[W]%s(%d):"  fmt, __FUNCTION__ , __LINE__, ##arg);}
-#define HIF_SDIO_ERR_FUNC(fmt, arg...)    if (gHifSdioDbgLvl >= HIF_SDIO_LOG_ERR) { printk(KERN_WARNING DFT_TAG"[E]%s(%d):"  fmt, __FUNCTION__ , __LINE__, ##arg);}
+#define HIF_SDIO_LOUD_FUNC(fmt, arg...)   if (gHifSdioDbgLvl >= HIF_SDIO_LOG_LOUD) { printk(KERN_INFO DFT_TAG"[L]%s:"  fmt, __func__ , ##arg); }
+#define HIF_SDIO_DBG_FUNC(fmt, arg...)    if (gHifSdioDbgLvl >= HIF_SDIO_LOG_DBG) { printk(KERN_INFO DFT_TAG"[D]%s:"  fmt, __func__ , ##arg); }
+#define HIF_SDIO_INFO_FUNC(fmt, arg...)   if (gHifSdioDbgLvl >= HIF_SDIO_LOG_INFO) { printk(KERN_INFO DFT_TAG"[I]%s:"  fmt, __func__ , ##arg); }
+#define HIF_SDIO_WARN_FUNC(fmt, arg...)   if (gHifSdioDbgLvl >= HIF_SDIO_LOG_WARN) { printk(KERN_WARNING DFT_TAG"[W]%s(%d):"  fmt, __func__ , __LINE__, ##arg); }
+#define HIF_SDIO_ERR_FUNC(fmt, arg...)    if (gHifSdioDbgLvl >= HIF_SDIO_LOG_ERR) { printk(KERN_WARNING DFT_TAG"[E]%s(%d):"  fmt, __func__ , __LINE__, ##arg); }
 
 /*!
  * \brief ASSERT function definition.
  *
  */
 #if HIF_SDIO_DEBUG
-#define HIF_SDIO_ASSERT(expr)    if ( !(expr) ) { \
-                            printk("assertion failed! %s[%d]: %s\n",\
-                                __FUNCTION__, __LINE__, #expr); \
-                            BUG_ON( !(expr) );\
-                        }
+#define HIF_SDIO_ASSERT(expr)    if (!(expr)) { \
+			    printk("assertion failed! %s[%d]: %s\n",\
+				__func__, __LINE__, #expr); \
+			    BUG_ON(!(expr));\
+			}
 #else
-#define HIF_SDIO_ASSERT(expr)    do {} while(0)
+#define HIF_SDIO_ASSERT(expr)    do {} while (0)
 #endif
 
 /*******************************************************************************
@@ -304,5 +304,3 @@ INT32 mtk_wcn_hif_sdio_query_chipid(INT32 waitFlag);
 ********************************************************************************
 */
 #endif /* _HIF_SDIO_H */
-
-

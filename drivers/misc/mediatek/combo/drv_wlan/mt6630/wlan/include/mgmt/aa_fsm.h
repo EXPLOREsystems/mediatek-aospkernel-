@@ -129,6 +129,11 @@ typedef enum _ENUM_AA_STATE_T {
 	AA_STATE_NUM
 } ENUM_AA_STATE_T;
 
+typedef enum _ENUM_AA_FRM_TYPE_T {
+	FRM_DISASSOC = 0,
+	FRM_DEAUTH
+} ENUM_AA_FRM_TYPE_T;
+
 /*******************************************************************************
 *                            P U B L I C   D A T A
 ********************************************************************************
@@ -166,9 +171,9 @@ WLAN_STATUS
 saaFsmRunEventTxDone(IN P_ADAPTER_T prAdapter,
 		     IN P_MSDU_INFO_T prMsduInfo, IN ENUM_TX_RESULT_CODE_T rTxDoneStatus);
 
-VOID saaFsmRunEventTxReqTimeOut(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T prStaRec);
+VOID saaFsmRunEventTxReqTimeOut(IN P_ADAPTER_T prAdapter, IN ULONG plParamPtr);
 
-VOID saaFsmRunEventRxRespTimeOut(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T prStaRec);
+VOID saaFsmRunEventRxRespTimeOut(IN P_ADAPTER_T prAdapter, IN ULONG ulParamPtr);
 
 VOID saaFsmRunEventRxAuth(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb);
 
@@ -179,6 +184,17 @@ WLAN_STATUS saaFsmRunEventRxDeauth(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwR
 WLAN_STATUS saaFsmRunEventRxDisassoc(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb);
 
 VOID saaFsmRunEventAbort(IN P_ADAPTER_T prAdapter, IN P_MSG_HDR_T prMsgHdr);
+
+VOID
+saaChkDeauthfrmParamHandler(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb, IN P_STA_RECORD_T prStaRec);
+
+VOID
+saaChkDisassocfrmParamHandler(IN P_ADAPTER_T prAdapter,
+		IN P_WLAN_DISASSOC_FRAME_T prDisassocFrame, IN P_STA_RECORD_T prStaRec, IN P_SW_RFB_T prSwRfb);
+
+VOID
+saaSendDisconnectMsgHandler(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T prStaRec, IN P_BSS_INFO_T prAisBssInfo, IN ENUM_AA_FRM_TYPE_T eFrmType);
+
 
 /*----------------------------------------------------------------------------*/
 /* Routines in aaa_fsm.c                                                      */

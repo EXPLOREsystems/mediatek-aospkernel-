@@ -111,13 +111,13 @@ VOID hs20GenerateHS20IE(IN P_ADAPTER_T prAdapter, OUT P_MSDU_INFO_T prMsduInfo)
 	ASSERT(prMsduInfo);
 
 	if (prMsduInfo->ucBssIndex != KAL_NETWORK_TYPE_AIS_INDEX) {
-		printk("[%s] prMsduInfo->ucBssIndex(%d) is not KAL_NETWORK_TYPE_AIS_INDEX\n",
+		pr_info("[%s] prMsduInfo->ucBssIndex(%d) is not KAL_NETWORK_TYPE_AIS_INDEX\n",
 		       __func__, prMsduInfo->ucBssIndex);
 		return;
 	}
 
-	pucBuffer = (PUINT_8) ((UINT_32) prMsduInfo->prPacket +
-			       (UINT_32) prMsduInfo->u2FrameLength);
+	pucBuffer = (PUINT_8) ((ULONG) prMsduInfo->prPacket +
+			       (ULONG) prMsduInfo->u2FrameLength);
 
 	/* ASSOC INFO IE ID: 221 :0xDD */
 	if (prAdapter->prGlueInfo->u2HS20AssocInfoIELen) {
@@ -167,7 +167,7 @@ VOID hs20FillExtCapIE(P_ADAPTER_T prAdapter, P_BSS_INFO_T prBssInfo, P_MSDU_INFO
 			    ELEM_EXT_CAP_WNM_NOTIFICATION_BIT);
 	}
 
-	printk("IE_SIZE(prExtCap) = %d, %d %d\n", IE_SIZE(prExtCap), ELEM_HDR_LEN,
+	pr_info("IE_SIZE(prExtCap) = %d, %d %d\n", IE_SIZE(prExtCap), ELEM_HDR_LEN,
 	       ELEM_MAX_LEN_EXT_CAP);
 	ASSERT(IE_SIZE(prExtCap) <= (ELEM_HDR_LEN + ELEM_MAX_LEN_EXT_CAP));
 
@@ -537,13 +537,13 @@ hs20SetBssidPool(IN P_ADAPTER_T prAdapter,
 
 	prHS20Info = &(prAdapter->rWifiVar.rHS20Info);
 
-	printk("[%s]Set Bssid Pool! enable[%d] num[%d]\n", __func__, prParamBssidPool->fgIsEnable,
+	pr_info("[%s]Set Bssid Pool! enable[%d] num[%d]\n", __func__, prParamBssidPool->fgIsEnable,
 	       prParamBssidPool->ucNumBssidPool);
 
 	for (ucIdx = 0; ucIdx < prParamBssidPool->ucNumBssidPool; ucIdx++) {
 		COPY_MAC_ADDR(prHS20Info->arBssidPool[ucIdx].aucBSSID,
 			      &prParamBssidPool->arBSSID[ucIdx]);
-		printk("[%s][%d][" MACSTR "]\n", __func__, ucIdx,
+		pr_info("[%s][%d][" MACSTR "]\n", __func__, ucIdx,
 		       MAC2STR(prHS20Info->arBssidPool[ucIdx].aucBSSID));
 	}
 	prHS20Info->fgIsHS2SigmaMode = prParamBssidPool->fgIsEnable;

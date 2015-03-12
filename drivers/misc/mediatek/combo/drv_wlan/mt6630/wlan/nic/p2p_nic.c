@@ -118,20 +118,20 @@ nicRxAddP2pDevice(IN P_ADAPTER_T prAdapter,
 				ASSERT(pucIeBuf == NULL);
 				pucIeBuf = prP2pInfo->pucCurrIePtr;
 
-				if (((UINT_32) prP2pInfo->pucCurrIePtr + (UINT_32) u2RxIELength) >
-				    (UINT_32) &prP2pInfo->
+				if (((ULONG) prP2pInfo->pucCurrIePtr + (ULONG) u2RxIELength) >
+				    (ULONG) & prP2pInfo->
 				    aucCommIePool[CFG_MAX_COMMON_IE_BUF_LEN]) {
 					/* Common Buffer is no enough. */
 					u2RxIELength =
-					    (UINT_16) ((UINT_32) &prP2pInfo->
+					    (UINT_16) ((ULONG) & prP2pInfo->
 						       aucCommIePool[CFG_MAX_COMMON_IE_BUF_LEN] -
-						       (UINT_32) prP2pInfo->pucCurrIePtr);
+						       (ULONG) prP2pInfo->pucCurrIePtr);
 				}
 
 				/* Step to next buffer address. */
 				prP2pInfo->pucCurrIePtr =
-				    (PUINT_8) ((UINT_32) prP2pInfo->pucCurrIePtr +
-					       (UINT_32) u2RxIELength);
+				    (PUINT_8) ((ULONG) prP2pInfo->pucCurrIePtr +
+					       (ULONG) u2RxIELength);
 			}
 
 			/* Restore buffer pointer. */
@@ -169,21 +169,21 @@ nicRxAddP2pDevice(IN P_ADAPTER_T prAdapter,
 			if (u2RxIELength) {
 				prTargetResult->pucIeBuf = prP2pInfo->pucCurrIePtr;
 
-				if (((UINT_32) prP2pInfo->pucCurrIePtr + (UINT_32) u2RxIELength) >
-				    (UINT_32) &prP2pInfo->
+				if (((ULONG) prP2pInfo->pucCurrIePtr + (ULONG) u2RxIELength) >
+				    (ULONG) & prP2pInfo->
 				    aucCommIePool[CFG_MAX_COMMON_IE_BUF_LEN]) {
 					/* Common Buffer is no enough. */
 					u2IELength =
-					    (UINT_16) ((UINT_32) &prP2pInfo->
+					    (UINT_16) ((ULONG) & prP2pInfo->
 						       aucCommIePool[CFG_MAX_COMMON_IE_BUF_LEN] -
-						       (UINT_32) prP2pInfo->pucCurrIePtr);
+						       (ULONG) prP2pInfo->pucCurrIePtr);
 				} else {
 					u2IELength = u2RxIELength;
 				}
 
 				prP2pInfo->pucCurrIePtr =
-				    (PUINT_8) ((UINT_32) prP2pInfo->pucCurrIePtr +
-					       (UINT_32) u2IELength);
+				    (PUINT_8) ((ULONG) prP2pInfo->pucCurrIePtr +
+					       (ULONG) u2IELength);
 
 				kalMemCopy((PVOID) prTargetResult->pucIeBuf, (PVOID) pucRxIEBuf,
 					   (UINT_32) u2IELength);

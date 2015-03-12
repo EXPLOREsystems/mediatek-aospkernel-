@@ -261,12 +261,12 @@ VOID secFsmInit(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T prSta)
 				  &prAdapter->rWifiVar.rAisSpecificBssInfo.
 				  rRsnaEAPoLReportTimeoutTimer,
 				  (PFN_MGMT_TIMEOUT_FUNC) secFsmEventEapolTxTimeout,
-				  (UINT_32) prSta);
+				  (ULONG) prSta);
 
 		cnmTimerInitTimer(prAdapter,
 				  &prAdapter->rWifiVar.rAisSpecificBssInfo.rRsnaBlockTrafficTimer,
 				  (PFN_MGMT_TIMEOUT_FUNC) secFsmEventEndOfCounterMeasure,
-				  (UINT_32) prSta);
+				  (ULONG) prSta);
 
 	}
 	return;
@@ -459,6 +459,7 @@ secFsmTrans_SEND_EAPOL_to_SEND_DEAUTH(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_
 
 	/* Compose deauth frame to AP, a call back function for tx done */
 	if (authSendDeauthFrame(prAdapter,
+				NULL,
 				prSta,
 				(P_SW_RFB_T) NULL,
 				REASON_CODE_MIC_FAILURE,
@@ -578,8 +579,7 @@ VOID secFsmSteps(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T prSta, IN ENUM_SEC_
 			break;
 		}
 #endif
-	}
-	while (fgIsTransition);
+	} while (fgIsTransition);
 
 	return;
 
@@ -1119,13 +1119,13 @@ secFsmEventDeauthTxDone(IN P_ADAPTER_T prAdapter,
 * \return -
 */
 /*----------------------------------------------------------------------------*/
-VOID secFsmEventEapolTxTimeout(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Parm)
+VOID secFsmEventEapolTxTimeout(IN P_ADAPTER_T prAdapter, IN ULONG ulParamPtr)
 {
 	P_STA_RECORD_T prStaRec;
 
 	DEBUGFUNC("secFsmRunEventEapolTxTimeout");
 
-	prStaRec = (P_STA_RECORD_T) u4Parm;
+	prStaRec = (P_STA_RECORD_T) ulParamPtr;
 
 	ASSERT(prStaRec);
 
@@ -1146,7 +1146,7 @@ VOID secFsmEventEapolTxTimeout(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Parm)
 * \return -
 */
 /*----------------------------------------------------------------------------*/
-VOID secFsmEventEndOfCounterMeasure(IN P_ADAPTER_T prAdapter, UINT_32 u4Parm)
+VOID secFsmEventEndOfCounterMeasure(IN P_ADAPTER_T prAdapter, ULONG ulParamPtr)
 {
 	P_STA_RECORD_T prSta;
 	P_SEC_INFO_T prSecInfo;
@@ -1155,7 +1155,7 @@ VOID secFsmEventEndOfCounterMeasure(IN P_ADAPTER_T prAdapter, UINT_32 u4Parm)
 
 	DEBUGFUNC("secFsmRunEventEndOfCounterMeasure");
 
-	prSta = (P_STA_RECORD_T) u4Parm;
+	prSta = (P_STA_RECORD_T) ulParamPtr;
 
 	ASSERT(prSta);
 

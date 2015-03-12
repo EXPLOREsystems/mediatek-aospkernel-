@@ -83,25 +83,25 @@
 typedef struct _MTK_WCN_HIF_SDIO_FUNCINFO MTK_WCN_HIF_SDIO_FUNCINFO;
 
 /* Client context provided by hif_sdio driver for the following function call */
-typedef UINT32 MTK_WCN_HIF_SDIO_CLTCTX;
+typedef ULONG MTK_WCN_HIF_SDIO_CLTCTX;
 
 /* Callback functions provided by client driver */
-typedef INT32(*MTK_WCN_HIF_SDIO_PROBE) (MTK_WCN_HIF_SDIO_CLTCTX, const MTK_WCN_HIF_SDIO_FUNCINFO * );
-typedef INT32(*MTK_WCN_HIF_SDIO_REMOVE) (MTK_WCN_HIF_SDIO_CLTCTX);
-typedef INT32(*MTK_WCN_HIF_SDIO_IRQ) (MTK_WCN_HIF_SDIO_CLTCTX);
+typedef INT_32(*MTK_WCN_HIF_SDIO_PROBE) (MTK_WCN_HIF_SDIO_CLTCTX, const MTK_WCN_HIF_SDIO_FUNCINFO*);
+typedef INT_32(*MTK_WCN_HIF_SDIO_REMOVE) (MTK_WCN_HIF_SDIO_CLTCTX);
+typedef INT_32(*MTK_WCN_HIF_SDIO_IRQ) (MTK_WCN_HIF_SDIO_CLTCTX);
 
 /* Function info provided by client driver */
 struct _MTK_WCN_HIF_SDIO_FUNCINFO {
-	UINT16 manf_id;		/* TPLMID_MANF: manufacturer ID */
-	UINT16 card_id;		/* TPLMID_CARD: card ID */
-	UINT16 func_num;	/* Function Number */
-	UINT16 blk_sz;		/* Function block size */
+	UINT_16 manf_id;		/* TPLMID_MANF: manufacturer ID */
+	UINT_16 card_id;		/* TPLMID_CARD: card ID */
+	UINT_16 func_num;	/* Function Number */
+	UINT_16 blk_sz;		/* Function block size */
 };
 
 /* Client info provided by client driver */
 typedef struct _MTK_WCN_HIF_SDIO_CLTINFO {
 	const MTK_WCN_HIF_SDIO_FUNCINFO *func_tbl;	/* supported function info table */
-	UINT32 func_tbl_size;	/* supported function table info element number */
+	UINT_32 func_tbl_size;	/* supported function table info element number */
 	MTK_WCN_HIF_SDIO_PROBE hif_clt_probe;	/* callback function for probing */
 	MTK_WCN_HIF_SDIO_REMOVE hif_clt_remove;	/* callback function for removing */
 	MTK_WCN_HIF_SDIO_IRQ hif_clt_irq;	/* callback function for interrupt handling */
@@ -116,7 +116,7 @@ typedef struct _MTK_WCN_HIF_SDIO_REGISTINFO {
 /* Card info provided by probed function */
 typedef struct _MTK_WCN_HIF_SDIO_PROBEINFO {
 	struct sdio_func *func;	/* probed sdio function pointer */
-	INT8 clt_idx;		/* registered function table info element number (initial value is -1) */
+	INT_8 clt_idx;		/* registered function table info element number (initial value is -1) */
 	MTK_WCN_BOOL interrupted;	/* TRUE: interrupted, FALSE: not interrupted */
 	void *private_data_p;	/* clt's private data pointer */
 } MTK_WCN_HIF_SDIO_PROBEINFO;
@@ -125,7 +125,7 @@ typedef struct _MTK_WCN_HIF_SDIO_PROBEINFO {
 typedef struct _MTK_WCN_HIF_SDIO_CLT_PROBE_WORKERINFO {
 	struct work_struct probe_work;	/* work queue structure */
 	MTK_WCN_HIF_SDIO_REGISTINFO *registinfo_p;	/* MTK_WCN_HIF_SDIO_REGISTINFO pointer of the client */
-	INT8 probe_idx;		/* probed function table info element number (initial value is -1) */
+	INT_8 probe_idx;		/* probed function table info element number (initial value is -1) */
 } MTK_WCN_HIF_SDIO_CLT_PROBE_WORKERINFO;
 
 /* error code returned by hif_sdio driver (use NEGATIVE number) */
@@ -173,7 +173,7 @@ typedef enum {
  *
  */
 #if HIF_SDIO_DEBUG
-#define DPRINTK(fmt, args...) printk("%s: " fmt, __func__, ## args)
+#define DPRINTK(fmt, args...) pr_debug("%s: " fmt, __func__, ## args)
 #else
 #define DPRINTK(fmt, args...)
 #endif
@@ -207,23 +207,23 @@ typedef enum {
  * \retval 0    register successfully
  * \retval < 0  error code
  */
-extern INT32 mtk_wcn_hif_sdio_client_reg(const MTK_WCN_HIF_SDIO_CLTINFO *pinfo);
+extern INT_32 mtk_wcn_hif_sdio_client_reg(const MTK_WCN_HIF_SDIO_CLTINFO *pinfo);
 
-extern INT32 mtk_wcn_hif_sdio_client_unreg(const MTK_WCN_HIF_SDIO_CLTINFO *pinfo);
+extern INT_32 mtk_wcn_hif_sdio_client_unreg(const MTK_WCN_HIF_SDIO_CLTINFO *pinfo);
 
-extern INT32 mtk_wcn_hif_sdio_readb(MTK_WCN_HIF_SDIO_CLTCTX ctx, UINT32 offset, PUINT8 pvb);
+extern INT_32 mtk_wcn_hif_sdio_readb(MTK_WCN_HIF_SDIO_CLTCTX ctx, UINT_32 offset, PUINT_8 pvb);
 
-extern INT32 mtk_wcn_hif_sdio_writeb(MTK_WCN_HIF_SDIO_CLTCTX ctx, UINT32 offset, UINT8 vb);
+extern INT_32 mtk_wcn_hif_sdio_writeb(MTK_WCN_HIF_SDIO_CLTCTX ctx, UINT_32 offset, UINT_8 vb);
 
-extern INT32 mtk_wcn_hif_sdio_readl(MTK_WCN_HIF_SDIO_CLTCTX ctx, UINT32 offset, PUINT32 pvl);
+extern INT_32 mtk_wcn_hif_sdio_readl(MTK_WCN_HIF_SDIO_CLTCTX ctx, UINT_32 offset, PUINT_32 pvl);
 
-extern INT32 mtk_wcn_hif_sdio_writel(MTK_WCN_HIF_SDIO_CLTCTX ctx, UINT32 offset, UINT32 vl);
+extern INT_32 mtk_wcn_hif_sdio_writel(MTK_WCN_HIF_SDIO_CLTCTX ctx, UINT_32 offset, UINT_32 vl);
 
-extern INT32 mtk_wcn_hif_sdio_read_buf(MTK_WCN_HIF_SDIO_CLTCTX ctx,
-				       UINT32 offset, PUINT32 pbuf, UINT32 len);
+extern INT_32 mtk_wcn_hif_sdio_read_buf(MTK_WCN_HIF_SDIO_CLTCTX ctx,
+				       UINT_32 offset, PUINT_32 pbuf, UINT_32 len);
 
-extern INT32 mtk_wcn_hif_sdio_write_buf(MTK_WCN_HIF_SDIO_CLTCTX ctx,
-					UINT32 offset, PUINT32 pbuf, UINT32 len);
+extern INT_32 mtk_wcn_hif_sdio_write_buf(MTK_WCN_HIF_SDIO_CLTCTX ctx,
+					UINT_32 offset, PUINT_32 pbuf, UINT_32 len);
 
 extern void mtk_wcn_hif_sdio_set_drvdata(MTK_WCN_HIF_SDIO_CLTCTX ctx, void *private_data_p);
 

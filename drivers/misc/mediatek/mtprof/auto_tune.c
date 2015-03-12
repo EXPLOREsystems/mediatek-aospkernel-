@@ -143,11 +143,11 @@ static void test_instr(int printlog)
 				      /* "pldw        [r0, r9]\n" */
 				      /* ".word 0xf790f009\n" */
 				      "ldmia       r1!, {r3, r4, r5, r6, r7, r8, r12, lr}\n"
-				      "subs        r2, r2, #32 \n"
+				      "subs        r2, r2, #32\n"
 				      "stmia       r0!, {r3, r4, r5, r6, r7, r8, r12, lr}\n"
 				      "blt 2f\n"
 				      "ldmia       r1!, {r3, r4, r5, r6, r7, r8, r12, lr}\n"
-				      "subs        r2, r2, #32 \n"
+				      "subs        r2, r2, #32\n"
 				      "stmia       r0!, {r3, r4, r5, r6, r7, r8, r12, lr}\n"
 				      "bge 1b\n"
 				      "2:\n"
@@ -214,11 +214,11 @@ static void test_instr(int printlog)
 					      /* "pldw        [r0, r9]\n" */
 					      /* ".word 0xf790f009\n" */
 					      "ldmia       r1!, {r3, r4, r5, r6, r7, r8, r12, lr}\n"
-					      "subs        r2, r2, #32 \n"
+					      "subs        r2, r2, #32\n"
 					      "stmia       r0!, {r3, r4, r5, r6, r7, r8, r12, lr}\n"
 					      "blt 2f\n"
 					      "ldmia       r1!, {r3, r4, r5, r6, r7, r8, r12, lr}\n"
-					      "subs        r2, r2, #32 \n"
+					      "subs        r2, r2, #32\n"
 					      "stmia       r0!, {r3, r4, r5, r6, r7, r8, r12, lr}\n"
 					      "bge 1b\n"
 					      "2:\n"

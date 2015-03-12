@@ -1,10 +1,24 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/TRUNK/WiFi_P2P_Driver/os/linux/include/gl_p2p_kal.h#2 $
 */
 
 /*! \file   gl_p2p_kal.h
     \brief  Declaration of KAL functions for Wi-Fi Direct support
-            - kal*() which is provided by GLUE Layer.
+	    - kal*() which is provided by GLUE Layer.
 
     Any definitions in this file will be shared among GLUE Layer and internal Driver Stack.
 */
@@ -13,7 +27,7 @@
 
 /*
 ** $Log: gl_p2p_kal.h $
-** 
+**
 ** 08 30 2012 chinglan.wang
 ** [ALPS00349664] [6577JB][WIFI] Phone can not connect to AP secured with AES via WPS in 802.11n Only
 ** .
@@ -144,12 +158,12 @@ kalP2PIndicateTXDone(
 /* Wi-Fi Direct handling                                                      */
 /*----------------------------------------------------------------------------*/
 ENUM_PARAM_MEDIA_STATE_T
-kalP2PGetState (
+kalP2PGetState(
     IN P_GLUE_INFO_T        prGlueInfo
     );
 
 VOID
-kalP2PSetState (
+kalP2PSetState(
     IN P_GLUE_INFO_T            prGlueInfo,
     IN ENUM_PARAM_MEDIA_STATE_T eState,
     IN PARAM_MAC_ADDRESS        rPeerAddr,
@@ -207,7 +221,7 @@ kalP2PGetCcmpCipher(
 
 
 VOID
-kalP2PSetWscMode (
+kalP2PSetWscMode(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN UINT_8           ucWscMode
     );
@@ -258,21 +272,21 @@ kalP2PIndicateConnReq(
     );
 
 VOID
-kalP2PInvitationStatus (
+kalP2PInvitationStatus(
     IN P_GLUE_INFO_T prGlueInfo,
     IN UINT_32       u4InvStatus
     );
 
 VOID
 kalP2PInvitationIndication(
-        IN P_GLUE_INFO_T prGlueInfo,
-        IN P_P2P_DEVICE_DESC_T prP2pDevDesc,
-        IN PUINT_8 pucSsid,
-        IN UINT_8 ucSsidLen,
-        IN UINT_8 ucOperatingChnl,
-        IN UINT_8 ucInvitationType,
-        IN PUINT_8 pucGroupBssid
-        );
+	IN P_GLUE_INFO_T prGlueInfo,
+	IN P_P2P_DEVICE_DESC_T prP2pDevDesc,
+	IN PUINT_8 pucSsid,
+	IN UINT_8 ucSsidLen,
+	IN UINT_8 ucOperatingChnl,
+	IN UINT_8 ucInvitationType,
+	IN PUINT_8 pucGroupBssid
+	);
 
 
 struct net_device*
@@ -330,18 +344,18 @@ kalP2PIndicateBssInfo(
 
 VOID
 kalP2PIndicateRxMgmtFrame(
-        IN P_GLUE_INFO_T prGlueInfo,
-        IN P_SW_RFB_T prSwRfb
-        );
+	IN P_GLUE_INFO_T prGlueInfo,
+	IN P_SW_RFB_T prSwRfb
+	);
 
 VOID
 kalP2PIndicateMgmtTxStatus(
-        IN P_GLUE_INFO_T prGlueInfo,
-        IN UINT_64 u8Cookie,
-        IN BOOLEAN fgIsAck,
-        IN PUINT_8 pucFrameBuf,
-        IN UINT_32 u4FrameLen
-        );
+	IN P_GLUE_INFO_T prGlueInfo,
+	IN UINT_64 u8Cookie,
+	IN BOOLEAN fgIsAck,
+	IN PUINT_8 pucFrameBuf,
+	IN UINT_32 u4FrameLen
+	);
 
 VOID
 kalP2PIndicateChannelExpired(
@@ -367,29 +381,28 @@ kalP2PGOStationUpdate(
     );
 
 BOOLEAN
-kalP2PSetBlackList (
+kalP2PSetBlackList(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN PARAM_MAC_ADDRESS rbssid,
     IN BOOLEAN fgIsblock
     );
 
 BOOLEAN
-kalP2PCmpBlackList (
+kalP2PCmpBlackList(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN PARAM_MAC_ADDRESS rbssid
     );
 
 VOID
-kalP2PSetMaxClients (
+kalP2PSetMaxClients(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN UINT_32 u4MaxClient
     );
 
 BOOLEAN
-kalP2PMaxClients (
+kalP2PMaxClients(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN UINT_32 u4NumClient
     );
 
 #endif /* _GL_P2P_KAL_H */
-

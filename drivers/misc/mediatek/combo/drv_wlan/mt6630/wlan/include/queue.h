@@ -1,5 +1,5 @@
 /*
-** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/queue.h#1 $
+** Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/queue.h#1
 */
 
 /*! \file   queue.h
@@ -10,46 +10,6 @@
 */
 
 
-
-/*
-** $Log: queue.h $
-**
-** 08 16 2013 yuche.tsai
-** [BORA00002398] [MT6630][Volunteer Patch] P2P Driver Re-Design for Multiple BSS support
-** Bug fix for queue operation MACRO.
-**
-** 08 09 2013 bruce.kang
-** [BORA00002740] [MT6630 Wi-Fi][Driver]
-** Solve the recursive lock problem when clearing CMD queue.
-**
-** 09 17 2012 cm.chang
-** [BORA00002149] [MT6630 Wi-Fi] Initial software development
-** Duplicate source from MT6620 v2.3 driver branch
-** (Davinci label: MT6620_WIFI_Driver_V2_3_120913_1942_As_MT6630_Base)
- *
- * 07 16 2010 cp.wu
- *
- * [WPD00003833] [MT6620 and MT5931] Driver migration.
- * bugfix for SCN migration
- * 1) modify QUEUE_CONCATENATE_QUEUES() so it could be used to concatence with an empty queue
- * 2) before AIS issues scan request, network(BSS) needs to be activated first
- * 3) only invoke COPY_SSID when using specified SSID for scan
- *
- * 07 08 2010 cp.wu
- *
- * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
- *
- * 06 06 2010 kevin.huang
- * [WPD00003832][MT6620 5931] Create driver base
- * [MT6620 5931] Create driver base
- *
- * 04 20 2010 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP
- * .
-**  \main\maintrunk.MT6620WiFiDriver_Prj\2 2009-03-10 20:11:46 GMT mtk01426
-**  Init for develop
-**
-*/
 
 #ifndef _QUEUE_H
 #define _QUEUE_H
@@ -102,6 +62,8 @@ typedef struct _QUE_T {
 *                                 M A C R O S
 ********************************************************************************
 */
+#define MAXNUM_TDLS_PEER            4
+
 #define QUEUE_INITIALIZE(prQueue) \
 	{ \
 	    (prQueue)->prHead = (P_QUE_ENTRY_T)NULL; \
@@ -149,24 +111,24 @@ typedef struct _QUE_T {
  * so that we can cast the queue entry to other data type without doubts.
  * And this macro also decrease the total entry count at the same time.
  */
-#define QUEUE_REMOVE_HEAD(prQueue, prQueueEntry, _P_TYPE) \
+ #define QUEUE_REMOVE_HEAD(prQueue, prQueueEntry, _P_TYPE) \
 	{ \
-	    ASSERT(prQueue); \
-	    prQueueEntry = (_P_TYPE)((prQueue)->prHead); \
-	    if (prQueueEntry) { \
-		(prQueue)->prHead = ((P_QUE_ENTRY_T)(prQueueEntry))->prNext; \
-		if ((prQueue)->prHead == (P_QUE_ENTRY_T)NULL) { \
-		    (prQueue)->prTail = (P_QUE_ENTRY_T)NULL; \
+		ASSERT(prQueue); \
+		prQueueEntry = (_P_TYPE)((prQueue)->prHead); \
+		if (prQueueEntry) { \
+			(prQueue)->prHead = ((P_QUE_ENTRY_T)(prQueueEntry))->prNext; \
+			if ((prQueue)->prHead == (P_QUE_ENTRY_T)NULL) { \
+				(prQueue)->prTail = (P_QUE_ENTRY_T)NULL; \
+			} \
+			((P_QUE_ENTRY_T)(prQueueEntry))->prNext = (P_QUE_ENTRY_T)NULL; \
+			((prQueue)->u4NumElem)--; \
 		} \
-		((P_QUE_ENTRY_T)(prQueueEntry))->prNext = (P_QUE_ENTRY_T)NULL; \
-		((prQueue)->u4NumElem)--; \
-	    } \
 	}
 
 #define QUEUE_MOVE_ALL(prDestQueue, prSrcQueue) \
 	{ \
-	    ASSERT(prDestQueue); \
-	    ASSERT(prSrcQueue); \
+		ASSERT(prDestQueue); \
+		ASSERT(prSrcQueue); \
 	    *(P_QUE_T)prDestQueue = *(P_QUE_T)prSrcQueue; \
 	    QUEUE_INITIALIZE(prSrcQueue); \
 	}
@@ -176,31 +138,37 @@ typedef struct _QUE_T {
 	    ASSERT(prDestQueue); \
 	    ASSERT(prSrcQueue); \
 	    if (prSrcQueue->u4NumElem > 0) { \
-		if ((prDestQueue)->prTail) { \
-		    ((prDestQueue)->prTail)->prNext = (prSrcQueue)->prHead; \
-		} else { \
-		    (prDestQueue)->prHead = (prSrcQueue)->prHead; \
-		} \
-		(prDestQueue)->prTail = (prSrcQueue)->prTail; \
-		((prDestQueue)->u4NumElem) += ((prSrcQueue)->u4NumElem); \
-		QUEUE_INITIALIZE(prSrcQueue); \
+			if ((prDestQueue)->prTail) { \
+				((prDestQueue)->prTail)->prNext = (prSrcQueue)->prHead; \
+			} else { \
+				(prDestQueue)->prHead = (prSrcQueue)->prHead; \
+			} \
+			(prDestQueue)->prTail = (prSrcQueue)->prTail; \
+			((prDestQueue)->u4NumElem) += ((prSrcQueue)->u4NumElem); \
+			QUEUE_INITIALIZE(prSrcQueue); \
 	    } \
 	}
 
 #define QUEUE_CONCATENATE_QUEUES_HEAD(prDestQueue, prSrcQueue) \
 	{ \
-	    ASSERT(prDestQueue); \
-	    ASSERT(prSrcQueue); \
-	    if (prSrcQueue->u4NumElem > 0) { \
-		((prSrcQueue)->prTail)->prNext = (prDestQueue)->prHead; \
-		(prDestQueue)->prHead = (prSrcQueue)->prHead; \
-		((prDestQueue)->u4NumElem) += ((prSrcQueue)->u4NumElem); \
-		if ((prDestQueue)->prTail == NULL) {                 \
-		    (prDestQueue)->prTail = (prSrcQueue)->prTail;      \
-		}  \
-		QUEUE_INITIALIZE(prSrcQueue); \
-	    } \
+		ASSERT(prDestQueue); \
+		ASSERT(prSrcQueue); \
+		if (prSrcQueue->u4NumElem > 0) { \
+			((prSrcQueue)->prTail)->prNext = (prDestQueue)->prHead; \
+			(prDestQueue)->prHead = (prSrcQueue)->prHead; \
+			((prDestQueue)->u4NumElem) += ((prSrcQueue)->u4NumElem); \
+			if ((prDestQueue)->prTail == NULL) {                 \
+				(prDestQueue)->prTail = (prSrcQueue)->prTail;      \
+			}  \
+			QUEUE_INITIALIZE(prSrcQueue); \
+		} \
 	}
+
+/*******************************************************************************
+*                            E X T E R N A L  D A T A
+********************************************************************************
+*/
+extern UINT_8 g_arTdlsLink[MAXNUM_TDLS_PEER];
 
 /*******************************************************************************
 *                  F U N C T I O N   D E C L A R A T I O N S

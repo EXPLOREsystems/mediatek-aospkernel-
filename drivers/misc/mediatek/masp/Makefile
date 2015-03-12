@@ -13,7 +13,7 @@ lib_obj := $(MTK_PLATFORM)/module/sec_mod.o
 ifeq ($(CONFIG_MTK_SECURITY_SW_SUPPORT), y)
 
 include $(MASP_CORE_DRIVER_DIR)/asf/Makefile.core
-include $(MASP_CORE_DRIVER_DIR)/$(CONFIG_MTK_PLATFORM))/mach/Makefile.mach
+include $(MASP_CORE_DRIVER_DIR)/$(MTK_PLATFORM)/mach/Makefile.mach
 
 ifeq ($(CONFIG_CUSTOM_SEC_AUTH_SUPPORT),y)
 CCCI_CUSTOM_DRIVER_DIR := $(call my-dir)$(call to-root,$(obj))mediatek/custom/out/$(call lc,$(MTK_PROJECT))/kernel/ccci
@@ -31,6 +31,10 @@ core_obj += $(asf_link)/core/alg_sha1.o
 mach_obj += $(MTK_PLATFORM)/mach/sec_uid.o
 EXTRA_CFLAGS += -I$(src)/asf/asf_inc
 endif
+
+ifeq ($(MTK_GPT_SCHEME_SUPPORT), y)
+ccflags-y  += -DMTK_GPT_SCHEME_SUPPORT
+endif 
 
 # BUILD-IN
 obj-y += sec.o

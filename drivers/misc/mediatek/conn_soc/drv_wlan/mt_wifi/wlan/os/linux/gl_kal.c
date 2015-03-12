@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/os/linux/gl_kal.c#3 $
 */
 
@@ -13,6 +27,9 @@
 
 /*
 ** $Log: gl_kal.c $
+**
+** 07 11 2014 kh.hung
+** .
 **
 ** 08 20 2012 yuche.tsai
 ** NULL
@@ -685,10 +702,9 @@
 #include "gl_os.h"
 #include "gl_wext.h"
 #include "precomp.h"
-#if CFG_SUPPORT_AGPS_ASSIST
-#include <net/netlink.h>
+#if defined(CONFIG_MTK_TC1_FEATURE)
+#include <tc1_partition.h>
 #endif
-
 /*******************************************************************************
 *                              C O N S T A N T S
 ********************************************************************************
@@ -714,17 +730,17 @@ extern int g_u4HaltFlag;
 *                           P R I V A T E   D A T A
 ********************************************************************************
 */
-//#define MTK_DMA_BUF_MEMCPY_SUP
-static PVOID pvIoBuffer = NULL;
+/* #define MTK_DMA_BUF_MEMCPY_SUP */
+static PVOID pvIoBuffer;
 
 #ifdef MTK_DMA_BUF_MEMCPY_SUP
-static PVOID pvIoPhyBuf = NULL;
-static PVOID pvDmaBuffer = NULL;
-static PVOID pvDmaPhyBuf = NULL;
+static PVOID pvIoPhyBuf;
+static PVOID pvDmaBuffer;
+static PVOID pvDmaPhyBuf;
 #endif /* MTK_DMA_BUF_MEMCPY_SUP */
 
-static UINT_32 pvIoBufferSize = 0;
-static UINT_32 pvIoBufferUsage = 0;
+static UINT_32 pvIoBufferSize;
+static UINT_32 pvIoBufferUsage;
 
 
 /*******************************************************************************
@@ -737,7 +753,7 @@ static UINT_32 pvIoBufferUsage = 0;
 ********************************************************************************
 */
 #if defined(MT6620) && CFG_MULTI_ECOVER_SUPPORT
-typedef enum _ENUM_WMTHWVER_TYPE_T{
+typedef enum _ENUM_WMTHWVER_TYPE_T {
     WMTHWVER_MT6620_E1 = 0x0,
     WMTHWVER_MT6620_E2 = 0x1,
     WMTHWVER_MT6620_E3 = 0x2,
@@ -753,7 +769,7 @@ mtk_wcn_wmt_hwver_get(
     VOID
     );
 #elif defined(MT5931) && CFG_MULTI_ECOVER_SUPPORT
-typedef enum _ENUM_HWVER_TYPE_T{
+typedef enum _ENUM_HWVER_TYPE_T {
     HWVER_MT5931_E1 = 0x1,
     HWVER_MT5931_E2 = 0x2,
     HWVER_MT5931_E3 = 0x3,
@@ -772,13 +788,13 @@ VOID kalHifAhbKalWakeLockTimeout(
     )
 {
     KAL_WAKE_LOCK_TIMEOUT(prGlueInfo->prAdapter,
-                        &(prGlueInfo->rAhbIsrWakeLock),
-                        (HZ/10)); /* 100ms */
+			&(prGlueInfo->rAhbIsrWakeLock),
+			(HZ/10)); /* 100ms */
 }
 
 #if CFG_ENABLE_FW_DOWNLOAD
 
-static struct file *filp = NULL;
+static struct file *filp;
 static uid_t orgfsuid;
 static gid_t orgfsgid;
 static mm_segment_t orgfs;
@@ -796,7 +812,7 @@ static mm_segment_t orgfs;
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-kalFirmwareOpen (
+kalFirmwareOpen(
     IN P_GLUE_INFO_T                prGlueInfo
     )
 {
@@ -808,7 +824,7 @@ kalFirmwareOpen (
 
     /* save uid and gid used for filesystem access.
      * set user and group to 0(root) */
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,29))
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 29))
     orgfsuid = current->fsuid;
     orgfsgid = current->fsgid;
     current->fsuid = current->fsgid = 0;
@@ -833,34 +849,34 @@ kalFirmwareOpen (
 
     /* open the fw file */
 #if defined(MT6620) & CFG_MULTI_ECOVER_SUPPORT
-    switch(mtk_wcn_wmt_hwver_get()) {
+    switch (mtk_wcn_wmt_hwver_get()) {
     case WMTHWVER_MT6620_E1:
     case WMTHWVER_MT6620_E2:
     case WMTHWVER_MT6620_E3:
     case WMTHWVER_MT6620_E4:
     case WMTHWVER_MT6620_E5:
-        filp = filp_open("/etc/firmware/"CFG_FW_FILENAME, O_RDONLY, 0);
-        break;
+	filp = filp_open("/etc/firmware/"CFG_FW_FILENAME, O_RDONLY, 0);
+	break;
 
     case WMTHWVER_MT6620_E6:
     default:
-        filp = filp_open("/etc/firmware/"CFG_FW_FILENAME"_E6", O_RDONLY, 0);
-        break;
+	filp = filp_open("/etc/firmware/"CFG_FW_FILENAME"_E6", O_RDONLY, 0);
+	break;
     }
 #elif defined(MT5931) && CFG_MULTI_ECOVER_SUPPORT
     switch (wlanGetEcoVersion(prGlueInfo->prAdapter)) {
     case HWVER_MT5931_E1:
     case HWVER_MT5931_E2:
-        filp = filp_open("/etc/firmware/"CFG_FW_FILENAME"_E2", O_RDONLY, 0);
-        break;
+	filp = filp_open("/etc/firmware/"CFG_FW_FILENAME"_E2", O_RDONLY, 0);
+	break;
     case HWVER_MT5931_E3:
     default:
-        filp = filp_open("/etc/firmware/"CFG_FW_FILENAME, O_RDONLY, 0);
-        break;
+	filp = filp_open("/etc/firmware/"CFG_FW_FILENAME, O_RDONLY, 0);
+	break;
     }
 #elif defined(MT6628)
-//    filp = filp_open("/etc/firmware/"CFG_FW_FILENAME"_MT6628", O_RDONLY, 0);
-//    filp = filp_open("/etc/firmware/"CFG_FW_FILENAME"_MT6582", O_RDONLY, 0);
+/* filp = filp_open("/etc/firmware/"CFG_FW_FILENAME"_MT6628", O_RDONLY, 0); */
+/* filp = filp_open("/etc/firmware/"CFG_FW_FILENAME"_MT6582", O_RDONLY, 0); */
 	kalMemZero(aucFilePath, sizeof(aucFilePath));
 	kalMemCopy(aucFilePath, "/etc/firmware/"CFG_FW_FILENAME"_",
 		strlen("/etc/firmware/"CFG_FW_FILENAME"_"));
@@ -873,8 +889,8 @@ kalFirmwareOpen (
     filp = filp_open("/etc/firmware/"CFG_FW_FILENAME, O_RDONLY, 0);
 #endif
     if (IS_ERR(filp)) {
-        DBGLOG(INIT, INFO, ("Open FW image: %s failed\n", CFG_FW_FILENAME));
-        goto error_open;
+	DBGLOG(INIT, INFO, ("Open FW image: %s failed\n", CFG_FW_FILENAME));
+	goto error_open;
     }
     DBGLOG(INIT, INFO, ("Open FW image: %s done\n", CFG_FW_FILENAME));
     return WLAN_STATUS_SUCCESS;
@@ -882,7 +898,7 @@ kalFirmwareOpen (
 error_open:
     /* restore */
     set_fs(orgfs);
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,29))
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 29))
     current->fsuid = orgfsuid;
     current->fsgid = orgfsgid;
 #else
@@ -909,36 +925,36 @@ error_open:
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-kalFirmwareClose (
+kalFirmwareClose(
     IN P_GLUE_INFO_T                prGlueInfo
     )
 {
     ASSERT(prGlueInfo);
 
     if ((filp != NULL) && !IS_ERR(filp)) {
-        /* close firmware file */
-        filp_close(filp, NULL);
+	/* close firmware file */
+	filp_close(filp, NULL);
 
-        /* restore */
-        set_fs(orgfs);
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,29))
-        current->fsuid = orgfsuid;
-        current->fsgid = orgfsgid;
+	/* restore */
+	set_fs(orgfs);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 29))
+	current->fsuid = orgfsuid;
+	current->fsgid = orgfsgid;
 #else
-        {
+	{
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 35))
-            struct cred *cred = (struct cred *) get_current_cred();
+	    struct cred *cred = (struct cred *) get_current_cred();
 #else
-            struct cred *cred = get_task_cred(current);
+	    struct cred *cred = get_task_cred(current);
 #endif
-            cred->fsuid = orgfsuid;
-            cred->fsgid = orgfsgid;
+	    cred->fsuid = orgfsuid;
+	    cred->fsgid = orgfsgid;
     #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 35))
-            put_cred(cred);
+	    put_cred(cred);
     #endif
-        }
+	}
 #endif
-        filp = NULL;
+	filp = NULL;
     }
 
     return WLAN_STATUS_SUCCESS;
@@ -957,7 +973,7 @@ kalFirmwareClose (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-kalFirmwareLoad (
+kalFirmwareLoad(
     IN P_GLUE_INFO_T                prGlueInfo,
     OUT PVOID                       prBuf,
     IN UINT_32                      u4Offset,
@@ -968,14 +984,14 @@ kalFirmwareLoad (
     ASSERT(pu4Size);
     ASSERT(prBuf);
 
-    //l = filp->f_path.dentry->d_inode->i_size;
+    /* l = filp->f_path.dentry->d_inode->i_size; */
 
     /* the object must have a read method */
     if ((filp == NULL) || IS_ERR(filp) || (filp->f_op == NULL) || (filp->f_op->read == NULL)) {
-        goto error_read;
+	goto error_read;
     } else {
-        filp->f_pos = u4Offset;
-        *pu4Size = filp->f_op->read(filp, prBuf, *pu4Size, &filp->f_pos);
+	filp->f_pos = u4Offset;
+	*pu4Size = filp->f_op->read(filp, prBuf, *pu4Size, &filp->f_pos);
     }
 
     return WLAN_STATUS_SUCCESS;
@@ -998,7 +1014,7 @@ error_read:
 /*----------------------------------------------------------------------------*/
 
 WLAN_STATUS
-kalFirmwareSize (
+kalFirmwareSize(
     IN P_GLUE_INFO_T                prGlueInfo,
     OUT PUINT_32                     pu4Size
     )
@@ -1029,7 +1045,7 @@ kalFirmwareSize (
 /*----------------------------------------------------------------------------*/
 
 PVOID
-kalFirmwareImageMapping (
+kalFirmwareImageMapping(
     IN P_GLUE_INFO_T    prGlueInfo,
     OUT PPVOID          ppvMapFileBuf,
     OUT PUINT_32        pu4FileLength
@@ -1042,30 +1058,30 @@ kalFirmwareImageMapping (
     ASSERT(pu4FileLength);
 
     do {
-        /* <1> Open firmware */
-        if (kalFirmwareOpen(prGlueInfo) != WLAN_STATUS_SUCCESS) {
+	/* <1> Open firmware */
+	if (kalFirmwareOpen(prGlueInfo) != WLAN_STATUS_SUCCESS) {
 			DBGLOG(INIT, TRACE, ("kalFirmwareOpen fail!\n"));
-            break;
-        } else {
-            UINT_32 u4FwSize = 0;
-            PVOID prFwBuffer = NULL;
-            /* <2> Query firmare size */
-            kalFirmwareSize(prGlueInfo, &u4FwSize);
-            /* <3> Use vmalloc for allocating large memory trunk */
-            prFwBuffer = vmalloc(ALIGN_4(u4FwSize));
-            /* <4> Load image binary into buffer */
-            if (kalFirmwareLoad(prGlueInfo, prFwBuffer, 0, &u4FwSize) != WLAN_STATUS_SUCCESS) {
-                vfree(prFwBuffer);
-                kalFirmwareClose(prGlueInfo);
+	    break;
+	} else {
+	    UINT_32 u4FwSize = 0;
+	    PVOID prFwBuffer = NULL;
+	    /* <2> Query firmare size */
+	    kalFirmwareSize(prGlueInfo, &u4FwSize);
+	    /* <3> Use vmalloc for allocating large memory trunk */
+	    prFwBuffer = vmalloc(ALIGN_4(u4FwSize));
+	    /* <4> Load image binary into buffer */
+	    if (kalFirmwareLoad(prGlueInfo, prFwBuffer, 0, &u4FwSize) != WLAN_STATUS_SUCCESS) {
+		vfree(prFwBuffer);
+		kalFirmwareClose(prGlueInfo);
 				DBGLOG(INIT, TRACE, ("kalFirmwareLoad fail!\n"));
-                break;
-            }
-            /* <5> write back info */
-            *pu4FileLength = u4FwSize;
-            *ppvMapFileBuf = prFwBuffer;
+		break;
+	    }
+	    /* <5> write back info */
+	    *pu4FileLength = u4FwSize;
+	    *ppvMapFileBuf = prFwBuffer;
 
-            return prFwBuffer;
-        }
+	    return prFwBuffer;
+	}
 
     } while (FALSE);
 
@@ -1085,7 +1101,7 @@ kalFirmwareImageMapping (
 /*----------------------------------------------------------------------------*/
 
 VOID
-kalFirmwareImageUnmapping (
+kalFirmwareImageUnmapping(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN PVOID            prFwHandle,
     IN PVOID            pvMapFileBuf
@@ -1096,8 +1112,8 @@ kalFirmwareImageUnmapping (
     ASSERT(prGlueInfo);
 
     /* pvMapFileBuf might be NULL when file doesn't exist */
-    if(pvMapFileBuf) {
-        vfree(pvMapFileBuf);
+    if (pvMapFileBuf) {
+	vfree(pvMapFileBuf);
     }
 
     kalFirmwareClose(prGlueInfo);
@@ -1120,7 +1136,7 @@ kalFirmwareImageUnmapping (
 /*----------------------------------------------------------------------------*/
 
 PVOID
-kalFirmwareImageMapping (
+kalFirmwareImageMapping(
     IN P_GLUE_INFO_T    prGlueInfo,
     OUT PPVOID          ppvMapFileBuf,
     OUT PUINT_32        pu4FileLength
@@ -1135,20 +1151,20 @@ kalFirmwareImageMapping (
     ASSERT(pu4FileLength);
 
     do {
-        GL_HIF_INFO_T *prHifInfo = &prGlueInfo->rHifInfo;
-        prGlueInfo->prFw = NULL;
+	GL_HIF_INFO_T *prHifInfo = &prGlueInfo->rHifInfo;
+	prGlueInfo->prFw = NULL;
 
-        /* <1> Open firmware */
-        i4Ret = request_firmware(&prGlueInfo->prFw, CFG_FW_FILENAME, prHifInfo->Dev);
+	/* <1> Open firmware */
+	i4Ret = request_firmware(&prGlueInfo->prFw, CFG_FW_FILENAME, prHifInfo->Dev);
 
-        if (i4Ret) {
-            printk (KERN_INFO DRV_NAME"fw %s:request failed %d\n", CFG_FW_FILENAME, i4Ret);
-            break;
-        } else {
-            *pu4FileLength = prGlueInfo->prFw->size;
-            *ppvMapFileBuf = prGlueInfo->prFw->data;
-            return prGlueInfo->prFw->data;
-        }
+	if (i4Ret) {
+	    printk(KERN_INFO DRV_NAME"fw %s:request failed %d\n", CFG_FW_FILENAME, i4Ret);
+	    break;
+	} else {
+	    *pu4FileLength = prGlueInfo->prFw->size;
+	    *ppvMapFileBuf = prGlueInfo->prFw->data;
+	    return prGlueInfo->prFw->data;
+	}
 
     } while (FALSE);
 
@@ -1168,7 +1184,7 @@ kalFirmwareImageMapping (
 /*----------------------------------------------------------------------------*/
 
 VOID
-kalFirmwareImageUnmapping (
+kalFirmwareImageUnmapping(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN PVOID            prFwHandle,
     IN PVOID            pvMapFileBuf
@@ -1199,7 +1215,7 @@ kalFirmwareImageUnmapping (
 extern UINT32 u4MemAllocCnt, u4MemFreeCnt;
 
 VOID
-kalAcquireSpinLock (
+kalAcquireSpinLock(
     IN P_GLUE_INFO_T                prGlueInfo,
     IN ENUM_SPIN_LOCK_CATEGORY_E    rLockCategory,
     OUT PUINT_32                    pu4Flags
@@ -1213,13 +1229,13 @@ kalAcquireSpinLock (
     if (rLockCategory < SPIN_LOCK_NUM) {
 
 #if CFG_USE_SPIN_LOCK_BOTTOM_HALF
-        spin_lock_bh(&prGlueInfo->rSpinLock[rLockCategory]);
+	spin_lock_bh(&prGlueInfo->rSpinLock[rLockCategory]);
 #else /* !CFG_USE_SPIN_LOCK_BOTTOM_HALF */
-        spin_lock_irqsave(&prGlueInfo->rSpinLock[rLockCategory], u4Flags);
+	spin_lock_irqsave(&prGlueInfo->rSpinLock[rLockCategory], u4Flags);
 #endif /* !CFG_USE_SPIN_LOCK_BOTTOM_HALF */
 
-        *pu4Flags = u4Flags;
-//		DBGLOG(INIT, TRACE, ("A+%d\n", rLockCategory));
+	*pu4Flags = u4Flags;
+/* DBGLOG(INIT, TRACE, ("A+%d\n", rLockCategory)); */
     }
 
     return;
@@ -1239,7 +1255,7 @@ kalAcquireSpinLock (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-kalReleaseSpinLock (
+kalReleaseSpinLock(
     IN P_GLUE_INFO_T                prGlueInfo,
     IN ENUM_SPIN_LOCK_CATEGORY_E    rLockCategory,
     IN UINT_32                      u4Flags
@@ -1249,12 +1265,12 @@ kalReleaseSpinLock (
 
     if (rLockCategory < SPIN_LOCK_NUM) {
 
-//		DBGLOG(INIT, TRACE, ("A-%d %d %d\n", rLockCategory, u4MemAllocCnt, u4MemFreeCnt));
+/* DBGLOG(INIT, TRACE, ("A-%d %d %d\n", rLockCategory, u4MemAllocCnt, u4MemFreeCnt)); */
 
 #if CFG_USE_SPIN_LOCK_BOTTOM_HALF
-        spin_unlock_bh(&prGlueInfo->rSpinLock[rLockCategory]);
+	spin_unlock_bh(&prGlueInfo->rSpinLock[rLockCategory]);
 #else /* !CFG_USE_SPIN_LOCK_BOTTOM_HALF */
-        spin_unlock_irqrestore(&prGlueInfo->rSpinLock[rLockCategory], u4Flags);
+	spin_unlock_irqrestore(&prGlueInfo->rSpinLock[rLockCategory], u4Flags);
 #endif /* !CFG_USE_SPIN_LOCK_BOTTOM_HALF */
 
     }
@@ -1275,7 +1291,7 @@ kalReleaseSpinLock (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-kalUpdateMACAddress (
+kalUpdateMACAddress(
     IN P_GLUE_INFO_T prGlueInfo,
     IN PUINT_8 pucMacAddr
     )
@@ -1283,8 +1299,8 @@ kalUpdateMACAddress (
     ASSERT(prGlueInfo);
     ASSERT(pucMacAddr);
 
-    if(UNEQUAL_MAC_ADDR(prGlueInfo->prDevHandler->dev_addr, pucMacAddr)) {
-        memcpy(prGlueInfo->prDevHandler->dev_addr, pucMacAddr, PARAM_MAC_ADDR_LEN);
+    if (UNEQUAL_MAC_ADDR(prGlueInfo->prDevHandler->dev_addr, pucMacAddr)) {
+	memcpy(prGlueInfo->prDevHandler->dev_addr, pucMacAddr, PARAM_MAC_ADDR_LEN);
     }
 
     return;
@@ -1304,7 +1320,7 @@ kalUpdateMACAddress (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-kalQueryTxChksumOffloadParam (
+kalQueryTxChksumOffloadParam(
     IN PVOID pvPacket,
     OUT PUINT_8 pucFlag
     )
@@ -1323,16 +1339,16 @@ kalQueryTxChksumOffloadParam (
     {
 
 #if DBG
-        /* Kevin: do double check, we can remove this part in Normal Driver.
-         * Because we register NIC feature with NETIF_F_IP_CSUM for MT5912B MAC, so
-         * we'll process IP packet only.
-         */
-        if (skb->protocol != __constant_htons(ETH_P_IP)) {
-            //printk("Wrong skb->protocol( = %08x) for TX Checksum Offload.\n", skb->protocol);
-        }
-        else
+	/* Kevin: do double check, we can remove this part in Normal Driver.
+	 * Because we register NIC feature with NETIF_F_IP_CSUM for MT5912B MAC, so
+	 * we'll process IP packet only.
+	 */
+	if (skb->protocol != __constant_htons(ETH_P_IP)) {
+	    /* printk("Wrong skb->protocol( = %08x) for TX Checksum Offload.\n", skb->protocol); */
+	}
+	else
 #endif
-        ucFlag |= (TX_CS_IP_GEN | TX_CS_TCP_UDP_GEN);
+	ucFlag |= (TX_CS_IP_GEN | TX_CS_TCP_UDP_GEN);
     }
 
     *pucFlag = ucFlag;
@@ -1341,7 +1357,7 @@ kalQueryTxChksumOffloadParam (
 } /* kalQueryChksumOffloadParam */
 
 
-//4 2007/10/8, mikewu, this is rewritten by Mike
+/* 4 2007/10/8, mikewu, this is rewritten by Mike */
 /*----------------------------------------------------------------------------*/
 /*!
 * \brief To update the checksum offload status to the packet to be indicated to OS.
@@ -1354,7 +1370,7 @@ kalQueryTxChksumOffloadParam (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-kalUpdateRxCSUMOffloadParam (
+kalUpdateRxCSUMOffloadParam(
     IN PVOID pvPacket,
     IN ENUM_CSUM_RESULT_T aeCSUM[]
     )
@@ -1363,28 +1379,28 @@ kalUpdateRxCSUMOffloadParam (
 
     ASSERT(pvPacket);
 
-    if ( (aeCSUM[CSUM_TYPE_IPV4] == CSUM_RES_SUCCESS || aeCSUM[CSUM_TYPE_IPV6] == CSUM_RES_SUCCESS)&&
-        ( (aeCSUM[CSUM_TYPE_TCP] == CSUM_RES_SUCCESS) || (aeCSUM[CSUM_TYPE_UDP] == CSUM_RES_SUCCESS)) ) {
-        skb->ip_summed = CHECKSUM_UNNECESSARY;
+    if ((aeCSUM[CSUM_TYPE_IPV4] == CSUM_RES_SUCCESS || aeCSUM[CSUM_TYPE_IPV6] == CSUM_RES_SUCCESS) &&
+	((aeCSUM[CSUM_TYPE_TCP] == CSUM_RES_SUCCESS) || (aeCSUM[CSUM_TYPE_UDP] == CSUM_RES_SUCCESS))) {
+	skb->ip_summed = CHECKSUM_UNNECESSARY;
     }
     else {
-        skb->ip_summed = CHECKSUM_NONE;
+	skb->ip_summed = CHECKSUM_NONE;
 #if DBG
-        if (aeCSUM[CSUM_TYPE_IPV4] == CSUM_RES_NONE && aeCSUM[CSUM_TYPE_IPV6] == CSUM_RES_NONE) {
-            DBGLOG(RX, TRACE, ("RX: \"non-IPv4/IPv6\" Packet\n"));
-        }
-        else if (aeCSUM[CSUM_TYPE_IPV4] == CSUM_RES_FAILED) {
-            DBGLOG(RX, TRACE, ("RX: \"bad IP Checksum\" Packet\n"));
-        }
-        else if (aeCSUM[CSUM_TYPE_TCP] == CSUM_RES_FAILED) {
-            DBGLOG(RX, TRACE, ("RX: \"bad TCP Checksum\" Packet\n"));
-        }
-        else if (aeCSUM[CSUM_TYPE_UDP] == CSUM_RES_FAILED) {
-            DBGLOG(RX, TRACE, ("RX: \"bad UDP Checksum\" Packet\n"));
-        }
-        else {
+	if (aeCSUM[CSUM_TYPE_IPV4] == CSUM_RES_NONE && aeCSUM[CSUM_TYPE_IPV6] == CSUM_RES_NONE) {
+	    DBGLOG(RX, TRACE, ("RX: \"non-IPv4/IPv6\" Packet\n"));
+	}
+	else if (aeCSUM[CSUM_TYPE_IPV4] == CSUM_RES_FAILED) {
+	    DBGLOG(RX, TRACE, ("RX: \"bad IP Checksum\" Packet\n"));
+	}
+	else if (aeCSUM[CSUM_TYPE_TCP] == CSUM_RES_FAILED) {
+	    DBGLOG(RX, TRACE, ("RX: \"bad TCP Checksum\" Packet\n"));
+	}
+	else if (aeCSUM[CSUM_TYPE_UDP] == CSUM_RES_FAILED) {
+	    DBGLOG(RX, TRACE, ("RX: \"bad UDP Checksum\" Packet\n"));
+	}
+	else {
 
-        }
+	}
 #endif
     }
 
@@ -1424,16 +1440,16 @@ kalPacketFree(
 */
 /*----------------------------------------------------------------------------*/
 PVOID
-kalPacketAlloc (
+kalPacketAlloc(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN UINT_32          u4Size,
-    OUT PUINT_8         *ppucData
+    OUT PUINT_8 * ppucData
     )
 {
     struct sk_buff  *prSkb = dev_alloc_skb(u4Size);
 
     if (prSkb) {
-        *ppucData = (PUINT_8) (prSkb->data);
+	*ppucData = (PUINT_8) (prSkb->data);
     }
 #if DBG
 {
@@ -1462,12 +1478,12 @@ kalPacketAlloc (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-kalProcessRxPacket (
+kalProcessRxPacket(
     IN P_GLUE_INFO_T      prGlueInfo,
     IN PVOID              pvPacket,
     IN PUINT_8            pucPacketStart,
     IN UINT_32            u4PacketLen,
-    //IN PBOOLEAN           pfgIsRetain,
+    /* IN PBOOLEAN           pfgIsRetain, */
     IN BOOLEAN            fgIsRetain,
     IN ENUM_CSUM_RESULT_T aerCSUM[]
     )
@@ -1509,11 +1525,11 @@ unsigned int testlen = 64;
 
 void
 kalDevLoopbkAuto(
-    IN GLUE_INFO_T      *GlueInfo
+    IN GLUE_INFO_T * GlueInfo
     )
 {
 #define HIF_LOOPBK_AUTO_TEST_LEN    1600
-//    GL_HIF_INFO_T *HifInfo;
+/* GL_HIF_INFO_T *HifInfo; */
     static unsigned int txcnt;
     struct sk_buff *MsduInfo;
     UINT_8 *Pkt;
@@ -1524,39 +1540,39 @@ kalDevLoopbkAuto(
     /* Init */
     if (testmode != 0)
     {
-        PktLen = kalRandomNumber() % 1520;
-        if (PktLen < 64)
-            PktLen = 64;
+	PktLen = kalRandomNumber() % 1520;
+	if (PktLen < 64)
+	    PktLen = 64;
     }
     else
     {
-        PktLen = testlen ++;
-        if (PktLen > 1520)
-        {
-            testmode = 1;
-            PktLen = 64;
-        }
+        PktLen = testlen++;
+	if (PktLen > 1520)
+	{
+	    testmode = 1;
+	    PktLen = 64;
+	}
     }
 
-//    PktLen = 100;
+/* PktLen = 100; */
     printk("kalDevLoopbkAuto> Send a packet to HIF (len = %d) (total = %d)...\n",
-            PktLen, ++txcnt);
-//    HifInfo = &GlueInfo->rHifInfo;
+	    PktLen, ++txcnt);
+/* HifInfo = &GlueInfo->rHifInfo; */
 
     /* Allocate a MSDU_INFO_T */
     MsduInfo = kalPacketAlloc(GlueInfo, HIF_LOOPBK_AUTO_TEST_LEN, &Pkt);
     if (MsduInfo == NULL) {
-        printk("No PKT_INFO_T for sending loopback packet!\n");
-        return;
+	printk("No PKT_INFO_T for sending loopback packet!\n");
+	return;
     }
 
     /* Init the packet */
     MsduInfo->dev = GlueInfo->prDevHandler;
     if (MsduInfo->dev == NULL)
     {
-        printk("MsduInfo->dev == NULL!!\n");
-        kalPacketFree(GlueInfo, MsduInfo);
-        return;
+	printk("MsduInfo->dev == NULL!!\n");
+	kalPacketFree(GlueInfo, MsduInfo);
+	return;
     }
 
     MsduInfo->len = PktLen;
@@ -1569,16 +1585,16 @@ kalDevLoopbkAuto(
 #if 0
     PktLen += 4;
     if (PktLen >= 1600)
-        PktLen = 16;
+	PktLen = 16;
 #endif
 
     /* Note: in FPGA, clock is not accuracy so 3000 here, not 10000 */
-//    HifInfo->HifTmrLoopbkFn.expires = jiffies + MSEC_TO_SYSTIME(1000);
-//    add_timer(&(HifInfo->HifTmrLoopbkFn));
+/* HifInfo->HifTmrLoopbkFn.expires = jiffies + MSEC_TO_SYSTIME(1000); */
+/* add_timer(&(HifInfo->HifTmrLoopbkFn)); */
 }
 
 
-//int testgdmaclock = 0; // GDMA clock on/off test
+/* int testgdmaclock = 0; // GDMA clock on/off test */
 int
 kalDevLoopbkThread(
     IN void *data
@@ -1588,44 +1604,44 @@ kalDevLoopbkThread(
     P_GLUE_INFO_T GlueInfo = *((P_GLUE_INFO_T *) netdev_priv(dev));
     GL_HIF_INFO_T *HifInfo = &GlueInfo->rHifInfo;
     int ret;
-    static int test = 0;
+    static int test;
 
 
 
     while (TRUE) {
-        ret = wait_event_interruptible(HifInfo->HifWaitq,
-                (HifInfo->HifLoopbkFlg != 0));
+	ret = wait_event_interruptible(HifInfo->HifWaitq,
+		(HifInfo->HifLoopbkFlg != 0));
 
-        if (HifInfo->HifLoopbkFlg == 0xFFFFFFFF)
-            break;
+	if (HifInfo->HifLoopbkFlg == 0xFFFFFFFF)
+	    break;
 
-        while (TRUE)
-        {
+	while (TRUE)
+	{
 
-#if 0 // GDMA clock on/off test
+#if 0 /* GDMA clock on/off test */
 {
-    static int test = 0;
+    static int test;
     if (++test == 5)
     {
-        *(volatile unsigned int *)0xF0000054 |= 4;
-        printk("disable GDMA clock...\n");
-        testgdmaclock = 1;
+	*(volatile unsigned int *)0xF0000054 |= 4;
+	printk("disable GDMA clock...\n");
+	testgdmaclock = 1;
     }
 }
 #endif
 
-//            if ((HifInfo->HifLoopbkFlg & 0x01) == 0)
-            if (GlueInfo->i4TxPendingFrameNum < 64)
-            {
-                printk("GlueInfo->i4TxPendingFrameNum = %d\n", GlueInfo->i4TxPendingFrameNum);
-                kalDevLoopbkAuto(GlueInfo);
+/* if ((HifInfo->HifLoopbkFlg & 0x01) == 0) */
+	    if (GlueInfo->i4TxPendingFrameNum < 64)
+	    {
+		printk("GlueInfo->i4TxPendingFrameNum = %d\n", GlueInfo->i4TxPendingFrameNum);
+		kalDevLoopbkAuto(GlueInfo);
 
-                if (testmode == 0)
-                    kalMsleep(3000);
-            }
-            else
-                kalMsleep(1);
-        }
+		if (testmode == 0)
+		    kalMsleep(3000);
+	    }
+	    else
+		kalMsleep(1);
+	}
     }
 }
 
@@ -1645,36 +1661,36 @@ kalDevLoopbkRxHandle(
 
     if (len > 1600)
     {
-        while(1)
-        printk("HIF> Loopback len > 1600!!! error!!!\n");
+	while (1)
+	printk("HIF> Loopback len > 1600!!! error!!!\n");
     }
 
-    for(i=0; i<6; i++)
+    for (i = 0; i < 6; i++)
     {
-        if (Buf[i] != 0xff)
-        {
-			while(1)
+	if (Buf[i] != 0xff)
+	{
+			while (1)
 			{
-	            printk("HIF> Loopbk dst addr error (len = %d)!\n", len);
-	            dumpMemory8(prSwRfb->pucRecvBuff, prHifRxHdr->u2PacketLen);
+		    printk("HIF> Loopbk dst addr error (len = %d)!\n", len);
+		    dumpMemory8(prSwRfb->pucRecvBuff, prHifRxHdr->u2PacketLen);
 			}
-        }
+	}
     }
 
-    for(i=6; i<len; i++)
+    for (i = 6; i < len; i++)
     {
-        if (Buf[i] != 0x5a)
-        {
-			while(1)
+	if (Buf[i] != 0x5a)
+	{
+			while (1)
 			{
-	            printk("HIF> Loopbk error (len = %d)!\n", len);
-	            dumpMemory8(prSwRfb->pucRecvBuff, prHifRxHdr->u2PacketLen);
+		    printk("HIF> Loopbk error (len = %d)!\n", len);
+		    dumpMemory8(prSwRfb->pucRecvBuff, prHifRxHdr->u2PacketLen);
 			}
-        }
+	}
     }
 
     printk("HIF> Loopbk OK (len = %d) (total = %d)!\n",
-            len, ++rxcnt);
+	    len, ++rxcnt);
 }
 #endif /* CONF_HIF_LOOPBACK_AUTO */
 
@@ -1693,7 +1709,7 @@ kalDevLoopbkRxHandle(
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-kalRxIndicatePkts (
+kalRxIndicatePkts(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN PVOID            apvPkts[],
     IN UINT_8           ucPktNum
@@ -1710,50 +1726,50 @@ kalRxIndicatePkts (
     UINT_32 i;
 #endif
 
-    for(ucIdx = 0; ucIdx < ucPktNum; ucIdx++) {
-        prSkb = apvPkts[ucIdx];
+    for (ucIdx = 0; ucIdx < ucPktNum; ucIdx++) {
+	prSkb = apvPkts[ucIdx];
 #if DBG
-        do {
-            PUINT_8 pu4Head = (PUINT_8)&prSkb->cb[0];
-            UINT_32 u4HeadValue = 0;
-            kalMemCopy(&u4HeadValue, pu4Head, sizeof(u4HeadValue));
-            DBGLOG(RX, TRACE, ("prSkb->head = 0x%p, prSkb->cb = 0x%lx\n", pu4Head, u4HeadValue));
-        } while (0);
+	do {
+	    PUINT_8 pu4Head = (PUINT_8)&prSkb->cb[0];
+	    UINT_32 u4HeadValue = 0;
+	    kalMemCopy(&u4HeadValue, pu4Head, sizeof(u4HeadValue));
+	    DBGLOG(RX, TRACE, ("prSkb->head = 0x%p, prSkb->cb = 0x%lx\n", pu4Head, u4HeadValue));
+	} while (0);
 #endif
 
-        if (GLUE_GET_PKT_IS_P2P(prSkb)) {
-            /* P2P */
+	if (GLUE_GET_PKT_IS_P2P(prSkb)) {
+	    /* P2P */
 #if CFG_ENABLE_WIFI_DIRECT
-            if(prGlueInfo->prAdapter->fgIsP2PRegistered) {
-                prNetDev = kalP2PGetDevHdlr(prGlueInfo);
-            }
+	    if (prGlueInfo->prAdapter->fgIsP2PRegistered) {
+		prNetDev = kalP2PGetDevHdlr(prGlueInfo);
+	    }
 
-            //prNetDev->stats.rx_bytes += prSkb->len;
-            //prNetDev->stats.rx_packets++;
-            prGlueInfo->prP2PInfo->rNetDevStats.rx_bytes += prSkb->len;
-	        prGlueInfo->prP2PInfo->rNetDevStats.rx_packets++;
+	    /* prNetDev->stats.rx_bytes += prSkb->len; */
+	    /* prNetDev->stats.rx_packets++; */
+	    prGlueInfo->prP2PInfo->rNetDevStats.rx_bytes += prSkb->len;
+		prGlueInfo->prP2PInfo->rNetDevStats.rx_packets++;
 
 #else
-            prNetDev = prGlueInfo->prDevHandler;
+	    prNetDev = prGlueInfo->prDevHandler;
 #endif
-        }
-        else if (GLUE_GET_PKT_IS_PAL(prSkb)) {
-            /* BOW */
+	}
+	else if (GLUE_GET_PKT_IS_PAL(prSkb)) {
+	    /* BOW */
 #if CFG_ENABLE_BT_OVER_WIFI && CFG_BOW_SEPARATE_DATA_PATH
-            if (prGlueInfo->rBowInfo.fgIsNetRegistered) {
-            prNetDev = prGlueInfo->rBowInfo.prDevHandler;
-            }
+	    if (prGlueInfo->rBowInfo.fgIsNetRegistered) {
+	    prNetDev = prGlueInfo->rBowInfo.prDevHandler;
+	    }
 #else
-            prNetDev = prGlueInfo->prDevHandler;
+	    prNetDev = prGlueInfo->prDevHandler;
 #endif
-        }
-        else {
-            /* AIS */
-            prNetDev = prGlueInfo->prDevHandler;
-            prGlueInfo->rNetDevStats.rx_bytes += prSkb->len;
-            prGlueInfo->rNetDevStats.rx_packets++;
+	}
+	else {
+	    /* AIS */
+	    prNetDev = prGlueInfo->prDevHandler;
+	    prGlueInfo->rNetDevStats.rx_bytes += prSkb->len;
+	    prGlueInfo->rNetDevStats.rx_packets++;
 
-        }
+	}
 
 		/* check if the "unicast" packet is from us */
 		if (kalMemCmp(prSkb->data, prSkb->data+6, 6) == 0)
@@ -1763,65 +1779,46 @@ kalRxIndicatePkts (
 			DBGLOG(RX, EVENT,
 				("kalRxIndicatePkts got from us!!! Drop it! (["MACSTR"] len %d)\n",
 				MAC2STR(prSkb->data), prSkb->len));
-			wlanReturnPacket(prGlueInfo->prAdapter, prSkb);
-			continue;
+			kalPacketFree(prGlueInfo, prSkb);
+			return WLAN_STATUS_SUCCESS;
 		}
 
-#if (CFG_SUPPORT_TDLS == 1)
-		if (TdlsexRxFrameDrop(prGlueInfo, prSkb->data) == TRUE)
-		{
-			/* drop the received TDLS action frame */
-			DBGLOG(TDLS, WARN,
-				("<tdls_fme> %s: drop a received packet from "MACSTR" %u\n",
-				__FUNCTION__, MAC2STR(prSkb->data),
-				(UINT32)((P_ADAPTER_T)(prGlueInfo->prAdapter))->rRxCtrl.rFreeSwRfbList.u4NumElem));
-			wlanReturnPacket(prGlueInfo->prAdapter, prSkb);
-			continue;
-		}
-
-		/*
-			get a TDLS request/response/confirm, we need to parse the HT IE
-			because older supplicant does not pass HT IE to us
-		*/
-		TdlsexRxFrameHandle(prGlueInfo, prSkb->data, prSkb->len);
-#endif /* CFG_SUPPORT_TDLS */
-
-        prNetDev->last_rx = jiffies;
-        prSkb->protocol = eth_type_trans(prSkb, prNetDev);
-        prSkb->dev = prNetDev;
-        //DBGLOG_MEM32(RX, TRACE, (PUINT_32)prSkb->data, prSkb->len);
-        DBGLOG(RX, EVENT, ("kalRxIndicatePkts len = %d\n", prSkb->len));
+	prNetDev->last_rx = jiffies;
+	prSkb->protocol = eth_type_trans(prSkb, prNetDev);
+	prSkb->dev = prNetDev;
+	/* DBGLOG_MEM32(RX, TRACE, (PUINT_32)prSkb->data, prSkb->len); */
+	DBGLOG(RX, EVENT, ("kalRxIndicatePkts len = %d\n", prSkb->len));
 
 #if CFG_BOW_TEST
     DBGLOG(BOW, TRACE, ("Rx sk_buff->len: %d\n", prSkb->len));
     DBGLOG(BOW, TRACE, ("Rx sk_buff->data_len: %d\n", prSkb->data_len));
     DBGLOG(BOW, TRACE, ("Rx sk_buff->data:\n"));
 
-        for(i = 0; i < prSkb->len; i++)
-        {
-        DBGLOG(BOW, TRACE, ("%4x", prSkb->data[i]));
+	for (i = 0; i < prSkb->len; i++)
+	{
+	DBGLOG(BOW, TRACE, ("%4x", prSkb->data[i]));
 
-            if((i+1)%16 ==0)
-            {
-            DBGLOG(BOW, TRACE, ("\n"));
-            }
-        }
+            if ((i+1)%16 == 0)
+	    {
+	    DBGLOG(BOW, TRACE, ("\n"));
+	    }
+	}
 
     DBGLOG(BOW, TRACE, ("\n"));
 #endif
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 0)
-        if(!in_interrupt()){
-            netif_rx_ni(prSkb); /* only in non-interrupt context */
-        }
-        else {
-            netif_rx(prSkb);
-        }
+	if (!in_interrupt()) {
+	    netif_rx_ni(prSkb); /* only in non-interrupt context */
+	}
+	else {
+	    netif_rx(prSkb);
+	}
 #else
-        netif_rx(prSkb);
+	netif_rx(prSkb);
 #endif
 
-        wlanReturnPacket(prGlueInfo->prAdapter, NULL);
+	wlanReturnPacket(prGlueInfo->prAdapter, NULL);
     }
 
     return WLAN_STATUS_SUCCESS;
@@ -1843,7 +1840,7 @@ kalRxIndicatePkts (
 /*----------------------------------------------------------------------------*/
 UINT32 ScanCnt = 0, ScanDoneFailCnt = 0;
 VOID
-kalIndicateStatusAndComplete (
+kalIndicateStatusAndComplete(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN WLAN_STATUS      eStatus,
     IN PVOID            pvBuf,
@@ -1854,7 +1851,7 @@ kalIndicateStatusAndComplete (
     P_PARAM_STATUS_INDICATION_T pStatus = (P_PARAM_STATUS_INDICATION_T) pvBuf;
     P_PARAM_AUTH_EVENT_T pAuth = (P_PARAM_AUTH_EVENT_T) pStatus;
     P_PARAM_PMKID_CANDIDATE_LIST_T pPmkid =
-        (P_PARAM_PMKID_CANDIDATE_LIST_T) (pStatus + 1);
+	(P_PARAM_PMKID_CANDIDATE_LIST_T) (pStatus + 1);
     PARAM_MAC_ADDRESS arBssid;
     struct cfg80211_scan_request *prScanRequest = NULL;
     PARAM_SSID_T ssid;
@@ -1873,247 +1870,247 @@ kalIndicateStatusAndComplete (
     case WLAN_STATUS_ROAM_OUT_FIND_BEST:
     case WLAN_STATUS_MEDIA_CONNECT:
 
-        prGlueInfo->eParamMediaStateIndicated = PARAM_MEDIA_STATE_CONNECTED;
+	prGlueInfo->eParamMediaStateIndicated = PARAM_MEDIA_STATE_CONNECTED;
 
-        /* indicate assoc event */
-        wlanQueryInformation(prGlueInfo->prAdapter,
-            wlanoidQueryBssid,
-            &arBssid[0],
-            sizeof(arBssid),
-            &bufLen);
-        wext_indicate_wext_event(prGlueInfo, SIOCGIWAP, arBssid, bufLen);
+	/* indicate assoc event */
+	wlanQueryInformation(prGlueInfo->prAdapter,
+	    wlanoidQueryBssid,
+	    &arBssid[0],
+	    sizeof(arBssid),
+	    &bufLen);
+	wext_indicate_wext_event(prGlueInfo, SIOCGIWAP, arBssid, bufLen);
 
-        /* switch netif on */
-        netif_carrier_on(prGlueInfo->prDevHandler);
+	/* switch netif on */
+	netif_carrier_on(prGlueInfo->prDevHandler);
 
-        do {
-            /* print message on console */
-            wlanQueryInformation(prGlueInfo->prAdapter,
-                wlanoidQuerySsid,
-                &ssid,
-                sizeof(ssid),
-                &bufLen);
+	do {
+	    /* print message on console */
+	    wlanQueryInformation(prGlueInfo->prAdapter,
+		wlanoidQuerySsid,
+		&ssid,
+		sizeof(ssid),
+		&bufLen);
 
-            ssid.aucSsid[(ssid.u4SsidLen >= PARAM_MAX_LEN_SSID) ?
-                (PARAM_MAX_LEN_SSID - 1) : ssid.u4SsidLen ] = '\0';
-            DBGLOG(INIT, INFO, ("[wifi] %s netif_carrier_on [ssid:%s " MACSTR "]\n",
-                prGlueInfo->prDevHandler->name,
-                ssid.aucSsid,
-                MAC2STR(arBssid)));
-        } while(0);
+	    ssid.aucSsid[(ssid.u4SsidLen >= PARAM_MAX_LEN_SSID) ?
+		(PARAM_MAX_LEN_SSID - 1) : ssid.u4SsidLen] = '\0';
+	    DBGLOG(INIT, INFO, ("[wifi] %s netif_carrier_on [ssid:%s " MACSTR "]\n",
+		prGlueInfo->prDevHandler->name,
+		ssid.aucSsid,
+		MAC2STR(arBssid)));
+	} while (0);
 
-        if(prGlueInfo->fgIsRegistered == TRUE) {
-            /* retrieve channel */
-            ucChannelNum = wlanGetChannelNumberByNetwork(prGlueInfo->prAdapter, NETWORK_TYPE_AIS_INDEX);
-            if(ucChannelNum <= 14) {
-                prChannel = ieee80211_get_channel(priv_to_wiphy(prGlueInfo), ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_2GHZ));
-            }
-            else {
-                prChannel = ieee80211_get_channel(priv_to_wiphy(prGlueInfo), ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_5GHZ));
-            }
+	if (prGlueInfo->fgIsRegistered == TRUE) {
+	    /* retrieve channel */
+	    ucChannelNum = wlanGetChannelNumberByNetwork(prGlueInfo->prAdapter, NETWORK_TYPE_AIS_INDEX);
+	    if (ucChannelNum <= 14) {
+		prChannel = ieee80211_get_channel(priv_to_wiphy(prGlueInfo), ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_2GHZ));
+	    }
+	    else {
+		prChannel = ieee80211_get_channel(priv_to_wiphy(prGlueInfo), ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_5GHZ));
+	    }
 
-            /* ensure BSS exists */
-            bss = cfg80211_get_bss(priv_to_wiphy(prGlueInfo), prChannel, arBssid,
-                    ssid.aucSsid, ssid.u4SsidLen,
-                    WLAN_CAPABILITY_ESS, WLAN_CAPABILITY_ESS);
+	    /* ensure BSS exists */
+	    bss = cfg80211_get_bss(priv_to_wiphy(prGlueInfo), prChannel, arBssid,
+		    ssid.aucSsid, ssid.u4SsidLen,
+		    WLAN_CAPABILITY_ESS, WLAN_CAPABILITY_ESS);
 
-            if(bss == NULL) {
-                /* create BSS on-the-fly */
-                prBssDesc = wlanGetTargetBssDescByNetwork(prGlueInfo->prAdapter, NETWORK_TYPE_AIS_INDEX);
+	    if (bss == NULL) {
+		/* create BSS on-the-fly */
+		prBssDesc = wlanGetTargetBssDescByNetwork(prGlueInfo->prAdapter, NETWORK_TYPE_AIS_INDEX);
 
-                if(prBssDesc != NULL) {
-                    bss = cfg80211_inform_bss(priv_to_wiphy(prGlueInfo),
-                        prChannel,
-                        arBssid,
-                        0,                                      /* TSF */
-                        WLAN_CAPABILITY_ESS,
-                        prBssDesc->u2BeaconInterval,            /* beacon interval */
-                        prBssDesc->aucIEBuf,                    /* IE */
-                        prBssDesc->u2IELength,                  /* IE Length */
-                        RCPI_TO_dBm(prBssDesc->ucRCPI) * 100,   /* MBM */
-                        GFP_KERNEL);
-                }
-            }
+		if (prBssDesc != NULL) {
+		    bss = cfg80211_inform_bss(priv_to_wiphy(prGlueInfo),
+			prChannel,
+			arBssid,
+			0,                                      /* TSF */
+			WLAN_CAPABILITY_ESS,
+			prBssDesc->u2BeaconInterval,            /* beacon interval */
+			prBssDesc->aucIEBuf,                    /* IE */
+			prBssDesc->u2IELength,                  /* IE Length */
+			RCPI_TO_dBm(prBssDesc->ucRCPI) * 100,   /* MBM */
+			GFP_KERNEL);
+		}
+	    }
 
-            /* CFG80211 Indication */
-            if(eStatus == WLAN_STATUS_MEDIA_CONNECT
-                    && prGlueInfo->prDevHandler->ieee80211_ptr->sme_state == CFG80211_SME_CONNECTING) {
-                cfg80211_connect_result(prGlueInfo->prDevHandler,
-                        arBssid,
-                        prGlueInfo->aucReqIe,
-                        prGlueInfo->u4ReqIeLength,
-                        prGlueInfo->aucRspIe,
-                        prGlueInfo->u4RspIeLength,
-                        WLAN_STATUS_SUCCESS,
-                        GFP_KERNEL);
-            }
-            else if(eStatus == WLAN_STATUS_ROAM_OUT_FIND_BEST
-                    && prGlueInfo->prDevHandler->ieee80211_ptr->sme_state == CFG80211_SME_CONNECTED) {
-                cfg80211_roamed_bss(prGlueInfo->prDevHandler,
-                        bss,
-                        prGlueInfo->aucReqIe,
-                        prGlueInfo->u4ReqIeLength,
-                        prGlueInfo->aucRspIe,
-                        prGlueInfo->u4RspIeLength,
-                        GFP_KERNEL);
-            }
-        }
+	    /* CFG80211 Indication */
+	    if (eStatus == WLAN_STATUS_MEDIA_CONNECT
+		    && prGlueInfo->prDevHandler->ieee80211_ptr->sme_state == CFG80211_SME_CONNECTING) {
+		cfg80211_connect_result(prGlueInfo->prDevHandler,
+			arBssid,
+			prGlueInfo->aucReqIe,
+			prGlueInfo->u4ReqIeLength,
+			prGlueInfo->aucRspIe,
+			prGlueInfo->u4RspIeLength,
+			WLAN_STATUS_SUCCESS,
+			GFP_KERNEL);
+	    }
+	    else if (eStatus == WLAN_STATUS_ROAM_OUT_FIND_BEST
+		    && prGlueInfo->prDevHandler->ieee80211_ptr->sme_state == CFG80211_SME_CONNECTED) {
+		cfg80211_roamed_bss(prGlueInfo->prDevHandler,
+			bss,
+			prGlueInfo->aucReqIe,
+			prGlueInfo->u4ReqIeLength,
+			prGlueInfo->aucRspIe,
+			prGlueInfo->u4RspIeLength,
+			GFP_KERNEL);
+	    }
+	}
 
-        break;
+	break;
 
     case WLAN_STATUS_MEDIA_DISCONNECT:
-        /* indicate disassoc event */
-        wext_indicate_wext_event(prGlueInfo, SIOCGIWAP, NULL, 0);
-        /* For CR 90 and CR99, While supplicant do reassociate, driver will do netif_carrier_off first,
-           after associated success, at joinComplete(), do netif_carier_on,
-           but for unknown reason, the supplicant 1x pkt will not called the driver
-           hardStartXmit, for template workaround these bugs, add this compiling flag
-        */
-        /* switch netif off */
+	/* indicate disassoc event */
+	wext_indicate_wext_event(prGlueInfo, SIOCGIWAP, NULL, 0);
+	/* For CR 90 and CR99, While supplicant do reassociate, driver will do netif_carrier_off first,
+	   after associated success, at joinComplete(), do netif_carier_on,
+	   but for unknown reason, the supplicant 1x pkt will not called the driver
+	   hardStartXmit, for template workaround these bugs, add this compiling flag
+	*/
+	/* switch netif off */
 
 #if 1   /* CONSOLE_MESSAGE */
-         DBGLOG(INIT, INFO, ("[wifi] %s netif_carrier_off %d\n",
+	 DBGLOG(INIT, INFO, ("[wifi] %s netif_carrier_off %d\n",
 				prGlueInfo->prDevHandler->name,
 				prGlueInfo->prDevHandler->ieee80211_ptr->sme_state));
 #endif
 
-        netif_carrier_off(prGlueInfo->prDevHandler);
+	netif_carrier_off(prGlueInfo->prDevHandler);
 
-        if(prGlueInfo->fgIsRegistered == TRUE
-                && prGlueInfo->prDevHandler->ieee80211_ptr->sme_state == CFG80211_SME_CONNECTED) {
-            /* CFG80211 Indication */
+	if (prGlueInfo->fgIsRegistered == TRUE
+		&& prGlueInfo->prDevHandler->ieee80211_ptr->sme_state == CFG80211_SME_CONNECTED) {
+	    /* CFG80211 Indication */
 			DBGLOG(INIT, INFO, ("[wifi] %s cfg80211_disconnected\n", prGlueInfo->prDevHandler->name));
-            cfg80211_disconnected(prGlueInfo->prDevHandler, 0, NULL, 0, GFP_KERNEL);
-        }
+	    cfg80211_disconnected(prGlueInfo->prDevHandler, 0, NULL, 0, GFP_KERNEL);
+	}
 
-        prGlueInfo->eParamMediaStateIndicated = PARAM_MEDIA_STATE_DISCONNECTED;
+	prGlueInfo->eParamMediaStateIndicated = PARAM_MEDIA_STATE_DISCONNECTED;
 
-        break;
+	break;
 
     case WLAN_STATUS_SCAN_COMPLETE:
-        /* indicate scan complete event */
-        wext_indicate_wext_event(prGlueInfo, SIOCGIWSCAN, NULL, 0);
+	/* indicate scan complete event */
+	wext_indicate_wext_event(prGlueInfo, SIOCGIWSCAN, NULL, 0);
 
-        /* 1. reset first for newly incoming request */
-        GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_NET_DEV);
-        if(prGlueInfo->prScanRequest != NULL) {
-            prScanRequest = prGlueInfo->prScanRequest;
-            prGlueInfo->prScanRequest = NULL;
-        }
-        GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_NET_DEV);
+	/* 1. reset first for newly incoming request */
+	GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_NET_DEV);
+	if (prGlueInfo->prScanRequest != NULL) {
+	    prScanRequest = prGlueInfo->prScanRequest;
+	    prGlueInfo->prScanRequest = NULL;
+	}
+	GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_NET_DEV);
 
-        /* 2. then CFG80211 Indication */
+	/* 2. then CFG80211 Indication */
 		DBGLOG(INIT, TRACE, ("[ais] scan complete %p %d %d\n",
 				prScanRequest, ScanCnt, ScanDoneFailCnt));
 
-        if(prScanRequest != NULL) {
-            cfg80211_scan_done(prScanRequest, FALSE);
-        }
-        break;
-        case WLAN_STATUS_CONNECT_INDICATION:
-            /* indicate AIS Jion fail  event */
-            if(prGlueInfo->prDevHandler->ieee80211_ptr->sme_state == CFG80211_SME_CONNECTING) {
-            cfg80211_connect_result(prGlueInfo->prDevHandler,
-                    prGlueInfo->prAdapter->rWifiVar.rAisFsmInfo.prTargetBssDesc->aucBSSID,
-                    prGlueInfo->aucReqIe,
-                    prGlueInfo->u4ReqIeLength,
-                    prGlueInfo->aucRspIe,
-                    prGlueInfo->u4RspIeLength,
-                    REASON_CODE_UNSPECIFIED,
-                    GFP_KERNEL);
-                }
-            break;
+	if (prScanRequest != NULL) {
+	    cfg80211_scan_done(prScanRequest, FALSE);
+	}
+	break;
+	case WLAN_STATUS_CONNECT_INDICATION:
+	    /* indicate AIS Jion fail  event */
+	    if (prGlueInfo->prDevHandler->ieee80211_ptr->sme_state == CFG80211_SME_CONNECTING) {
+	    cfg80211_connect_result(prGlueInfo->prDevHandler,
+		    prGlueInfo->prAdapter->rWifiVar.rAisFsmInfo.prTargetBssDesc->aucBSSID,
+		    prGlueInfo->aucReqIe,
+		    prGlueInfo->u4ReqIeLength,
+		    prGlueInfo->aucRspIe,
+		    prGlueInfo->u4RspIeLength,
+		    REASON_CODE_UNSPECIFIED,
+		    GFP_KERNEL);
+		}
+	    break;
 
     #if 0
     case WLAN_STATUS_MSDU_OK:
-        if (netif_running(prGlueInfo->prDevHandler)) {
-            netif_wake_queue(prGlueInfo->prDevHandler);
-        }
-        break;
+	if (netif_running(prGlueInfo->prDevHandler)) {
+	    netif_wake_queue(prGlueInfo->prDevHandler);
+	}
+	break;
     #endif
 
     case WLAN_STATUS_MEDIA_SPECIFIC_INDICATION:
-        if (pStatus) {
-            switch (pStatus->eStatusType) {
-            case ENUM_STATUS_TYPE_AUTHENTICATION:
-                /*
-                printk(KERN_NOTICE "ENUM_STATUS_TYPE_AUTHENTICATION: L(%ld) [" MACSTR "] F:%lx\n",
-                    pAuth->Request[0].Length,
-                    MAC2STR(pAuth->Request[0].Bssid),
-                    pAuth->Request[0].Flags);
-                */
-                /* indicate (UC/GC) MIC ERROR event only */
-                if ((pAuth->arRequest[0].u4Flags ==
-                        PARAM_AUTH_REQUEST_PAIRWISE_ERROR) ||
-                        (pAuth->arRequest[0].u4Flags ==
-                        PARAM_AUTH_REQUEST_GROUP_ERROR)) {
-                    cfg80211_michael_mic_failure(prGlueInfo->prDevHandler, NULL,
-                                       (pAuth->arRequest[0].u4Flags == PARAM_AUTH_REQUEST_PAIRWISE_ERROR) ? NL80211_KEYTYPE_PAIRWISE : NL80211_KEYTYPE_GROUP,
-                                       0, NULL, GFP_KERNEL);
-                    wext_indicate_wext_event(prGlueInfo,
-                        IWEVMICHAELMICFAILURE,
-                        (unsigned char *)&pAuth->arRequest[0],
-                        pAuth->arRequest[0].u4Length);
-                }
-                break;
+	if (pStatus) {
+	    switch (pStatus->eStatusType) {
+	    case ENUM_STATUS_TYPE_AUTHENTICATION:
+		/*
+		printk(KERN_NOTICE "ENUM_STATUS_TYPE_AUTHENTICATION: L(%ld) [" MACSTR "] F:%lx\n",
+		    pAuth->Request[0].Length,
+		    MAC2STR(pAuth->Request[0].Bssid),
+		    pAuth->Request[0].Flags);
+		*/
+		/* indicate (UC/GC) MIC ERROR event only */
+		if ((pAuth->arRequest[0].u4Flags ==
+			PARAM_AUTH_REQUEST_PAIRWISE_ERROR) ||
+			(pAuth->arRequest[0].u4Flags ==
+			PARAM_AUTH_REQUEST_GROUP_ERROR)) {
+		    cfg80211_michael_mic_failure(prGlueInfo->prDevHandler, NULL,
+				       (pAuth->arRequest[0].u4Flags == PARAM_AUTH_REQUEST_PAIRWISE_ERROR) ? NL80211_KEYTYPE_PAIRWISE : NL80211_KEYTYPE_GROUP,
+				       0, NULL, GFP_KERNEL);
+		    wext_indicate_wext_event(prGlueInfo,
+			IWEVMICHAELMICFAILURE,
+			(unsigned char *)&pAuth->arRequest[0],
+			pAuth->arRequest[0].u4Length);
+		}
+		break;
 
-            case ENUM_STATUS_TYPE_CANDIDATE_LIST:
-                /*
-                printk(KERN_NOTICE "Param_StatusType_PMKID_CandidateList: Ver(%ld) Num(%ld)\n",
-                    pPmkid->u2Version,
-                    pPmkid->u4NumCandidates);
-                if (pPmkid->u4NumCandidates > 0) {
-                    printk(KERN_NOTICE "candidate[" MACSTR "] preAuth Flag:%lx\n",
-                        MAC2STR(pPmkid->arCandidateList[0].rBSSID),
-                        pPmkid->arCandidateList[0].fgFlags);
-                }
-                */
-                {
-                 UINT_32  i = 0;
+	    case ENUM_STATUS_TYPE_CANDIDATE_LIST:
+		/*
+		printk(KERN_NOTICE "Param_StatusType_PMKID_CandidateList: Ver(%ld) Num(%ld)\n",
+		    pPmkid->u2Version,
+		    pPmkid->u4NumCandidates);
+		if (pPmkid->u4NumCandidates > 0) {
+		    printk(KERN_NOTICE "candidate[" MACSTR "] preAuth Flag:%lx\n",
+			MAC2STR(pPmkid->arCandidateList[0].rBSSID),
+			pPmkid->arCandidateList[0].fgFlags);
+		}
+		*/
+		{
+		 UINT_32  i = 0;
 
-                 P_PARAM_PMKID_CANDIDATE_T prPmkidCand = (P_PARAM_PMKID_CANDIDATE_T)&pPmkid->arCandidateList[0];
+		 P_PARAM_PMKID_CANDIDATE_T prPmkidCand = (P_PARAM_PMKID_CANDIDATE_T)&pPmkid->arCandidateList[0];
 
-                 for (i=0; i<pPmkid->u4NumCandidates; i++) {
-                    wext_indicate_wext_event(prGlueInfo,
-                        IWEVPMKIDCAND,
-                        (unsigned char *)&pPmkid->arCandidateList[i],
-                        pPmkid->u4NumCandidates);
-                    prPmkidCand += sizeof(PARAM_PMKID_CANDIDATE_T);
-                }
-                }
-                break;
+                 for (i = 0; i < pPmkid->u4NumCandidates; i++) {
+		    wext_indicate_wext_event(prGlueInfo,
+			IWEVPMKIDCAND,
+			(unsigned char *)&pPmkid->arCandidateList[i],
+			pPmkid->u4NumCandidates);
+		    prPmkidCand += sizeof(PARAM_PMKID_CANDIDATE_T);
+		}
+		}
+		break;
 
-            default:
-                /* case ENUM_STATUS_TYPE_MEDIA_STREAM_MODE */
-                /*
-                printk(KERN_NOTICE "unknown media specific indication type:%x\n",
-                    pStatus->StatusType);
-                */
-                break;
-            }
-        }
-        else {
-            /*
-            printk(KERN_WARNING "media specific indication buffer NULL\n");
-            */
-        }
-        break;
+	    default:
+		/* case ENUM_STATUS_TYPE_MEDIA_STREAM_MODE */
+		/*
+		printk(KERN_NOTICE "unknown media specific indication type:%x\n",
+		    pStatus->StatusType);
+		*/
+		break;
+	    }
+	}
+	else {
+	    /*
+	    printk(KERN_WARNING "media specific indication buffer NULL\n");
+	    */
+	}
+	break;
 
 #if CFG_SUPPORT_BCM && CFG_SUPPORT_BCM_BWCS
     case WLAN_STATUS_BWCS_UPDATE:
     {
-        wext_indicate_wext_event(prGlueInfo, IWEVCUSTOM, pvBuf, sizeof(PTA_IPC_T));
+	wext_indicate_wext_event(prGlueInfo, IWEVCUSTOM, pvBuf, sizeof(PTA_IPC_T));
     }
 
-        break;
+	break;
 
 #endif
 
     default:
-        /*
-        printk(KERN_WARNING "unknown indication:%lx\n", eStatus);
-        */
-        break;
+	/*
+	printk(KERN_WARNING "unknown indication:%lx\n", eStatus);
+	*/
+	break;
     }
 } /* kalIndicateStatusAndComplete */
 
@@ -2136,7 +2133,7 @@ kalIndicateStatusAndComplete (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-kalUpdateReAssocReqInfo (
+kalUpdateReAssocReqInfo(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN PUINT_8          pucFrameBody,
     IN UINT_32          u4FrameBodyLen,
@@ -2151,43 +2148,43 @@ kalUpdateReAssocReqInfo (
     prGlueInfo->u4ReqIeLength = 0;
 
     if (fgReassocRequest) {
-        if (u4FrameBodyLen < 15) {
-            /*
-            printk(KERN_WARNING "frameBodyLen too short:%ld\n", frameBodyLen);
-            */
-            return;
-        }
+	if (u4FrameBodyLen < 15) {
+	    /*
+	    printk(KERN_WARNING "frameBodyLen too short:%ld\n", frameBodyLen);
+	    */
+	    return;
+	}
     }
     else {
-        if (u4FrameBodyLen < 9) {
-            /*
-            printk(KERN_WARNING "frameBodyLen too short:%ld\n", frameBodyLen);
-            */
-            return;
-        }
+	if (u4FrameBodyLen < 9) {
+	    /*
+	    printk(KERN_WARNING "frameBodyLen too short:%ld\n", frameBodyLen);
+	    */
+	    return;
+	}
     }
 
     cp = pucFrameBody;
 
     if (fgReassocRequest) {
-        /* Capability information field 2 */
-        /* Listen interval field 2*/
-        /* Current AP address 6 */
-        cp += 10;
-        u4FrameBodyLen -= 10;
+	/* Capability information field 2 */
+	/* Listen interval field 2*/
+	/* Current AP address 6 */
+	cp += 10;
+	u4FrameBodyLen -= 10;
     }
     else {
-        /* Capability information field 2 */
-        /* Listen interval field 2*/
-        cp += 4;
-        u4FrameBodyLen -= 4;
+	/* Capability information field 2 */
+	/* Listen interval field 2*/
+	cp += 4;
+	u4FrameBodyLen -= 4;
     }
 
     wext_indicate_wext_event(prGlueInfo, IWEVASSOCREQIE, cp, u4FrameBodyLen);
 
-    if(u4FrameBodyLen <= CFG_CFG80211_IE_BUF_LEN) {
-        prGlueInfo->u4ReqIeLength = u4FrameBodyLen;
-        kalMemCopy(prGlueInfo->aucReqIe, cp, u4FrameBodyLen);
+    if (u4FrameBodyLen <= CFG_CFG80211_IE_BUF_LEN) {
+	prGlueInfo->u4ReqIeLength = u4FrameBodyLen;
+	kalMemCopy(prGlueInfo->aucReqIe, cp, u4FrameBodyLen);
     }
 
     return;
@@ -2210,7 +2207,7 @@ kalUpdateReAssocReqInfo (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-kalUpdateReAssocRspInfo (
+kalUpdateReAssocRspInfo(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN PUINT_8          pucFrameBody,
     IN UINT_32          u4FrameBodyLen
@@ -2224,9 +2221,9 @@ kalUpdateReAssocRspInfo (
     /* reset */
     prGlueInfo->u4RspIeLength = 0;
 
-    if(u4IELength <= CFG_CFG80211_IE_BUF_LEN) {
-        prGlueInfo->u4RspIeLength = u4IELength;
-        kalMemCopy(prGlueInfo->aucRspIe, pucFrameBody + u4IEOffset, u4IELength);
+    if (u4IELength <= CFG_CFG80211_IE_BUF_LEN) {
+	prGlueInfo->u4RspIeLength = u4IELength;
+	kalMemCopy(prGlueInfo->aucRspIe, pucFrameBody + u4IEOffset, u4IELength);
     }
 
 }   /* kalUpdateReAssocRspInfo */
@@ -2245,7 +2242,7 @@ kalUpdateReAssocRspInfo (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-kalSendCompleteAndAwakeQueue (
+kalSendCompleteAndAwakeQueue(
     IN P_GLUE_INFO_T prGlueInfo,
     IN PVOID pvPacket
     )
@@ -2268,18 +2265,18 @@ kalSendCompleteAndAwakeQueue (
     ASSERT(u2QueueIdx < CFG_MAX_TXQ_NUM);
 
     if (GLUE_GET_PKT_IS_PAL(prSkb)) {
-        ucNetworkType = NETWORK_TYPE_BOW_INDEX;
+	ucNetworkType = NETWORK_TYPE_BOW_INDEX;
     } else if (GLUE_GET_PKT_IS_P2P(prSkb)) {
-        ucNetworkType = NETWORK_TYPE_P2P_INDEX;
+	ucNetworkType = NETWORK_TYPE_P2P_INDEX;
 
 #if CFG_ENABLE_WIFI_DIRECT
-        /* in case packet was sent after P2P device is unregistered */
-        if(prGlueInfo->prAdapter->fgIsP2PRegistered == FALSE) {
-            fgIsValidDevice = FALSE;
-        }
+	/* in case packet was sent after P2P device is unregistered */
+	if (prGlueInfo->prAdapter->fgIsP2PRegistered == FALSE) {
+	    fgIsValidDevice = FALSE;
+	}
 #endif
     } else {
-        ucNetworkType = NETWORK_TYPE_AIS_INDEX;
+	ucNetworkType = NETWORK_TYPE_AIS_INDEX;
     }
 
     GLUE_DEC_REF_CNT(prGlueInfo->i4TxPendingFrameNum);
@@ -2288,32 +2285,31 @@ kalSendCompleteAndAwakeQueue (
 
     ASSERT(prDev);
 
-    if(fgIsValidDevice == TRUE) {
+    if (fgIsValidDevice == TRUE) {
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 26)
-        if (netif_subqueue_stopped(prDev, prSkb) &&
-                prGlueInfo->ai4TxPendingFrameNumPerQueue[ucNetworkType][u2QueueIdx] <= CFG_TX_START_NETIF_PER_QUEUE_THRESHOLD) {
-            netif_wake_subqueue(prDev, u2QueueIdx);
+	if (netif_subqueue_stopped(prDev, prSkb) &&
+		prGlueInfo->ai4TxPendingFrameNumPerQueue[ucNetworkType][u2QueueIdx] <= CFG_TX_START_NETIF_PER_QUEUE_THRESHOLD) {
+	    netif_wake_subqueue(prDev, u2QueueIdx);
 
 #if (CONF_HIF_LOOPBACK_AUTO == 1)
-            prGlueInfo->rHifInfo.HifLoopbkFlg &= ~0x01;
+	    prGlueInfo->rHifInfo.HifLoopbkFlg &= ~0x01;
 #endif /* CONF_HIF_LOOPBACK_AUTO */
-        }
+	}
 #else
-        if (prGlueInfo->i4TxPendingFrameNum < CFG_TX_STOP_NETIF_QUEUE_THRESHOLD) {
-            netif_wake_queue(prGlueInfo->prDevHandler);
+	if (prGlueInfo->i4TxPendingFrameNum < CFG_TX_STOP_NETIF_QUEUE_THRESHOLD) {
+	    netif_wake_queue(prGlueInfo->prDevHandler);
 
 #if (CONF_HIF_LOOPBACK_AUTO == 1)
-            prGlueInfo->rHifInfo.HifLoopbkFlg &= ~0x01;
+	    prGlueInfo->rHifInfo.HifLoopbkFlg &= ~0x01;
 #endif /* CONF_HIF_LOOPBACK_AUTO */
-        }
+	}
 #endif
     }
 
 
     dev_kfree_skb((struct sk_buff *) pvPacket);
 
-    DBGLOG(TX, EVENT, ("----- pending frame %d -----\n",
-		(INT32)prGlueInfo->i4TxPendingFrameNum));
+    DBGLOG(TX, EVENT, ("----- pending frame %d -----\n", (INT32)prGlueInfo->i4TxPendingFrameNum));
 
     return;
 }
@@ -2333,12 +2329,12 @@ kalSendCompleteAndAwakeQueue (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-kalQueryRegistryMacAddr (
+kalQueryRegistryMacAddr(
     IN  P_GLUE_INFO_T   prGlueInfo,
     OUT PUINT_8        paucMacAddr
     )
 {
-    UINT_8 aucZeroMac[MAC_ADDR_LEN] = {0,0,0,0,0,0}
+    UINT_8 aucZeroMac[MAC_ADDR_LEN] = {0, 0, 0, 0, 0, 0}
     DEBUGFUNC("kalQueryRegistryMacAddr");
 
     ASSERT(prGlueInfo);
@@ -2360,20 +2356,20 @@ kalQueryRegistryMacAddr (
 */
 /*----------------------------------------------------------------------------*/
 UINT_32
-kalReadExtCfg (
+kalReadExtCfg(
     IN P_GLUE_INFO_T prGlueInfo
     )
 {
     ASSERT(prGlueInfo);
 
     /* External data is given from user space by ioctl or /proc, not read by
-        driver.
+	driver.
     */
     if (0 != prGlueInfo->u4ExtCfgLength) {
-        DBGLOG(INIT, TRACE, ("Read external configuration data -- OK\n"));
+	DBGLOG(INIT, TRACE, ("Read external configuration data -- OK\n"));
     }
     else {
-        DBGLOG(INIT, TRACE, ("Read external configuration data -- fail\n"));
+	DBGLOG(INIT, TRACE, ("Read external configuration data -- fail\n"));
     }
 
     return prGlueInfo->u4ExtCfgLength;
@@ -2400,7 +2396,7 @@ kalReadExtCfg (
 /*----------------------------------------------------------------------------*/
 
 BOOL
-kalQoSFrameClassifierAndPacketInfo (
+kalQoSFrameClassifierAndPacketInfo(
     IN P_GLUE_INFO_T prGlueInfo,
     IN P_NATIVE_PACKET prPacket,
     OUT PUINT_8 pucPriorityParam,
@@ -2425,8 +2421,8 @@ kalQoSFrameClassifierAndPacketInfo (
     u4PacketLen = prSkb->len;
 
     if (u4PacketLen < ETH_HLEN) {
-        DBGLOG(INIT, WARN, ("Invalid Ether packet length: %u\n", (UINT32)u4PacketLen));
-        return FALSE;
+	DBGLOG(INIT, WARN, ("Invalid Ether packet length: %u\n", (UINT32)u4PacketLen));
+	return FALSE;
     }
 
     aucLookAheadBuf = prSkb->data;
@@ -2434,106 +2430,101 @@ kalQoSFrameClassifierAndPacketInfo (
     *pfgIs1X = FALSE;
     *pfgIsPAL = FALSE;
 
-    //4 <3> Obtain the User Priority for WMM
+    /* 4 <3> Obtain the User Priority for WMM */
     u2EtherTypeLen = (aucLookAheadBuf[ETH_TYPE_LEN_OFFSET] << 8) | (aucLookAheadBuf[ETH_TYPE_LEN_OFFSET + 1]);
 
     if ((u2EtherTypeLen == ETH_P_IP) &&
-        (u4PacketLen >= LOOK_AHEAD_LEN)) {
-        PUINT_8 pucIpHdr = &aucLookAheadBuf[ETH_HLEN];
-        UINT_8 ucIpVersion;
+	(u4PacketLen >= LOOK_AHEAD_LEN)) {
+	PUINT_8 pucIpHdr = &aucLookAheadBuf[ETH_HLEN];
+	UINT_8 ucIpVersion;
 
-        ucIpVersion = (pucIpHdr[0] & IPVH_VERSION_MASK) >> IPVH_VERSION_OFFSET;
-        //printk ("ip version %x\n", ucIpVersion);
-        if (ucIpVersion == IPVERSION) {
-            UINT_8 ucIpTos;
-            /* Get the DSCP value from the header of IP packet. */
-            ucIpTos = pucIpHdr[1];
-            ucUserPriority = ((ucIpTos & IPTOS_PREC_MASK) >> IPTOS_PREC_OFFSET);
-        }
+	ucIpVersion = (pucIpHdr[0] & IPVH_VERSION_MASK) >> IPVH_VERSION_OFFSET;
+	/* printk ("ip version %x\n", ucIpVersion); */
+	if (ucIpVersion == IPVERSION) {
+	    UINT_8 ucIpTos;
+	    /* Get the DSCP value from the header of IP packet. */
+	    ucIpTos = pucIpHdr[1];
+	    ucUserPriority = ((ucIpTos & IPTOS_PREC_MASK) >> IPTOS_PREC_OFFSET);
+	}
 
-        /* TODO(Kevin): Add TSPEC classifier here */
+	/* TODO(Kevin): Add TSPEC classifier here */
     }
     else if (u2EtherTypeLen == ETH_P_1X) { /* For Port Control */
-        //DBGLOG(REQ, TRACE, ("Tx 1x\n"));
-        *pfgIs1X = TRUE;
+	/* DBGLOG(REQ, TRACE, ("Tx 1x\n")); */
+	*pfgIs1X = TRUE;
     }
     else if (u2EtherTypeLen == ETH_P_PRE_1X) { /* For Pre 1x pkt */
-        //DBGLOG(REQ, TRACE, ("Tx Pre-1x\n"));
-        *pfgIs1X = TRUE;
+	/* DBGLOG(REQ, TRACE, ("Tx Pre-1x\n")); */
+	*pfgIs1X = TRUE;
     }
 #if CFG_SUPPORT_WAPI
     else if (u2EtherTypeLen == ETH_WPI_1X) {
-        *pfgIs1X = TRUE;
+	*pfgIs1X = TRUE;
     }
 #endif
-#if (CFG_SUPPORT_TDLS == 1)
-	else if (u2EtherTypeLen == TDLS_FRM_PROT_TYPE) {
-		TDLSEX_UP_ASSIGN(ucUserPriority);
-	}
-#endif /* CFG_SUPPORT_TDLS */
     else if (u2EtherTypeLen <= 1500) { /* 802.3 Frame */
-        UINT_8 ucDSAP, ucSSAP, ucControl;
-        UINT_8 aucOUI[3];
+	UINT_8 ucDSAP, ucSSAP, ucControl;
+	UINT_8 aucOUI[3];
 
-        ucDSAP = *(PUINT_8) &aucLookAheadBuf[ETH_LLC_OFFSET];
-        ucSSAP = *(PUINT_8) &aucLookAheadBuf[ETH_LLC_OFFSET + 1];
-        ucControl = *(PUINT_8) &aucLookAheadBuf[ETH_LLC_OFFSET + 2];
+	ucDSAP = *(PUINT_8) &aucLookAheadBuf[ETH_LLC_OFFSET];
+	ucSSAP = *(PUINT_8) &aucLookAheadBuf[ETH_LLC_OFFSET + 1];
+	ucControl = *(PUINT_8) &aucLookAheadBuf[ETH_LLC_OFFSET + 2];
 
-        aucOUI[0] = *(PUINT_8) &aucLookAheadBuf[ETH_SNAP_OFFSET];
-        aucOUI[1] = *(PUINT_8) &aucLookAheadBuf[ETH_SNAP_OFFSET + 1];
-        aucOUI[2] = *(PUINT_8) &aucLookAheadBuf[ETH_SNAP_OFFSET + 2];
+	aucOUI[0] = *(PUINT_8) &aucLookAheadBuf[ETH_SNAP_OFFSET];
+	aucOUI[1] = *(PUINT_8) &aucLookAheadBuf[ETH_SNAP_OFFSET + 1];
+	aucOUI[2] = *(PUINT_8) &aucLookAheadBuf[ETH_SNAP_OFFSET + 2];
 
-        if(ucDSAP == ETH_LLC_DSAP_SNAP &&
-                ucSSAP == ETH_LLC_SSAP_SNAP &&
-                ucControl == ETH_LLC_CONTROL_UNNUMBERED_INFORMATION &&
-                aucOUI[0] == ETH_SNAP_BT_SIG_OUI_0 &&
-                aucOUI[1] == ETH_SNAP_BT_SIG_OUI_1 &&
-                aucOUI[2] == ETH_SNAP_BT_SIG_OUI_2) {
+	if (ucDSAP == ETH_LLC_DSAP_SNAP &&
+		ucSSAP == ETH_LLC_SSAP_SNAP &&
+		ucControl == ETH_LLC_CONTROL_UNNUMBERED_INFORMATION &&
+		aucOUI[0] == ETH_SNAP_BT_SIG_OUI_0 &&
+		aucOUI[1] == ETH_SNAP_BT_SIG_OUI_1 &&
+		aucOUI[2] == ETH_SNAP_BT_SIG_OUI_2) {
 
-            UINT_16 tmp = ((aucLookAheadBuf[ETH_SNAP_OFFSET + 3] << 8) | aucLookAheadBuf[ETH_SNAP_OFFSET + 4]);
+	    UINT_16 tmp = ((aucLookAheadBuf[ETH_SNAP_OFFSET + 3] << 8) | aucLookAheadBuf[ETH_SNAP_OFFSET + 4]);
 
-            *pfgIsPAL = TRUE;
-            ucUserPriority = (UINT_8)prSkb->priority;
+	    *pfgIsPAL = TRUE;
+	    ucUserPriority = (UINT_8)prSkb->priority;
 
-            if (tmp == BOW_PROTOCOL_ID_SECURITY_FRAME) {
-                *pfgIs1X = TRUE;
-            }
-        }
+	    if (tmp == BOW_PROTOCOL_ID_SECURITY_FRAME) {
+		*pfgIs1X = TRUE;
+	    }
+	}
     }
 
-    //4 <4> Return the value of Priority Parameter.
+    /* 4 <4> Return the value of Priority Parameter. */
     *pucPriorityParam = ucUserPriority;
 
-    //4 <5> Retrieve Packet Information - DA
+    /* 4 <5> Retrieve Packet Information - DA */
     /* Packet Length/ Destination Address */
     *pu4PacketLen = u4PacketLen;
 
     kalMemCopy(pucEthDestAddr, aucLookAheadBuf, PARAM_MAC_ADDR_LEN);
 
 
-    //<6> Network type
+    /* <6> Network type */
 #if CFG_ENABLE_BT_OVER_WIFI
-    if(*pfgIsPAL == TRUE) {
-        *pucNetworkType = NETWORK_TYPE_BOW_INDEX;
+    if (*pfgIsPAL == TRUE) {
+	*pucNetworkType = NETWORK_TYPE_BOW_INDEX;
     }
     else
 #endif
     {
 #if CFG_ENABLE_WIFI_DIRECT
-        if(prGlueInfo->prAdapter->fgIsP2PRegistered && GLUE_GET_PKT_IS_P2P(prPacket)) {
-            *pucNetworkType = NETWORK_TYPE_P2P_INDEX;
-        }
-        else
+	if (prGlueInfo->prAdapter->fgIsP2PRegistered && GLUE_GET_PKT_IS_P2P(prPacket)) {
+	    *pucNetworkType = NETWORK_TYPE_P2P_INDEX;
+	}
+	else
 #endif
-        {
-            *pucNetworkType = NETWORK_TYPE_AIS_INDEX;
-        }
+	{
+	    *pucNetworkType = NETWORK_TYPE_AIS_INDEX;
+	}
     }
     return TRUE;
 } /* end of kalQoSFrameClassifier() */
 
 VOID
-kalOidComplete (
+kalOidComplete(
     IN P_GLUE_INFO_T prGlueInfo,
     IN BOOLEAN fgSetQuery,
     IN UINT_32 u4SetQueryInfoLen,
@@ -2545,11 +2536,11 @@ kalOidComplete (
     /* remove timeout check timer */
     wlanoidClearTimeoutCheck(prGlueInfo->prAdapter);
 
-    //if (prGlueInfo->u4TimeoutFlag != 1) {
+    /* if (prGlueInfo->u4TimeoutFlag != 1) { */
     prGlueInfo->rPendStatus = rOidStatus;
     complete(&prGlueInfo->rPendComp);
     prGlueInfo->u4OidCompleteFlag = 1;
-    //}
+    /* } */
     /* else let it timeout on kalIoctl entry */
 }
 
@@ -2558,12 +2549,12 @@ kalOidClearance(
     IN P_GLUE_INFO_T prGlueInfo
     )
 {
-    //if (prGlueInfo->u4TimeoutFlag != 1) {
-     //clear_bit(GLUE_FLAG_OID_BIT, &prGlueInfo->u4Flag);
+    /* if (prGlueInfo->u4TimeoutFlag != 1) { */
+     /* clear_bit(GLUE_FLAG_OID_BIT, &prGlueInfo->u4Flag); */
     if (prGlueInfo->u4OidCompleteFlag != 1) {
-        complete(&prGlueInfo->rPendComp);
+	complete(&prGlueInfo->rPendComp);
     }
-    //}
+    /* } */
 }
 
 
@@ -2585,15 +2576,15 @@ kalOidClearance(
 */
 /*----------------------------------------------------------------------------*/
 
-// todo: enqueue the i/o requests for multiple processes access
-//
-// currently, return -1
-//
+/* todo: enqueue the i/o requests for multiple processes access */
+/*  */
+/* currently, return -1 */
+/*  */
 
-//static GL_IO_REQ_T OidEntry;
+/* static GL_IO_REQ_T OidEntry; */
 
 WLAN_STATUS
-kalIoctl (IN P_GLUE_INFO_T    prGlueInfo,
+kalIoctl(IN P_GLUE_INFO_T    prGlueInfo,
     IN PFN_OID_HANDLER_FUNC     pfnOidHandler,
     IN PVOID                    pvInfoBuf,
     IN UINT_32                  u4InfoBufLen,
@@ -2610,32 +2601,32 @@ kalIoctl (IN P_GLUE_INFO_T    prGlueInfo,
 
 
     if (fgIsResetting == TRUE)
-        return WLAN_STATUS_SUCCESS;
+	return WLAN_STATUS_SUCCESS;
 
-    //GLUE_SPIN_LOCK_DECLARATION();
+    /* GLUE_SPIN_LOCK_DECLARATION(); */
     ASSERT(prGlueInfo);
 
 
 
     /* <1> Check if driver is halt */
 
-    //if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) {
-    //    return WLAN_STATUS_ADAPTER_NOT_READY;
-    //}
+    /* if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) { */
+    /* return WLAN_STATUS_ADAPTER_NOT_READY; */
+    /* } */
 
     if (down_interruptible(&g_halt_sem)) {
-        return WLAN_STATUS_FAILURE;
+	return WLAN_STATUS_FAILURE;
     }
 
 
     if (g_u4HaltFlag) {
-        up(&g_halt_sem);
-        return WLAN_STATUS_ADAPTER_NOT_READY;
+	up(&g_halt_sem);
+	return WLAN_STATUS_ADAPTER_NOT_READY;
     }
 
-    if(down_interruptible(&prGlueInfo->ioctl_sem)) {
-        up(&g_halt_sem);
-        return WLAN_STATUS_FAILURE;
+    if (down_interruptible(&prGlueInfo->ioctl_sem)) {
+	up(&g_halt_sem);
+	return WLAN_STATUS_FAILURE;
     }
 
     /* <2> TODO: thread-safe */
@@ -2653,7 +2644,7 @@ kalIoctl (IN P_GLUE_INFO_T    prGlueInfo,
     prIoReq->u4InfoBufLen = u4InfoBufLen;
     prIoReq->pu4QryInfoLen = pu4QryInfoLen;
     prIoReq->fgRead = fgRead;
-    prIoReq->fgWaitResp= fgWaitResp;
+    prIoReq->fgWaitResp = fgWaitResp;
     prIoReq->rStatus = WLAN_STATUS_FAILURE;
 #if CFG_ENABLE_WIFI_DIRECT
     prIoReq->fgIsP2pOid = fgIsP2pOid;
@@ -2661,8 +2652,8 @@ kalIoctl (IN P_GLUE_INFO_T    prGlueInfo,
 
     /* <5> Reset the status of pending OID */
     prGlueInfo->rPendStatus = WLAN_STATUS_FAILURE;
-    //prGlueInfo->u4TimeoutFlag = 0;
-    //prGlueInfo->u4OidCompleteFlag = 0;
+    /* prGlueInfo->u4TimeoutFlag = 0; */
+    /* prGlueInfo->u4OidCompleteFlag = 0; */
 
     /* <6> Check if we use the command queue */
     prIoReq->u4Flag = fgCmd;
@@ -2674,26 +2665,26 @@ kalIoctl (IN P_GLUE_INFO_T    prGlueInfo,
     wake_up_interruptible(&prGlueInfo->waitq);
 
     /* <9> Block and wait for event or timeout, current the timeout is 5 secs */
-    //if (wait_for_completion_interruptible_timeout(&prGlueInfo->rPendComp, 5 * KAL_HZ)) {
-    //if (!wait_for_completion_interruptible(&prGlueInfo->rPendComp)) {
+    /* if (wait_for_completion_interruptible_timeout(&prGlueInfo->rPendComp, 5 * KAL_HZ)) { */
+    /* if (!wait_for_completion_interruptible(&prGlueInfo->rPendComp)) { */
     wait_for_completion(&prGlueInfo->rPendComp); {
-        /* Case 1: No timeout. */
-        /* if return WLAN_STATUS_PENDING, the status of cmd is stored in prGlueInfo  */
-        if (prIoReq->rStatus == WLAN_STATUS_PENDING) {
-            ret = prGlueInfo->rPendStatus;
-        } else {
-            ret = prIoReq->rStatus;
-        }
+	/* Case 1: No timeout. */
+	/* if return WLAN_STATUS_PENDING, the status of cmd is stored in prGlueInfo  */
+	if (prIoReq->rStatus == WLAN_STATUS_PENDING) {
+	    ret = prGlueInfo->rPendStatus;
+	} else {
+	    ret = prIoReq->rStatus;
+	}
     }
     #if 0
-        else {
-        /* Case 2: timeout */
-        /* clear pending OID's cmd in CMD queue */
-        if (fgCmd) {
-            prGlueInfo->u4TimeoutFlag = 1;
-            wlanReleasePendingOid(prGlueInfo->prAdapter, 0);
-        }
-        ret = WLAN_STATUS_FAILURE;
+	else {
+	/* Case 2: timeout */
+	/* clear pending OID's cmd in CMD queue */
+	if (fgCmd) {
+	    prGlueInfo->u4TimeoutFlag = 1;
+	    wlanReleasePendingOid(prGlueInfo->prAdapter, 0);
+	}
+	ret = WLAN_STATUS_FAILURE;
     }
     #endif
 
@@ -2729,7 +2720,7 @@ kalClearSecurityFrames(
 
     ASSERT(prGlueInfo);
 
-    // Clear pending security frames in prGlueInfo->rCmdQueue
+    /* Clear pending security frames in prGlueInfo->rCmdQueue */
     prCmdQue = &prGlueInfo->rCmdQueue;
 
 
@@ -2739,17 +2730,17 @@ kalClearSecurityFrames(
 
     QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, P_QUE_ENTRY_T);
     while (prQueueEntry) {
-        prCmdInfo = (P_CMD_INFO_T)prQueueEntry;
+	prCmdInfo = (P_CMD_INFO_T)prQueueEntry;
 
-        if (prCmdInfo->eCmdType == COMMAND_TYPE_SECURITY_FRAME) {
-            prCmdInfo->pfCmdTimeoutHandler(prGlueInfo->prAdapter, prCmdInfo);
-            cmdBufFreeCmdInfo(prGlueInfo->prAdapter, prCmdInfo);
-        }
-        else {
-            QUEUE_INSERT_TAIL(prCmdQue, prQueueEntry);
-        }
+	if (prCmdInfo->eCmdType == COMMAND_TYPE_SECURITY_FRAME) {
+	    prCmdInfo->pfCmdTimeoutHandler(prGlueInfo->prAdapter, prCmdInfo);
+	    cmdBufFreeCmdInfo(prGlueInfo->prAdapter, prCmdInfo);
+	}
+	else {
+	    QUEUE_INSERT_TAIL(prCmdQue, prQueueEntry);
+	}
 
-        QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, P_QUE_ENTRY_T);
+	QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, P_QUE_ENTRY_T);
     }
 
     QUEUE_CONCATENATE_QUEUES(prCmdQue, prTempCmdQue);
@@ -2785,7 +2776,7 @@ kalClearSecurityFramesByNetType(
 
     ASSERT(prGlueInfo);
 
-    // Clear pending security frames in prGlueInfo->rCmdQueue
+    /* Clear pending security frames in prGlueInfo->rCmdQueue */
     prCmdQue = &prGlueInfo->rCmdQueue;
 
     GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_CMD_QUE);
@@ -2793,18 +2784,18 @@ kalClearSecurityFramesByNetType(
 
     QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, P_QUE_ENTRY_T);
     while (prQueueEntry) {
-        prCmdInfo = (P_CMD_INFO_T)prQueueEntry;
+	prCmdInfo = (P_CMD_INFO_T)prQueueEntry;
 
-        if (prCmdInfo->eCmdType == COMMAND_TYPE_SECURITY_FRAME &&
-                prCmdInfo->eNetworkType == eNetworkTypeIdx) {
-            prCmdInfo->pfCmdTimeoutHandler(prGlueInfo->prAdapter, prCmdInfo);
-            cmdBufFreeCmdInfo(prGlueInfo->prAdapter, prCmdInfo);
-        }
-        else {
-            QUEUE_INSERT_TAIL(prCmdQue, prQueueEntry);
-        }
+	if (prCmdInfo->eCmdType == COMMAND_TYPE_SECURITY_FRAME &&
+		prCmdInfo->eNetworkType == eNetworkTypeIdx) {
+	    prCmdInfo->pfCmdTimeoutHandler(prGlueInfo->prAdapter, prCmdInfo);
+	    cmdBufFreeCmdInfo(prGlueInfo->prAdapter, prCmdInfo);
+	}
+	else {
+	    QUEUE_INSERT_TAIL(prCmdQue, prQueueEntry);
+	}
 
-        QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, P_QUE_ENTRY_T);
+	QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, P_QUE_ENTRY_T);
     }
 
     QUEUE_CONCATENATE_QUEUES(prCmdQue, prTempCmdQue);
@@ -2836,7 +2827,7 @@ kalClearMgmtFrames(
 
     ASSERT(prGlueInfo);
 
-    // Clear pending management frames in prGlueInfo->rCmdQueue
+    /* Clear pending management frames in prGlueInfo->rCmdQueue */
     prCmdQue = &prGlueInfo->rCmdQueue;
 
     GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_CMD_QUE);
@@ -2844,17 +2835,17 @@ kalClearMgmtFrames(
 
     QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, P_QUE_ENTRY_T);
     while (prQueueEntry) {
-        prCmdInfo = (P_CMD_INFO_T)prQueueEntry;
+	prCmdInfo = (P_CMD_INFO_T)prQueueEntry;
 
-        if (prCmdInfo->eCmdType == COMMAND_TYPE_MANAGEMENT_FRAME) {
-            wlanReleaseCommand(prGlueInfo->prAdapter, prCmdInfo);
-            cmdBufFreeCmdInfo(prGlueInfo->prAdapter, prCmdInfo);
-        }
-        else {
-            QUEUE_INSERT_TAIL(prCmdQue, prQueueEntry);
-        }
+	if (prCmdInfo->eCmdType == COMMAND_TYPE_MANAGEMENT_FRAME) {
+	    wlanReleaseCommand(prGlueInfo->prAdapter, prCmdInfo);
+	    cmdBufFreeCmdInfo(prGlueInfo->prAdapter, prCmdInfo);
+	}
+	else {
+	    QUEUE_INSERT_TAIL(prCmdQue, prQueueEntry);
+	}
 
-        QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, P_QUE_ENTRY_T);
+	QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, P_QUE_ENTRY_T);
     }
 
     QUEUE_CONCATENATE_QUEUES(prCmdQue, prTempCmdQue);
@@ -2872,7 +2863,7 @@ kalClearMgmtFrames(
 */
 /*----------------------------------------------------------------------------*/
 VOID
-kalClearMgmtFramesByNetType (
+kalClearMgmtFramesByNetType(
     IN P_GLUE_INFO_T prGlueInfo,
     IN ENUM_NETWORK_TYPE_INDEX_T eNetworkTypeIdx
     )
@@ -2887,7 +2878,7 @@ kalClearMgmtFramesByNetType (
 
     ASSERT(prGlueInfo);
 
-    // Clear pending management frames in prGlueInfo->rCmdQueue
+    /* Clear pending management frames in prGlueInfo->rCmdQueue */
     prCmdQue = &prGlueInfo->rCmdQueue;
 
     GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_CMD_QUE);
@@ -2895,18 +2886,18 @@ kalClearMgmtFramesByNetType (
 
     QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, P_QUE_ENTRY_T);
     while (prQueueEntry) {
-        prCmdInfo = (P_CMD_INFO_T)prQueueEntry;
+	prCmdInfo = (P_CMD_INFO_T)prQueueEntry;
 
-        if (prCmdInfo->eCmdType == COMMAND_TYPE_MANAGEMENT_FRAME &&
-                prCmdInfo->eNetworkType == eNetworkTypeIdx) {
-            wlanReleaseCommand(prGlueInfo->prAdapter, prCmdInfo);
-            cmdBufFreeCmdInfo(prGlueInfo->prAdapter, prCmdInfo);
-        }
-        else {
-            QUEUE_INSERT_TAIL(prCmdQue, prQueueEntry);
-        }
+	if (prCmdInfo->eCmdType == COMMAND_TYPE_MANAGEMENT_FRAME &&
+		prCmdInfo->eNetworkType == eNetworkTypeIdx) {
+	    wlanReleaseCommand(prGlueInfo->prAdapter, prCmdInfo);
+	    cmdBufFreeCmdInfo(prGlueInfo->prAdapter, prCmdInfo);
+	}
+	else {
+	    QUEUE_INSERT_TAIL(prCmdQue, prQueueEntry);
+	}
 
-        QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, P_QUE_ENTRY_T);
+	QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, P_QUE_ENTRY_T);
     }
 
     QUEUE_CONCATENATE_QUEUES(prCmdQue, prTempCmdQue);
@@ -2952,273 +2943,260 @@ int tx_thread(void *data)
 
     current->flags |= PF_NOFREEZE;
 
-    DBGLOG(INIT, INFO, ("tx_thread starts running... \n"));
+    DBGLOG(INIT, INFO, ("tx_thread starts running...\n"));
 
     while (TRUE) {
 
 #if CFG_ENABLE_WIFI_DIRECT
-        /*run p2p multicast list work. */
-        if (test_and_clear_bit(GLUE_FLAG_SUB_MOD_MULTICAST_BIT, &prGlueInfo->u4Flag)) {
-            p2pSetMulticastListWorkQueueWrapper(prGlueInfo);
-        }
+	/*run p2p multicast list work. */
+	if (test_and_clear_bit(GLUE_FLAG_SUB_MOD_MULTICAST_BIT, &prGlueInfo->u4Flag)) {
+	    p2pSetMulticastListWorkQueueWrapper(prGlueInfo);
+	}
 #endif
 
 		if (test_and_clear_bit(GLUE_FLAG_FRAME_FILTER_AIS_BIT, &prGlueInfo->u4Flag)) {
 			P_AIS_FSM_INFO_T prAisFsmInfo = (P_AIS_FSM_INFO_T)NULL;
-			//printk("prGlueInfo->u4OsMgmtFrameFilter = %x", prGlueInfo->u4OsMgmtFrameFilter);
+			/* printk("prGlueInfo->u4OsMgmtFrameFilter = %x", prGlueInfo->u4OsMgmtFrameFilter); */
 			prAisFsmInfo = &(prGlueInfo->prAdapter->rWifiVar.rAisFsmInfo);
 			prAisFsmInfo->u4AisPacketFilter = prGlueInfo->u4OsMgmtFrameFilter;
 		}
 
-        if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) {
-            KAL_WAKE_UNLOCK(prGlueInfo->prAdapter, &(prGlueInfo->prAdapter)->rTxThreadWakeLock);
-            DBGLOG(INIT, INFO, ("tx_thread should stop now...\n"));
-            break;
-        }
+	if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) {
+	    KAL_WAKE_UNLOCK(prGlueInfo->prAdapter, &(prGlueInfo->prAdapter)->rTxThreadWakeLock);
+	    DBGLOG(INIT, INFO, ("tx_thread should stop now...\n"));
+	    break;
+	}
 
-        /*
-         * sleep on waitqueue if no events occurred. Event contain (1) GLUE_FLAG_INT
-         * (2) GLUE_FLAG_OID (3) GLUE_FLAG_TXREQ (4) GLUE_FLAG_HALT
-         *
-         */
-        KAL_WAKE_UNLOCK(prGlueInfo->prAdapter, &(prGlueInfo->prAdapter)->rTxThreadWakeLock);
+	/*
+	 * sleep on waitqueue if no events occurred. Event contain (1) GLUE_FLAG_INT
+	 * (2) GLUE_FLAG_OID (3) GLUE_FLAG_TXREQ (4) GLUE_FLAG_HALT
+	 *
+	 */
+	KAL_WAKE_UNLOCK(prGlueInfo->prAdapter, &(prGlueInfo->prAdapter)->rTxThreadWakeLock);
 
-        ret = wait_event_interruptible(prGlueInfo->waitq,
-                (prGlueInfo->u4Flag != 0));
+	ret = wait_event_interruptible(prGlueInfo->waitq,
+		(prGlueInfo->u4Flag != 0));
 
-        KAL_WAKE_LOCK(prGlueInfo->prAdapter, &(prGlueInfo->prAdapter)->rTxThreadWakeLock);
+	KAL_WAKE_LOCK(prGlueInfo->prAdapter, &(prGlueInfo->prAdapter)->rTxThreadWakeLock);
 
-//#if (CONF_HIF_LOOPBACK_AUTO == 1)
-//        if (test_and_clear_bit(GLUE_FLAG_HIF_LOOPBK_AUTO_BIT, &prGlueInfo->u4Flag)) {
-//            kalDevLoopbkAuto(prGlueInfo);
-//        }
-//#endif /* CONF_HIF_LOOPBACK_AUTO */
+/* #if (CONF_HIF_LOOPBACK_AUTO == 1) */
+/* if (test_and_clear_bit(GLUE_FLAG_HIF_LOOPBK_AUTO_BIT, &prGlueInfo->u4Flag)) { */
+/* kalDevLoopbkAuto(prGlueInfo); */
+/* } */
+/* #endif /* CONF_HIF_LOOPBACK_AUTO */ */
 
 #if CFG_DBG_GPIO_PINS
-        /* TX thread Wake up */
-        mtk_wcn_stp_debug_gpio_assert(IDX_TX_THREAD, DBG_TIE_LOW);
+	/* TX thread Wake up */
+	mtk_wcn_stp_debug_gpio_assert(IDX_TX_THREAD, DBG_TIE_LOW);
 #endif
 #if CFG_ENABLE_WIFI_DIRECT
-        /*run p2p multicast list work. */
-        if (test_and_clear_bit(GLUE_FLAG_SUB_MOD_MULTICAST_BIT, &prGlueInfo->u4Flag)) {
-            p2pSetMulticastListWorkQueueWrapper(prGlueInfo);
-        }
+	/*run p2p multicast list work. */
+	if (test_and_clear_bit(GLUE_FLAG_SUB_MOD_MULTICAST_BIT, &prGlueInfo->u4Flag)) {
+	    p2pSetMulticastListWorkQueueWrapper(prGlueInfo);
+	}
 
-        if (test_and_clear_bit(GLUE_FLAG_FRAME_FILTER_BIT, &prGlueInfo->u4Flag)) {
-            p2pFuncUpdateMgmtFrameRegister(prGlueInfo->prAdapter, prGlueInfo->prP2PInfo->u4OsMgmtFrameFilter);
-        }
+	if (test_and_clear_bit(GLUE_FLAG_FRAME_FILTER_BIT, &prGlueInfo->u4Flag)) {
+	    p2pFuncUpdateMgmtFrameRegister(prGlueInfo->prAdapter, prGlueInfo->prP2PInfo->u4OsMgmtFrameFilter);
+	}
 
 
 #endif
-        if (test_and_clear_bit(GLUE_FLAG_FRAME_FILTER_AIS_BIT, &prGlueInfo->u4Flag)) {
-            P_AIS_FSM_INFO_T prAisFsmInfo = (P_AIS_FSM_INFO_T)NULL;
-            //printk("prGlueInfo->u4OsMgmtFrameFilter = %x", prGlueInfo->u4OsMgmtFrameFilter);
-            prAisFsmInfo = &(prGlueInfo->prAdapter->rWifiVar.rAisFsmInfo);
-            prAisFsmInfo->u4AisPacketFilter = prGlueInfo->u4OsMgmtFrameFilter;
-        }
+	if (test_and_clear_bit(GLUE_FLAG_FRAME_FILTER_AIS_BIT, &prGlueInfo->u4Flag)) {
+	    P_AIS_FSM_INFO_T prAisFsmInfo = (P_AIS_FSM_INFO_T)NULL;
+	    /* printk("prGlueInfo->u4OsMgmtFrameFilter = %x", prGlueInfo->u4OsMgmtFrameFilter); */
+	    prAisFsmInfo = &(prGlueInfo->prAdapter->rWifiVar.rAisFsmInfo);
+	    prAisFsmInfo->u4AisPacketFilter = prGlueInfo->u4OsMgmtFrameFilter;
+	}
 
-        if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) {
-            KAL_WAKE_UNLOCK(prGlueInfo->prAdapter, &(prGlueInfo->prAdapter)->rTxThreadWakeLock);
-            DBGLOG(INIT, INFO, ("<1>tx_thread should stop now...\n"));
-            break;
-        }
+	if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) {
+	    KAL_WAKE_UNLOCK(prGlueInfo->prAdapter, &(prGlueInfo->prAdapter)->rTxThreadWakeLock);
+	    DBGLOG(INIT, INFO, ("<1>tx_thread should stop now...\n"));
+	    break;
+	}
 
-        fgNeedHwAccess = FALSE;
+	fgNeedHwAccess = FALSE;
 
-        /* Handle Interrupt */
-        if (test_and_clear_bit(GLUE_FLAG_INT_BIT, &prGlueInfo->u4Flag)) {
-            if (fgNeedHwAccess == FALSE) {
-                fgNeedHwAccess = TRUE;
+	/* Handle Interrupt */
+	if (test_and_clear_bit(GLUE_FLAG_INT_BIT, &prGlueInfo->u4Flag)) {
+	    if (fgNeedHwAccess == FALSE) {
+		fgNeedHwAccess = TRUE;
 
-                wlanAcquirePowerControl(prGlueInfo->prAdapter);
-            }
+		wlanAcquirePowerControl(prGlueInfo->prAdapter);
+	    }
 
-            /* the Wi-Fi interrupt is already disabled in mmc thread,
-                    so we set the flag only to enable the interrupt later  */
-            prGlueInfo->prAdapter->fgIsIntEnable = FALSE;
-            //wlanISR(prGlueInfo->prAdapter, TRUE);
+	    /* the Wi-Fi interrupt is already disabled in mmc thread,
+		    so we set the flag only to enable the interrupt later  */
+	    prGlueInfo->prAdapter->fgIsIntEnable = FALSE;
+	    /* wlanISR(prGlueInfo->prAdapter, TRUE); */
 
-            if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) {
-                /* Should stop now... skip pending interrupt */
-                DBGLOG(INIT, INFO, ("ignore pending interrupt\n"));
-            }
-            else {
-				TaskIsrCnt ++;
-                wlanIST(prGlueInfo->prAdapter);
-            }
-        }
+	    if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) {
+		/* Should stop now... skip pending interrupt */
+		DBGLOG(INIT, INFO, ("ignore pending interrupt\n"));
+	    }
+	    else {
+				TaskIsrCnt++;
+		wlanIST(prGlueInfo->prAdapter);
+	    }
+	}
 
-        /* transfer ioctl to OID request */
-        #if 0
-        if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) {
-            printk(KERN_INFO DRV_NAME"<2>tx_thread should stop now...\n");
-            break;
-        }
-        #endif
+	/* transfer ioctl to OID request */
+	#if 0
+	if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) {
+	    printk(KERN_INFO DRV_NAME"<2>tx_thread should stop now...\n");
+	    break;
+	}
+	#endif
 
-        do {
-            if (test_and_clear_bit(GLUE_FLAG_OID_BIT, &prGlueInfo->u4Flag)) {
-                /* get current prIoReq */
-                prGlueInfo->u4OidCompleteFlag = 0;
+	do {
+	    if (test_and_clear_bit(GLUE_FLAG_OID_BIT, &prGlueInfo->u4Flag)) {
+		/* get current prIoReq */
+		prGlueInfo->u4OidCompleteFlag = 0;
 
-                prIoReq = &(prGlueInfo->OidEntry);
+		prIoReq = &(prGlueInfo->OidEntry);
 #if CFG_ENABLE_WIFI_DIRECT
-                if(prGlueInfo->prAdapter->fgIsP2PRegistered == FALSE
-                    && prIoReq->fgIsP2pOid == TRUE) {
-                    /*    if this Oid belongs to p2p and p2p module is removed
-                                    *      do nothing,
-                                    */
-                }
-                else
+		if (prGlueInfo->prAdapter->fgIsP2PRegistered == FALSE
+		    && prIoReq->fgIsP2pOid == TRUE) {
+		    /*    if this Oid belongs to p2p and p2p module is removed
+				    *      do nothing,
+				    */
+		}
+		else
 #endif
-                {
-                    if (FALSE == prIoReq->fgRead) {
-                        prIoReq->rStatus = wlanSetInformation(
-                                prIoReq->prAdapter,
-                                prIoReq->pfnOidHandler,
-                                prIoReq->pvInfoBuf,
-                                prIoReq->u4InfoBufLen,
-                                prIoReq->pu4QryInfoLen);
-                    } else {
-                        prIoReq->rStatus = wlanQueryInformation(
-                                prIoReq->prAdapter,
-                                prIoReq->pfnOidHandler,
-                                prIoReq->pvInfoBuf,
-                                prIoReq->u4InfoBufLen,
-                                prIoReq->pu4QryInfoLen);
-                    }
+		{
+		    if (FALSE == prIoReq->fgRead) {
+			prIoReq->rStatus = wlanSetInformation(
+				prIoReq->prAdapter,
+				prIoReq->pfnOidHandler,
+				prIoReq->pvInfoBuf,
+				prIoReq->u4InfoBufLen,
+				prIoReq->pu4QryInfoLen);
+		    } else {
+			prIoReq->rStatus = wlanQueryInformation(
+				prIoReq->prAdapter,
+				prIoReq->pfnOidHandler,
+				prIoReq->pvInfoBuf,
+				prIoReq->u4InfoBufLen,
+				prIoReq->pu4QryInfoLen);
+		    }
 
-                    if (prIoReq->rStatus != WLAN_STATUS_PENDING) {
-                        complete(&prGlueInfo->rPendComp);
-                    }
-                    else {
-                        wlanoidTimeoutCheck(prGlueInfo->prAdapter, prIoReq->pfnOidHandler);
-                    }
-                }
-             }
+		    if (prIoReq->rStatus != WLAN_STATUS_PENDING) {
+			complete(&prGlueInfo->rPendComp);
+		    }
+		    else {
+			wlanoidTimeoutCheck(prGlueInfo->prAdapter, prIoReq->pfnOidHandler);
+		    }
+		}
+	     }
 
-        } while (FALSE);
+	} while (FALSE);
 
 
-        /*
-         *
-         * if TX request, clear the TXREQ flag. TXREQ set by kalSetEvent/GlueSetEvent
-         * indicates the following requests occur
-         *
-         */
-        #if 0
-        if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) {
-            printk(KERN_INFO DRV_NAME"<3>tx_thread should stop now...\n");
-            break;
-        }
-        #endif
+	/*
+	 *
+	 * if TX request, clear the TXREQ flag. TXREQ set by kalSetEvent/GlueSetEvent
+	 * indicates the following requests occur
+	 *
+	 */
+	#if 0
+	if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) {
+	    printk(KERN_INFO DRV_NAME"<3>tx_thread should stop now...\n");
+	    break;
+	}
+	#endif
 
-        if (test_and_clear_bit(GLUE_FLAG_TXREQ_BIT, &prGlueInfo->u4Flag))
-        {
-            /* Process Mailbox Messages */
-            wlanProcessMboxMessage(prGlueInfo->prAdapter);
+	if (test_and_clear_bit(GLUE_FLAG_TXREQ_BIT, &prGlueInfo->u4Flag))
+	{
+	    /* Process Mailbox Messages */
+	    wlanProcessMboxMessage(prGlueInfo->prAdapter);
 
-            /* Process CMD request */
-            do {
-                if (prCmdQue->u4NumElem > 0) {
-                    if (fgNeedHwAccess == FALSE) {
-                        fgNeedHwAccess = TRUE;
+	    /* Process CMD request */
+	    do {
+		if (prCmdQue->u4NumElem > 0) {
+		    if (fgNeedHwAccess == FALSE) {
+			fgNeedHwAccess = TRUE;
 
-                        wlanAcquirePowerControl(prGlueInfo->prAdapter);
-                    }
-                    wlanProcessCommandQueue(prGlueInfo->prAdapter, prCmdQue);
-                }
-            } while (FALSE);
+			wlanAcquirePowerControl(prGlueInfo->prAdapter);
+		    }
+		    wlanProcessCommandQueue(prGlueInfo->prAdapter, prCmdQue);
+		}
+	    } while (FALSE);
 
-            /* Handle Packet Tx */
-            {
-                while (QUEUE_IS_NOT_EMPTY(prTxQueue)) {
-                    GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_TX_QUE);
-                    QUEUE_REMOVE_HEAD(prTxQueue, prQueueEntry, P_QUE_ENTRY_T);
-                    GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_TX_QUE);
+	    /* Handle Packet Tx */
+	    {
+		while (QUEUE_IS_NOT_EMPTY(prTxQueue)) {
+		    GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_TX_QUE);
+		    QUEUE_REMOVE_HEAD(prTxQueue, prQueueEntry, P_QUE_ENTRY_T);
+		    GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_TX_QUE);
 
-                    ASSERT(prQueueEntry);
-                    if (NULL == prQueueEntry) {
-                        break;
-                    }
+		    ASSERT(prQueueEntry);
+		    if (NULL == prQueueEntry) {
+			break;
+		    }
 
-                    prSkb = (struct sk_buff *) GLUE_GET_PKT_DESCRIPTOR(prQueueEntry);
-                    ASSERT(prSkb);
-                    if (NULL == prSkb) {
-                        DBGLOG(INIT, WARN, ("prSkb == NULL in tx\n"));
-                        continue;
-                    }
+		    prSkb = (struct sk_buff *) GLUE_GET_PKT_DESCRIPTOR(prQueueEntry);
+		    ASSERT(prSkb);
+		    if (NULL == prSkb) {
+			DBGLOG(INIT, WARN, ("prSkb == NULL in tx\n"));
+			continue;
+		    }
 
-#if (CFG_SUPPORT_TDLS_DBG == 1)
-					if (prSkb != NULL)
-					{
-						UINT8 *pkt = prSkb->data;
-						UINT16 u2Identifier;
-						if ((*(pkt+12) == 0x08) && (*(pkt+13) == 0x00))
-						{
-							/* ip */
-							u2Identifier = ((*(pkt+18)) << 8) | (*(pkt+19));
-							printk("<de> %d\n", u2Identifier);
-						}
-					}
-#endif
-                    if(wlanEnqueueTxPacket(prGlueInfo->prAdapter,
-                                (P_NATIVE_PACKET)prSkb) == WLAN_STATUS_RESOURCES) {
-                        /* no available entry in rFreeMsduInfoList */
-                        GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_TX_QUE);
-                        QUEUE_INSERT_HEAD(prTxQueue, prQueueEntry);
-                        GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_TX_QUE);
+		    if (wlanEnqueueTxPacket(prGlueInfo->prAdapter,
+				(P_NATIVE_PACKET)prSkb) == WLAN_STATUS_RESOURCES) {
+			/* no available entry in rFreeMsduInfoList */
+			GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_TX_QUE);
+			QUEUE_INSERT_HEAD(prTxQueue, prQueueEntry);
+			GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_TX_QUE);
 
-                        break;
-                    }
-                }
+			break;
+		    }
+		}
 
-                if (wlanGetTxPendingFrameCount(prGlueInfo->prAdapter) > 0) {
-                    /* send packets to HIF here */
-                    wlanTxPendingPackets(prGlueInfo->prAdapter, &fgNeedHwAccess);
-                }
-            }
+		if (wlanGetTxPendingFrameCount(prGlueInfo->prAdapter) > 0) {
+		    /* send packets to HIF here */
+		    wlanTxPendingPackets(prGlueInfo->prAdapter, &fgNeedHwAccess);
+		}
+	    }
 
-        }
+	}
 
-        /* Process RX, In linux, we don't need to free sk_buff by ourself */
+	/* Process RX, In linux, we don't need to free sk_buff by ourself */
 
-        /* In linux, we don't need to free sk_buff by ourself */
+	/* In linux, we don't need to free sk_buff by ourself */
 
-        /* In linux, we don't do reset */
-        if (fgNeedHwAccess == TRUE) {
-            wlanReleasePowerControl(prGlueInfo->prAdapter);
-        }
+	/* In linux, we don't do reset */
+	if (fgNeedHwAccess == TRUE) {
+	    wlanReleasePowerControl(prGlueInfo->prAdapter);
+	}
 
-        /* handle cnmTimer time out */
-        if (test_and_clear_bit(GLUE_FLAG_TIMEOUT_BIT, &prGlueInfo->u4Flag)) {
-            wlanTimerTimeoutCheck(prGlueInfo->prAdapter);
-        }
+	/* handle cnmTimer time out */
+	if (test_and_clear_bit(GLUE_FLAG_TIMEOUT_BIT, &prGlueInfo->u4Flag)) {
+	    wlanTimerTimeoutCheck(prGlueInfo->prAdapter);
+	}
 
     #if CFG_DBG_GPIO_PINS
-        /* TX thread go to sleep */
-        if (!prGlueInfo->u4Flag){
-            mtk_wcn_stp_debug_gpio_assert(IDX_TX_THREAD, DBG_TIE_HIGH);
-        }
+	/* TX thread go to sleep */
+	if (!prGlueInfo->u4Flag) {
+	    mtk_wcn_stp_debug_gpio_assert(IDX_TX_THREAD, DBG_TIE_HIGH);
+	}
     #endif
     }
 
 
     #if 0
     if (fgNeedHwAccess == TRUE) {
-        wlanReleasePowerControl(prGlueInfo->prAdapter);
+	wlanReleasePowerControl(prGlueInfo->prAdapter);
     }
     #endif
 
     /* exit while loop, tx thread is closed so we flush all pending packets */
     /* flush the pending TX packets */
     if (prGlueInfo->i4TxPendingFrameNum > 0) {
-        kalFlushPendingTxPackets(prGlueInfo);
+	kalFlushPendingTxPackets(prGlueInfo);
     }
 
     /* flush pending security frames */
     if (prGlueInfo->i4TxPendingSecurityFrameNum > 0) {
-        kalClearSecurityFrames(prGlueInfo);
+	kalClearSecurityFrames(prGlueInfo);
     }
 
     /* remove pending oid */
@@ -3252,7 +3230,7 @@ kalIsCardRemoved(
     ASSERT(prGlueInfo);
 
     return FALSE;
-    // Linux MMC doesn't have removal notification yet
+    /* Linux MMC doesn't have removal notification yet */
 }
 
 /*----------------------------------------------------------------------------*/
@@ -3268,40 +3246,45 @@ kalIsCardRemoved(
 BOOLEAN
 kalRetrieveNetworkAddress(
     IN P_GLUE_INFO_T prGlueInfo,
-    IN OUT PARAM_MAC_ADDRESS * prMacAddr
+    IN OUT PARAM_MAC_ADDRESS *prMacAddr
     )
 {
     ASSERT(prGlueInfo);
 
-    if(prGlueInfo->fgIsMacAddrOverride == FALSE) {
+    if (prGlueInfo->fgIsMacAddrOverride == FALSE) {
     #if !defined(CONFIG_X86)
-        UINT_32 i;
-        BOOLEAN fgIsReadError = FALSE;
+#if !defined(CONFIG_MTK_TC1_FEATURE)
+	UINT_32 i;
+#endif
+	BOOLEAN fgIsReadError = FALSE;
 
-        for(i = 0 ; i < MAC_ADDR_LEN ; i+=2) {
-            if(kalCfgDataRead16(prGlueInfo,
-                        OFFSET_OF(WIFI_CFG_PARAM_STRUCT, aucMacAddress) + i,
-                        (PUINT_16) (((PUINT_8)prMacAddr) + i)) == FALSE) {
-                fgIsReadError = TRUE;
-                break;
-            }
-        }
-
-        if(fgIsReadError == TRUE) {
-            return FALSE;
-        }
-        else {
-            return TRUE;
-        }
+#if !defined(CONFIG_MTK_TC1_FEATURE)
+        for (i = 0; i < MAC_ADDR_LEN; i += 2) {
+	    if (kalCfgDataRead16(prGlueInfo,
+			OFFSET_OF(WIFI_CFG_PARAM_STRUCT, aucMacAddress) + i,
+			(PUINT_16) (((PUINT_8)prMacAddr) + i)) == FALSE) {
+		fgIsReadError = TRUE;
+		break;
+	    }
+	}
+#else
+	TC1_FAC_NAME(FacReadWifiMacAddr)((unsigned char *)prMacAddr);
+#endif
+	if (fgIsReadError == TRUE) {
+	    return FALSE;
+	}
+	else {
+	    return TRUE;
+	}
     #else
-        /* x86 Linux doesn't need to override network address so far */
-        return FALSE;
+	/* x86 Linux doesn't need to override network address so far */
+	return FALSE;
     #endif
     }
     else {
-        COPY_MAC_ADDR(prMacAddr, prGlueInfo->rMacAddrOverride);
+	COPY_MAC_ADDR(prMacAddr, prGlueInfo->rMacAddrOverride);
 
-        return TRUE;
+	return TRUE;
     }
 }
 
@@ -3331,21 +3314,21 @@ kalFlushPendingTxPackets(
     prTxQue = &(prGlueInfo->rTxQueue);
 
     if (prGlueInfo->i4TxPendingFrameNum) {
-        while (TRUE) {
-            GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_TX_QUE);
-            QUEUE_REMOVE_HEAD(prTxQue, prQueueEntry, P_QUE_ENTRY_T);
-            GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_TX_QUE);
+	while (TRUE) {
+	    GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_TX_QUE);
+	    QUEUE_REMOVE_HEAD(prTxQue, prQueueEntry, P_QUE_ENTRY_T);
+	    GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_TX_QUE);
 
-            if (prQueueEntry == NULL) {
-                break;
-            }
+	    if (prQueueEntry == NULL) {
+		break;
+	    }
 
-            prPacket = GLUE_GET_PKT_DESCRIPTOR(prQueueEntry);
+	    prPacket = GLUE_GET_PKT_DESCRIPTOR(prQueueEntry);
 
-            kalSendComplete(prGlueInfo,
-                    prPacket,
-                    WLAN_STATUS_NOT_ACCEPTED);
-        }
+	    kalSendComplete(prGlueInfo,
+		    prPacket,
+		    WLAN_STATUS_NOT_ACCEPTED);
+	}
     }
 }
 
@@ -3422,33 +3405,33 @@ kalOidCmdClearance(
     QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, P_QUE_ENTRY_T);
     while (prQueueEntry) {
 
-        if (((P_CMD_INFO_T)prQueueEntry)->fgIsOid) {
-            prCmdInfo = (P_CMD_INFO_T)prQueueEntry;
-            break;
-        }
-        else {
-            QUEUE_INSERT_TAIL(prCmdQue, prQueueEntry);
-        }
+	if (((P_CMD_INFO_T)prQueueEntry)->fgIsOid) {
+	    prCmdInfo = (P_CMD_INFO_T)prQueueEntry;
+	    break;
+	}
+	else {
+	    QUEUE_INSERT_TAIL(prCmdQue, prQueueEntry);
+	}
 
-        QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, P_QUE_ENTRY_T);
+	QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, P_QUE_ENTRY_T);
     }
 
     QUEUE_CONCATENATE_QUEUES(prCmdQue, prTempCmdQue);
     GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_CMD_QUE);
 
     if (prCmdInfo) {
-        if (prCmdInfo->pfCmdTimeoutHandler) {
-            prCmdInfo->pfCmdTimeoutHandler(prGlueInfo->prAdapter, prCmdInfo);
-        }
-        else {
-            kalOidComplete(prGlueInfo,
-                    prCmdInfo->fgSetQuery,
-                    0,
-                    WLAN_STATUS_NOT_ACCEPTED);
-        }
+	if (prCmdInfo->pfCmdTimeoutHandler) {
+	    prCmdInfo->pfCmdTimeoutHandler(prGlueInfo->prAdapter, prCmdInfo);
+	}
+	else {
+	    kalOidComplete(prGlueInfo,
+		    prCmdInfo->fgSetQuery,
+		    0,
+		    WLAN_STATUS_NOT_ACCEPTED);
+	}
 
-        prGlueInfo->u4OidCompleteFlag = 1;
-        cmdBufFreeCmdInfo(prGlueInfo->prAdapter, prCmdInfo);
+	prGlueInfo->u4OidCompleteFlag = 1;
+	cmdBufFreeCmdInfo(prGlueInfo->prAdapter, prCmdInfo);
     }
 }
 
@@ -3482,11 +3465,11 @@ kalEnqueueCommand(
 
     prCmdInfo = (P_CMD_INFO_T)prQueueEntry;
     if (prCmdInfo->prPacket &&
-        prCmdInfo->eCmdType == COMMAND_TYPE_MANAGEMENT_FRAME) {
-        prMsduInfo = (P_MSDU_INFO_T)(prCmdInfo->prPacket);
-        prMsduInfo->eCmdType = prCmdInfo->eCmdType;
-        prMsduInfo->ucCID = prCmdInfo->ucCID;
-        prMsduInfo->u4InqueTime = kalGetTimeTick();
+	prCmdInfo->eCmdType == COMMAND_TYPE_MANAGEMENT_FRAME) {
+	prMsduInfo = (P_MSDU_INFO_T)(prCmdInfo->prPacket);
+	prMsduInfo->eCmdType = prCmdInfo->eCmdType;
+	prMsduInfo->ucCID = prCmdInfo->ucCID;
+	prMsduInfo->u4InqueTime = kalGetTimeTick();
     }
 
     GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_CMD_QUE);
@@ -3511,7 +3494,7 @@ kalHandleAssocInfo(
     IN P_EVENT_ASSOC_INFO prAssocInfo
     )
 {
-    // to do
+    /* to do */
 }
 
 /*----------------------------------------------------------------------------*/
@@ -3566,9 +3549,9 @@ kalGetFwStartAddress(
  * */
 /*----------------------------------------------------------------------------*/
 
-/// Todo
+/* / Todo */
 VOID
-kalSecurityFrameSendComplete (
+kalSecurityFrameSendComplete(
     IN P_GLUE_INFO_T prGlueInfo,
     IN PVOID pvPacket,
     IN WLAN_STATUS rStatus
@@ -3628,10 +3611,10 @@ kalGetTxPendingCmdCount(
 */
 /*----------------------------------------------------------------------------*/
 
-//static struct timer_list tickfn;
+/* static struct timer_list tickfn; */
 
 VOID
-kalOsTimerInitialize (
+kalOsTimerInitialize(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN PVOID            prTimerHandler
     )
@@ -3644,7 +3627,7 @@ kalOsTimerInitialize (
     prGlueInfo->tickfn.data = (unsigned long) prGlueInfo;
 }
 
-// Todo
+/* Todo */
 /*----------------------------------------------------------------------------*/
 /*!
 * \brief This routine is called to set the time to do the time out check.
@@ -3688,10 +3671,10 @@ kalCancelTimer(
 
     clear_bit(GLUE_FLAG_TIMEOUT_BIT, &prGlueInfo->u4Flag);
 
-    if (del_timer_sync(&(prGlueInfo->tickfn)) >=0) {
-        return TRUE;
+    if (del_timer_sync(&(prGlueInfo->tickfn)) >= 0) {
+	return TRUE;
     } else {
-        return FALSE;
+	return FALSE;
     }
 }
 /*----------------------------------------------------------------------------*/
@@ -3717,7 +3700,8 @@ kalScanDone(
 
     prAisFsmInfo = &(prGlueInfo->prAdapter->rWifiVar.rAisFsmInfo);
 	/* report all queued beacon/probe response frames  to upper layer */
-	scanReportBss2Cfg80211(prGlueInfo->prAdapter,BSS_TYPE_INFRASTRUCTURE,NULL);
+	scanReportBss2Cfg80211(prGlueInfo->prAdapter, BSS_TYPE_INFRASTRUCTURE, NULL);
+
     cnmTimerStopTimer(prGlueInfo->prAdapter, &prAisFsmInfo->rScanDoneTimer);
 
     /* check for system configuration for generating error message on scan list */
@@ -3757,7 +3741,7 @@ kalRandomNumber(
  */
 /*----------------------------------------------------------------------------*/
 VOID
-kalTimeoutHandler (unsigned long arg)
+kalTimeoutHandler(unsigned long arg)
 {
 
     P_GLUE_INFO_T prGlueInfo = (P_GLUE_INFO_T) arg;
@@ -3773,7 +3757,7 @@ kalTimeoutHandler (unsigned long arg)
 
 
 VOID
-kalSetEvent (P_GLUE_INFO_T pr) {
+kalSetEvent(P_GLUE_INFO_T pr) {
     set_bit(GLUE_FLAG_TXREQ_BIT, &pr->u4Flag);
     wake_up_interruptible(&pr->waitq);
 }
@@ -3863,20 +3847,20 @@ kalGetConfigurationVersion(
     ASSERT(pu2Part2CfgPeerVersion);
 
     kalCfgDataRead16(prGlueInfo,
-            OFFSET_OF(WIFI_CFG_PARAM_STRUCT, u2Part1OwnVersion),
-            pu2Part1CfgOwnVersion);
+	    OFFSET_OF(WIFI_CFG_PARAM_STRUCT, u2Part1OwnVersion),
+	    pu2Part1CfgOwnVersion);
 
     kalCfgDataRead16(prGlueInfo,
-            OFFSET_OF(WIFI_CFG_PARAM_STRUCT, u2Part1PeerVersion),
-            pu2Part1CfgPeerVersion);
+	    OFFSET_OF(WIFI_CFG_PARAM_STRUCT, u2Part1PeerVersion),
+	    pu2Part1CfgPeerVersion);
 
     kalCfgDataRead16(prGlueInfo,
-            OFFSET_OF(WIFI_CFG_PARAM_STRUCT, u2Part2OwnVersion),
-            pu2Part2CfgOwnVersion);
+	    OFFSET_OF(WIFI_CFG_PARAM_STRUCT, u2Part2OwnVersion),
+	    pu2Part2CfgOwnVersion);
 
     kalCfgDataRead16(prGlueInfo,
-            OFFSET_OF(WIFI_CFG_PARAM_STRUCT, u2Part2PeerVersion),
-            pu2Part2CfgPeerVersion);
+	    OFFSET_OF(WIFI_CFG_PARAM_STRUCT, u2Part2PeerVersion),
+	    pu2Part2CfgPeerVersion);
 
     return;
 }
@@ -3930,28 +3914,28 @@ kalUpdateRSSI(
 
     ASSERT(prGlueInfo);
 
-    switch(eNetTypeIdx) {
+    switch (eNetTypeIdx) {
     case KAL_NETWORK_TYPE_AIS_INDEX:
-        pStats =  (struct iw_statistics *) (&(prGlueInfo->rIwStats));
-        break;
+	pStats =  (struct iw_statistics *) (&(prGlueInfo->rIwStats));
+	break;
 #if CFG_ENABLE_WIFI_DIRECT
 #if CFG_SUPPORT_P2P_RSSI_QUERY
     case KAL_NETWORK_TYPE_P2P_INDEX:
-        pStats =  (struct iw_statistics *) (&(prGlueInfo->rP2pIwStats));
-        break;
+	pStats =  (struct iw_statistics *) (&(prGlueInfo->rP2pIwStats));
+	break;
 #endif
 #endif
     default:
-        break;
+	break;
 
     }
 
     if (pStats) {
-        pStats->qual.qual = cLinkQuality;
-        pStats->qual.noise = 0;
-        pStats->qual.updated = IW_QUAL_QUAL_UPDATED | IW_QUAL_NOISE_UPDATED;
-        pStats->qual.level = 0x100 + cRssi;
-        pStats->qual.updated |= IW_QUAL_LEVEL_UPDATED;
+	pStats->qual.qual = cLinkQuality;
+	pStats->qual.noise = 0;
+	pStats->qual.updated = IW_QUAL_QUAL_UPDATED | IW_QUAL_NOISE_UPDATED;
+	pStats->qual.level = 0x100 + cRssi;
+	pStats->qual.updated |= IW_QUAL_LEVEL_UPDATED;
     }
 
 
@@ -3978,26 +3962,26 @@ kalInitIOBuffer(
 {
     UINT_32 u4Size;
 
-    if(CFG_COALESCING_BUFFER_SIZE >= CFG_RX_COALESCING_BUFFER_SIZE) {
-        u4Size = CFG_COALESCING_BUFFER_SIZE + sizeof(ENHANCE_MODE_DATA_STRUCT_T);
+    if (CFG_COALESCING_BUFFER_SIZE >= CFG_RX_COALESCING_BUFFER_SIZE) {
+	u4Size = CFG_COALESCING_BUFFER_SIZE + sizeof(ENHANCE_MODE_DATA_STRUCT_T);
     }
     else {
-        u4Size = CFG_RX_COALESCING_BUFFER_SIZE + sizeof(ENHANCE_MODE_DATA_STRUCT_T);
+	u4Size = CFG_RX_COALESCING_BUFFER_SIZE + sizeof(ENHANCE_MODE_DATA_STRUCT_T);
     }
 
 #ifdef MTK_DMA_BUF_MEMCPY_SUP
     pvDmaBuffer = dma_alloc_coherent(NULL, CFG_RX_MAX_PKT_SIZE, &pvDmaPhyBuf, GFP_KERNEL);
     if (pvDmaBuffer == NULL)
-        return FALSE;
+	return FALSE;
 #endif /* MTK_DMA_BUF_MEMCPY_SUP */
 
     pvIoBuffer = kmalloc(u4Size, GFP_KERNEL);
-//    pvIoBuffer = dma_alloc_coherent(NULL, u4Size, &pvIoPhyBuf, GFP_KERNEL);
-    if(pvIoBuffer) {
-        pvIoBufferSize = u4Size;
-        pvIoBufferUsage = 0;
+/* pvIoBuffer = dma_alloc_coherent(NULL, u4Size, &pvIoPhyBuf, GFP_KERNEL); */
+    if (pvIoBuffer) {
+	pvIoBufferSize = u4Size;
+	pvIoBufferUsage = 0;
 
-        return TRUE;
+	return TRUE;
     }
 
     return FALSE;
@@ -4020,16 +4004,16 @@ kalUninitIOBuffer(
     VOID
     )
 {
-    if(pvIoBuffer) {
-        kfree(pvIoBuffer);
+    if (pvIoBuffer) {
+	kfree(pvIoBuffer);
 #ifdef MTK_DMA_BUF_MEMCPY_SUP
-        dma_free_coherent(NULL, CFG_RX_MAX_PKT_SIZE, pvDmaBuffer, pvDmaPhyBuf);
+	dma_free_coherent(NULL, CFG_RX_MAX_PKT_SIZE, pvDmaBuffer, pvDmaPhyBuf);
 #endif /* MTK_DMA_BUF_MEMCPY_SUP */
-//        dma_free_coherent(NULL, pvIoBufferSize, pvIoBuffer, pvIoPhyBuf);
+/* dma_free_coherent(NULL, pvIoBufferSize, pvIoBuffer, pvIoPhyBuf); */
 
-        pvIoBuffer = (PVOID) NULL;
-        pvIoBufferSize = 0;
-        pvIoBufferUsage = 0;
+	pvIoBuffer = (PVOID) NULL;
+	pvIoBufferSize = 0;
+	pvIoBufferUsage = 0;
     }
 
     return;
@@ -4054,15 +4038,15 @@ kalAllocateIOBuffer(
 {
     PVOID ret = (PVOID)NULL;
 
-    if(pvIoBuffer) {
-        if(u4AllocSize <= (pvIoBufferSize - pvIoBufferUsage)) {
-            ret = (PVOID)&(((PUINT_8)(pvIoBuffer))[pvIoBufferUsage]);
-            pvIoBufferUsage += u4AllocSize;
-        }
+    if (pvIoBuffer) {
+	if (u4AllocSize <= (pvIoBufferSize - pvIoBufferUsage)) {
+	    ret = (PVOID)&(((PUINT_8)(pvIoBuffer))[pvIoBufferUsage]);
+	    pvIoBufferUsage += u4AllocSize;
+	}
     }
     else {
-        /* fault tolerance */
-        ret = (PVOID) kalMemAlloc(u4AllocSize, PHY_MEM_TYPE);
+	/* fault tolerance */
+	ret = (PVOID) kalMemAlloc(u4AllocSize, PHY_MEM_TYPE);
     }
 
     return ret;
@@ -4086,12 +4070,12 @@ kalReleaseIOBuffer(
     IN UINT_32 u4Size
     )
 {
-    if(pvIoBuffer) {
-        pvIoBufferUsage -= u4Size;
+    if (pvIoBuffer) {
+	pvIoBufferUsage -= u4Size;
     }
     else {
-        /* fault tolerance */
-        kalMemFree(pvAddr, PHY_MEM_TYPE, u4Size);
+	/* fault tolerance */
+	kalMemFree(pvAddr, PHY_MEM_TYPE, u4Size);
     }
 }
 
@@ -4114,10 +4098,10 @@ kalGetChannelList(
     )
 {
     rlmDomainGetChnlList(prGlueInfo->prAdapter,
-                              eSpecificBand,
-                              ucMaxChannelNum,
-                              pucNumOfChannel,
-                              paucChannelList);
+			      eSpecificBand,
+			      ucMaxChannelNum,
+			      pucNumOfChannel,
+			      paucChannelList);
 }
 
 
@@ -4137,8 +4121,8 @@ kalIsAPmode(
 {
 #if CFG_ENABLE_WIFI_DIRECT
     if (IS_NET_ACTIVE(prGlueInfo->prAdapter, NETWORK_TYPE_P2P_INDEX) &&
-        p2pFuncIsAPMode(prGlueInfo->prAdapter->rWifiVar.prP2pFsmInfo))
-        return TRUE;
+	p2pFuncIsAPMode(prGlueInfo->prAdapter->rWifiVar.prP2pFsmInfo))
+	return TRUE;
 #endif
 
     return FALSE;
@@ -4158,7 +4142,7 @@ kalIsAPmode(
 */
 /*----------------------------------------------------------------------------*/
 UINT_32
-kalIOPhyAddrGet (
+kalIOPhyAddrGet(
     IN UINT_32                      VirtAddr
     )
 {
@@ -4166,11 +4150,11 @@ kalIOPhyAddrGet (
 
 
     if ((VirtAddr >= (UINT_32)pvIoBuffer) &&
-        (VirtAddr <= ((UINT_32)(pvIoBuffer) + pvIoBufferSize)))
+	(VirtAddr <= ((UINT_32)(pvIoBuffer) + pvIoBufferSize)))
     {
-        PhyAddr = (UINT_32)pvIoPhyBuf;
-        PhyAddr += (VirtAddr - (UINT_32)(pvIoBuffer));
-        return PhyAddr;
+	PhyAddr = (UINT_32)pvIoPhyBuf;
+	PhyAddr += (VirtAddr - (UINT_32)(pvIoBuffer));
+	return PhyAddr;
     }
 
     return 0;
@@ -4189,7 +4173,7 @@ kalIOPhyAddrGet (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-kalDmaBufGet (
+kalDmaBufGet(
     OUT VOID                        **VirtAddr,
     OUT VOID                        **PhyAddr
     )
@@ -4226,11 +4210,11 @@ kalGetMfpSetting(
 
 struct file*
 kalFileOpen(
-    const char* path,
+    const char *path,
     int flags,
     int rights)
 {
-    struct file* filp = NULL;
+    struct file *filp = NULL;
     mm_segment_t oldfs;
     int err = 0;
 
@@ -4238,25 +4222,25 @@ kalFileOpen(
     set_fs(get_ds());
     filp = filp_open(path, flags, rights);
     set_fs(oldfs);
-    if(IS_ERR(filp)) {
-        err = PTR_ERR(filp);
-        return NULL;
+    if (IS_ERR(filp)) {
+	err = PTR_ERR(filp);
+	return NULL;
     }
     return filp;
 }
 
 VOID
 kalFileClose(
-    struct file* file)
+    struct file *file)
 {
     filp_close(file, NULL);
 }
 
 UINT_32
 kalFileRead(
-    struct file* file,
+    struct file *file,
     unsigned long long offset,
-    unsigned char* data,
+    unsigned char *data,
     unsigned int size)
 {
     mm_segment_t oldfs;
@@ -4273,9 +4257,9 @@ kalFileRead(
 
 UINT_32
 kalFileWrite(
-    struct file* file,
+    struct file *file,
     unsigned long long offset,
-    unsigned char* data,
+    unsigned char *data,
     unsigned int size)
 {
     mm_segment_t oldfs;
@@ -4297,12 +4281,12 @@ kalWriteToFile(
     PUINT_8 pucData,
     UINT_32 u4Size)
 {
-    struct file* file = NULL;
+    struct file *file = NULL;
     UINT_32 ret;
     UINT_32 u4Flags = 0;
 
-    if(fgDoAppend) {
-        u4Flags = O_APPEND;
+    if (fgDoAppend) {
+	u4Flags = O_APPEND;
     }
 
     file = kalFileOpen(pucPath, O_WRONLY | O_CREAT | u4Flags, S_IRWXU);
@@ -4329,7 +4313,7 @@ kalWriteToFile(
 */
 /*----------------------------------------------------------------------------*/
 VOID
-kalIndicateBssInfo (
+kalIndicateBssInfo(
     IN P_GLUE_INFO_T        prGlueInfo,
     IN PUINT_8              pucBeaconProbeResp,
     IN UINT_32              u4FrameLen,
@@ -4344,40 +4328,38 @@ kalIndicateBssInfo (
     wiphy = priv_to_wiphy(prGlueInfo);
 
     /* search through channel entries */
-    if(ucChannelNum <= 14) {
-        prChannel = ieee80211_get_channel(wiphy, ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_2GHZ));
+    if (ucChannelNum <= 14) {
+	prChannel = ieee80211_get_channel(wiphy, ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_2GHZ));
     }
     else {
-        prChannel = ieee80211_get_channel(wiphy, ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_5GHZ));
+	prChannel = ieee80211_get_channel(wiphy, ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_5GHZ));
     }
 
-    if(prChannel != NULL && prGlueInfo->prScanRequest != NULL) {
-        struct cfg80211_bss *bss;
-		struct ieee80211_mgmt *prMgmtFrame = (struct ieee80211_mgmt *)pucBeaconProbeResp;
-		prMgmtFrame->u.beacon.timestamp = kalGetBootTime();
+    if (prChannel != NULL && prGlueInfo->prScanRequest != NULL) {
+	struct cfg80211_bss *bss;
 
-		ScanCnt ++;
+		ScanCnt++;
 
-        /* indicate to NL80211 subsystem */
-        bss = cfg80211_inform_bss_frame(wiphy,
-                prChannel,
-                (struct ieee80211_mgmt *)pucBeaconProbeResp,
-                u4FrameLen,
-                i4SignalStrength * 100,
-                GFP_KERNEL);
+	/* indicate to NL80211 subsystem */
+	bss = cfg80211_inform_bss_frame(wiphy,
+		prChannel,
+		(struct ieee80211_mgmt *)pucBeaconProbeResp,
+		u4FrameLen,
+		i4SignalStrength * 100,
+		GFP_KERNEL);
 
-        if(!bss) {
-			ScanDoneFailCnt ++;
-            DBGLOG(SCN, TRACE, ("cfg80211_inform_bss_frame() returned with NULL\n"));
-        }
-        else {
+	if (!bss) {
+			ScanDoneFailCnt++;
+	    DBGLOG(SCN, TRACE, ("cfg80211_inform_bss_frame() returned with NULL\n"));
+	}
+	else {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0))
-            cfg80211_put_bss(wiphy, bss);
+	    cfg80211_put_bss(wiphy, bss);
 #else
-            cfg80211_put_bss(bss);
+	    cfg80211_put_bss(bss);
 #endif
 			DBGLOG(SCN, TRACE, ("iok\n"));
-        }
+	}
     }
 
     return;
@@ -4396,7 +4378,7 @@ kalIndicateBssInfo (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-kalReadyOnChannel (
+kalReadyOnChannel(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN UINT_64          u8Cookie,
     IN ENUM_BAND_T      eBand,
@@ -4408,39 +4390,39 @@ kalReadyOnChannel (
     struct ieee80211_channel *prChannel = NULL;
     enum nl80211_channel_type rChannelType;
 
-    //ucChannelNum = wlanGetChannelNumberByNetwork(prGlueInfo->prAdapter, NETWORK_TYPE_AIS_INDEX);
+    /* ucChannelNum = wlanGetChannelNumberByNetwork(prGlueInfo->prAdapter, NETWORK_TYPE_AIS_INDEX); */
 
-    if(prGlueInfo->fgIsRegistered == TRUE) {
-        if(ucChannelNum <= 14) {
-            prChannel = ieee80211_get_channel(priv_to_wiphy(prGlueInfo), ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_2GHZ));
-        }
-        else {
-            prChannel = ieee80211_get_channel(priv_to_wiphy(prGlueInfo), ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_5GHZ));
-        }
+    if (prGlueInfo->fgIsRegistered == TRUE) {
+	if (ucChannelNum <= 14) {
+	    prChannel = ieee80211_get_channel(priv_to_wiphy(prGlueInfo), ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_2GHZ));
+	}
+	else {
+	    prChannel = ieee80211_get_channel(priv_to_wiphy(prGlueInfo), ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_5GHZ));
+	}
 
-        switch(eSco) {
-        case CHNL_EXT_SCN:
-            rChannelType = NL80211_CHAN_NO_HT;
-            break;
+	switch (eSco) {
+	case CHNL_EXT_SCN:
+	    rChannelType = NL80211_CHAN_NO_HT;
+	    break;
 
-        case CHNL_EXT_SCA:
-            rChannelType = NL80211_CHAN_HT40MINUS;
-            break;
+	case CHNL_EXT_SCA:
+	    rChannelType = NL80211_CHAN_HT40MINUS;
+	    break;
 
-        case CHNL_EXT_SCB:
-            rChannelType = NL80211_CHAN_HT40PLUS;
-            break;
+	case CHNL_EXT_SCB:
+	    rChannelType = NL80211_CHAN_HT40PLUS;
+	    break;
 
-        case CHNL_EXT_RES:
-        default:
-            rChannelType = NL80211_CHAN_HT20;
-            break;
-        }
+	case CHNL_EXT_RES:
+	default:
+	    rChannelType = NL80211_CHAN_HT20;
+	    break;
+	}
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0))
-        cfg80211_ready_on_channel(prGlueInfo->prDevHandler->ieee80211_ptr, u8Cookie, prChannel, u4DurationMs, GFP_KERNEL);
+	cfg80211_ready_on_channel(prGlueInfo->prDevHandler->ieee80211_ptr, u8Cookie, prChannel, u4DurationMs, GFP_KERNEL);
 #else
-        cfg80211_ready_on_channel(prGlueInfo->prDevHandler, u8Cookie, prChannel, rChannelType, u4DurationMs, GFP_KERNEL);
+	cfg80211_ready_on_channel(prGlueInfo->prDevHandler, u8Cookie, prChannel, rChannelType, u4DurationMs, GFP_KERNEL);
 #endif
     }
 
@@ -4460,7 +4442,7 @@ kalReadyOnChannel (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-kalRemainOnChannelExpired (
+kalRemainOnChannelExpired(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN UINT_64          u8Cookie,
     IN ENUM_BAND_T      eBand,
@@ -4473,37 +4455,37 @@ kalRemainOnChannelExpired (
 
     ucChannelNum = wlanGetChannelNumberByNetwork(prGlueInfo->prAdapter, NETWORK_TYPE_AIS_INDEX);
 
-    if(prGlueInfo->fgIsRegistered == TRUE) {
-        if(ucChannelNum <= 14) {
-            prChannel = ieee80211_get_channel(priv_to_wiphy(prGlueInfo), ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_2GHZ));
-        }
-        else {
-            prChannel = ieee80211_get_channel(priv_to_wiphy(prGlueInfo), ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_5GHZ));
-        }
+    if (prGlueInfo->fgIsRegistered == TRUE) {
+	if (ucChannelNum <= 14) {
+	    prChannel = ieee80211_get_channel(priv_to_wiphy(prGlueInfo), ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_2GHZ));
+	}
+	else {
+	    prChannel = ieee80211_get_channel(priv_to_wiphy(prGlueInfo), ieee80211_channel_to_frequency(ucChannelNum, IEEE80211_BAND_5GHZ));
+	}
 
-        switch(eSco) {
-        case CHNL_EXT_SCN:
-            rChannelType = NL80211_CHAN_NO_HT;
-            break;
+	switch (eSco) {
+	case CHNL_EXT_SCN:
+	    rChannelType = NL80211_CHAN_NO_HT;
+	    break;
 
-        case CHNL_EXT_SCA:
-            rChannelType = NL80211_CHAN_HT40MINUS;
-            break;
+	case CHNL_EXT_SCA:
+	    rChannelType = NL80211_CHAN_HT40MINUS;
+	    break;
 
-        case CHNL_EXT_SCB:
-            rChannelType = NL80211_CHAN_HT40PLUS;
-            break;
+	case CHNL_EXT_SCB:
+	    rChannelType = NL80211_CHAN_HT40PLUS;
+	    break;
 
-        case CHNL_EXT_RES:
-        default:
-            rChannelType = NL80211_CHAN_HT20;
-            break;
-        }
+	case CHNL_EXT_RES:
+	default:
+	    rChannelType = NL80211_CHAN_HT20;
+	    break;
+	}
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0))
-        cfg80211_remain_on_channel_expired(prGlueInfo->prDevHandler->ieee80211_ptr, u8Cookie, prChannel, GFP_KERNEL);
+	cfg80211_remain_on_channel_expired(prGlueInfo->prDevHandler->ieee80211_ptr, u8Cookie, prChannel, GFP_KERNEL);
 #else
-        cfg80211_remain_on_channel_expired(prGlueInfo->prDevHandler, u8Cookie, prChannel, rChannelType, GFP_KERNEL);
+	cfg80211_remain_on_channel_expired(prGlueInfo->prDevHandler, u8Cookie, prChannel, rChannelType, GFP_KERNEL);
 #endif
     }
 
@@ -4523,7 +4505,7 @@ kalRemainOnChannelExpired (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-kalIndicateMgmtTxStatus (
+kalIndicateMgmtTxStatus(
     IN P_GLUE_INFO_T prGlueInfo,
     IN UINT_64 u8Cookie,
     IN BOOLEAN fgIsAck,
@@ -4533,29 +4515,29 @@ kalIndicateMgmtTxStatus (
 {
 
     do {
-        if ((prGlueInfo == NULL) ||
-                (pucFrameBuf == NULL) ||
-                (u4FrameLen == 0)) {
-            DBGLOG(AIS, TRACE, ("Unexpected pointer PARAM. 0x%lx, 0x%lx, %u.",
+	if ((prGlueInfo == NULL) ||
+		(pucFrameBuf == NULL) ||
+		(u4FrameLen == 0)) {
+	    DBGLOG(AIS, TRACE, ("Unexpected pointer PARAM. 0x%lx, 0x%lx, %u.",
 				(unsigned long)prGlueInfo, (unsigned long)pucFrameBuf, (UINT32)u4FrameLen));
-            ASSERT(FALSE);
-            break;
-        }
+	    ASSERT(FALSE);
+	    break;
+	}
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0))
-        cfg80211_mgmt_tx_status(prGlueInfo->prDevHandler->ieee80211_ptr,
-                        u8Cookie,
-                        pucFrameBuf,
-                        u4FrameLen,
-                        fgIsAck,
-                        GFP_KERNEL);
+	cfg80211_mgmt_tx_status(prGlueInfo->prDevHandler->ieee80211_ptr,
+			u8Cookie,
+			pucFrameBuf,
+			u4FrameLen,
+			fgIsAck,
+			GFP_KERNEL);
 #else
-        cfg80211_mgmt_tx_status(prGlueInfo->prDevHandler,
-                        u8Cookie,
-                        pucFrameBuf,
-                        u4FrameLen,
-                        fgIsAck,
-                        GFP_KERNEL);
+	cfg80211_mgmt_tx_status(prGlueInfo->prDevHandler,
+			u8Cookie,
+			pucFrameBuf,
+			u4FrameLen,
+			fgIsAck,
+			GFP_KERNEL);
 #endif
 
     } while (FALSE);
@@ -4564,7 +4546,7 @@ kalIndicateMgmtTxStatus (
 
 
 VOID
-kalIndicateRxMgmtFrame (
+kalIndicateRxMgmtFrame(
     IN P_GLUE_INFO_T prGlueInfo,
     IN P_SW_RFB_T prSwRfb
     )
@@ -4577,91 +4559,56 @@ kalIndicateRxMgmtFrame (
 #endif
 
     do {
-        if ((prGlueInfo == NULL) || (prSwRfb == NULL)) {
-            ASSERT(FALSE);
-            break;
-        }
+	if ((prGlueInfo == NULL) || (prSwRfb == NULL)) {
+	    ASSERT(FALSE);
+	    break;
+	}
 
-        ucChnlNum = prSwRfb->prHifRxHdr->ucHwChannelNum;
+	ucChnlNum = prSwRfb->prHifRxHdr->ucHwChannelNum;
 
 #if DBG_MGMT_FRAME_INDICATION
-        prWlanHeader = (P_WLAN_MAC_HEADER_T)prSwRfb->pvHeader;
+	prWlanHeader = (P_WLAN_MAC_HEADER_T)prSwRfb->pvHeader;
 
-        switch (prWlanHeader->u2FrameCtrl) {
-        case MAC_FRAME_PROBE_REQ:
-            DBGLOG(AIS, TRACE, ("RX Probe Req at channel %d ", ucChnlNum));
-            break;
-        case MAC_FRAME_PROBE_RSP:
-            DBGLOG(AIS, TRACE, ("RX Probe Rsp at channel %d ", ucChnlNum));
-            break;
-        case MAC_FRAME_ACTION:
-            printk("RX Action frame at channel %d ", ucChnlNum);
-            break;
-        default:
-            DBGLOG(AIS, TRACE, ("RX Packet:%d at channel %d ", prWlanHeader->u2FrameCtrl, ucChnlNum));
-            break;
-        }
+	switch (prWlanHeader->u2FrameCtrl) {
+	case MAC_FRAME_PROBE_REQ:
+	    DBGLOG(AIS, TRACE, ("RX Probe Req at channel %d ", ucChnlNum));
+	    break;
+	case MAC_FRAME_PROBE_RSP:
+	    DBGLOG(AIS, TRACE, ("RX Probe Rsp at channel %d ", ucChnlNum));
+	    break;
+	case MAC_FRAME_ACTION:
+	    printk("RX Action frame at channel %d ", ucChnlNum);
+	    break;
+	default:
+	    DBGLOG(AIS, TRACE, ("RX Packet:%d at channel %d ", prWlanHeader->u2FrameCtrl, ucChnlNum));
+	    break;
+	}
 
 #endif
-        i4Freq = nicChannelNum2Freq(ucChnlNum) / 1000;
+	i4Freq = nicChannelNum2Freq(ucChnlNum) / 1000;
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0)
-        cfg80211_rx_mgmt(prGlueInfo->prDevHandler->ieee80211_ptr, //struct net_device * dev,
-                            i4Freq,
-                            RCPI_TO_dBm(prSwRfb->prHifRxHdr->ucRcpi),
-                            prSwRfb->pvHeader,
-                            prSwRfb->u2PacketLen,
-                            GFP_KERNEL);
+	cfg80211_rx_mgmt(prGlueInfo->prDevHandler->ieee80211_ptr, /* struct net_device * dev, */
+			    i4Freq,
+			    RCPI_TO_dBm(prSwRfb->prHifRxHdr->ucRcpi),
+			    prSwRfb->pvHeader,
+			    prSwRfb->u2PacketLen,
+			    GFP_KERNEL);
 #elif LINUX_VERSION_CODE >= KERNEL_VERSION(3, 2, 0)
-        cfg80211_rx_mgmt(prGlueInfo->prDevHandler, //struct net_device * dev,
-                            i4Freq,
-                            RCPI_TO_dBm(prSwRfb->prHifRxHdr->ucRcpi),
-                            prSwRfb->pvHeader,
-                            prSwRfb->u2PacketLen,
-                            GFP_KERNEL);
+	cfg80211_rx_mgmt(prGlueInfo->prDevHandler, /* struct net_device * dev, */
+			    i4Freq,
+			    RCPI_TO_dBm(prSwRfb->prHifRxHdr->ucRcpi),
+			    prSwRfb->pvHeader,
+			    prSwRfb->u2PacketLen,
+			    GFP_KERNEL);
 #else
-        cfg80211_rx_mgmt(prGlueInfo->prDevHandler, //struct net_device * dev,
-                            i4Freq,
-                            prSwRfb->pvHeader,
-                            prSwRfb->u2PacketLen,
-                            GFP_KERNEL);
+	cfg80211_rx_mgmt(prGlueInfo->prDevHandler, /* struct net_device * dev, */
+			    i4Freq,
+			    prSwRfb->pvHeader,
+			    prSwRfb->u2PacketLen,
+			    GFP_KERNEL);
 #endif
 
     } while (FALSE);
 
 } /* kalIndicateRxMgmtFrame */
-
-#if CFG_SUPPORT_AGPS_ASSIST
-BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data, UINT_16 dataLen){
-	P_GLUE_INFO_T prGlueInfo = prAdapter->prGlueInfo;
-
-	struct sk_buff *skb = cfg80211_testmode_alloc_event_skb(priv_to_wiphy(prGlueInfo),
-																dataLen, GFP_KERNEL);
-	//DBGLOG(CCX, INFO, ("WLAN_STATUS_AGPS_NOTIFY, cmd=%d\n", cmd));
-	if (unlikely(nla_put(skb, MTK_ATTR_AGPS_CMD, sizeof(cmd), &cmd) < 0))
-		goto nla_put_failure;
-	if (dataLen > 0 && data && unlikely(nla_put(skb, MTK_ATTR_AGPS_DATA, dataLen, data) < 0))
-		goto nla_put_failure;
-	if (unlikely(nla_put(skb, MTK_ATTR_AGPS_IFINDEX, sizeof(UINT_32), &prGlueInfo->prDevHandler->ifindex) < 0))
-		goto nla_put_failure;
-	cfg80211_testmode_event(skb, GFP_KERNEL);
-	return TRUE;
-
-nla_put_failure:
-	kfree_skb(skb);
-	return FALSE;
-}
-#endif
-
-UINT_64 kalGetBootTime(void)
-{
-	struct timespec ts;
-	UINT_64 bootTime = 0;
-	get_monotonic_boottime(&ts);
-	/* we assign ts.tv_sec to bootTime first, then multiply USEC_PER_SEC
-		this will prevent multiply result turn to a negative value on 32bit system */
-	bootTime = ts.tv_sec;
-	bootTime *= USEC_PER_SEC;
-	bootTime += ts.tv_nsec/NSEC_PER_USEC;
-	return bootTime;
-}

@@ -1,17 +1,3 @@
-/*
-* Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
-* GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with this program.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
-
 /*****************************************************************************
  *
  * Filename:
@@ -35,7 +21,7 @@
 #ifndef __CCCI_CH_H__
 #define __CCCI_CH_H__
 
-typedef enum _ccci_ch{
+typedef enum _ccci_ch {
 	CCCI_CONTROL_RX = 0,
 	CCCI_CONTROL_TX = 1,
 	CCCI_SYSTEM_RX = 2,
@@ -81,16 +67,16 @@ typedef enum _ccci_ch{
 	CCCI_MD_LOG_RX = 42,
 	CCCI_MD_LOG_TX = 43,
 
-	// MAX Channel
+	/* MAX Channel */
 	CCCI_MAX_CH_NUM,
 
-	// Force modem assert channel id
+	/* Force modem assert channel id */
 	CCCI_FORCE_ASSERT_CH = 20090215,
 
-	// Monitor channel
+	/* Monitor channel */
 	CCCI_MONITOR_CH = 0xf0000000,
-	// CCCI_INVALID_CH_ID
+	/* CCCI_INVALID_CH_ID */
 	CCCI_INVALID_CH_ID = 0xffffffff,
-}ccci_ch_t;
+} ccci_ch_t;
 
-#endif //__CCCI_CH_H__
+#endif /* __CCCI_CH_H__ */

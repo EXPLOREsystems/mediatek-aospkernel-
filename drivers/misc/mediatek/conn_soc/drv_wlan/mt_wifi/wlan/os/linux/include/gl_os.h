@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/os/linux/include/gl_os.h#2 $
 */
 
@@ -15,11 +29,11 @@
 
 /*
 ** $Log: gl_os.h $
-** 
+**
 ** 08 20 2012 yuche.tsai
 ** NULL
 ** Fix possible KE issue.
-** 
+**
 ** 08 20 2012 yuche.tsai
 ** [ALPS00339327] [Rose][6575JB][BSP Package][Free Test][KE][WIFI]There is no response when you tap the turn off/on button,wait a minutes, the device will reboot automatically and "KE" will pop up.
 ** Fix possible KE when netlink operate mgmt frame register.
@@ -437,11 +451,11 @@
 
 
 #define CFG_USE_SPIN_LOCK_BOTTOM_HALF       0 /* 1: Enable use of SPIN LOCK Bottom Half for LINUX
-                                                 0: Disable - use SPIN LOCK IRQ SAVE instead */
+						 0: Disable - use SPIN LOCK IRQ SAVE instead */
 
 #define CFG_TX_PADDING_SMALL_ETH_PACKET     0 /* 1: Enable - Drop ethernet packet if it < 14 bytes.
-                                                             And pad ethernet packet with dummy 0 if it < 60 bytes.
-                                                 0: Disable */
+							     And pad ethernet packet with dummy 0 if it < 60 bytes.
+						 0: Disable */
 
 #define CFG_TX_STOP_NETIF_QUEUE_THRESHOLD   256 /* packets */
 
@@ -464,7 +478,7 @@
 #define IPVERSION                               4
 #define IP_HEADER_LEN                           20
 
-#define IPVH_VERSION_OFFSET                     4 // For Little-Endian
+#define IPVH_VERSION_OFFSET                     4 /* For Little-Endian */
 #define IPVH_VERSION_MASK                       0xF0
 #define IPTOS_PREC_OFFSET                       5
 #define IPTOS_PREC_MASK                         0xE0
@@ -562,9 +576,6 @@
 #include <linux/random.h>
 
 #include <linux/lockdep.h>
-/* ++ TDLS */
-#include <linux/time.h>
-/* -- TDLS */
 
 #include <asm/io.h>             /* readw and writew */
 
@@ -596,10 +607,7 @@
 #endif
 
 
-#if (CFG_SUPPORT_TDLS == 1)
-	#include "tdls_extr.h"
-#endif
-#include "debug.h"
+#include "os_debug.h"
 
 #include "wlan_lib.h"
 #include "wlan_oid.h"
@@ -640,7 +648,7 @@ extern BOOLEAN fgIsBusAccessFailed;
 
 
 #define GLUE_BOW_KFIFO_DEPTH        (1024)
-//#define GLUE_BOW_DEVICE_NAME        "MT6620 802.11 AMP"
+/* #define GLUE_BOW_DEVICE_NAME        "MT6620 802.11 AMP" */
 #define GLUE_BOW_DEVICE_NAME        "ampc0"
 
 
@@ -686,7 +694,7 @@ typedef enum _ENUM_NET_REG_STATE_T {
 
 typedef struct _GL_IO_REQ_T {
     QUE_ENTRY_T             rQueEntry;
-    //wait_queue_head_t       cmdwait_q;
+    /* wait_queue_head_t       cmdwait_q; */
     BOOL                    fgRead;
     BOOL                    fgWaitResp;
 #if CFG_ENABLE_WIFI_DIRECT
@@ -705,7 +713,7 @@ typedef struct _GL_IO_REQ_T {
 typedef struct _GL_BOW_INFO {
     BOOLEAN                 fgIsRegistered;
     dev_t                   u4DeviceNumber; /* dynamic device number */
-//    struct kfifo            *prKfifo;       /* for buffering indicated events */
+/* struct kfifo            *prKfifo;       /* for buffering indicated events */ */
     struct kfifo                      rKfifo;   /* for buffering indicated events */
     spinlock_t              rSpinLock;      /* spin lock for kfifo */
     struct cdev             cdev;
@@ -725,50 +733,6 @@ typedef struct _GL_BOW_INFO {
 
 } GL_BOW_INFO, *P_GL_BOW_INFO;
 #endif
-
-
-#if (CFG_SUPPORT_TDLS == 1)
-typedef struct _TDLS_INFO_LINK_T {
-	/* start time when link is built, end time when link is broken */
-	unsigned long jiffies_start, jiffies_end;
-
-	/* the peer MAC */
-	UINT8 aucPeerMac[6];
-
-	/* broken reason */
-	UINT8 ucReasonCode;
-
-	/* TRUE: torn down is triggerred by us */
-	UINT8 fgIsFromUs;
-
-	/* duplicate count; same reason */
-	UINT8 ucDupCount;
-
-	/* HT capability */
-#define TDLS_INFO_LINK_HT_CAP_SUP			0x01
-	UINT8 ucHtCap;
-#define TDLS_INFO_LINK_HT_BA_SETUP			0x01
-#define TDLS_INFO_LINK_HT_BA_SETUP_OK		0x02
-#define TDLS_INFO_LINK_HT_BA_SETUP_DECLINE	0x04
-#define TDLS_INFO_LINK_HT_BA_PEER			0x10
-#define TDLS_INFO_LINK_HT_BA_RSP_OK			0x20
-#define TDLS_INFO_LINK_HT_BA_RSP_DECLINE	0x40
-	UINT8 ucHtBa[8]; /* TID0 ~ TID7 */
-} TDLS_INFO_LINK_T;
-
-typedef struct _TDLS_INFO_T {
-	/* link history */
-#define TDLS_LINK_HISTORY_MAX				30
-	TDLS_INFO_LINK_T rLinkHistory[TDLS_LINK_HISTORY_MAX];
-	UINT32 u4LinkIdx;
-
-	/* TRUE: support 20/40 bandwidth in TDLS link */
-	BOOLEAN fgIs2040Sup;
-
-	/* total TDLS link count */
-	INT8 cLinkCnt;
-} TDLS_INFO_T;
-#endif /* CFG_SUPPORT_TDLS */
 
 /*
 * type definition of pointer to p2p structure
@@ -798,7 +762,7 @@ struct _GLUE_INFO_T {
 
     UINT_32 u4Flag; /* GLUE_FLAG_XXX */
     UINT_32 u4PendFlag;
-    //UINT_32 u4TimeoutFlag;
+    /* UINT_32 u4TimeoutFlag; */
     UINT_32 u4OidCompleteFlag;
     UINT_32 u4ReadyFlag;  /* check if card is ready */
 
@@ -857,15 +821,15 @@ struct _GLUE_INFO_T {
 
     /* OID related */
     QUE_T                   rCmdQueue;
-    //PVOID                   pvInformationBuffer;
-    //UINT_32                 u4InformationBufferLength;
-    //PVOID                   pvOidEntry;
-    //PUINT_8                 pucIOReqBuff;
-    //QUE_T                   rIOReqQueue;
-    //QUE_T                   rFreeIOReqQueue;
+    /* PVOID                   pvInformationBuffer; */
+    /* UINT_32                 u4InformationBufferLength; */
+    /* PVOID                   pvOidEntry; */
+    /* PUINT_8                 pucIOReqBuff; */
+    /* QUE_T                   rIOReqQueue; */
+    /* QUE_T                   rFreeIOReqQueue; */
 
     wait_queue_head_t       waitq;
-    struct task_struct 	    *main_thread;
+    struct task_struct	    *main_thread;
 
     struct timer_list tickfn;
 
@@ -874,7 +838,7 @@ struct _GLUE_INFO_T {
     UINT_32     u4ExtCfgLength;  /* 0 means data is NOT valid */
 #endif
 
-#if 1//CFG_SUPPORT_WAPI
+#if 1/* CFG_SUPPORT_WAPI */
     /* Should be large than the PARAM_WAPI_ASSOC_INFO_T */
     UINT_8                  aucWapiAssocInfoIEs[42];
     UINT_16                 u2WapiAssocInfoIESz;
@@ -899,9 +863,9 @@ struct _GLUE_INFO_T {
 
 #if CFG_SUPPORT_HOTSPOT_2_0
 	UINT_8					aucHS20AssocInfoIE[200]; /*for Assoc req*/
-	UINT_16 				u2HS20AssocInfoIELen;
+	UINT_16				u2HS20AssocInfoIELen;
 	UINT_8					ucHotspotConfig;
-	BOOLEAN 				fgConnectHS20AP;
+	BOOLEAN				fgConnectHS20AP;
 #endif
 
     /* NVRAM availability */
@@ -936,28 +900,6 @@ struct _GLUE_INFO_T {
     BOOLEAN                 fgIs6Dad;
     UINT_8                  aucDADipv6[16];
 #endif
-    BOOLEAN 		    fgPoorlinkValid;
-    UINT_64                 u8Statistic[2];
-    UINT_64		    u8TotalFailCnt;
-    UINT_32 		    u4LinkspeedThreshold;
-    INT_32 		    i4RssiThreshold;
-
-#if (CFG_SUPPORT_TDLS == 1)
-	TDLS_INFO_T				rTdlsLink;
-
-	UINT8					aucTdlsHtPeerMac[6];
-	IE_HT_CAP_T				rTdlsHtCap; /* temp to queue HT capability element */
-
-	/*
-		[0~7]: jiffies
-		[8~13]: Peer MAC
-		[14]: Reason Code
-		[15]: From us or peer
-		[16]: Duplicate Count
-	*/
-//	UINT8					aucTdlsDisconHistory[TDLS_DISCON_HISTORY_MAX][20];
-//	UINT32					u4TdlsDisconIdx;
-#endif /* CFG_SUPPORT_TDLS */
 
 };
 
@@ -1015,15 +957,15 @@ typedef struct _NL80211_DRIVER_SW_CMD_PARAMS {
     UINT_8           set;
     unsigned long    adr;
     unsigned long    data;
-}NL80211_DRIVER_SW_CMD_PARAMS, *P_NL80211_DRIVER_SW_CMD_PARAMS;
+} NL80211_DRIVER_SW_CMD_PARAMS, *P_NL80211_DRIVER_SW_CMD_PARAMS;
 
 struct iw_encode_exts {
     __u32   ext_flags;                      /*!< IW_ENCODE_EXT_* */
     __u8    tx_seq[IW_ENCODE_SEQ_MAX_SIZE]; /*!< LSB first */
     __u8    rx_seq[IW_ENCODE_SEQ_MAX_SIZE]; /*!< LSB first */
     __u8    addr[MAC_ADDR_LEN];   /*!< ff:ff:ff:ff:ff:ff for broadcast/multicast
-                                                          *   (group) keys or unicast address for
-                                                          *   individual keys */
+							  *   (group) keys or unicast address for
+							  *   individual keys */
     __u16   alg;            /*!< IW_ENCODE_ALG_* */
     __u16   key_len;
     __u8    key[32];
@@ -1035,7 +977,7 @@ typedef struct _NL80211_DRIVER_SET_KEY_EXTS {
     UINT_8     key_index;
     UINT_8     key_len;
     struct iw_encode_exts ext;
-}NL80211_DRIVER_SET_KEY_EXTS, *P_NL80211_DRIVER_SET_KEY_EXTS;
+} NL80211_DRIVER_SET_KEY_EXTS, *P_NL80211_DRIVER_SET_KEY_EXTS;
 
 
 #if CFG_SUPPORT_HOTSPOT_2_0
@@ -1076,36 +1018,36 @@ struct wpa_driver_hs20_data_s {
 #if CFG_USE_SPIN_LOCK_BOTTOM_HALF
     #define GLUE_SPIN_LOCK_DECLARATION()
     #define GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, rLockCategory)   \
-            { \
-                if (rLockCategory < SPIN_LOCK_NUM) \
-                spin_lock_bh(&(prGlueInfo->rSpinLock[rLockCategory])); \
-            }
+	    { \
+		if (rLockCategory < SPIN_LOCK_NUM) \
+		spin_lock_bh(&(prGlueInfo->rSpinLock[rLockCategory])); \
+	    }
     #define GLUE_RELEASE_SPIN_LOCK(prGlueInfo, rLockCategory)   \
-            { \
-                if (rLockCategory < SPIN_LOCK_NUM) \
-                spin_unlock_bh(&(prGlueInfo->rSpinLock[rLockCategory])); \
-            }
+	    { \
+		if (rLockCategory < SPIN_LOCK_NUM) \
+		spin_unlock_bh(&(prGlueInfo->rSpinLock[rLockCategory])); \
+	    }
     #define GLUE_ACQUIRE_THE_SPIN_LOCK(prLock)                  \
-            spin_lock_bh(prLock);
+	    spin_lock_bh(prLock);
     #define GLUE_RELEASE_THE_SPIN_LOCK(prLock)                  \
-            spin_unlock_bh(prLock);
+	    spin_unlock_bh(prLock);
 
 #else /* !CFG_USE_SPIN_LOCK_BOTTOM_HALF */
     #define GLUE_SPIN_LOCK_DECLARATION()                        UINT_32 __u4Flags = 0
     #define GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, rLockCategory)   \
-            { \
-                if (rLockCategory < SPIN_LOCK_NUM) \
-                spin_lock_irqsave(&(prGlueInfo)->rSpinLock[rLockCategory], __u4Flags); \
-            }
+	    { \
+		if (rLockCategory < SPIN_LOCK_NUM) \
+		spin_lock_irqsave(&(prGlueInfo)->rSpinLock[rLockCategory], __u4Flags); \
+	    }
     #define GLUE_RELEASE_SPIN_LOCK(prGlueInfo, rLockCategory)   \
-            { \
-                if (rLockCategory < SPIN_LOCK_NUM) \
-                spin_unlock_irqrestore(&(prGlueInfo->rSpinLock[rLockCategory]), __u4Flags); \
-            }
+	    { \
+		if (rLockCategory < SPIN_LOCK_NUM) \
+		spin_unlock_irqrestore(&(prGlueInfo->rSpinLock[rLockCategory]), __u4Flags); \
+	    }
     #define GLUE_ACQUIRE_THE_SPIN_LOCK(prLock)                  \
-            spin_lock_irqsave(prLock, __u4Flags);
+	    spin_lock_irqsave(prLock, __u4Flags);
     #define GLUE_RELEASE_THE_SPIN_LOCK(prLock)                  \
-            spin_unlock_irqrestore(prLock, __u4Flags);
+	    spin_unlock_irqrestore(prLock, __u4Flags);
 #endif /* !CFG_USE_SPIN_LOCK_BOTTOM_HALF */
 
 
@@ -1113,64 +1055,64 @@ struct wpa_driver_hs20_data_s {
 /* Macros for accessing Reserved Fields of native packet                      */
 /*----------------------------------------------------------------------------*/
 #define GLUE_GET_PKT_QUEUE_ENTRY(_p)    \
-            (&( ((struct sk_buff *)(_p))->cb[0] ))
+	    (&(((struct sk_buff *)(_p))->cb[0]))
 
 #define GLUE_GET_PKT_DESCRIPTOR(_prQueueEntry)  \
-            ((P_NATIVE_PACKET) ((UINT_32)_prQueueEntry - offsetof(struct sk_buff, cb[0])) )
+	    ((P_NATIVE_PACKET) ((UINT_32)_prQueueEntry - offsetof(struct sk_buff, cb[0])))
 
 #define  GLUE_SET_PKT_FLAG_802_11(_p)  \
-            (*((PUINT_8) &( ((struct sk_buff *)(_p))->cb[4] )) |= BIT(7))
+            (*((PUINT_8) & (((struct sk_buff *)(_p))->cb[4])) |= BIT(7))
 
 #define GLUE_SET_PKT_FLAG_1X(_p)  \
-            (*((PUINT_8) &( ((struct sk_buff *)(_p))->cb[4] )) |= BIT(6))
+            (*((PUINT_8) & (((struct sk_buff *)(_p))->cb[4])) |= BIT(6))
 
 #define GLUE_SET_PKT_FLAG_PAL(_p)  \
-            (*((PUINT_8) &( ((struct sk_buff *)(_p))->cb[4] )) |= BIT(5))
+            (*((PUINT_8) & (((struct sk_buff *)(_p))->cb[4])) |= BIT(5))
 
 #define GLUE_SET_PKT_FLAG_P2P(_p)  \
-            (*((PUINT_8) &( ((struct sk_buff *)(_p))->cb[4] )) |= BIT(4))
+            (*((PUINT_8) & (((struct sk_buff *)(_p))->cb[4])) |= BIT(4))
 
 
 
 #define GLUE_SET_PKT_TID(_p, _tid)  \
-            (*((PUINT_8) &( ((struct sk_buff *)(_p))->cb[4] )) |= (((UINT_8)((_tid) & (BITS(0,3))))))
+            (*((PUINT_8) & (((struct sk_buff *)(_p))->cb[4])) |= (((UINT_8)((_tid) & (BITS(0, 3))))))
 
 
 #define GLUE_SET_PKT_FRAME_LEN(_p, _u2PayloadLen) \
-            (*((PUINT_16) &( ((struct sk_buff *)(_p))->cb[6] )) = (UINT_16)(_u2PayloadLen))
+            (*((PUINT_16) & (((struct sk_buff *)(_p))->cb[6])) = (UINT_16)(_u2PayloadLen))
 
 #define GLUE_GET_PKT_FRAME_LEN(_p)    \
-            (*((PUINT_16) &( ((struct sk_buff *)(_p))->cb[6] )) )
+            (*((PUINT_16) & (((struct sk_buff *)(_p))->cb[6])) )
 
 
 #define  GLUE_GET_PKT_IS_802_11(_p)        \
-            ((*((PUINT_8) &( ((struct sk_buff *)(_p))->cb[4] )) ) & (BIT(7)))
+            ((*((PUINT_8) & (((struct sk_buff *)(_p))->cb[4])) ) & (BIT(7)))
 
 #define  GLUE_GET_PKT_IS_1X(_p)        \
-            ((*((PUINT_8) &( ((struct sk_buff *)(_p))->cb[4] )) ) & (BIT(6)))
+            ((*((PUINT_8) & (((struct sk_buff *)(_p))->cb[4])) ) & (BIT(6)))
 
 #define GLUE_GET_PKT_TID(_p)        \
-            ((*((PUINT_8) &( ((struct sk_buff *)(_p))->cb[4] )) ) & (BITS(0,3)))
+            ((*((PUINT_8) & (((struct sk_buff *)(_p))->cb[4])) ) & (BITS(0, 3)))
 
 
 #define GLUE_GET_PKT_IS_PAL(_p)        \
-            ((*((PUINT_8) &( ((struct sk_buff *)(_p))->cb[4] )) ) & (BIT(5)))
+            ((*((PUINT_8) & (((struct sk_buff *)(_p))->cb[4])) ) & (BIT(5)))
 
 #define GLUE_GET_PKT_IS_P2P(_p)        \
-            ((*((PUINT_8) &( ((struct sk_buff *)(_p))->cb[4] )) ) & (BIT(4)))
+            ((*((PUINT_8) & (((struct sk_buff *)(_p))->cb[4])) ) & (BIT(4)))
 
 
 #define GLUE_SET_PKT_HEADER_LEN(_p, _ucMacHeaderLen)    \
-            (*((PUINT_8) &( ((struct sk_buff *)(_p))->cb[5] )) = (UINT_8)(_ucMacHeaderLen))
+            (*((PUINT_8) & (((struct sk_buff *)(_p))->cb[5])) = (UINT_8)(_ucMacHeaderLen))
 
 #define GLUE_GET_PKT_HEADER_LEN(_p) \
-            (*((PUINT_8) &( ((struct sk_buff *)(_p))->cb[5] )) )
+            (*((PUINT_8) & (((struct sk_buff *)(_p))->cb[5])) )
 
 #define GLUE_SET_PKT_ARRIVAL_TIME(_p, _rSysTime) \
-            (*((POS_SYSTIME) &( ((struct sk_buff *)(_p))->cb[8] )) = (OS_SYSTIME)(_rSysTime))
+            (*((POS_SYSTIME) & (((struct sk_buff *)(_p))->cb[8])) = (OS_SYSTIME)(_rSysTime))
 
 #define GLUE_GET_PKT_ARRIVAL_TIME(_p)    \
-            (*((POS_SYSTIME) &( ((struct sk_buff *)(_p))->cb[8] )) )
+            (*((POS_SYSTIME) & (((struct sk_buff *)(_p))->cb[8])) )
 
 /* Check validity of prDev, private data, and pointers */
 #define GLUE_CHK_DEV(prDev) \
@@ -1199,13 +1141,13 @@ struct wpa_driver_hs20_data_s {
 */
 #ifdef WLAN_INCLUDE_PROC
 INT_32
-procRemoveProcfs (
+procRemoveProcfs(
     struct net_device *prDev,
     char *pucDevName
     );
 
 INT_32
-procInitProcfs (
+procInitProcfs(
     struct net_device *prDev,
     char *pucDevName
     );
@@ -1213,12 +1155,12 @@ procInitProcfs (
 
 #if CFG_ENABLE_BT_OVER_WIFI
 BOOLEAN
-glRegisterAmpc (
+glRegisterAmpc(
     P_GLUE_INFO_T prGlueInfo
     );
 
 BOOLEAN
-glUnregisterAmpc (
+glUnregisterAmpc(
     P_GLUE_INFO_T prGlueInfo
     );
 #endif
@@ -1277,4 +1219,3 @@ p2pSetMulticastListWorkQueueWrapper(
 */
 
 #endif /* _GL_OS_H */
-

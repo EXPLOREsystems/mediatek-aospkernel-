@@ -79,15 +79,17 @@ static UINT_8 ucTimingMeasToken;
 ********************************************************************************
 */
 
-WLAN_STATUS
+static WLAN_STATUS
 wnmRunEventTimgingMeasTxDone(IN P_ADAPTER_T prAdapter,
 			     IN P_MSDU_INFO_T prMsduInfo, IN ENUM_TX_RESULT_CODE_T rTxDoneStatus);
 
-VOID
+static VOID
 wnmComposeTimingMeasFrame(IN P_ADAPTER_T prAdapter,
 			  IN P_STA_RECORD_T prStaRec, IN PFN_TX_DONE_HANDLER pfTxDoneHandler);
 
-VOID wnmTimingMeasRequest(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb);
+static VOID
+wnmTimingMeasRequest(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb);
+
 /*******************************************************************************
 *                              F U N C T I O N S
 ********************************************************************************
@@ -162,7 +164,7 @@ wnmReportTimingMeas(IN P_ADAPTER_T prAdapter,
 * @retval WLAN_STATUS_SUCCESS
 */
 /*----------------------------------------------------------------------------*/
-WLAN_STATUS
+static WLAN_STATUS
 wnmRunEventTimgingMeasTxDone(IN P_ADAPTER_T prAdapter,
 			     IN P_MSDU_INFO_T prMsduInfo, IN ENUM_TX_RESULT_CODE_T rTxDoneStatus)
 {
@@ -204,7 +206,7 @@ wnmRunEventTimgingMeasTxDone(IN P_ADAPTER_T prAdapter,
 * @return (none)
 */
 /*----------------------------------------------------------------------------*/
-VOID
+static VOID
 wnmComposeTimingMeasFrame(IN P_ADAPTER_T prAdapter,
 			  IN P_STA_RECORD_T prStaRec, IN PFN_TX_DONE_HANDLER pfTxDoneHandler)
 {
@@ -274,7 +276,7 @@ wnmComposeTimingMeasFrame(IN P_ADAPTER_T prAdapter,
 *      Handle Rx mgmt request
 */
 /*----------------------------------------------------------------------------*/
-VOID wnmTimingMeasRequest(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb)
+static VOID wnmTimingMeasRequest(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb)
 {
 	P_ACTION_WNM_TIMING_MEAS_REQ_FRAME prRxFrame = NULL;
 	P_STA_RECORD_T prStaRec;

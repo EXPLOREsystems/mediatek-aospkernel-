@@ -1,5 +1,5 @@
 /*
-** $Id: //Department/DaVinci/TRUNK/WiFi_P2P_Driver/include/mgmt/p2p_bss.h#2 $
+** Id: //Department/DaVinci/TRUNK/WiFi_P2P_Driver/include/mgmt/p2p_bss.h#2
 */
 
 /*! \file   "p2p_bss.h"

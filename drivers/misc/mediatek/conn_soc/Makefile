@@ -6,9 +6,7 @@ ifneq ($(KERNELRELEASE),)
 	#subdir-ccflags-y += -I$(src)/common/include -I$(src)/common/linux/include 
 	
 	obj-y += common/
-ifeq ($(CONFIG_MTK_WLAN_SUPPORT), y)
 	obj-$(CONFIG_MTK_COMBO_WIFI) += drv_wlan/
-endif
     obj-n := dummy.o
 
 # Otherwise we were called directly from the command

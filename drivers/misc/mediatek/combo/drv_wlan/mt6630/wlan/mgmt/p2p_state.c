@@ -216,7 +216,8 @@ p2pStateAbort_AP_CHANNEL_DETECT(IN P_ADAPTER_T prAdapter,
 #if 0
 				prP2pConnSettings = prAdapter->rWifiVar.prP2PConnSettings;
 
-				if ((ucPreferedChnl = prP2pConnSettings->ucOperatingChnl) == 0) {
+				ucPreferedChnl = prP2pConnSettings->ucOperatingChnl;
+				if ((ucPreferedChnl) == 0) {
 
 					if (scnQuerySparseChannel
 					    (prAdapter, &eBand, &ucPreferedChnl) == FALSE) {

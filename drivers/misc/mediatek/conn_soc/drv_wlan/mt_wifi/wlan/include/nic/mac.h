@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/nic/mac.h#1 $
 */
 
@@ -27,7 +41,7 @@
  *
  * 06 22 2011 wh.su
  * [WCXRP00000806] [MT6620 Wi-Fi][Driver] Move the WPA/RSN IE and WAPI IE structure to mac.h and let the sw structure not align at byte
- * Move the WAPI/RSN IE to mac.h and SW structure not align to byte, 
+ * Move the WAPI/RSN IE to mac.h and SW structure not align to byte,
  * Notice needed update P2P.ko.
  *
  * 05 06 2011 wh.su
@@ -130,15 +144,15 @@
 *                              C O N S T A N T S
 ********************************************************************************
 */
-//3 /* --------------- Constants for Ethernet/802.11 MAC --------------- */
+/* 3 /* --------------- Constants for Ethernet/802.11 MAC --------------- */ */
 /* MAC Address */
 #define MAC_ADDR_LEN                            6
 
 #define MAC_ADDR_LOCAL_ADMIN                    BIT(1)
 
 #define ETH_P_IPV4                              0x0800
-#define ETH_P_IPX                               0x8137 // Novell IPX
-#define ETH_P_AARP                              0x80F3 // AppleTalk Address Resolution Protocol (AARP)
+#define ETH_P_IPX                               0x8137 /* Novell IPX */
+#define ETH_P_AARP                              0x80F3 /* AppleTalk Address Resolution Protocol (AARP) */
 #define ETH_P_IPV6                              0x86DD
 
 #define IP_VERSION_4                            4
@@ -186,7 +200,7 @@
 #define TCP_HDR_TCP_CSUM_OFFSET                 16
 #define UDP_HDR_UDP_CSUM_OFFSET                 6
 
-#define LLC_LEN                                 8 // LLC(3) + SNAP(3) + EtherType(2)
+#define LLC_LEN                                 8 /* LLC(3) + SNAP(3) + EtherType(2) */
 
 #define NULL_MAC_ADDR                           {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 #define BC_MAC_ADDR                             {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
@@ -222,7 +236,7 @@
 #define FCS_LEN                                 4
 
 /* 7.3.1.6 Listen Interval field */
-#define DEFAULT_LISTEN_INTERVAL_BY_DTIM_PERIOD  2 // In unit of AP's DTIM interval,
+#define DEFAULT_LISTEN_INTERVAL_BY_DTIM_PERIOD  2 /* In unit of AP's DTIM interval, */
 #define DEFAULT_LISTEN_INTERVAL                 10
 
 /* 7.3.2.1 Broadcast(Wildcard) SSID */
@@ -246,7 +260,7 @@
 #define RATE_54M                                108 /* 54M */
 /* 7.3.2.14 BSS membership selector */
 #define RATE_HT_PHY                             127 /* BSS Selector - Clause 20. HT PHY */
-#define RATE_MASK                               BITS(0,6)   /* mask bits for the rate */
+#define RATE_MASK                               BITS(0, 6)   /* mask bits for the rate */
 #define RATE_BASIC_BIT                          BIT(7)      /* mask bit for the rate belonging to the BSSBasicRateSet */
 
 /* 8.3.2.2 TKIP MPDU formats */
@@ -316,43 +330,43 @@
 #define MAXIMUM_OPERATION_CHANNEL_LIST          32
 
 
-//3 /* --------------- IEEE 802.11 PICS --------------- */
+/* 3 /* --------------- IEEE 802.11 PICS --------------- */ */
 /* Annex D - dot11OperationEntry 2 */
 #define DOT11_RTS_THRESHOLD_MIN                 0
-#define DOT11_RTS_THRESHOLD_MAX                 2347 // from Windows DDK
-//#define DOT11_RTS_THRESHOLD_MAX                 3000 // from Annex D
+#define DOT11_RTS_THRESHOLD_MAX                 2347 /* from Windows DDK */
+/* #define DOT11_RTS_THRESHOLD_MAX                 3000 // from Annex D */
 
 #define DOT11_RTS_THRESHOLD_DEFAULT             \
-            DOT11_RTS_THRESHOLD_MAX
+	    DOT11_RTS_THRESHOLD_MAX
 
 /* Annex D - dot11OperationEntry 5 */
 #define DOT11_FRAGMENTATION_THRESHOLD_MIN       256
-#define DOT11_FRAGMENTATION_THRESHOLD_MAX       2346 // from Windows DDK
-//#define DOT11_FRAGMENTATION_THRESHOLD_MAX       3000 // from Annex D
+#define DOT11_FRAGMENTATION_THRESHOLD_MAX       2346 /* from Windows DDK */
+/* #define DOT11_FRAGMENTATION_THRESHOLD_MAX       3000 // from Annex D */
 
 #define DOT11_FRAGMENTATION_THRESHOLD_DEFAULT   \
-            DOT11_FRAGMENTATION_THRESHOLD_MAX
+	    DOT11_FRAGMENTATION_THRESHOLD_MAX
 
 /* Annex D - dot11OperationEntry 6 */
 #define DOT11_TRANSMIT_MSDU_LIFETIME_TU_MIN     1
 #define DOT11_TRANSMIT_MSDU_LIFETIME_TU_MAX     0xFFFFffff
-#define DOT11_TRANSMIT_MSDU_LIFETIME_TU_DEFAULT 4095 // 802.11 define 512
-                                                     // MT5921 only aceept N <= 4095
+#define DOT11_TRANSMIT_MSDU_LIFETIME_TU_DEFAULT 4095 /* 802.11 define 512 */
+						     /* MT5921 only aceept N <= 4095 */
 
 /* Annex D - dot11OperationEntry 7 */
 #define DOT11_RECEIVE_LIFETIME_TU_MIN           1
 #define DOT11_RECEIVE_LIFETIME_TU_MAX           0xFFFFffff
-#define DOT11_RECEIVE_LIFETIME_TU_DEFAULT       4096 // 802.11 define 512
+#define DOT11_RECEIVE_LIFETIME_TU_DEFAULT       4096 /* 802.11 define 512 */
 
 /* Annex D - dot11StationConfigEntry 12 */
-#define DOT11_BEACON_PERIOD_MIN                 1 // TU.
-#define DOT11_BEACON_PERIOD_MAX                 0xffff // TU.
-#define DOT11_BEACON_PERIOD_DEFAULT             100 // TU.
+#define DOT11_BEACON_PERIOD_MIN                 1 /* TU. */
+#define DOT11_BEACON_PERIOD_MAX                 0xffff /* TU. */
+#define DOT11_BEACON_PERIOD_DEFAULT             100 /* TU. */
 
 /* Annex D - dot11StationConfigEntry 13 */
-#define DOT11_DTIM_PERIOD_MIN                   1 // TU.
-#define DOT11_DTIM_PERIOD_MAX                   255 // TU.
-#define DOT11_DTIM_PERIOD_DEFAULT               1 // TU.
+#define DOT11_DTIM_PERIOD_MIN                   1 /* TU. */
+#define DOT11_DTIM_PERIOD_MAX                   255 /* TU. */
+#define DOT11_DTIM_PERIOD_DEFAULT               1 /* TU. */
 
 /* Annex D - dot11RegDomainsSupportValue */
 #define REGULATION_DOMAIN_FCC                   0x10        /* FCC (US) */
@@ -366,11 +380,11 @@
 
 
 
-//3 /* --------------- IEEE 802.11 MAC header fields --------------- */
+/* 3 /* --------------- IEEE 802.11 MAC header fields --------------- */ */
 /* 7.1.3.1 Masks for the subfields in the Frame Control field */
-#define MASK_FC_PROTOCOL_VER                    BITS(0,1)
-#define MASK_FC_TYPE                            BITS(2,3)
-#define MASK_FC_SUBTYPE                         BITS(4,7)
+#define MASK_FC_PROTOCOL_VER                    BITS(0, 1)
+#define MASK_FC_TYPE                            BITS(2, 3)
+#define MASK_FC_SUBTYPE                         BITS(4, 7)
 #define MASK_FC_SUBTYPE_QOS_DATA                BIT(7)
 #define MASK_FC_TO_DS                           BIT(8)
 #define MASK_FC_FROM_DS                         BIT(9)
@@ -436,27 +450,27 @@
 #define MAC_FRAME_QOS_CF_ACK_CF_POLL            (MAC_FRAME_TYPE_DATA | 0x00F0)
 
 /* 7.1.3.2 Mask for the AID value in the Duration/ID field */
-#define MASK_DI_DURATION                        BITS(0,14)
-#define MASK_DI_AID                             BITS(0,13)
-#define MASK_DI_AID_MSB                         BITS(14,15)
+#define MASK_DI_DURATION                        BITS(0, 14)
+#define MASK_DI_AID                             BITS(0, 13)
+#define MASK_DI_AID_MSB                         BITS(14, 15)
 #define MASK_DI_CFP_FIXED_VALUE                 BIT(15)
 
 /* 7.1.3.4 Masks for the subfields in the Sequence Control field */
-#define MASK_SC_SEQ_NUM                         BITS(4,15)
+#define MASK_SC_SEQ_NUM                         BITS(4, 15)
 #define MASK_SC_SEQ_NUM_OFFSET                  4
-#define MASK_SC_FRAG_NUM                        BITS(0,3)
+#define MASK_SC_FRAG_NUM                        BITS(0, 3)
 #define INVALID_SEQ_CTRL_NUM                    0x000F /* According to 6.2.1.1.2
-                                                         * FRAG_NUM won't equal to 15
-                                                         */
+							 * FRAG_NUM won't equal to 15
+							 */
 
 /* 7.1.3.5 QoS Control field */
 #define TID_NUM                                 16
-#define TID_MASK                                BITS(0,3)
+#define TID_MASK                                BITS(0, 3)
 #define EOSP                                    BIT(4)
-#define ACK_POLICY                              BITS(5,6)
+#define ACK_POLICY                              BITS(5, 6)
 #define A_MSDU_PRESENT                          BIT(7)
 
-#define MASK_QC_TID                  BITS(0,3)
+#define MASK_QC_TID                  BITS(0, 3)
 #define MASK_QC_EOSP                 BIT(4)
 #define MASK_QC_EOSP_OFFSET          4
 #define MASK_QC_ACK_POLICY           BITS(5, 6)
@@ -464,20 +478,20 @@
 #define MASK_QC_A_MSDU_PRESENT       BIT(7)
 
 /* 7.1.3.5a HT Control field */
-#define HT_CTRL_LINK_ADAPTATION_CTRL            BITS(0,15)
-#define HT_CTRL_CALIBRATION_POSITION            BITS(16,17)
-#define HT_CTRL_CALIBRATION_SEQUENCE            BITS(18,19)
-#define HT_CTRL_CSI_STEERING                    BITS(22,23)
+#define HT_CTRL_LINK_ADAPTATION_CTRL            BITS(0, 15)
+#define HT_CTRL_CALIBRATION_POSITION            BITS(16, 17)
+#define HT_CTRL_CALIBRATION_SEQUENCE            BITS(18, 19)
+#define HT_CTRL_CSI_STEERING                    BITS(22, 23)
 #define HT_CTRL_NDP_ANNOUNCEMENT                BIT(24)
 #define HT_CTRL_AC_CONSTRAINT                   BIT(30)
 #define HT_CTRL_RDG_MORE_PPDU                   BIT(31)
 
 #define LINK_ADAPTATION_CTRL_TRQ                BIT(1)
 #define LINK_ADAPTATION_CTRL_MAI_MRQ            BIT(2)
-#define LINK_ADAPTATION_CTRL_MAI_MSI            BITS(3,5)
-#define LINK_ADAPTATION_CTRL_MFSI               BITS(6,8)
-#define LINK_ADAPTATION_CTRL_MFB_ASELC_CMD      BITS(9,11)
-#define LINK_ADAPTATION_CTRL_MFB_ASELC_DATA     BITS(12,15)
+#define LINK_ADAPTATION_CTRL_MAI_MSI            BITS(3, 5)
+#define LINK_ADAPTATION_CTRL_MFSI               BITS(6, 8)
+#define LINK_ADAPTATION_CTRL_MFB_ASELC_CMD      BITS(9, 11)
+#define LINK_ADAPTATION_CTRL_MFB_ASELC_DATA     BITS(12, 15)
 
 /* 7.1.3.5.3 Ack Policy subfield*/
 #define ACK_POLICY_NORMAL_ACK_IMPLICIT_BA_REQ 0
@@ -501,30 +515,30 @@
 #if 0
 /* Block Ack Parameter Set field */
 #define BA_PARM_BA_POLICY                       BIT(1)
-#define BA_PARM_TID                             BITS(2,5)
-#define BA_PARM_BUFFER_SIZE                     BITS(6,15)
+#define BA_PARM_TID                             BITS(2, 5)
+#define BA_PARM_BUFFER_SIZE                     BITS(6, 15)
 #endif
 
 #define BA_POLICY_IMMEDIATE                     BIT(1)
 
 /* Block Ack Starting Sequence Control field */
-#define BA_START_SEQ_CTL_FRAG_NUM               BITS(0,3)
-#define BA_START_SEQ_CTL_SSN                    BITS(4,15)
+#define BA_START_SEQ_CTL_FRAG_NUM               BITS(0, 3)
+#define BA_START_SEQ_CTL_SSN                    BITS(4, 15)
 
 /* BAR Control field */
 #define BAR_CONTROL_NO_ACK_POLICY               BIT(0)
 #define BAR_CONTROL_MULTI_TID                   BIT(1)
 #define BAR_CONTROL_COMPRESSED_BA               BIT(2)
-#define BAR_CONTROL_TID_INFO                    BITS(12,15)
+#define BAR_CONTROL_TID_INFO                    BITS(12, 15)
 #define BAR_CONTROL_TID_INFO_OFFSET             12
 
 /* TID Value */
-#define BAR_INFO_TID_VALUE                      BITS(12,15)
+#define BAR_INFO_TID_VALUE                      BITS(12, 15)
 
 #define BAR_COMPRESSED_VARIANT_FRAME_LEN        (16 + 4)
 
-//3 /* --------------- IEEE 802.11 frame body fields --------------- */
-//3 Management frame body components (I): Fixed Fields.
+/* 3 /* --------------- IEEE 802.11 frame body fields --------------- */ */
+/* 3 Management frame body components (I): Fixed Fields. */
 /* 7.3.1.1 Authentication Algorithm Number field */
 #define AUTH_ALGORITHM_NUM_FIELD_LEN                2
 
@@ -625,8 +639,8 @@
 
 /* 7.3.1.8 AID field */
 #define AID_FIELD_LEN                               2
-#define AID_MASK                                    BITS(0,13)
-#define AID_MSB                                     BITS(14,15)
+#define AID_MASK                                    BITS(0, 13)
+#define AID_MSB                                     BITS(14, 15)
 #define AID_MIN_VALUE                               1
 #define AID_MAX_VALUE                               2007
 
@@ -708,16 +722,16 @@
 /* 7.3.1.14 Block Ack Parameter Set field */
 #define BA_PARAM_SET_ACK_POLICY_MASK                BIT(1)
 #define BA_PARAM_SET_ACK_POLICY_MASK_OFFSET         1
-#define BA_PARAM_SET_TID_MASK                       BITS(2,5)
+#define BA_PARAM_SET_TID_MASK                       BITS(2, 5)
 #define BA_PARAM_SET_TID_MASK_OFFSET                2
-#define BA_PARAM_SET_BUFFER_SIZE_MASK               BITS(6,15)
+#define BA_PARAM_SET_BUFFER_SIZE_MASK               BITS(6, 15)
 #define BA_PARAM_SET_BUFFER_SIZE_MASK_OFFSET        6
 
 #define BA_PARAM_SET_ACK_POLICY_IMMEDIATE_BA        1
 #define BA_PARAM_SET_ACK_POLICY_DELAYED_BA          0
 
 
-//3 Management frame body components (II): Information Elements.
+/* 3 Management frame body components (II): Information Elements. */
 /* 7.3.2 Element IDs of information elements */
 #define ELEM_HDR_LEN                                2
 
@@ -756,10 +770,9 @@
 #define ELEM_ID_QOS_CAP                             46  /* QoS capability */
 #define ELEM_ID_RSN                                 48  /* RSN IE */
 #define ELEM_ID_EXTENDED_SUP_RATES                  50  /* Extended supported rates */
-/* ++ TDLS */
+#if CFG_SUPPORT_802_11W
 #define ELEM_ID_TIMEOUT_INTERVAL                    56  /* 802.11w SA Timeout interval */
-#define ELEM_ID_SUP_OPERATING_CLASS					59	/* Supported Operating Classes */
-/* -- TDLS */
+#endif
 #define ELEM_ID_HT_OP                               61  /* HT Operation */
 #define ELEM_ID_SCO                                 62  /* Secondary Channel Offset */
 #define ELEM_ID_RRM_ENABLED_CAP                     70  /* Radio Resource Management Enabled Capabilities */
@@ -824,8 +837,8 @@
 /* 7.3.2.14 Extended Supported Rates */
 #define ELEM_MAX_LEN_EXTENDED_SUP_RATES             255
 
-#if CFG_SUPPORT_DFS // Add by Enlai
-/* 7.3.2.19 Supported Channels element*/    // Add by Enlai
+#if CFG_SUPPORT_DFS /* Add by Enlai */
+/* 7.3.2.19 Supported Channels element*/    /* Add by Enlai */
 #define ELEM_MAX_LEN_SUPPPORTED_CHANNELS            7
 #endif
 
@@ -853,11 +866,7 @@
 #define ELEM_RM_TYPE_STA_STATISTICS_REPORT          7
 #define ELEM_RM_TYPE_LCI_REPORT                     8
 #define ELEM_RM_TYPE_TS_REPORT                      9
-/*Auto Channel Selection*/
-#if CFG_AUTO_CHANNEL_SEL_SUPPORT
-#define ELEM_RM_TYPE_ACS_CHN						1
-#define ELEM_RM_TYPE_LTE_CHN						2
-#endif
+
 
 /* 7.3.2.25 RSN information element */
 #define ELEM_MAX_LEN_WPA                            34 /* one pairwise, one AKM suite, one PMKID */
@@ -888,19 +897,19 @@
 #endif
 
 /* 7.3.2.30 TSPEC element */
-#define TS_INFO_TRAFFIC_TYPE_MASK                   BIT(0)      //WMM: 0 (Asynchronous TS of low-duty cycles)
+#define TS_INFO_TRAFFIC_TYPE_MASK                   BIT(0)      /* WMM: 0 (Asynchronous TS of low-duty cycles) */
 #define TS_INFO_TID_OFFSET                          1
-#define TS_INFO_TID_MASK                            BITS(1,4)
+#define TS_INFO_TID_MASK                            BITS(1, 4)
 #define TS_INFO_DIRECTION_OFFSET                    5
-#define TS_INFO_DIRECTION_MASK                      BITS(5,6)
+#define TS_INFO_DIRECTION_MASK                      BITS(5, 6)
 #define TS_INFO_ACCESS_POLICY_OFFSET                7
-#define TS_INFO_ACCESS_POLICY_MASK                  BITS(7,8)   //WMM: Bit(7,8) = (1,0) = EDCA
-#define TS_INFO_AGGREGATION_MASK                    BIT(9)      //WMM: 0
+#define TS_INFO_ACCESS_POLICY_MASK                  BITS(7, 8)
+#define TS_INFO_AGGREGATION_MASK                    BIT(9)      /* WMM: 0 */
 #define TS_INFO_APSD_MASK                           BIT(10)
 #define TS_INFO_UP_OFFSET                           11
-#define TS_INFO_UP_MASK                             BITS(11,13)
+#define TS_INFO_UP_MASK                             BITS(11, 13)
 #define TS_INFO_ACK_POLICY_OFFSET                   14
-#define TS_INFO_ACK_POLICY_MASK                     BITS(14,15)
+#define TS_INFO_ACK_POLICY_MASK                     BITS(14, 15)
 #define TS_INFO_SCHEDULE_MASK                       16
 
 /* 7.3.2.56 HT capabilities element */
@@ -909,12 +918,12 @@
 /* 7.3.2.56.2 HT capabilities Info field */
 #define HT_CAP_INFO_LDPC_CAP                        BIT(0)
 #define HT_CAP_INFO_SUP_CHNL_WIDTH                  BIT(1)
-#define HT_CAP_INFO_SM_POWER_SAVE                   BITS(2,3)
+#define HT_CAP_INFO_SM_POWER_SAVE                   BITS(2, 3)
 #define HT_CAP_INFO_HT_GF                           BIT(4)
 #define HT_CAP_INFO_SHORT_GI_20M                    BIT(5)
 #define HT_CAP_INFO_SHORT_GI_40M                    BIT(6)
 #define HT_CAP_INFO_TX_STBC                         BIT(7)
-#define HT_CAP_INFO_RX_STBC                         BITS(8,9)
+#define HT_CAP_INFO_RX_STBC                         BITS(8, 9)
 #define HT_CAP_INFO_HT_DELAYED_BA                   BIT(10)
 #define HT_CAP_INFO_MAX_AMSDU_LEN                   BIT(11)
 #define HT_CAP_INFO_DSSS_CCK_IN_40M                 BIT(12)
@@ -927,52 +936,52 @@
 #define HT_CAP_INFO_RX_STBC_3_SS                    HT_CAP_INFO_RX_STBC
 
 /* 7.3.2.56.3 A-MPDU Parameters field */
-#define AMPDU_PARAM_MAX_AMPDU_LEN_EXP               BITS(0,1)
-#define AMPDU_PARAM_MIN_START_SPACING               BITS(2,4)
+#define AMPDU_PARAM_MAX_AMPDU_LEN_EXP               BITS(0, 1)
+#define AMPDU_PARAM_MIN_START_SPACING               BITS(2, 4)
 
 #define AMPDU_PARAM_MAX_AMPDU_LEN_8K                0
 #define AMPDU_PARAM_MAX_AMPDU_LEN_16K               BIT(0)
 #define AMPDU_PARAM_MAX_AMPDU_LEN_32K               BIT(1)
-#define AMPDU_PARAM_MAX_AMPDU_LEN_64K               BITS(0,1)
+#define AMPDU_PARAM_MAX_AMPDU_LEN_64K               BITS(0, 1)
 
 #define AMPDU_PARAM_MSS_NO_RESTRICIT                0
 #define AMPDU_PARAM_MSS_1_4_US                      BIT(2)
 #define AMPDU_PARAM_MSS_1_2_US                      BIT(3)
-#define AMPDU_PARAM_MSS_1_US                        BITS(2,3)
+#define AMPDU_PARAM_MSS_1_US                        BITS(2, 3)
 #define AMPDU_PARAM_MSS_2_US                        BIT(4)
 #define AMPDU_PARAM_MSS_4_US                        (BIT(4) | BIT(2))
 #define AMPDU_PARAM_MSS_8_US                        (BIT(4) | BIT(3))
-#define AMPDU_PARAM_MSS_16_US                       BITS(2,4)
+#define AMPDU_PARAM_MSS_16_US                       BITS(2, 4)
 
 /* 7.3.2.56.4 Supported MCS Set field (TX rate: octects 12~15) */
 #define SUP_MCS_TX_SET_DEFINED                      BIT(0)
 #define SUP_MCS_TX_RX_SET_NOT_EQUAL                 BIT(1)
-#define SUP_MCS_TX_MAX_NUM_SS                       BITS(2,3)
+#define SUP_MCS_TX_MAX_NUM_SS                       BITS(2, 3)
 #define SUP_MCS_TX_UNEQUAL_MODULATION               BIT(4)
 
 #define SUP_MCS_TX_MAX_NUM_1_SS                     0
 #define SUP_MCS_TX_MAX_NUM_2_SS                     BIT(2)
 #define SUP_MCS_TX_MAX_NUM_3_SS                     BIT(3)
-#define SUP_MCS_TX_MAX_NUM_4_SS                     BITS(2,3)
+#define SUP_MCS_TX_MAX_NUM_4_SS                     BITS(2, 3)
 
 #define SUP_MCS_RX_BITMASK_OCTET_NUM                10
 #define SUP_MCS_RX_DEFAULT_HIGHEST_RATE             0   /* Not specify */
 
 /* 7.3.2.56.5 HT Extended Capabilities field */
 #define HT_EXT_CAP_PCO                              BIT(0)
-#define HT_EXT_CAP_PCO_TRANSITION_TIME              BITS(1,2)
-#define HT_EXT_CAP_MCS_FEEDBACK                     BITS(8,9)
+#define HT_EXT_CAP_PCO_TRANSITION_TIME              BITS(1, 2)
+#define HT_EXT_CAP_MCS_FEEDBACK                     BITS(8, 9)
 #define HT_EXT_CAP_HTC_SUPPORT                      BIT(10)
 #define HT_EXT_CAP_RD_RESPONDER                     BIT(11)
 
 #define HT_EXT_CAP_PCO_TRANS_TIME_NONE              0
 #define HT_EXT_CAP_PCO_TRANS_TIME_400US             BIT(1)
 #define HT_EXT_CAP_PCO_TRANS_TIME_1_5MS             BIT(2)
-#define HT_EXT_CAP_PCO_TRANS_TIME_5MS               BITS(1,2)
+#define HT_EXT_CAP_PCO_TRANS_TIME_5MS               BITS(1, 2)
 
 #define HT_EXT_CAP_MCS_FEEDBACK_NO_FB               0
 #define HT_EXT_CAP_MCS_FEEDBACK_UNSOLICITED         BIT(9)
-#define HT_EXT_CAP_MCS_FEEDBACK_BOTH                BITS(8,9)
+#define HT_EXT_CAP_MCS_FEEDBACK_BOTH                BITS(8, 9)
 
 /* 7.3.2.56.6 Transmit Beamforming Capabilities field */
 
@@ -988,11 +997,11 @@
 /* 7.3.2.57 HT Operation element */
 #define ELEM_MAX_LEN_HT_OP                          (24 - ELEM_HDR_LEN) /* sizeof(IE_HT_OP_T)-2 */
 
-#define HT_OP_INFO1_SCO                             BITS(0,1)
+#define HT_OP_INFO1_SCO                             BITS(0, 1)
 #define HT_OP_INFO1_STA_CHNL_WIDTH                  BIT(2)
 #define HT_OP_INFO1_RIFS_MODE                       BIT(3)
 
-#define HT_OP_INFO2_HT_PROTECTION                   BITS(0,1)
+#define HT_OP_INFO2_HT_PROTECTION                   BITS(0, 1)
 #define HT_OP_INFO2_NON_GF_HT_STA_PRESENT           BIT(2)
 #define HT_OP_INFO2_OBSS_NON_HT_STA_PRESENT         BIT(4)
 
@@ -1031,7 +1040,7 @@
 #define IW_IE_LENGTH_ANO_VENUE_HESSID               9
 
 
-//3 Management frame body components (III): 7.4 Action frame format details.
+/* 3 Management frame body components (III): 7.4 Action frame format details. */
 /* 7.4.1 Spectrum Measurement Action frame details */
 #define ACTION_MEASUREMENT_REQ                      0   /* Spectrum measurement request */
 #define ACTION_MEASUREMENT_REPORT                   1   /* Spectrum measurement report */
@@ -1062,7 +1071,7 @@
 #define ACTION_ADDBA_RSP_FRAME_LEN                  (24+9)
 
 #define ACTION_DELBA_INITIATOR_MASK                 BIT(11)
-#define ACTION_DELBA_TID_MASK                       BITS(12,15)
+#define ACTION_DELBA_TID_MASK                       BITS(12, 15)
 #define ACTION_DELBA_TID_OFFSET                     12
 #define ACTION_DELBA_FRAME_LEN                      (24+6)
 
@@ -1108,7 +1117,7 @@
 
 #define ACTION_UNPROTECTED_WNM_TIMING_MEAS_LEN      12
 
-//3 /* --------------- WFA  frame body fields --------------- */
+/* 3 /* --------------- WFA  frame body fields --------------- */ */
 #define VENDOR_OUI_WFA                              { 0x00, 0x50, 0xF2 }
 #define VENDOR_OUI_WFA_SPECIFIC                     { 0x50, 0x6F, 0x9A }
 #define VENDOR_OUI_TYPE_WPA                         1
@@ -1134,7 +1143,7 @@
 #define VERSION_WMM                                 0x01 /* WMM Spec version 1.1 */
 
 /* WMM-2.1.6 QoS Control Field */
-#define WMM_QC_UP_MASK                              BITS(0,2)
+#define WMM_QC_UP_MASK                              BITS(0, 2)
 #define WMM_QC_EOSP                                 BIT(4)
 #define WMM_QC_ACK_POLICY_MASK                      BITS(5, 6)
 #define WMM_QC_ACK_POLICY_OFFSET                    5
@@ -1151,10 +1160,10 @@
 #define ELEM_MIN_LEN_HS20_INDICATION                4
 
 /* Hotspot Configuration*/
-#define ELEM_HS_CONFIG_DGAF_DISABLED_MASK           BIT(0) 		/* Downstream Group-Addressed Forwarding */
+#define ELEM_HS_CONFIG_DGAF_DISABLED_MASK           BIT(0)		/* Downstream Group-Addressed Forwarding */
 
 
-//3 Control frame body
+/* 3 Control frame body */
 /* 7.2.1.7 BlockAckReq */
 #define CTRL_BAR_BAR_CONTROL_OFFSET                 16
 #define CTRL_BAR_BAR_INFORMATION_OFFSET             18
@@ -1176,7 +1185,7 @@ typedef struct _LLC_SNAP_HEADER_T {
     UINT_16     u2Type;
 } __KAL_ATTRIB_PACKED__ LLC_SNAP_HEADER_T, *P_LLC_SNAP_HEADER_T;
 
-//3 MAC Header.
+/* 3 MAC Header. */
 /* Ethernet Frame Header */
 typedef struct _ETH_FRAME_HEADER_T {
     UINT_8      aucDestAddr[MAC_ADDR_LEN];
@@ -1290,7 +1299,7 @@ typedef struct _WLAN_MAC_MGMT_HEADER_HT_T {
     UINT_32     u4HtCtrl;
 } __KAL_ATTRIB_PACKED__ WLAN_MAC_MGMT_HEADER_HT_T, *P_WLAN_MAC_MGMT_HEADER_HT_T;
 
-//3 WLAN CONTROL Frame
+/* 3 WLAN CONTROL Frame */
 /* 7.2.1.4 WLAN Control Frame - PS-POLL Frame */
 typedef struct _CTRL_PSPOLL_FRAME_T {
     UINT_16     u2FrameCtrl;                /* Frame Control */
@@ -1310,7 +1319,7 @@ typedef struct _CTRL_BAR_FRAME_T {
     UINT_8      aucBarInfo[2];             /* Variable size */
 } __KAL_ATTRIB_PACKED__ CTRL_BAR_FRAME_T, *P_CTRL_BAR_FRAME_T;
 
-//3 WLAN Management Frame.
+/* 3 WLAN Management Frame. */
 /* 7.2.3.1 WLAN Management Frame - Beacon Frame */
 typedef struct _WLAN_BEACON_FRAME_T {
     /* Beacon header */
@@ -1381,7 +1390,7 @@ typedef struct _WLAN_ASSOC_RSP_FRAME_T {
     UINT_16     u2StatusCode;               /* Status code */
     UINT_16     u2AssocId;                  /* Association ID */
     UINT_8      aucInfoElem[1];             /* Information elements, such as
-                                               supported rates, and etc. */
+					       supported rates, and etc. */
 } __KAL_ATTRIB_PACKED__ WLAN_ASSOC_RSP_FRAME_T, *P_WLAN_ASSOC_RSP_FRAME_T;
 
 
@@ -1442,7 +1451,7 @@ typedef struct _WLAN_DEAUTH_FRAME_T {
 
 
 
-//3 Information Elements.
+/* 3 Information Elements. */
 /* 7.3.2 Generic element format */
 typedef struct _IE_HDR_T {
     UINT_8      ucId;
@@ -1512,7 +1521,7 @@ typedef struct _IE_CHALLENGE_TEXT_T {
 /*! \brief COUNTRY_INFO_TRIPLET is defined for the COUNTRY_INFO_ELEM structure. */
 typedef struct _COUNTRY_INFO_TRIPLET_T {
     UINT_8      ucParam1;                 /*!< If param1 >= 201, this triplet is referred to as
-                                             Regulatory Triplet in 802_11J. */
+					     Regulatory Triplet in 802_11J. */
     UINT_8      ucParam2;
     UINT_8      ucParam3;
 } __KAL_ATTRIB_PACKED__ COUNTRY_INFO_TRIPLET_T, *P_COUNTRY_INFO_TRIPLET_T;
@@ -1525,10 +1534,10 @@ typedef struct _COUNTRY_INFO_SUBBAND_TRIPLET_T {
 
 typedef struct _COUNTRY_INFO_REGULATORY_TRIPLET_T {
     UINT_8      ucRegExtId;               /*!< Regulatory Extension Identifier, should
-                                             be greater than or equal to 201 */
+					     be greater than or equal to 201 */
     UINT_8      ucRegClass;               /*!< Regulatory Class */
     UINT_8      ucCoverageClass;          /*!< Coverage Class, unsigned 1-octet value 0~31
-                                           , 32~255 reserved */
+					   , 32~255 reserved */
 } __KAL_ATTRIB_PACKED__ COUNTRY_INFO_REGULATORY_TRIPLET_T, *P_COUNTRY_INFO_REGULATORY_TRIPLET_T;
 
 typedef struct _IE_COUNTRY_T {
@@ -1582,7 +1591,7 @@ typedef struct _IE_TPC_REPORT_T {
     INT_8       cLinkMargin;    /* Unit: dB */
 } __KAL_ATTRIB_PACKED__ IE_TPC_REPORT_T, *P_IE_TPC_REPORT_T;
 
-#if CFG_SUPPORT_DFS // Add by Enlai
+#if CFG_SUPPORT_DFS /* Add by Enlai */
 /* 7.3.2.19 Supported Channels element*/
 typedef struct _IE_SUPPORTED_CHANNELS_T {
     UINT_8      ucId;
@@ -1745,7 +1754,7 @@ typedef struct _IE_QUIET_T {
 typedef struct _IE_EXT_CAP_T {
     UINT_8      ucId;
     UINT_8      ucLength;
-    UINT_8      aucCapabilities[5]; /* ++ TDLS */
+    UINT_8      aucCapabilities[1];
 } __KAL_ATTRIB_PACKED__ IE_EXT_CAP_T, *P_EXT_CAP_T;
 
 /* 7.3.2.27 Extended Capabilities element */
@@ -1754,20 +1763,6 @@ typedef struct _IE_RRM_ENABLED_CAP_T {
     UINT_8      ucLength;
     UINT_8      aucCap[5];
 } __KAL_ATTRIB_PACKED__ IE_RRM_ENABLED_CAP_T, *P_IE_RRM_ENABLED_CAP_T;
-
-/* ++ TDLS */
-/* 7.3.2.51 Timeout Interval element (TIE) */
-typedef struct _IE_TIMEOUT_INTERVAL_T {
-    UINT_8      ucId;
-    UINT_8      ucLength;
-#define IE_TIMEOUT_INTERVAL_TYPE_RESERVED			0
-#define IE_TIMEOUT_INTERVAL_TYPE_REASSOC			1
-#define IE_TIMEOUT_INTERVAL_TYPE_KEY_LIFETIME		2
-#define IE_TIMEOUT_INTERVAL_TYPE_ASSOC_COMEBACK		3
-	UINT_8		ucType;
-    UINT_32		u4Value;
-} __KAL_ATTRIB_PACKED__ IE_TIMEOUT_INTERVAL_T;
-/* -- TDLS */
 
 /* 7.3.2.56 HT Capabilities element */
 typedef struct _SUP_MCS_SET_FIELD {
@@ -1848,17 +1843,8 @@ typedef struct _IE_20_40_COEXIST_T {
     UINT_8              ucData;
 } __KAL_ATTRIB_PACKED__ IE_20_40_COEXIST_T, *P_IE_20_40_COEXIST_T;
 
-/* ++ TDLS */
-/* 7.3.2.60 20/40 BSS Coexistence element */
-typedef struct _IE_SUP_OPERATING_CLASS_T {
-    UINT_8              ucId;
-    UINT_8              ucLength;
-    UINT_8              ucCur;
-	UINT_8				ucSup[255];
-} __KAL_ATTRIB_PACKED__ IE_SUP_OPERATING_CLASS_T, *P_IE_SUP_OPERATING_CLASS_T;
-/* -- TDLS */
 
-//3 7.4 Action Frame.
+/* 3 7.4 Action Frame. */
 /* 7.4 Action frame format */
 typedef struct _WLAN_ACTION_FRAME {
     /* Action MAC header */
@@ -1922,7 +1908,7 @@ typedef struct _ACTION_ADDTS_REQ_FRAME {
     UINT_8      ucAction;                   /* Action Value */
     UINT_8      ucDialogToken;              /* Dialog Token */
     UINT_8      aucInfoElem[1];             /* Information elements, such as
-                                               TS Delay, and etc. */
+					       TS Delay, and etc. */
 } __KAL_ATTRIB_PACKED__ ACTION_ADDTS_REQ_FRAME, *P_ACTION_ADDTS_REQ_FRAME;
 
 
@@ -1941,7 +1927,7 @@ typedef struct _ACTION_ADDTS_RSP_FRAME {
     UINT_8      ucDialogToken;              /* Dialog Token */
     UINT_8      ucStatusCode;               /* WMM Status Code is of one byte */
     UINT_8      aucInfoElem[1];             /* Information elements, such as
-                                               TS Delay, and etc. */
+					       TS Delay, and etc. */
 } __KAL_ATTRIB_PACKED__ ACTION_ADDTS_RSP_FRAME, *P_ACTION_ADDTS_RSP_FRAME;
 
 
@@ -1979,7 +1965,7 @@ typedef struct _ACTION_ADDBA_REQ_FRAME_T {
     UINT_8      aucBAStartSeqCtrl[2];       /* SSN */
 } __KAL_ATTRIB_PACKED__ ACTION_ADDBA_REQ_FRAME_T, *P_ACTION_ADDBA_REQ_FRAME_T;
 
-typedef struct _ACTION_ADDBA_REQ_BODY_T{
+typedef struct _ACTION_ADDBA_REQ_BODY_T {
     UINT_16      u2BAParameterSet;       /* BA policy, TID, buffer size */
     UINT_16      u2BATimeoutValue;
     UINT_16      u2BAStartSeqCtrl;       /* SSN */
@@ -2040,7 +2026,7 @@ typedef struct _ACTION_RM_REQ_FRAME {
     UINT_8      ucDialogToken;              /* Dialog Token */
     UINT_16     u2Repetitions;              /* Number of repetitions */
     UINT_8      aucInfoElem[1];             /* Measurement Request elements, such as
-                                               channel load request, and etc. */
+					       channel load request, and etc. */
 } __KAL_ATTRIB_PACKED__ ACTION_RM_REQ_FRAME, *P_ACTION_RM_REQ_FRAME;
 
 /* 7.4.6.2 Radio Measurement Report frame format */
@@ -2057,7 +2043,7 @@ typedef struct _ACTION_RM_REPORT_FRAME {
     UINT_8      ucAction;                   /* Action Value */
     UINT_8      ucDialogToken;              /* Dialog Token */
     UINT_8      aucInfoElem[1];             /* Measurement Report elements, such as
-                                               channel load report, and etc. */
+					       channel load report, and etc. */
 } __KAL_ATTRIB_PACKED__ ACTION_RM_REPORT_FRAME, *P_ACTION_RM_REPORT_FRAME;
 
 /* 7.4.7.1a 20/40 BSS Coexistence Management frame format */
@@ -2148,7 +2134,7 @@ typedef struct _ACTION_UNPROTECTED_WNM_TIMING_MEAS_FRAME {
     UINT_8      ucMaxToAErr;                /* Maximum of ToA Error [10ns] */
 } __KAL_ATTRIB_PACKED__ ACTION_UNPROTECTED_WNM_TIMING_MEAS_FRAME, *P_ACTION_UNPROTECTED_WNM_TIMING_MEAS_FRAME;
 
-//3 Information Elements from WFA.
+/* 3 Information Elements from WFA. */
 typedef struct _IE_WFA_T {
     UINT_8      ucId;
     UINT_8      ucLength;
@@ -2204,9 +2190,9 @@ typedef struct _WAPI_INFO_ELEM_T {
 
 /* Convert the dBm to RCPI */
 #define dBm_TO_RCPI(_dbm)                           \
-    (RCPI)( ( (((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1) > RCPI_HIGH_BOUND) ? RCPI_HIGH_BOUND : \
-            ( (((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1) < RCPI_LOW_BOUND ? RCPI_LOW_BOUND : \
-             (((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1) ) )
+    (RCPI)(( (((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1) > RCPI_HIGH_BOUND) ? RCPI_HIGH_BOUND : \
+	    ((((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1) < RCPI_LOW_BOUND ? RCPI_LOW_BOUND : \
+	     (((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1)) )
 
 /* Convert an unsigned char pointer to an information element pointer */
 #define IE_ID(fp)               (((P_IE_HDR_T) fp)->ucId)
@@ -2243,24 +2229,21 @@ typedef struct _WAPI_INFO_ELEM_T {
 
 #define BSS_20_40_COEXIST_IE(fp) ((P_IE_20_40_COEXIST_T) fp)
 
-#define SUP_OPERATING_CLASS_IE(fp) ((P_IE_SUP_OPERATING_CLASS_T) fp) /* ++ TDLS */
-
 #define QUIET_IE(fp)            ((P_IE_QUIET_T) fp)
 
-#if CFG_SUPPORT_DFS // Add by Enlai
+#if CFG_SUPPORT_DFS /* Add by Enlai */
 #define SUPPORTED_CHANNELS_IE(fp) ((P_IE_SUPPORTED_CHANNELS_T)fp)
 #endif
-#define TIMEOUT_INTERVAL_IE(fp)	((IE_TIMEOUT_INTERVAL_T *)fp) /* ++ TDLS */
 
 
 
 /* The macro to check if the MAC address is B/MCAST Address */
 #define IS_BMCAST_MAC_ADDR(_pucDestAddr)            \
-    ((BOOLEAN) ( ((PUINT_8)(_pucDestAddr))[0] & BIT(0) ))
+    ((BOOLEAN) (((PUINT_8)(_pucDestAddr))[0] & BIT(0)))
 
 /* The macro to check if the MAC address is UCAST Address */
 #define IS_UCAST_MAC_ADDR(_pucDestAddr)             \
-    ((BOOLEAN) !( ((PUINT_8)(_pucDestAddr))[0] & BIT(0) ))
+    ((BOOLEAN) !(((PUINT_8)(_pucDestAddr))[0] & BIT(0)))
 
 /* The macro to copy the MAC address */
 #define COPY_MAC_ADDR(_pucDestAddr, _pucSrcAddr)    \
@@ -2278,38 +2261,38 @@ typedef struct _WAPI_INFO_ELEM_T {
 /* The macro to check whether two SSIDs are equal */
 #define EQUAL_SSID(pucSsid1, ucSsidLen1, pucSsid2, ucSsidLen2) \
     ((ucSsidLen1 <= ELEM_MAX_LEN_SSID) && \
-        (ucSsidLen2 <= ELEM_MAX_LEN_SSID) && \
-        ((ucSsidLen1) == (ucSsidLen2)) && \
-        !kalMemCmp(pucSsid1, pucSsid2, ucSsidLen1))
+	(ucSsidLen2 <= ELEM_MAX_LEN_SSID) && \
+	((ucSsidLen1) == (ucSsidLen2)) && \
+	!kalMemCmp(pucSsid1, pucSsid2, ucSsidLen1))
 
 /* The macro to check whether two SSIDs are equal */
 #define UNEQUAL_SSID(pucSsid1, ucSsidLen1, pucSsid2, ucSsidLen2) \
     ((ucSsidLen1 > ELEM_MAX_LEN_SSID) || \
-        (ucSsidLen2 > ELEM_MAX_LEN_SSID) || \
-        ((ucSsidLen1) != (ucSsidLen2)) || \
-        kalMemCmp(pucSsid1, pucSsid2, ucSsidLen1))
+	(ucSsidLen2 > ELEM_MAX_LEN_SSID) || \
+	((ucSsidLen1) != (ucSsidLen2)) || \
+	kalMemCmp(pucSsid1, pucSsid2, ucSsidLen1))
 
 /* The macro to copy the SSID, the length of pucDestSsid should have at least 32 bytes */
 #define COPY_SSID(pucDestSsid, ucDestSsidLen, pucSrcSsid, ucSrcSsidLen) \
     do { \
-        ucDestSsidLen = ucSrcSsidLen; \
-        if (ucSrcSsidLen) { \
-            ASSERT(ucSrcSsidLen <= ELEM_MAX_LEN_SSID); \
-            kalMemCopy(pucDestSsid, pucSrcSsid, ((ucSrcSsidLen > ELEM_MAX_LEN_SSID) ? ELEM_MAX_LEN_SSID : ucSrcSsidLen)); \
-        } \
+	ucDestSsidLen = ucSrcSsidLen; \
+	if (ucSrcSsidLen) { \
+	    ASSERT(ucSrcSsidLen <= ELEM_MAX_LEN_SSID); \
+	    kalMemCopy(pucDestSsid, pucSrcSsid, ((ucSrcSsidLen > ELEM_MAX_LEN_SSID) ? ELEM_MAX_LEN_SSID : ucSrcSsidLen)); \
+	} \
     } while (FALSE)
 
 /* The macro to copy the IE */
 #define COPY_IE(pucDestIE, pucSrcIE) \
     do { \
-        kalMemCopy((PUINT_8)pucDestIE, \
-                   (PUINT_8)pucSrcIE,\
-                   IE_SIZE(pucSrcIE)); \
+	kalMemCopy((PUINT_8)pucDestIE, \
+		   (PUINT_8)pucSrcIE,\
+		   IE_SIZE(pucSrcIE)); \
     } while (FALSE)
 
 #define IE_FOR_EACH(_pucIEsBuf, _u2IEsBufLen, _u2Offset) \
-    for ((_u2Offset) = 0; ((((_u2Offset) + 2) <= (_u2IEsBufLen)) && (((_u2Offset) + IE_SIZE(_pucIEsBuf)) <= (_u2IEsBufLen))) ; \
-        (_u2Offset) += IE_SIZE(_pucIEsBuf), (_pucIEsBuf) += IE_SIZE(_pucIEsBuf))
+    for ((_u2Offset) = 0; ((((_u2Offset) + 2) <= (_u2IEsBufLen)) && (((_u2Offset) + IE_SIZE(_pucIEsBuf)) <= (_u2IEsBufLen))); \
+	(_u2Offset) += IE_SIZE(_pucIEsBuf), (_pucIEsBuf) += IE_SIZE(_pucIEsBuf))
 
 #define SET_EXT_CAP(_aucField, _ucFieldLength, _ucBit) \
 			do { \
@@ -2318,7 +2301,7 @@ typedef struct _WAPI_INFO_ELEM_T {
 					((aucExtCap)[(_ucBit) / 8]) |= BIT((_ucBit) % 8); \
 				} \
 			} while (FALSE)
-	
+
 #define TEST_EXT_CAP(_aucField, _ucFieldLength, _ucBit) \
 			((((_ucFieldLength) * 8) > (_ucBit)) && (((_aucField)[(_ucBit) / 8]) & BIT((_ucBit) % 8)))
 
@@ -2333,4 +2316,3 @@ typedef struct _WAPI_INFO_ELEM_T {
 */
 
 #endif /* _MAC_H */
-

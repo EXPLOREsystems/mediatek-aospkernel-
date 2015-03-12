@@ -167,7 +167,7 @@ INT32 wmt_idc_msg_to_lte_handing(VOID)
 					/* case WMT_IDC_RX_OPCODE_TDM_REQ: */
 					/* gWmtIdcInfo.iit.msg_id = IPC_MSG_ID_EL1_WIFIBT_OPER_FREQ_IND; */
 					/* break; */
-				default :
+				default:
 					WMT_ERR_FUNC("unknow opcode(%d) from connsys firmware\n",
 						     opcode);
 					break;
@@ -259,7 +259,7 @@ UINT32 wmt_idc_msg_to_lte_handing_for_test(UINT8 *p_buf, UINT32 len)
 					/* case WMT_IDC_RX_OPCODE_TDM_REQ: */
 					/* gWmtIdcInfo.iit.msg_id = IPC_MSG_ID_EL1_WIFIBT_OPER_FREQ_IND; */
 					/* break; */
-				default :
+				default:
 					WMT_ERR_FUNC("unknow opcode(%d) from connsys firmware\n",
 						     opcode);
 					break;

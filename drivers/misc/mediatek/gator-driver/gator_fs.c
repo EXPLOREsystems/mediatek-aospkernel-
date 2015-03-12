@@ -236,7 +236,7 @@ int gatorfs_create_ro_ulong(struct super_block *sb, struct dentry *root,
 }
 
 int gatorfs_create_ro_u64(struct super_block *sb, struct dentry *root,
-			  char const *name, u64 * val)
+			  char const *name, u64 *val)
 {
 	struct dentry *d =
 	    __gatorfs_create_file(sb, root, name, &u64_ro_fops, 0444);

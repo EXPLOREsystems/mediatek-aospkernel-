@@ -994,8 +994,8 @@ BOOLEAN fgIsBusAccessFailed = FALSE;
 ********************************************************************************
 */
 #define SIGNED_EXTEND(n, _sValue) \
-        (((_sValue) & BIT((n)-1)) ? ((_sValue) | BITS(n, 31)) : \
-         ((_sValue) & ~BITS(n, 31)))
+	(((_sValue) & BIT((n)-1)) ? ((_sValue) | BITS(n, 31)) : \
+	 ((_sValue) & ~BITS(n, 31)))
 
 /* TODO: Check */
 /* OID set handlers without the need to access HW register */

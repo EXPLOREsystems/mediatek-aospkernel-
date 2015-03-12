@@ -1,12 +1,26 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/nic/cmd_buf.c#1 $
 */
 
 /*! \file   "cmd_buf.c"
     \brief  This file contain the management function of internal Command Buffer
-            for CMD_INFO_T.
+	    for CMD_INFO_T.
 
-        We'll convert the OID into Command Packet and then send to FW. Thus we need
+	We'll convert the OID into Command Packet and then send to FW. Thus we need
     to copy the OID information to Command Buffer for following reasons.
     1. The data structure of OID information may not equal to the data structure of
        Command, we cannot use the OID buffer directly.
@@ -23,11 +37,11 @@
 ** $Log: cmd_buf.c $
  *
  * 07 08 2010 cp.wu
- * 
+ *
  * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
  *
  * 06 18 2010 cm.chang
- * [WPD00003841][LITE Driver] Migrate RLM/CNM to host driver 
+ * [WPD00003841][LITE Driver] Migrate RLM/CNM to host driver
  * Provide cnmMgtPktAlloc() and alloc/free function of msg/buf
  *
  * 06 06 2010 kevin.huang
@@ -103,7 +117,7 @@
 */
 /*----------------------------------------------------------------------------*/
 VOID
-cmdBufInitialize (
+cmdBufInitialize(
     IN P_ADAPTER_T  prAdapter
     )
 {
@@ -115,8 +129,8 @@ cmdBufInitialize (
     QUEUE_INITIALIZE(&prAdapter->rFreeCmdList);
 
     for (i = 0; i < CFG_TX_MAX_CMD_PKT_NUM; i++) {
-        prCmdInfo = &prAdapter->arHifCmdDesc[i];
-        QUEUE_INSERT_TAIL(&prAdapter->rFreeCmdList, &prCmdInfo->rQueEntry);
+	prCmdInfo = &prAdapter->arHifCmdDesc[i];
+	QUEUE_INSERT_TAIL(&prAdapter->rFreeCmdList, &prCmdInfo->rQueEntry);
     }
 
 } /* end of cmdBufInitialize() */
@@ -134,7 +148,7 @@ cmdBufInitialize (
 */
 /*----------------------------------------------------------------------------*/
 P_CMD_INFO_T
-cmdBufAllocateCmdInfo (
+cmdBufAllocateCmdInfo(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_32      u4Length
     )
@@ -152,25 +166,25 @@ cmdBufAllocateCmdInfo (
     KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
 
     if (prCmdInfo) {
-        /* Setup initial value in CMD_INFO_T */
-        /* Start address of allocated memory */
-        prCmdInfo->pucInfoBuffer =
-                cnmMemAlloc(prAdapter, RAM_TYPE_BUF, u4Length);
+	/* Setup initial value in CMD_INFO_T */
+	/* Start address of allocated memory */
+	prCmdInfo->pucInfoBuffer =
+		cnmMemAlloc(prAdapter, RAM_TYPE_BUF, u4Length);
 
-        if (prCmdInfo->pucInfoBuffer == NULL) {
-            KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
-            QUEUE_INSERT_TAIL(&prAdapter->rFreeCmdList, &prCmdInfo->rQueEntry);
-            KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
+	if (prCmdInfo->pucInfoBuffer == NULL) {
+	    KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
+	    QUEUE_INSERT_TAIL(&prAdapter->rFreeCmdList, &prCmdInfo->rQueEntry);
+	    KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
 
-            prCmdInfo = NULL;
+	    prCmdInfo = NULL;
 
-            DBGLOG(INIT, ERROR, ("Allocate prCmdInfo->pucInfoBuffer fail!\n"));
-        }
-        else {
-            prCmdInfo->u2InfoBufLen = 0;
-            prCmdInfo->fgIsOid = FALSE;
-            prCmdInfo->fgDriverDomainMCR = FALSE;
-        }
+	    DBGLOG(INIT, ERROR, ("Allocate prCmdInfo->pucInfoBuffer fail!\n"));
+	}
+	else {
+	    prCmdInfo->u2InfoBufLen = 0;
+	    prCmdInfo->fgIsOid = FALSE;
+	    prCmdInfo->fgDriverDomainMCR = FALSE;
+	}
     }
 
     return prCmdInfo;
@@ -189,7 +203,7 @@ cmdBufAllocateCmdInfo (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-cmdBufFreeCmdInfo (
+cmdBufFreeCmdInfo(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo
     )
@@ -203,18 +217,16 @@ cmdBufFreeCmdInfo (
     ASSERT(prCmdInfo);
 
     if (prCmdInfo) {
-        if (prCmdInfo->pucInfoBuffer) {
-            cnmMemFree(prAdapter, prCmdInfo->pucInfoBuffer);
-            prCmdInfo->pucInfoBuffer = NULL;
-        }
+	if (prCmdInfo->pucInfoBuffer) {
+	    cnmMemFree(prAdapter, prCmdInfo->pucInfoBuffer);
+	    prCmdInfo->pucInfoBuffer = NULL;
+	}
 
-        KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
-        QUEUE_INSERT_TAIL(&prAdapter->rFreeCmdList, &prCmdInfo->rQueEntry);
-        KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
+	QUEUE_INSERT_TAIL(&prAdapter->rFreeCmdList, &prCmdInfo->rQueEntry);
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
     }
 
     return;
 
 } /* end of cmdBufFreeCmdPacket() */
-
-

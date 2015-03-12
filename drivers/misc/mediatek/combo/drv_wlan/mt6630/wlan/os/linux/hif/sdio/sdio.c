@@ -196,6 +196,8 @@
 #define HIF_SDIO_ERR_TITLE_STR              "["CHIP_NAME"] SDIO Access Error!"
 #define HIF_SDIO_ERR_DESC_STR               "**SDIO Access Error**\n"
 
+#define HIF_SDIO_ACCESS_RETRY_LIMIT         3
+
 #if MTK_WCN_HIF_SDIO
 
 
@@ -204,10 +206,10 @@
  *
  */
 
-static INT32 mtk_sdio_probe(MTK_WCN_HIF_SDIO_CLTCTX, const MTK_WCN_HIF_SDIO_FUNCINFO *);
+static INT_32 mtk_sdio_probe(MTK_WCN_HIF_SDIO_CLTCTX, const MTK_WCN_HIF_SDIO_FUNCINFO *);
 
-static INT32 mtk_sdio_remove(MTK_WCN_HIF_SDIO_CLTCTX);
-static INT32 mtk_sdio_interrupt(MTK_WCN_HIF_SDIO_CLTCTX);
+static INT_32 mtk_sdio_remove(MTK_WCN_HIF_SDIO_CLTCTX);
+static INT_32 mtk_sdio_interrupt(MTK_WCN_HIF_SDIO_CLTCTX);
 
 /*
  * sdio function info table
@@ -285,16 +287,16 @@ UINT_32 dbgPinSTP[] = {
 	    , GPIO_INVALID	/* REMOVED, IDX_STP_MTX_WMT */
 	    , GPIO_PLATFORM(135)	/* SCL2, IDX_LOOP_CNT  J616 */
 	    , GPIO_PLATFORM(136)	/* SDA2, IDX_NO_BUF J616 */
-	    , GPIO_PLATFORM(30)/* CAM_MECHSH0, IDX_BT_TX, J613 low-active */
-	    , GPIO_PLATFORM(31)/* CAM_MECHSH1, IDX_BT_RX, J613 low-active */
-	    , GPIO_PLATFORM(124)/* GPS_PWR_EN, ThreadDSPIn [GPS] */
-	    , GPIO_PLATFORM(125)/* GPS_SYNC, mtk_sys_msg_recv [GPS] */
-	    , GPIO_PLATFORM(21)/* GPS_EINT8, dump_nmea_data [GPS] */
-	    , GPIO_PLATFORM(29)/* CAM_STROBE, IDX_GPS_TX, J613 low-active */
-	    , GPIO_PLATFORM(20)/*CMHREF, J613 UNUSED */
-	/* , GPIO_6516(64) *//* EINT5, REMOVED!!! for MT6620-Wi-Fi Int */
-	/* , GPIO_6516(122) *//* BT_PWR_EN, REMOVED!!! for MT6620-PMU_EN */
-	/* , GPIO_6516(123) *//* BT_RESET, REMOVED!!! for MT6620-RST */
+	    , GPIO_PLATFORM(30)	/* CAM_MECHSH0, IDX_BT_TX, J613 low-active */
+	    , GPIO_PLATFORM(31)	/* CAM_MECHSH1, IDX_BT_RX, J613 low-active */
+	    , GPIO_PLATFORM(124)	/* GPS_PWR_EN, ThreadDSPIn [GPS] */
+	    , GPIO_PLATFORM(125)	/* GPS_SYNC, mtk_sys_msg_recv [GPS] */
+	    , GPIO_PLATFORM(21)	/* GPS_EINT8, dump_nmea_data [GPS] */
+	    , GPIO_PLATFORM(29)	/* CAM_STROBE, IDX_GPS_TX, J613 low-active */
+	    , GPIO_PLATFORM(20)	/*CMHREF, J613 UNUSED */
+	    /* , GPIO_6516(64) */ /* EINT5, REMOVED!!! for MT6620-Wi-Fi Int */
+	    /* , GPIO_6516(122) */ /* BT_PWR_EN, REMOVED!!! for MT6620-PMU_EN */
+	    /* , GPIO_6516(123) */ /* BT_RESET, REMOVED!!! for MT6620-RST */
 };
 #endif
 /*******************************************************************************
@@ -317,9 +319,9 @@ void debug_gpio_init(void)
 	int i;
 
 	for (i = 0; i < sizeof(dbgPinSTP) / sizeof(dbgPinSTP[0]); ++i) {
-		if (GPIO_INVALID == dbgPinSTP[i]) {
+		if (GPIO_INVALID == dbgPinSTP[i])
 			continue;
-		}
+
 		/* printk(KERN_INFO "[%s] %ld\n", __FUNCTION__, dbgPinSTP[i]); */
 		mt_set_gpio_pull_enable(dbgPinSTP[i], 0);	/* disable pull */
 		mt_set_gpio_dir(dbgPinSTP[i], GPIO_DIR_OUT);	/* set output */
@@ -338,9 +340,9 @@ void debug_gpio_deinit(void)
 {
 	int i;
 	for (i = 0; i < sizeof(dbgPinSTP) / sizeof(dbgPinSTP[0]); ++i) {
-		if (GPIO_INVALID == dbgPinSTP[i]) {
+		if (GPIO_INVALID == dbgPinSTP[i])
 			continue;
-		}
+
 		/* printk(KERN_INFO "[%s] %ld\n", __FUNCTION__, dbgPinSTP[i]); */
 		mt_set_gpio_dir(dbgPinSTP[i], GPIO_DIR_IN);
 	}
@@ -352,25 +354,22 @@ void mtk_wcn_stp_debug_gpio_assert(UINT_32 dwIndex, UINT_32 dwMethod)
 {
 	unsigned int i;
 
-	if (dwIndex >= (sizeof(dbgPinSTP) / sizeof(dbgPinSTP[0]))) {
+	if (dwIndex >= (sizeof(dbgPinSTP) / sizeof(dbgPinSTP[0])))
 		/* printk(KERN_INFO "[%s] invalid dwIndex(%ld)\n", __FUNCTION__, dwIndex); */
 		return;
-	}
 
-	if (dwIndex > IDX_STP_MAX) {
+	if (dwIndex > IDX_STP_MAX)
 		/* printk(KERN_INFO "[%s] dwIndex(%ld) > IDX_STP_MAX(%d)\n", __FUNCTION__, dwIndex, IDX_STP_MAX); */
-	}
 
-	if (GPIO_INVALID == dbgPinSTP[dwIndex]) {
+	if (GPIO_INVALID == dbgPinSTP[dwIndex])
 		return;
-	}
 
 	if (dwMethod & DBG_TIE_DIR) {
-		if (dwMethod & DBG_HIGH) {
+		if (dwMethod & DBG_HIGH)
 			mt_set_gpio_out(dbgPinSTP[dwIndex], GPIO_OUT_ONE);
-		} else {
+		else
 			mt_set_gpio_out(dbgPinSTP[dwIndex], GPIO_OUT_ZERO);
-		}
+
 		return;
 	}
 
@@ -398,10 +397,10 @@ void mtk_wcn_stp_debug_gpio_assert(UINT_32 dwIndex, UINT_32 dwMethod)
 
 #if MTK_WCN_HIF_SDIO
 
-static INT32 mtk_sdio_interrupt(MTK_WCN_HIF_SDIO_CLTCTX cltCtx)
+static INT_32 mtk_sdio_interrupt(MTK_WCN_HIF_SDIO_CLTCTX cltCtx)
 {
 	P_GLUE_INFO_T prGlueInfo = NULL;
-	INT32 ret = 0;
+	INT_32 ret = 0;
 
 	prGlueInfo = mtk_wcn_hif_sdio_get_drvdata(cltCtx);
 
@@ -409,10 +408,10 @@ static INT32 mtk_sdio_interrupt(MTK_WCN_HIF_SDIO_CLTCTX cltCtx)
 
 	if (!prGlueInfo) {
 		/* printk(KERN_INFO DRV_NAME"No glue info in mtk_sdio_interrupt()\n"); */
-		return (-HIF_SDIO_ERR_FAIL);
+		return -HIF_SDIO_ERR_FAIL;
 	}
 
-	if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) {
+	if (prGlueInfo->ulFlag & GLUE_FLAG_HALT) {
 		/* printk(KERN_INFO DRV_NAME"GLUE_FLAG_HALT skip INT\n"); */
 		ret = mtk_wcn_hif_sdio_writel(cltCtx, MCR_WHLPCR, WHLPCR_INT_EN_CLR);
 		return ret;
@@ -420,7 +419,9 @@ static INT32 mtk_sdio_interrupt(MTK_WCN_HIF_SDIO_CLTCTX cltCtx)
 
 	ret = mtk_wcn_hif_sdio_writel(cltCtx, MCR_WHLPCR, WHLPCR_INT_EN_CLR);
 
-	set_bit(GLUE_FLAG_INT_BIT, &prGlueInfo->u4Flag);
+	KAL_WAKE_LOCK(prGlueInfo->prAdapter, &prGlueInfo->rIntrWakeLock);
+
+	set_bit(GLUE_FLAG_INT_BIT, &prGlueInfo->ulFlag);
 
 	/* when we got sdio interrupt, we wake up the tx servie thread */
 #if CFG_SUPPORT_MULTITHREAD
@@ -450,7 +451,7 @@ static void mtk_sdio_interrupt(struct sdio_func *func)
 		return;
 	}
 
-	if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) {
+	if (prGlueInfo->ulFlag & GLUE_FLAG_HALT) {
 		sdio_writel(prGlueInfo->rHifInfo.func, WHLPCR_INT_EN_CLR, MCR_WHLPCR, &ret);
 		/* printk(KERN_INFO DRV_NAME"GLUE_FLAG_HALT skip INT\n"); */
 		return;
@@ -461,7 +462,7 @@ static void mtk_sdio_interrupt(struct sdio_func *func)
 #if 0
 	wlanISR(prGlueInfo->prAdapter, TRUE);
 
-	if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) {
+	if (prGlueInfo->ulFlag & GLUE_FLAG_HALT) {
 		/* Should stop now... skip pending interrupt */
 		/* printk(KERN_INFO DRV_NAME"ignore pending interrupt\n"); */
 	} else {
@@ -469,7 +470,7 @@ static void mtk_sdio_interrupt(struct sdio_func *func)
 	}
 #endif
 
-	set_bit(GLUE_FLAG_INT_BIT, &prGlueInfo->u4Flag);
+	set_bit(GLUE_FLAG_INT_BIT, &prGlueInfo->ulFlag);
 
 	/* when we got sdio interrupt, we wake up the tx servie thread */
 #if CFG_SUPPORT_MULTITHREAD
@@ -497,10 +498,10 @@ static void mtk_sdio_interrupt(struct sdio_func *func)
 static const MTK_WCN_HIF_SDIO_FUNCINFO *prFunc;
 
 
-static INT32
+static INT_32
 mtk_sdio_probe(MTK_WCN_HIF_SDIO_CLTCTX cltCtx, const MTK_WCN_HIF_SDIO_FUNCINFO *prFuncInfo)
 {
-	INT32 ret = HIF_SDIO_ERR_SUCCESS;
+	INT_32 ret = HIF_SDIO_ERR_SUCCESS;
 
 	prFunc = prFuncInfo;
 
@@ -564,7 +565,7 @@ static int mtk_sdio_probe(struct sdio_func *func, const struct sdio_device_id *i
 #endif
 	}
 
- out:
+out:
 	/* printk(KERN_INFO DRV_NAME"mtk_sdio_probe() done(%d)\n", ret); */
 	return ret;
 }
@@ -572,9 +573,9 @@ static int mtk_sdio_probe(struct sdio_func *func, const struct sdio_device_id *i
 
 
 #if MTK_WCN_HIF_SDIO
-static INT32 mtk_sdio_remove(MTK_WCN_HIF_SDIO_CLTCTX cltCtx)
+static INT_32 mtk_sdio_remove(MTK_WCN_HIF_SDIO_CLTCTX cltCtx)
 {
-	INT32 ret = HIF_SDIO_ERR_SUCCESS;
+	INT_32 ret = HIF_SDIO_ERR_SUCCESS;
 	/* printk(KERN_INFO DRV_NAME"pfWlanRemove done\n"); */
 	pfWlanRemove();
 
@@ -700,7 +701,7 @@ VOID glUnregisterBus(remove_card pfRemove)
 * \return (none)
 */
 /*----------------------------------------------------------------------------*/
-VOID glSetHifInfo(P_GLUE_INFO_T prGlueInfo, UINT_32 u4Cookie)
+VOID glSetHifInfo(P_GLUE_INFO_T prGlueInfo, ULONG ulCookie)
 {
 	P_GL_HIF_INFO_T prHif = NULL;
 
@@ -709,11 +710,11 @@ VOID glSetHifInfo(P_GLUE_INFO_T prGlueInfo, UINT_32 u4Cookie)
 #if MTK_WCN_HIF_SDIO
 	/* prHif->prFuncInfo = ((MTK_WCN_HIF_SDIO_FUNCINFO *) u4Cookie); */
 	prHif->prFuncInfo = prFunc;
-	prHif->cltCtx = *((MTK_WCN_HIF_SDIO_CLTCTX *) u4Cookie);
+	prHif->cltCtx = *((MTK_WCN_HIF_SDIO_CLTCTX *) ulCookie);
 	mtk_wcn_hif_sdio_set_drvdata(prHif->cltCtx, prGlueInfo);
 
 #else
-	prHif->func = (struct sdio_func *)u4Cookie;
+	prHif->func = (struct sdio_func *)ulCookie;
 
 	/* printk(KERN_INFO DRV_NAME"prHif->func->dev = 0x%p\n", &prHif->func->dev); */
 	/* printk(KERN_INFO DRV_NAME"prHif->func->vendor = 0x%04X\n", prHif->func->vendor); */
@@ -824,15 +825,14 @@ INT_32 glBusSetIrq(PVOID pvData, PVOID pfnIsr, PVOID pvCookie)
 	P_GL_HIF_INFO_T prHifInfo = NULL;
 
 	ASSERT(pvData);
-	if (!pvData) {
+	if (!pvData)
 		return -1;
-	}
+
 	prNetDevice = (struct net_device *)pvData;
 	prGlueInfo = (P_GLUE_INFO_T) pvCookie;
 	ASSERT(prGlueInfo);
-	if (!prGlueInfo) {
+	if (!prGlueInfo)
 		return -1;
-	}
 
 	prHifInfo = &prGlueInfo->rHifInfo;
 
@@ -889,6 +889,27 @@ VOID glBusFreeIrq(PVOID pvData, PVOID pvCookie)
 	return;
 }				/* end of glBusreeIrq() */
 
+BOOLEAN glIsReadClearReg(UINT_32 u4Address)
+{
+	switch (u4Address) {
+	case MCR_WHISR:
+	case MCR_WASR:
+	case MCR_D2HRM0R:
+	case MCR_D2HRM1R:
+	case MCR_WTQCR0:
+	case MCR_WTQCR1:
+	case MCR_WTQCR2:
+	case MCR_WTQCR3:
+	case MCR_WTQCR4:
+	case MCR_WTQCR5:
+	case MCR_WTQCR6:
+	case MCR_WTQCR7:
+		return TRUE;
+
+	default:
+		return FALSE;
+	}
+}
 
 /*----------------------------------------------------------------------------*/
 /*!
@@ -905,28 +926,48 @@ VOID glBusFreeIrq(PVOID pvData, PVOID pvCookie)
 BOOL kalDevRegRead(IN P_GLUE_INFO_T prGlueInfo, IN UINT_32 u4Register, OUT PUINT_32 pu4Value)
 {
 	int ret = 0;
+	UINT_8 ucRetryCount = 0;
 
 	ASSERT(prGlueInfo);
 	ASSERT(pu4Value);
 
+	do {
 #if MTK_WCN_HIF_SDIO
-	ret = mtk_wcn_hif_sdio_readl(prGlueInfo->rHifInfo.cltCtx, u4Register, (PUINT32) pu4Value);
+		ret =
+		    mtk_wcn_hif_sdio_readl(prGlueInfo->rHifInfo.cltCtx, u4Register,
+					   (PUINT_32) pu4Value);
 #else
-	if (!in_interrupt) {
-		sdio_claim_host(prGlueInfo->rHifInfo.func);
-	}
+		if (!in_interrupt)
+			sdio_claim_host(prGlueInfo->rHifInfo.func);
 
-	*pu4Value = sdio_readl(prGlueInfo->rHifInfo.func, u4Register, &ret);
+		*pu4Value = sdio_readl(prGlueInfo->rHifInfo.func, u4Register, &ret);
 
-	if (!in_interrupt) {
-		sdio_release_host(prGlueInfo->rHifInfo.func);
-	}
+		if (!in_interrupt)
+			sdio_release_host(prGlueInfo->rHifInfo.func);
 #endif
+
+		if (ret || ucRetryCount) {
+			/* DBGLOG(HAL, ERROR,
+			       ("sdio_readl() addr: 0x%08x value: 0x%08x status: %x retry: %u\n",
+				u4Register, (unsigned int)*pu4Value, (unsigned int)ret, ucRetryCount)); */
+
+			if (glIsReadClearReg(u4Register) && (ucRetryCount == 0)) {
+				/* Read Snapshot CR instead */
+				u4Register = MCR_WSR;
+			}
+		}
+
+		ucRetryCount++;
+		if (ucRetryCount > HIF_SDIO_ACCESS_RETRY_LIMIT)
+			break;
+	} while (ret);
 
 	if (ret) {
 		kalSendAeeWarning(HIF_SDIO_ERR_TITLE_STR,
-				  HIF_SDIO_ERR_DESC_STR "sdio_readl() reports error: %x", ret);
-		DBGLOG(HAL, ERROR, ("sdio_readl() reports error: %x", ret));
+				  HIF_SDIO_ERR_DESC_STR "sdio_readl() reports error: %x retry: %u",
+				  ret, ucRetryCount);
+		DBGLOG(HAL, ERROR,
+		       ("sdio_readl() reports error: %x retry: %u\n", ret, ucRetryCount));
 	}
 
 	return (ret) ? FALSE : TRUE;
@@ -948,27 +989,41 @@ BOOL kalDevRegRead(IN P_GLUE_INFO_T prGlueInfo, IN UINT_32 u4Register, OUT PUINT
 BOOL kalDevRegWrite(IN P_GLUE_INFO_T prGlueInfo, IN UINT_32 u4Register, IN UINT_32 u4Value)
 {
 	int ret = 0;
+	UINT_8 ucRetryCount = 0;
 
 	ASSERT(prGlueInfo);
 
+	do {
 #if MTK_WCN_HIF_SDIO
-	ret = mtk_wcn_hif_sdio_writel(prGlueInfo->rHifInfo.cltCtx, u4Register, u4Value);
+		ret = mtk_wcn_hif_sdio_writel(prGlueInfo->rHifInfo.cltCtx, u4Register, u4Value);
 #else
-	if (!in_interrupt) {
-		sdio_claim_host(prGlueInfo->rHifInfo.func);
-	}
+		if (!in_interrupt)
+			sdio_claim_host(prGlueInfo->rHifInfo.func);
 
-	sdio_writel(prGlueInfo->rHifInfo.func, u4Value, u4Register, &ret);
+		sdio_writel(prGlueInfo->rHifInfo.func, u4Value, u4Register, &ret);
 
-	if (!in_interrupt) {
-		sdio_release_host(prGlueInfo->rHifInfo.func);
-	}
+		if (!in_interrupt)
+			sdio_release_host(prGlueInfo->rHifInfo.func);
 #endif
+
+		if (ret || ucRetryCount) {
+			/* DBGLOG(HAL, ERROR,
+			       ("sdio_writel() addr: 0x%x status: %x retry: %u\n", u4Register,
+				ret, ucRetryCount)); */
+		}
+
+		ucRetryCount++;
+		if (ucRetryCount > HIF_SDIO_ACCESS_RETRY_LIMIT)
+			break;
+
+	} while (ret);
 
 	if (ret) {
 		kalSendAeeWarning(HIF_SDIO_ERR_TITLE_STR,
-				  HIF_SDIO_ERR_DESC_STR "sdio_writel() reports error: %x", ret);
-		DBGLOG(HAL, ERROR, ("sdio_writel() reports error: %x", ret));
+				  HIF_SDIO_ERR_DESC_STR "sdio_writel() reports error: %x retry: %u",
+				  ret, ucRetryCount);
+		DBGLOG(HAL, ERROR,
+		       ("sdio_writel() reports error: %x retry: %u\n", ret, ucRetryCount));
 	}
 
 	return (ret) ? FALSE : TRUE;
@@ -1021,18 +1076,16 @@ kalDevPortRead(IN P_GLUE_INFO_T prGlueInfo,
 
 	ASSERT(prSdioFunc->cur_blksize > 0);
 
-	if (!in_interrupt) {
+	if (!in_interrupt)
 		sdio_claim_host(prSdioFunc);
-	}
 
 	/* Split buffer into multiple single block to workaround hifsys */
 	while (count >= prSdioFunc->cur_blksize) {
 		count -= prSdioFunc->cur_blksize;
 		bNum++;
 	}
-	if (count > 0 && bNum > 0) {
+	if (count > 0 && bNum > 0)
 		bNum++;
-	}
 
 	if (bNum > 0) {
 		ret = sdio_readsb(prSdioFunc, pucDst, u2Port, prSdioFunc->cur_blksize * bNum);
@@ -1049,9 +1102,8 @@ kalDevPortRead(IN P_GLUE_INFO_T prGlueInfo,
 		ret = sdio_readsb(prSdioFunc, pucDst, u2Port, count);
 	}
 
-	if (!in_interrupt) {
+	if (!in_interrupt)
 		sdio_release_host(prSdioFunc);
-	}
 #else
 
 	/* Split buffer into multiple single block to workaround hifsys */
@@ -1059,17 +1111,16 @@ kalDevPortRead(IN P_GLUE_INFO_T prGlueInfo,
 		count -= ((prGlueInfo->rHifInfo).prFuncInfo->blk_sz);
 		bNum++;
 	}
-	if (count > 0 && bNum > 0) {
+	if (count > 0 && bNum > 0)
 		bNum++;
-	}
 
 	if (bNum > 0) {
 		ret =
-		    mtk_wcn_hif_sdio_read_buf(prGlueInfo->rHifInfo.cltCtx, u2Port, (PUINT32) pucDst,
+		    mtk_wcn_hif_sdio_read_buf(prGlueInfo->rHifInfo.cltCtx, u2Port, (PUINT_32) pucDst,
 					      ((prGlueInfo->rHifInfo).prFuncInfo->blk_sz) * bNum);
 	} else {
 		ret =
-		    mtk_wcn_hif_sdio_read_buf(prGlueInfo->rHifInfo.cltCtx, u2Port, (PUINT32) pucDst,
+		    mtk_wcn_hif_sdio_read_buf(prGlueInfo->rHifInfo.cltCtx, u2Port, (PUINT_32) pucDst,
 					      count);
 	}
 #endif
@@ -1077,7 +1128,7 @@ kalDevPortRead(IN P_GLUE_INFO_T prGlueInfo,
 	if (ret) {
 		kalSendAeeWarning(HIF_SDIO_ERR_TITLE_STR,
 				  HIF_SDIO_ERR_DESC_STR "sdio_readsb() reports error: %x", ret);
-		DBGLOG(HAL, ERROR, ("sdio_readsb() reports error: %x", ret));
+		DBGLOG(HAL, ERROR, ("sdio_readsb() reports error: %x\n", ret));
 	}
 
 	return (ret) ? FALSE : TRUE;
@@ -1128,18 +1179,16 @@ kalDevPortWrite(IN P_GLUE_INFO_T prGlueInfo,
 	prSdioFunc = prHifInfo->func;
 	ASSERT(prSdioFunc->cur_blksize > 0);
 
-	if (!in_interrupt) {
+	if (!in_interrupt)
 		sdio_claim_host(prSdioFunc);
-	}
 
 	/* Split buffer into multiple single block to workaround hifsys */
 	while (count >= prSdioFunc->cur_blksize) {
 		count -= prSdioFunc->cur_blksize;
 		bNum++;
 	}
-	if (count > 0 && bNum > 0) {
+	if (count > 0 && bNum > 0)
 		bNum++;
-	}
 
 	if (bNum > 0) {		/* block mode */
 		ret = sdio_writesb(prSdioFunc, u2Port, pucSrc, prSdioFunc->cur_blksize * bNum);
@@ -1157,35 +1206,33 @@ kalDevPortWrite(IN P_GLUE_INFO_T prGlueInfo,
 		ret = sdio_writesb(prSdioFunc, u2Port, pucSrc, count);
 	}
 
-	if (!in_interrupt) {
+	if (!in_interrupt)
 		sdio_release_host(prSdioFunc);
-	}
 #else
 	/* Split buffer into multiple single block to workaround hifsys */
 	while (count >= ((prGlueInfo->rHifInfo).prFuncInfo->blk_sz)) {
 		count -= ((prGlueInfo->rHifInfo).prFuncInfo->blk_sz);
 		bNum++;
 	}
-	if (count > 0 && bNum > 0) {
+	if (count > 0 && bNum > 0)
 		bNum++;
-	}
 
 	if (bNum > 0) {		/* block mode */
 		ret =
 		    mtk_wcn_hif_sdio_write_buf(prGlueInfo->rHifInfo.cltCtx, u2Port,
-					       (PUINT32) pucSrc,
+					       (PUINT_32) pucSrc,
 					       ((prGlueInfo->rHifInfo).prFuncInfo->blk_sz) * bNum);
 	} else {		/* byte mode */
 		ret =
 		    mtk_wcn_hif_sdio_write_buf(prGlueInfo->rHifInfo.cltCtx, u2Port,
-					       (PUINT32) pucSrc, count);
+					       (PUINT_32) pucSrc, count);
 	}
 #endif
 
 	if (ret) {
 		kalSendAeeWarning(HIF_SDIO_ERR_TITLE_STR,
 				  HIF_SDIO_ERR_DESC_STR "sdio_writesb() reports error: %x", ret);
-		DBGLOG(HAL, ERROR, ("sdio_writesb() reports error: %x", ret));
+		DBGLOG(HAL, ERROR, ("sdio_writesb() reports error: %x\n", ret));
 	}
 
 	return (ret) ? FALSE : TRUE;
@@ -1209,15 +1256,13 @@ BOOL kalDevWriteWithSdioCmd52(IN P_GLUE_INFO_T prGlueInfo, IN UINT_32 u4Addr, IN
 	int ret = 0;
 
 #if (MTK_WCN_HIF_SDIO == 0)
-	if (!in_interrupt) {
+	if (!in_interrupt)
 		sdio_claim_host(prGlueInfo->rHifInfo.func);
-	}
 
 	sdio_writeb(prGlueInfo->rHifInfo.func, ucData, u4Addr, &ret);
 
-	if (!in_interrupt) {
+	if (!in_interrupt)
 		sdio_release_host(prGlueInfo->rHifInfo.func);
-	}
 #else
 	ret = mtk_wcn_hif_sdio_writeb(prGlueInfo->rHifInfo.cltCtx, u4Addr, ucData);
 #endif
@@ -1225,7 +1270,7 @@ BOOL kalDevWriteWithSdioCmd52(IN P_GLUE_INFO_T prGlueInfo, IN UINT_32 u4Addr, IN
 	if (ret) {
 		kalSendAeeWarning(HIF_SDIO_ERR_TITLE_STR,
 				  HIF_SDIO_ERR_DESC_STR "sdio_writeb() reports error: %x", ret);
-		DBGLOG(HAL, ERROR, ("sdio_writeb() reports error: %x", ret));
+		DBGLOG(HAL, ERROR, ("sdio_writeb() reports error: %x\n", ret));
 	}
 
 	return (ret) ? FALSE : TRUE;

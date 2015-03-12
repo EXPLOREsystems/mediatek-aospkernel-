@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/os/linux/include/gl_kal.h#1 $
 */
 
@@ -551,7 +565,7 @@ extern int allocatedMemSize;
 *                              C O N S T A N T S
 ********************************************************************************
 */
-//#define USEC_PER_MSEC   (1000)
+/* #define USEC_PER_MSEC   (1000) */
 
 /*******************************************************************************
 *                             D A T A   T Y P E S
@@ -624,24 +638,6 @@ typedef struct wake_lock    KAL_WAKE_LOCK_T, *P_KAL_WAKE_LOCK_T;
 typedef UINT_32             KAL_WAKE_LOCK_T, *P_KAL_WAKE_LOCK_T;
 #endif
 
-#if CFG_SUPPORT_AGPS_ASSIST
-typedef enum _ENUM_MTK_AGPS_ATTR {
-	MTK_ATTR_AGPS_INVALID,
-	MTK_ATTR_AGPS_CMD,
-	MTK_ATTR_AGPS_DATA,
-	MTK_ATTR_AGPS_IFINDEX,
-	MTK_ATTR_AGPS_MAX
-} ENUM_MTK_CCX_ATTR;
-
-typedef enum _ENUM_AGPS_EVENT {
-	AGPS_EVENT_WLAN_ON,
-	AGPS_EVENT_WLAN_OFF,
-	AGPS_EVENT_WLAN_AP_LIST,
-} ENUM_CCX_EVENT;
-BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
-, UINT_16 dataLen);
-#endif
-
 /*******************************************************************************
 *                            P U B L I C   D A T A
 ********************************************************************************
@@ -662,10 +658,10 @@ BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
 #define KAL_SPIN_LOCK_DECLARATION()             UINT_32 __u4Flags
 
 #define KAL_ACQUIRE_SPIN_LOCK(_prAdapter, _rLockCategory)   \
-            kalAcquireSpinLock(((P_ADAPTER_T)_prAdapter)->prGlueInfo, _rLockCategory, &__u4Flags)
+	    kalAcquireSpinLock(((P_ADAPTER_T)_prAdapter)->prGlueInfo, _rLockCategory, &__u4Flags)
 
 #define KAL_RELEASE_SPIN_LOCK(_prAdapter, _rLockCategory)   \
-            kalReleaseSpinLock(((P_ADAPTER_T)_prAdapter)->prGlueInfo, _rLockCategory, __u4Flags)
+	    kalReleaseSpinLock(((P_ADAPTER_T)_prAdapter)->prGlueInfo, _rLockCategory, __u4Flags)
 
 /*----------------------------------------------------------------------------*/
 /* Macros for accessing Reserved Fields of native packet                      */
@@ -683,19 +679,19 @@ BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
 /*----------------------------------------------------------------------------*/
 #if CONFIG_ANDROID /* Defined in Android kernel source */
 #define KAL_WAKE_LOCK_INIT(_prAdapter, _prWakeLock, _pcName) \
-        wake_lock_init(_prWakeLock, WAKE_LOCK_SUSPEND, _pcName)
+	wake_lock_init(_prWakeLock, WAKE_LOCK_SUSPEND, _pcName)
 
 #define KAL_WAKE_LOCK_DESTROY(_prAdapter, _prWakeLock) \
-        wake_lock_destroy(_prWakeLock)
+	wake_lock_destroy(_prWakeLock)
 
 #define KAL_WAKE_LOCK(_prAdapter, _prWakeLock) \
-        wake_lock(_prWakeLock)
+	wake_lock(_prWakeLock)
 
 #define KAL_WAKE_LOCK_TIMEOUT(_prAdapter, _prWakeLock, _u4Timeout) \
-        wake_lock_timeout(_prWakeLock, _u4Timeout)
+	wake_lock_timeout(_prWakeLock, _u4Timeout)
 
 #define KAL_WAKE_UNLOCK(_prAdapter, _prWakeLock) \
-        wake_unlock(_prWakeLock)
+	wake_unlock(_prWakeLock)
 
 #else
 #define KAL_WAKE_LOCK_INIT(_prAdapter, _prWakeLock, _pcName)
@@ -719,27 +715,27 @@ BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
 #if DBG
 #define kalMemAlloc(u4Size, eMemType) ({    \
     void *pvAddr; \
-    if(eMemType == PHY_MEM_TYPE) { \
-        pvAddr = kmalloc(u4Size, GFP_KERNEL);   \
+    if (eMemType == PHY_MEM_TYPE) { \
+	pvAddr = kmalloc(u4Size, GFP_KERNEL);   \
     } \
     else { \
-        pvAddr = vmalloc(u4Size);   \
+	pvAddr = vmalloc(u4Size);   \
     } \
     if (pvAddr) {   \
-        allocatedMemSize += u4Size;   \
-        printk(KERN_INFO DRV_NAME "0x%p(%ld) allocated (%s:%s)\n", \
-            pvAddr, (UINT_32)u4Size, __FILE__, __FUNCTION__);  \
+	allocatedMemSize += u4Size;   \
+	printk(KERN_INFO DRV_NAME "0x%p(%ld) allocated (%s:%s)\n", \
+	    pvAddr, (UINT_32)u4Size, __FILE__, __func__);  \
     }   \
     pvAddr; \
     })
 #else
 #define kalMemAlloc(u4Size, eMemType) ({    \
     void *pvAddr; \
-    if(eMemType == PHY_MEM_TYPE) { \
-        pvAddr = kmalloc(u4Size, GFP_KERNEL);   \
+    if (eMemType == PHY_MEM_TYPE) { \
+	pvAddr = kmalloc(u4Size, GFP_KERNEL);   \
     } \
     else { \
-        pvAddr = vmalloc(u4Size);   \
+	pvAddr = vmalloc(u4Size);   \
     } \
     pvAddr; \
     })
@@ -759,27 +755,27 @@ BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
 #if DBG
 #define kalMemFree(pvAddr, eMemType, u4Size)  \
     {   \
-        if (pvAddr) {   \
-            allocatedMemSize -= u4Size; \
-            printk(KERN_INFO DRV_NAME "0x%p(%ld) freed (%s:%s)\n", \
-                pvAddr, (UINT_32)u4Size, __FILE__, __FUNCTION__);  \
-        }   \
-        if(eMemType == PHY_MEM_TYPE) { \
-            kfree(pvAddr); \
-        } \
-        else { \
-            vfree(pvAddr); \
-        } \
+	if (pvAddr) {   \
+	    allocatedMemSize -= u4Size; \
+	    printk(KERN_INFO DRV_NAME "0x%p(%ld) freed (%s:%s)\n", \
+		pvAddr, (UINT_32)u4Size, __FILE__, __func__);  \
+	}   \
+	if (eMemType == PHY_MEM_TYPE) { \
+	    kfree(pvAddr); \
+	} \
+	else { \
+	    vfree(pvAddr); \
+	} \
     }
 #else
 #define kalMemFree(pvAddr, eMemType, u4Size)  \
     {   \
-        if(eMemType == PHY_MEM_TYPE) { \
-            kfree(pvAddr); \
-        } \
-        else { \
-            vfree(pvAddr); \
-        } \
+	if (eMemType == PHY_MEM_TYPE) { \
+	    kfree(pvAddr); \
+	} \
+	else { \
+	    vfree(pvAddr); \
+	} \
     }
 #endif
 
@@ -828,7 +824,7 @@ BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
 */
 /*----------------------------------------------------------------------------*/
 #define kalSendComplete(prGlueInfo, pvPacket, status)   \
-            kalSendCompleteAndAwakeQueue(prGlueInfo, pvPacket)
+	    kalSendCompleteAndAwakeQueue(prGlueInfo, pvPacket)
 
 
 /*----------------------------------------------------------------------------*/
@@ -843,7 +839,7 @@ BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
 */
 /*----------------------------------------------------------------------------*/
 #define kalQueryBufferPointer(prGlueInfo, pvPacket)     \
-            ((PUINT_8)((struct sk_buff *)pvPacket)->data)
+	    ((PUINT_8)((struct sk_buff *)pvPacket)->data)
 
 
 /*----------------------------------------------------------------------------*/
@@ -858,8 +854,8 @@ BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
 */
 /*----------------------------------------------------------------------------*/
 #define kalQueryValidBufferLength(prGlueInfo, pvPacket)     \
-            ((UINT_32)((struct sk_buff *)pvPacket)->end -  \
-             (UINT_32)((struct sk_buff *)pvPacket)->data)
+	    ((UINT_32)((struct sk_buff *)pvPacket)->end -  \
+	     (UINT_32)((struct sk_buff *)pvPacket)->data)
 
 /*----------------------------------------------------------------------------*/
 /*!
@@ -874,8 +870,8 @@ BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
 */
 /*----------------------------------------------------------------------------*/
 #define kalCopyFrame(prGlueInfo, pvPacket, pucDestBuffer)   \
-            {struct sk_buff *skb = (struct sk_buff *)pvPacket; \
-             memcpy(pucDestBuffer, skb->data, skb->len);}
+	    {struct sk_buff *skb = (struct sk_buff *)pvPacket; \
+             memcpy(pucDestBuffer, skb->data, skb->len); }
 
 #define kalGetTimeTick()                            jiffies_to_msecs(jiffies)
 
@@ -887,19 +883,19 @@ BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
 
 #define XLOG_FUNC(__LEVEL, __FMT...)\
     if (__LEVEL == ANDROID_LOG_ERROR) {\
-        xlog_printk(ANDROID_LOG_ERROR, XLOG_TAG, ##__FMT);\
+	xlog_printk(ANDROID_LOG_ERROR, XLOG_TAG, ##__FMT);\
     } \
     else if (__LEVEL == ANDROID_LOG_WARN) {\
-        xlog_printk(ANDROID_LOG_WARN, XLOG_TAG, ##__FMT);\
+	xlog_printk(ANDROID_LOG_WARN, XLOG_TAG, ##__FMT);\
     } \
     else if (__LEVEL == ANDROID_LOG_INFO) {\
-        xlog_printk(ANDROID_LOG_INFO, XLOG_TAG, ##__FMT);\
+	xlog_printk(ANDROID_LOG_INFO, XLOG_TAG, ##__FMT);\
     } \
     else if (__LEVEL == ANDROID_LOG_DEBUG) {\
-        xlog_printk(ANDROID_LOG_DEBUG, XLOG_TAG, ##__FMT);\
+	xlog_printk(ANDROID_LOG_DEBUG, XLOG_TAG, ##__FMT);\
     } \
     else if (__LEVEL == ANDROID_LOG_VERBOSE) {\
-        xlog_printk(ANDROID_LOG_VERBOSE, XLOG_TAG, ##__FMT);\
+	xlog_printk(ANDROID_LOG_VERBOSE, XLOG_TAG, ##__FMT);\
     }
 
 #define AIS_ERROR_LOGFUNC(_Fmt...)
@@ -1029,7 +1025,7 @@ BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
 #define TX_TEMP_LOGDUMP8(x, y)
 
 #define RX_ERROR_LOGFUNC(_Fmt...)
-#define RX_WARN_LOGFUNC(_Fmt...) xlog_printk(ANDROID_LOG_WARN, XLOG_TAG, _Fmt)
+#define RX_WARN_LOGFUNC(_Fmt...)
 #define RX_INFO_LOGFUNC(_Fmt...)
 #define RX_STATE_LOGFUNC(_Fmt...)
 #define RX_EVENT_LOGFUNC(_Fmt...)
@@ -1226,9 +1222,9 @@ BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
 #define SAA_LOUD_LOGDUMP8(x, y)
 #define SAA_TEMP_LOGDUMP8(x, y)
 
-#define P2P_ERROR_LOGFUNC(_Fmt...) xlog_printk(ANDROID_LOG_ERROR, XLOG_TAG, _Fmt) 
-#define P2P_WARN_LOGFUNC(_Fmt...)  xlog_printk(ANDROID_LOG_WARN, XLOG_TAG, _Fmt) 
-#define P2P_INFO_LOGFUNC(_Fmt...)  xlog_printk(ANDROID_LOG_INFO, XLOG_TAG, _Fmt) 
+#define P2P_ERROR_LOGFUNC(_Fmt...) xlog_printk(ANDROID_LOG_ERROR, XLOG_TAG, _Fmt)
+#define P2P_WARN_LOGFUNC(_Fmt...)  xlog_printk(ANDROID_LOG_WARN, XLOG_TAG, _Fmt)
+#define P2P_INFO_LOGFUNC(_Fmt...)  xlog_printk(ANDROID_LOG_INFO, XLOG_TAG, _Fmt)
 #define P2P_STATE_LOGFUNC(_Fmt...)
 #define P2P_EVENT_LOGFUNC(_Fmt...)
 #define P2P_TRACE_LOGFUNC(_Fmt...)
@@ -1333,26 +1329,6 @@ BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
 #define WAPI_TRACE_LOGDUMP8(x, y)
 #define WAPI_LOUD_LOGDUMP8(x, y)
 #define WAPI_TEMP_LOGDUMP8(x, y)
-
-/* ++ TDLS */
-#define TDLS_ERROR_LOGFUNC(_Fmt...) xlog_printk(ANDROID_LOG_ERROR, XLOG_TAG, _Fmt)
-#define TDLS_WARN_LOGFUNC(_Fmt...)  xlog_printk(ANDROID_LOG_WARN, XLOG_TAG, _Fmt)
-#define TDLS_INFO_LOGFUNC(_Fmt...)  xlog_printk(ANDROID_LOG_INFO, XLOG_TAG, _Fmt)
-#define TDLS_STATE_LOGFUNC(_Fmt...)
-#define TDLS_EVENT_LOGFUNC(_Fmt...)
-#define TDLS_TRACE_LOGFUNC(_Fmt...)
-#define TDLS_LOUD_LOGFUNC(_Fmt...)
-#define TDLS_TEMP_LOGFUNC(_Fmt...)
-
-#define TDLS_ERROR_LOGDUMP8(x, y)
-#define TDLS_WARN_LOGDUMP8(x, y)
-#define TDLS_INFO_LOGDUMP8(x, y)
-#define TDLS_STATE_LOGDUMP8(x, y)
-#define TDLS_EVENT_LOGDUMP8(x, y)
-#define TDLS_TRACE_LOGDUMP8(x, y)
-#define TDLS_LOUD_LOGDUMP8(x, y)
-#define TDLS_TEMP_LOGDUMP8(x, y)
-/* -- TDLS */
 
 #define SW1_ERROR_LOGFUNC(_Fmt...)
 #define SW1_WARN_LOGFUNC(_Fmt...)
@@ -1642,17 +1618,6 @@ BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
 #define WAPI_LOUD_LOGFUNC(_Fmt...)
 #define WAPI_TEMP_LOGFUNC(_Fmt...)
 
-/* ++ TDLS */
-#define TDLS_ERROR_LOGFUNC(_Fmt...) kalPrint(_Fmt)
-#define TDLS_WARN_LOGFUNC(_Fmt...)  kalPrint(_Fmt)
-#define TDLS_INFO_LOGFUNC(_Fmt...)  kalPrint(_Fmt)
-#define TDLS_STATE_LOGFUNC(_Fmt...)
-#define TDLS_EVENT_LOGFUNC(_Fmt...)
-#define TDLS_TRACE_LOGFUNC(_Fmt...)
-#define TDLS_LOUD_LOGFUNC(_Fmt...)
-#define TDLS_TEMP_LOGFUNC(_Fmt...)
-/* -- TDLS */
-
 #define SW1_ERROR_LOGFUNC(_Fmt...)
 #define SW1_WARN_LOGFUNC(_Fmt...)
 #define SW1_INFO_LOGFUNC(_Fmt...)
@@ -1693,9 +1658,9 @@ BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
 
 #define kalBreakPoint() \
     do { \
-        BUG(); \
-        panic("Oops"); \
-    } while(0)
+	BUG(); \
+	panic("Oops"); \
+    } while (0)
 
 #if CFG_ENABLE_AEE_MSG
 #define kalSendAeeException                         aee_kernel_exception
@@ -1708,7 +1673,7 @@ BOOLEAN kalIndicateAgpsNotify(P_ADAPTER_T prAdapter, UINT_8 cmd, PUINT_8 data
 #endif
 
 #define PRINTF_ARG(...)                             __VA_ARGS__
-#define SPRINTF(buf, arg)                           {buf += sprintf((char *)(buf), PRINTF_ARG arg);}
+#define SPRINTF(buf, arg)                           {buf += sprintf((char *)(buf), PRINTF_ARG arg); }
 
 #define USEC_TO_SYSTIME(_usec)      ((_usec) / USEC_PER_MSEC)
 #define MSEC_TO_SYSTIME(_msec)      (_msec)
@@ -1771,7 +1736,7 @@ kalProcessRxPacket(
     IN PVOID              pvPacket,
     IN PUINT_8            pucPacketStart,
     IN UINT_32            u4PacketLen,
-    //IN PBOOLEAN           pfgIsRetain,
+    /* IN PBOOLEAN           pfgIsRetain, */
     IN BOOLEAN            fgIsRetain,
     IN ENUM_CSUM_RESULT_T aeCSUM[]
     );
@@ -1800,7 +1765,7 @@ kalUpdateReAssocReqInfo(
     );
 
 VOID
-kalUpdateReAssocRspInfo (
+kalUpdateReAssocRspInfo(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN PUINT_8          pucFrameBody,
     IN UINT_32          u4FrameBodyLen
@@ -1843,7 +1808,7 @@ kalRetrieveNetworkAddress(
     );
 
 VOID
-kalReadyOnChannel (
+kalReadyOnChannel(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN UINT_64          u8Cookie,
     IN ENUM_BAND_T      eBand,
@@ -1853,7 +1818,7 @@ kalReadyOnChannel (
     );
 
 VOID
-kalRemainOnChannelExpired (
+kalRemainOnChannelExpired(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN UINT_64          u8Cookie,
     IN ENUM_BAND_T      eBand,
@@ -1862,7 +1827,7 @@ kalRemainOnChannelExpired (
     );
 
 VOID
-kalIndicateMgmtTxStatus (
+kalIndicateMgmtTxStatus(
     IN P_GLUE_INFO_T prGlueInfo,
     IN UINT_64 u8Cookie,
     IN BOOLEAN fgIsAck,
@@ -1871,7 +1836,7 @@ kalIndicateMgmtTxStatus (
     );
 
 VOID
-kalIndicateRxMgmtFrame (
+kalIndicateRxMgmtFrame(
     IN P_GLUE_INFO_T prGlueInfo,
     IN P_SW_RFB_T prSwRfb
     );
@@ -1913,7 +1878,7 @@ kalDevPortWrite(
     );
 
 BOOL
-kalDevWriteWithSdioCmd52 (
+kalDevWriteWithSdioCmd52(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN UINT_32          u4Addr,
     IN UINT_8           ucData
@@ -1921,19 +1886,19 @@ kalDevWriteWithSdioCmd52 (
 
 void
 kalDevLoopbkAuto(
-    IN GLUE_INFO_T      *GlueInfo
+    IN GLUE_INFO_T * GlueInfo
     );
 
 
     #if CFG_SUPPORT_EXT_CONFIG
 UINT_32
-kalReadExtCfg (
+kalReadExtCfg(
     IN P_GLUE_INFO_T prGlueInfo
     );
     #endif
 
 BOOL
-kalQoSFrameClassifierAndPacketInfo (
+kalQoSFrameClassifierAndPacketInfo(
     IN P_GLUE_INFO_T prGlueInfo,
     IN P_NATIVE_PACKET prPacket,
     OUT PUINT_8 pucPriorityParam,
@@ -1945,7 +1910,7 @@ kalQoSFrameClassifierAndPacketInfo (
 );
 
 VOID
-kalOidComplete (
+kalOidComplete(
     IN P_GLUE_INFO_T prGlueInfo,
     IN BOOLEAN fgSetQuery,
     IN UINT_32 u4SetQueryInfoLen,
@@ -1954,7 +1919,7 @@ kalOidComplete (
 
 
 WLAN_STATUS
-kalIoctl (IN P_GLUE_INFO_T    prGlueInfo,
+kalIoctl(IN P_GLUE_INFO_T    prGlueInfo,
     IN PFN_OID_HANDLER_FUNC     pfnOidHandler,
     IN PVOID                    pvInfoBuf,
     IN UINT_32                  u4InfoBufLen,
@@ -1974,14 +1939,14 @@ kalHandleAssocInfo(
 #if CFG_ENABLE_FW_DOWNLOAD
 
 PVOID
-kalFirmwareImageMapping (
+kalFirmwareImageMapping(
     IN P_GLUE_INFO_T    prGlueInfo,
     OUT PPVOID          ppvMapFileBuf,
     OUT PUINT_32        pu4FileLength
     );
 
 VOID
-kalFirmwareImageUnmapping (
+kalFirmwareImageUnmapping(
     IN P_GLUE_INFO_T    prGlueInfo,
     IN PVOID            prFwHandle,
     IN PVOID            pvMapFileBuf
@@ -2053,20 +2018,20 @@ kalIndicateBOWEvent(
     );
 
 ENUM_BOW_DEVICE_STATE
-kalGetBowState (
+kalGetBowState(
     IN P_GLUE_INFO_T        prGlueInfo,
     IN PARAM_MAC_ADDRESS    rPeerAddr
     );
 
 BOOLEAN
-kalSetBowState (
+kalSetBowState(
     IN P_GLUE_INFO_T            prGlueInfo,
     IN ENUM_BOW_DEVICE_STATE    eBowState,
     PARAM_MAC_ADDRESS           rPeerAddr
     );
 
 ENUM_BOW_DEVICE_STATE
-kalGetBowGlobalState (
+kalGetBowGlobalState(
     IN P_GLUE_INFO_T    prGlueInfo
     );
 
@@ -2107,8 +2072,8 @@ BOOLEAN
 kalUninitBowDevice(
     IN P_GLUE_INFO_T        prGlueInfo
     );
-#endif // CFG_BOW_SEPARATE_DATA_PATH
-#endif // CFG_ENABLE_BT_OVER_WIFI
+#endif /* CFG_BOW_SEPARATE_DATA_PATH */
+#endif /* CFG_ENABLE_BT_OVER_WIFI */
 
 
 /*----------------------------------------------------------------------------*/
@@ -2139,7 +2104,7 @@ kalClearSecurityFramesByNetType(
     );
 
 VOID
-kalSecurityFrameSendComplete (
+kalSecurityFrameSendComplete(
     IN P_GLUE_INFO_T prGlueInfo,
     IN PVOID pvPacket,
     IN WLAN_STATUS rStatus
@@ -2194,10 +2159,10 @@ kalRandomNumber(
     );
 
 VOID
-kalTimeoutHandler (unsigned long arg);
+kalTimeoutHandler(unsigned long arg);
 
 VOID
-kalSetEvent (P_GLUE_INFO_T pr);
+kalSetEvent(P_GLUE_INFO_T pr);
 
 
 /*----------------------------------------------------------------------------*/
@@ -2295,12 +2260,12 @@ kalIsAPmode(
     );
 
 UINT_32
-kalIOPhyAddrGet (
+kalIOPhyAddrGet(
     IN UINT_32                      VirtAddr
     );
 
 VOID
-kalDmaBufGet (
+kalDmaBufGet(
     OUT VOID                        **VirtAddr,
     OUT VOID                        **PhyAddr
     );
@@ -2328,7 +2293,7 @@ kalWriteToFile(
 /* NL80211                                                                    */
 /*----------------------------------------------------------------------------*/
 VOID
-kalIndicateBssInfo (
+kalIndicateBssInfo(
     IN P_GLUE_INFO_T prGlueInfo,
     IN PUINT_8  pucFrameBuf,
     IN UINT_32  u4BufLen,
@@ -2348,6 +2313,5 @@ int tx_thread(void *data);
 VOID kalHifAhbKalWakeLockTimeout(
     IN P_GLUE_INFO_T                prGlueInfo
     );
-UINT_64 kalGetBootTime(void);
-#endif /* _GL_KAL_H */
 
+#endif /* _GL_KAL_H */

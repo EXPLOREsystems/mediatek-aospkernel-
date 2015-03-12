@@ -210,6 +210,8 @@
 #define RSN_IE(fp)              ((P_RSN_INFO_ELEM_T) fp)
 #define WPA_IE(fp)              ((P_WPA_INFO_ELEM_T) fp)
 
+#define ELEM_MAX_LEN_ASSOC_RSP_WSC_IE          (32 - ELEM_HDR_LEN)
+
 
 /*******************************************************************************
 *                  F U N C T I O N   D E C L A R A T I O N S
@@ -265,7 +267,7 @@ VOID rsnCheckPmkidCache(IN P_ADAPTER_T prAdapter, IN P_BSS_DESC_T prBss);
 
 VOID rsnGeneratePmkidIndication(IN P_ADAPTER_T prAdapter);
 
-VOID rsnIndicatePmkidCand(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Parm);
+VOID rsnIndicatePmkidCand(IN P_ADAPTER_T prAdapter, IN ULONG ulParamPtr);
 #if CFG_SUPPORT_WPS2
 VOID rsnGenerateWSCIE(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T prMsduInfo);
 #endif
@@ -275,7 +277,7 @@ UINT_32 rsnCheckBipKeyInstalled(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T prSt
 
 UINT_8 rsnCheckSaQueryTimeout(IN P_ADAPTER_T prAdapter);
 
-void rsnStartSaQueryTimer(IN P_ADAPTER_T prAdapter);
+void rsnStartSaQueryTimer(IN P_ADAPTER_T prAdapter, IN ULONG ulParamPtr);
 
 void rsnStartSaQuery(IN P_ADAPTER_T prAdapter);
 
@@ -285,6 +287,11 @@ void rsnSaQueryRequest(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb);
 
 void rsnSaQueryAction(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb);
 #endif
+
+#if CFG_SUPPORT_AAA
+VOID rsnGenerateWSCIEForAssocRsp(P_ADAPTER_T prAdapter, P_MSDU_INFO_T prMsduInfo);
+#endif
+
 /*******************************************************************************
 *                              F U N C T I O N S
 ********************************************************************************

@@ -1537,7 +1537,7 @@ windowsReadRegistryParameters(IN P_GLUE_INFO_T prGlueInfo,
 	for (i = 0; i < NUM_REG_PARAMS; i++, prRegEntry++) {
 		for (j = 0; j < (UINT) (prRegEntry->regName.Length / 2) &&
 		     j < REG_NAME_MAX_LEN - 1; j++) {
-			ansiRegName[j] = (UINT8) prRegEntry->regName.Buffer[j];
+			ansiRegName[j] = (UINT_8) prRegEntry->regName.Buffer[j];
 		}
 		ansiRegName[j] = '\0';
 

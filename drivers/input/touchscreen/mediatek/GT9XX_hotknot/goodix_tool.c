@@ -75,7 +75,7 @@ extern s32 gup_load_fx_system(void);
 extern s32 gup_recovery_main_system(void);
 extern s32 gup_load_main_system(char *filepath);
 
-static struct proc_dir_entry *goodix_proc_entry;
+//static struct proc_dir_entry *goodix_proc_entry;
 
 static s32 goodix_tool_write(struct file *filp, const char __user *buff, unsigned long len, void *data);
 static s32 goodix_tool_read(char *page, char **start, off_t off, int count, int *eof, void *data);

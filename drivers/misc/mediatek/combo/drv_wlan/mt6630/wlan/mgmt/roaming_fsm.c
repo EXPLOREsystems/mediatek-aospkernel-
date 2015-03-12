@@ -123,9 +123,10 @@ static PUINT_8 apucDebugRoamingState[ROAMING_STATE_NUM] = {
 */
 
 #define ROAMING_ENABLE_CHECK(_roam) \
-	{ \
-            if (!(_roam->fgIsEnableRoaming)) {return; } \
-	}
+	do { \
+		if (!(_roam->fgIsEnableRoaming)) \
+			return; \
+	} while (0)
 
 /*******************************************************************************
 *                   F U N C T I O N   D E C L A R A T I O N S
@@ -218,7 +219,7 @@ VOID roamingFsmSendCmd(IN P_ADAPTER_T prAdapter, IN P_CMD_ROAMING_TRANSIT_T prTr
 				      0	/* u4SetQueryBufferLen */
 	    );
 
-	ASSERT(rStatus == WLAN_STATUS_PENDING);
+	/* ASSERT(rStatus == WLAN_STATUS_PENDING); */
 
 	return;
 }				/* end of roamingFsmSendCmd() */
@@ -320,8 +321,7 @@ VOID roamingFsmSteps(IN P_ADAPTER_T prAdapter, IN ENUM_ROAMING_STATE_T eNextStat
 		default:
 			ASSERT(0);	/* Make sure we have handle all STATEs */
 		}
-	}
-	while (fgIsTransition);
+	}	while (fgIsTransition);
 
 	return;
 

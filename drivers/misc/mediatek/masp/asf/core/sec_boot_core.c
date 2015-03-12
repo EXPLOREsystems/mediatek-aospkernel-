@@ -219,14 +219,14 @@ int masp_boot_init(void)
 	int ret = SEC_OK;
 
 	SMSG(true, "[%s] '%s%s'\n", MOD, BUILD_TIME, BUILD_BRANCH);
-
+#if !defined(MTK_GPT_SCHEME_SUPPORT)
 	/* ----------------------------------- */
 	/* check usif status                   */
 	/* ----------------------------------- */
 	if (SEC_OK != (ret = sec_usif_check())) {
 		goto _error;
 	}
-
+#endif
 	/* ----------------------------------- */
 	/* scan partition map                  */
 	/* ----------------------------------- */

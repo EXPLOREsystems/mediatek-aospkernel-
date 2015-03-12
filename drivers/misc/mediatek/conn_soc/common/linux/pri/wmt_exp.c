@@ -1,10 +1,10 @@
 /*
 * Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
 * GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 * See the GNU General Public License for more details.
 *
@@ -79,7 +79,7 @@ UINT32 gWmtDbgLvl = WMT_LOG_INFO;
 */
 
 static MTK_WCN_BOOL
-mtk_wcn_wmt_func_ctrl (
+mtk_wcn_wmt_func_ctrl(
     ENUM_WMTDRV_TYPE_T type,
     ENUM_WMT_OPID_T opId
     );
@@ -90,7 +90,7 @@ mtk_wcn_wmt_func_ctrl (
 */
 
 static MTK_WCN_BOOL
-mtk_wcn_wmt_func_ctrl (
+mtk_wcn_wmt_func_ctrl(
     ENUM_WMTDRV_TYPE_T type,
     ENUM_WMT_OPID_T opId
     )
@@ -101,70 +101,70 @@ mtk_wcn_wmt_func_ctrl (
 
     pOp = wmt_lib_get_free_op();
     if (!pOp) {
-        WMT_WARN_FUNC("get_free_lxop fail\n");
-        return MTK_WCN_BOOL_FALSE;
+	WMT_WARN_FUNC("get_free_lxop fail\n");
+	return MTK_WCN_BOOL_FALSE;
     }
-    
+
     pSignal = &pOp->signal;
 
     pOp->op.opId = opId;
     pOp->op.au4OpData[0] = type;
-    pSignal->timeoutValue= (WMT_OPID_FUNC_ON == pOp->op.opId) ? MAX_FUNC_ON_TIME : MAX_FUNC_OFF_TIME;
+    pSignal->timeoutValue = (WMT_OPID_FUNC_ON == pOp->op.opId) ? MAX_FUNC_ON_TIME : MAX_FUNC_OFF_TIME;
 
     WMT_INFO_FUNC("OPID(%d) type(%d) start\n",
-            pOp->op.opId,
-            pOp->op.au4OpData[0]);
+	    pOp->op.opId,
+	    pOp->op.au4OpData[0]);
 
     /*do not check return value, we will do this either way*/
     wmt_lib_host_awake_get();
     /*wake up chip first*/
     if (DISABLE_PSM_MONITOR()) {
-        WMT_ERR_FUNC("wake up failed\n");
-        wmt_lib_put_op_to_free_queue(pOp);
-        return MTK_WCN_BOOL_FALSE;
+	WMT_ERR_FUNC("wake up failed\n");
+	wmt_lib_put_op_to_free_queue(pOp);
+	return MTK_WCN_BOOL_FALSE;
     }
-    
+
     bRet = wmt_lib_put_act_op(pOp);
     ENABLE_PSM_MONITOR();
     wmt_lib_host_awake_put();
-    
+
     if (MTK_WCN_BOOL_FALSE == bRet) {
-        WMT_WARN_FUNC("OPID(%d) type(%d) fail\n",
-            pOp->op.opId,
-            pOp->op.au4OpData[0]);
+	WMT_WARN_FUNC("OPID(%d) type(%d) fail\n",
+	    pOp->op.opId,
+	    pOp->op.au4OpData[0]);
     }
     else {
-        WMT_INFO_FUNC("OPID(%d) type(%d) ok\n",
-            pOp->op.opId,
-            pOp->op.au4OpData[0]);
+	WMT_INFO_FUNC("OPID(%d) type(%d) ok\n",
+	    pOp->op.opId,
+	    pOp->op.au4OpData[0]);
     }
     return bRet;
 }
 
 #if WMT_EXP_HID_API_EXPORT
 MTK_WCN_BOOL
-_mtk_wcn_wmt_func_off (
+_mtk_wcn_wmt_func_off(
     ENUM_WMTDRV_TYPE_T type
     )
 #else
 MTK_WCN_BOOL
-mtk_wcn_wmt_func_off (
+mtk_wcn_wmt_func_off(
     ENUM_WMTDRV_TYPE_T type
     )
 #endif
 {
-    MTK_WCN_BOOL ret;        
+    MTK_WCN_BOOL ret;
 
-    if(type == WMTDRV_TYPE_BT)    
-    {        
-        osal_printtimeofday("############ BT OFF ====>");    
-    }    
+    if (type == WMTDRV_TYPE_BT)
+    {
+	osal_printtimeofday("############ BT OFF ====>");
+    }
 
-    ret = mtk_wcn_wmt_func_ctrl(type, WMT_OPID_FUNC_OFF);    
+    ret = mtk_wcn_wmt_func_ctrl(type, WMT_OPID_FUNC_OFF);
 
-    if(type == WMTDRV_TYPE_BT)    
-    {        
-        osal_printtimeofday("############ BT OFF <====");    
+    if (type == WMTDRV_TYPE_BT)
+    {
+	osal_printtimeofday("############ BT OFF <====");
     }
 
     return ret;
@@ -172,40 +172,40 @@ mtk_wcn_wmt_func_off (
 
 #if WMT_EXP_HID_API_EXPORT
 MTK_WCN_BOOL
-_mtk_wcn_wmt_func_on (
+_mtk_wcn_wmt_func_on(
     ENUM_WMTDRV_TYPE_T type
     )
 #else
 MTK_WCN_BOOL
-mtk_wcn_wmt_func_on (
+mtk_wcn_wmt_func_on(
     ENUM_WMTDRV_TYPE_T type
     )
 #endif
 {
-    MTK_WCN_BOOL ret;    
+    MTK_WCN_BOOL ret;
 
-    if(type == WMTDRV_TYPE_BT)    
-    {        
-        osal_printtimeofday("############ BT ON ====>");    
+    if (type == WMTDRV_TYPE_BT)
+    {
+	osal_printtimeofday("############ BT ON ====>");
     }
-    
-    ret = mtk_wcn_wmt_func_ctrl(type, WMT_OPID_FUNC_ON);        
 
-    if(type == WMTDRV_TYPE_BT)    
-    {        
-        osal_printtimeofday(" ############BT ON <====");    
+    ret = mtk_wcn_wmt_func_ctrl(type, WMT_OPID_FUNC_ON);
+
+    if (type == WMTDRV_TYPE_BT)
+    {
+	osal_printtimeofday(" ############BT ON <====");
     }
-    
+
     return ret;
 }
 
 VOID
-mtk_wcn_wmt_func_ctrl_for_plat (UINT32 on,
+mtk_wcn_wmt_func_ctrl_for_plat(UINT32 on,
     ENUM_WMTDRV_TYPE_T type)
 {
-	if(on){
+	if (on) {
 		mtk_wcn_wmt_func_on(type);
-	}else{
+	} else{
 		mtk_wcn_wmt_func_off(type);
 	}
 	return;
@@ -219,12 +219,12 @@ read thermal sensor function:thermal value
 */
 #if WMT_EXP_HID_API_EXPORT
 INT8
-_mtk_wcn_wmt_therm_ctrl (
+_mtk_wcn_wmt_therm_ctrl(
     ENUM_WMTTHERM_TYPE_T eType
-    )	
+    )
 #else
 INT8
-mtk_wcn_wmt_therm_ctrl (
+mtk_wcn_wmt_therm_ctrl(
     ENUM_WMTTHERM_TYPE_T eType
     )
 #endif
@@ -235,22 +235,22 @@ mtk_wcn_wmt_therm_ctrl (
     P_OSAL_SIGNAL pSignal;
 
     /*parameter validation check*/
-    if( WMTTHERM_MAX < eType || WMTTHERM_ENABLE > eType){
-        WMT_ERR_FUNC("invalid thermal control command (%d)\n", eType);
-        return MTK_WCN_BOOL_FALSE;
+    if (WMTTHERM_MAX < eType || WMTTHERM_ENABLE > eType) {
+	WMT_ERR_FUNC("invalid thermal control command (%d)\n", eType);
+	return MTK_WCN_BOOL_FALSE;
     }
 
     /*check if chip support thermal control function or not*/
     bRet = wmt_lib_is_therm_ctrl_support();
     if (MTK_WCN_BOOL_FALSE == bRet) {
-        WMT_ERR_FUNC("thermal ctrl function not supported\n");
-        return MTK_WCN_BOOL_FALSE;
+	WMT_ERR_FUNC("thermal ctrl function not supported\n");
+	return MTK_WCN_BOOL_FALSE;
     }
 
     pOp = wmt_lib_get_free_op();
     if (!pOp) {
-        WMT_WARN_FUNC("get_free_lxop fail \n");
-        return MTK_WCN_BOOL_FALSE;
+	WMT_WARN_FUNC("get_free_lxop fail\n");
+	return MTK_WCN_BOOL_FALSE;
     }
 
     pSignal = &pOp->signal;
@@ -261,58 +261,58 @@ mtk_wcn_wmt_therm_ctrl (
     pSignal->timeoutValue = MAX_EACH_WMT_CMD;
 
     WMT_INFO_FUNC("OPID(%d) type(%d) start\n",
-            pOp->op.opId,
-            pOp->op.au4OpData[0]);
+	    pOp->op.opId,
+	    pOp->op.au4OpData[0]);
 
     if (DISABLE_PSM_MONITOR()) {
-        WMT_ERR_FUNC("wake up failed\n");
-        wmt_lib_put_op_to_free_queue(pOp);
-        return -1;
+	WMT_ERR_FUNC("wake up failed\n");
+	wmt_lib_put_op_to_free_queue(pOp);
+	return -1;
     }
-    
+
     bRet = wmt_lib_put_act_op(pOp);
     ENABLE_PSM_MONITOR();
 
     if (MTK_WCN_BOOL_FALSE == bRet) {
-        WMT_WARN_FUNC("OPID(%d) type(%d) fail\n\n",
-            pOpData->opId,
-            pOpData->au4OpData[0]);
-        /*0xFF means read error occurs*/
-        pOpData->au4OpData[1] = (eType == WMTTHERM_READ) ? 0xFF : MTK_WCN_BOOL_FALSE;/*will return to function driver*/
+	WMT_WARN_FUNC("OPID(%d) type(%d) fail\n\n",
+	    pOpData->opId,
+	    pOpData->au4OpData[0]);
+	/*0xFF means read error occurs*/
+	pOpData->au4OpData[1] = (eType == WMTTHERM_READ) ? 0xFF : MTK_WCN_BOOL_FALSE;/*will return to function driver*/
     }
     else {
-        WMT_INFO_FUNC("OPID(%d) type(%d) return(%d) ok\n\n",
-            pOpData->opId,
-            pOpData->au4OpData[0],
-            pOpData->au4OpData[1]);
+	WMT_INFO_FUNC("OPID(%d) type(%d) return(%d) ok\n\n",
+	    pOpData->opId,
+	    pOpData->au4OpData[0],
+	    pOpData->au4OpData[1]);
     }
     /*return value will be put to lxop->op.au4OpData[1]*/
-    WMT_DBG_FUNC("therm ctrl type(%d), iRet(0x%08x) \n", eType, pOpData->au4OpData[1]);
+    WMT_DBG_FUNC("therm ctrl type(%d), iRet(0x%08x)\n", eType, pOpData->au4OpData[1]);
     return (INT8)pOpData->au4OpData[1];
 }
 
 #if WMT_EXP_HID_API_EXPORT
 ENUM_WMTHWVER_TYPE_T
-_mtk_wcn_wmt_hwver_get (VOID)
+_mtk_wcn_wmt_hwver_get(VOID)
 #else
 ENUM_WMTHWVER_TYPE_T
-mtk_wcn_wmt_hwver_get (VOID)
+mtk_wcn_wmt_hwver_get(VOID)
 #endif
 {
-    // TODO: [ChangeFeature][GeorgeKuo] Reconsider usage of this type
-    // TODO: how do we extend for new chip and newer revision?
-    // TODO: This way is hard to extend
+    /* TODO: [ChangeFeature][GeorgeKuo] Reconsider usage of this type */
+    /* TODO: how do we extend for new chip and newer revision? */
+    /* TODO: This way is hard to extend */
     return wmt_lib_get_icinfo(WMTCHIN_MAPPINGHWVER);
 }
 
 #if WMT_EXP_HID_API_EXPORT
 MTK_WCN_BOOL
-_mtk_wcn_wmt_dsns_ctrl (
+_mtk_wcn_wmt_dsns_ctrl(
     ENUM_WMTDSNS_TYPE_T eType
     )
 #else
 MTK_WCN_BOOL
-mtk_wcn_wmt_dsns_ctrl (
+mtk_wcn_wmt_dsns_ctrl(
     ENUM_WMTDSNS_TYPE_T eType
     )
 #endif
@@ -323,21 +323,21 @@ mtk_wcn_wmt_dsns_ctrl (
     P_OSAL_SIGNAL pSignal;
 
     if (WMTDSNS_MAX <= eType) {
-        WMT_ERR_FUNC("invalid desense control command (%d)\n", eType);
-        return MTK_WCN_BOOL_FALSE;
+	WMT_ERR_FUNC("invalid desense control command (%d)\n", eType);
+	return MTK_WCN_BOOL_FALSE;
     }
 
     /*check if chip support thermal control function or not*/
     bRet = wmt_lib_is_dsns_ctrl_support();
     if (MTK_WCN_BOOL_FALSE == bRet) {
-        WMT_ERR_FUNC("thermal ctrl function not supported\n");
-        return MTK_WCN_BOOL_FALSE;
+	WMT_ERR_FUNC("thermal ctrl function not supported\n");
+	return MTK_WCN_BOOL_FALSE;
     }
 
     pOp = wmt_lib_get_free_op();
     if (!pOp) {
-        WMT_WARN_FUNC("get_free_lxop fail \n");
-        return MTK_WCN_BOOL_FALSE;
+	WMT_WARN_FUNC("get_free_lxop fail\n");
+	return MTK_WCN_BOOL_FALSE;
     }
 
     pSignal = &pOp->signal;
@@ -346,32 +346,32 @@ mtk_wcn_wmt_dsns_ctrl (
     pSignal->timeoutValue = MAX_EACH_WMT_CMD;
     /*parameter fill*/
     if ((WMTDSNS_FM_DISABLE <= eType) && (WMTDSNS_FM_GPS_ENABLE >= eType)) {
-        pOpData->au4OpData[0] = WMTDRV_TYPE_FM;
-        pOpData->au4OpData[1] = eType;
+	pOpData->au4OpData[0] = WMTDRV_TYPE_FM;
+	pOpData->au4OpData[1] = eType;
     }
 
     WMT_INFO_FUNC("OPID(%d) type(%d) start\n",
-            pOp->op.opId,
-            pOp->op.au4OpData[0]);
+	    pOp->op.opId,
+	    pOp->op.au4OpData[0]);
 
     if (DISABLE_PSM_MONITOR()) {
-        WMT_ERR_FUNC("wake up failed\n");
-        wmt_lib_put_op_to_free_queue(pOp);
-        return MTK_WCN_BOOL_FALSE;
+	WMT_ERR_FUNC("wake up failed\n");
+	wmt_lib_put_op_to_free_queue(pOp);
+	return MTK_WCN_BOOL_FALSE;
     }
-    
+
     bRet = wmt_lib_put_act_op(pOp);
     ENABLE_PSM_MONITOR();
 
     if (MTK_WCN_BOOL_FALSE == bRet) {
-        WMT_WARN_FUNC("OPID(%d) type(%d) fail\n\n",
-            pOpData->opId,
-            pOpData->au4OpData[0]);
+	WMT_WARN_FUNC("OPID(%d) type(%d) fail\n\n",
+	    pOpData->opId,
+	    pOpData->au4OpData[0]);
     }
     else {
-        WMT_INFO_FUNC("OPID(%d) type(%d) ok\n\n",
-            pOpData->opId,
-            pOpData->au4OpData[0]);
+	WMT_INFO_FUNC("OPID(%d) type(%d) ok\n\n",
+	    pOpData->opId,
+	    pOpData->au4OpData[0]);
     }
 
     return bRet;
@@ -379,13 +379,13 @@ mtk_wcn_wmt_dsns_ctrl (
 
 #if WMT_EXP_HID_API_EXPORT
 INT32
-_mtk_wcn_wmt_msgcb_reg (
+_mtk_wcn_wmt_msgcb_reg(
     ENUM_WMTDRV_TYPE_T eType,
     PF_WMT_CB pCb
     )
 #else
 INT32
-mtk_wcn_wmt_msgcb_reg (
+mtk_wcn_wmt_msgcb_reg(
     ENUM_WMTDRV_TYPE_T eType,
     PF_WMT_CB pCb
     )
@@ -396,13 +396,13 @@ mtk_wcn_wmt_msgcb_reg (
 
 #if WMT_EXP_HID_API_EXPORT
 INT32
-_mtk_wcn_wmt_msgcb_unreg (
+_mtk_wcn_wmt_msgcb_unreg(
     ENUM_WMTDRV_TYPE_T eType
     )
 
 #else
 INT32
-mtk_wcn_wmt_msgcb_unreg (
+mtk_wcn_wmt_msgcb_unreg(
     ENUM_WMTDRV_TYPE_T eType
     )
 #endif
@@ -412,13 +412,13 @@ mtk_wcn_wmt_msgcb_unreg (
 
 #if WMT_EXP_HID_API_EXPORT
 INT32
-_mtk_wcn_stp_wmt_sdio_op_reg (
+_mtk_wcn_stp_wmt_sdio_op_reg(
     PF_WMT_SDIO_PSOP own_cb
     )
 
 #else
 INT32
-mtk_wcn_stp_wmt_sdio_op_reg (
+mtk_wcn_stp_wmt_sdio_op_reg(
     PF_WMT_SDIO_PSOP own_cb
     )
 #endif
@@ -428,28 +428,28 @@ mtk_wcn_stp_wmt_sdio_op_reg (
 }
 
 #if WMT_EXP_HID_API_EXPORT
-INT32 
+INT32
 _mtk_wcn_stp_wmt_sdio_host_awake(
     VOID
     )
 #else
-INT32 
+INT32
 mtk_wcn_stp_wmt_sdio_host_awake(
     VOID
     )
 #endif
-{    
+{
     wmt_lib_ps_irq_cb();
     return 0;
 }
 
 #if WMT_EXP_HID_API_EXPORT
-MTK_WCN_BOOL _mtk_wcn_wmt_assert (ENUM_WMTDRV_TYPE_T type,
+MTK_WCN_BOOL _mtk_wcn_wmt_assert(ENUM_WMTDRV_TYPE_T type,
     UINT32 reason
     )
 
 #else
-MTK_WCN_BOOL mtk_wcn_wmt_assert (ENUM_WMTDRV_TYPE_T type,
+MTK_WCN_BOOL mtk_wcn_wmt_assert(ENUM_WMTDRV_TYPE_T type,
     UINT32 reason
     )
 #endif
@@ -457,35 +457,35 @@ MTK_WCN_BOOL mtk_wcn_wmt_assert (ENUM_WMTDRV_TYPE_T type,
     P_OSAL_OP pOp = NULL;
     MTK_WCN_BOOL bRet = MTK_WCN_BOOL_FALSE;
     P_OSAL_SIGNAL pSignal;
-    
+
     pOp  = wmt_lib_get_free_op();
-    if (!pOp ) {
-        WMT_WARN_FUNC("get_free_lxop fail\n");
-        return MTK_WCN_BOOL_FALSE;
+    if (!pOp) {
+	WMT_WARN_FUNC("get_free_lxop fail\n");
+	return MTK_WCN_BOOL_FALSE;
     }
 
-	wmt_lib_set_host_assert_info(type,reason,1);
-	
-    pSignal = &pOp ->signal;
+	wmt_lib_set_host_assert_info(type, reason, 1);
 
-    pOp ->op.opId = WMT_OPID_CMD_TEST;
-    
-    pSignal->timeoutValue= MAX_EACH_WMT_CMD;
+    pSignal = &pOp->signal;
+
+    pOp->op.opId = WMT_OPID_CMD_TEST;
+
+    pSignal->timeoutValue = MAX_EACH_WMT_CMD;
     /*this test command should be run with usb cable connected, so no host awake is needed*/
-    //wmt_lib_host_awake_get();
+    /* wmt_lib_host_awake_get(); */
     pOp->op.au4OpData[0] = 0;
-    
+
     /*wake up chip first*/
     if (DISABLE_PSM_MONITOR()) {
-        WMT_ERR_FUNC("wake up failed\n");
-        wmt_lib_put_op_to_free_queue(pOp);
-        return MTK_WCN_BOOL_FALSE;
+	WMT_ERR_FUNC("wake up failed\n");
+	wmt_lib_put_op_to_free_queue(pOp);
+	return MTK_WCN_BOOL_FALSE;
     }
-    
+
     bRet = wmt_lib_put_act_op(pOp);
     ENABLE_PSM_MONITOR();
-    
-    //wmt_lib_host_awake_put();
+
+    /* wmt_lib_host_awake_put(); */
     WMT_INFO_FUNC("CMD_TEST, opid (%d), par(%d, %d), ret(%d), result(%s)\n", \
     pOp->op.opId, \
     pOp->op.au4OpData[0], \
@@ -493,19 +493,19 @@ MTK_WCN_BOOL mtk_wcn_wmt_assert (ENUM_WMTDRV_TYPE_T type,
     bRet, \
     MTK_WCN_BOOL_FALSE == bRet ? "failed" : "succeed"\
     );
-    
+
     return bRet;
 }
 
-CHAR mtk_wcn_wmt_co_clock_flag_get()
+CHAR mtk_wcn_wmt_co_clock_flag_get(void)
 {
 	return wmt_lib_co_clock_get();
 }
 
-INT32 mtk_wcn_wmt_system_state_reset()
+INT32 mtk_wcn_wmt_system_state_reset(void)
 {
-	osal_memset(&gBtWifiGpsState,0,osal_sizeof(gBtWifiGpsState));
-	osal_memset(&gGpsFmState,0,osal_sizeof(gGpsFmState));
+	osal_memset(&gBtWifiGpsState, 0, osal_sizeof(gBtWifiGpsState));
+	osal_memset(&gGpsFmState, 0, osal_sizeof(gGpsFmState));
 
 	return 0;
 }
@@ -513,23 +513,23 @@ INT32 mtk_wcn_wmt_system_state_reset()
 INT32 mtk_wcn_wmt_wlan_reg(P_MTK_WCN_WMT_WLAN_CB_INFO pWmtWlanCbInfo)
 {
 	INT32 iRet = -1;
-	if(!pWmtWlanCbInfo){
+	if (!pWmtWlanCbInfo) {
 		WMT_ERR_FUNC("wlan cb info in null!\n");
 		return -1;
-	}else{
+	} else{
 		WMT_INFO_FUNC("wmt wlan cb register\n");
 		mtk_wcn_wlan_probe = pWmtWlanCbInfo->wlan_probe_cb;
 		mtk_wcn_wlan_remove = pWmtWlanCbInfo->wlan_remove_cb;
 		mtk_wcn_wlan_bus_tx_cnt = pWmtWlanCbInfo->wlan_bus_cnt_get_cb;
 		mtk_wcn_wlan_bus_tx_cnt_clr = pWmtWlanCbInfo->wlan_bus_cnt_clr_cb;
 
-		if(gWifiProbed)
+		if (gWifiProbed)
 		{
 			WMT_INFO_FUNC("wlan has been done power on,call probe directly\n");
 			iRet = (*mtk_wcn_wlan_probe)();
-			if(iRet)
+			if (iRet)
 			{
-				WMT_ERR_FUNC("call wlan probe fail(%d) when do wlan register to wmt\n",iRet);
+				WMT_ERR_FUNC("call wlan probe fail(%d) when do wlan register to wmt\n", iRet);
 				return -2;
 			}
 			else
@@ -541,7 +541,7 @@ INT32 mtk_wcn_wmt_wlan_reg(P_MTK_WCN_WMT_WLAN_CB_INFO pWmtWlanCbInfo)
 	}
 	return 0;
 }
-INT32 mtk_wcn_wmt_wlan_unreg()
+INT32 mtk_wcn_wmt_wlan_unreg(void)
 {
 	WMT_INFO_FUNC("wmt wlan cb unregister\n");
 	mtk_wcn_wlan_probe = NULL;
@@ -553,10 +553,10 @@ INT32 mtk_wcn_wmt_wlan_unreg()
 }
 
 #ifdef MTK_WCN_WMT_STP_EXP_SYMBOL_ABSTRACT
-VOID mtk_wcn_wmt_exp_init()
+VOID mtk_wcn_wmt_exp_init(void)
 {
 	MTK_WCN_WMT_EXP_CB_INFO wmtExpCb = {
-		
+
 	.wmt_func_on_cb				= _mtk_wcn_wmt_func_on,
 	.wmt_func_off_cb			= _mtk_wcn_wmt_func_off,
 	.wmt_therm_ctrl_cb			= _mtk_wcn_wmt_therm_ctrl,
@@ -573,7 +573,7 @@ VOID mtk_wcn_wmt_exp_init()
 	return;
 }
 
-VOID mtk_wcn_wmt_exp_deinit()
+VOID mtk_wcn_wmt_exp_deinit(void)
 {
 	mtk_wcn_wmt_exp_cb_unreg();
 
@@ -597,4 +597,3 @@ EXPORT_SYMBOL(mtk_wcn_wmt_func_off);
 EXPORT_SYMBOL(mtk_wcn_wmt_wlan_reg);
 EXPORT_SYMBOL(mtk_wcn_wmt_wlan_unreg);
 EXPORT_SYMBOL(mtk_wcn_wmt_co_clock_flag_get);
-

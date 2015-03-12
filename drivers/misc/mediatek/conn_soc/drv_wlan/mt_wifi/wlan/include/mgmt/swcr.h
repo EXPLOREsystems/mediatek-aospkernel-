@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/mgmt/swcr.h#1 $
 */
 
@@ -46,15 +60,15 @@
 
 #define SWCR_CR_NUM 7
 
-#define SWCR_GET_RW_INDEX(action,rw,index) \
+#define SWCR_GET_RW_INDEX(action, rw, index) \
     index = action & 0x7F; \
-    rw = action >> 7; 
+    rw = action >> 7;
 
 
 extern UINT_32          g_au4SwCr[]; /*: 0: command other: data */
 
 typedef VOID (*PFN_SWCR_RW_T)(P_ADAPTER_T prAdapter, UINT_8 ucRead, UINT_16 u2Addr, UINT_32 *pu4Data);
-typedef VOID (*PFN_CMD_RW_T)(P_ADAPTER_T prAdapter, UINT_8 ucCate, UINT_8 ucAction, UINT_8 ucOpt0,UINT_8 ucOpt1);
+typedef VOID (*PFN_CMD_RW_T)(P_ADAPTER_T prAdapter, UINT_8 ucCate, UINT_8 ucAction, UINT_8 ucOpt0, UINT_8 ucOpt1);
 
 typedef struct _SWCR_MAP_ENTRY_T {
     UINT_16             u2Type;
@@ -83,27 +97,27 @@ typedef enum _ENUM_SWCR_DBG_ALL_T {
     SWCR_DBG_ALL_TX_AGING_TIMEOUT_CNT,
     SWCR_DBG_ALL_TX_PS_OVERFLOW_CNT,
     SWCR_DBG_ALL_TX_MGNT_DROP_CNT,
-    SWCR_DBG_ALL_TX_ERROR_CNT,    
-    
+    SWCR_DBG_ALL_TX_ERROR_CNT,
+
     SWCR_DBG_ALL_RX_CNT,
     SWCR_DBG_ALL_RX_DROP_CNT,
     SWCR_DBG_ALL_RX_DUP_DROP_CNT,
-    SWCR_DBG_ALL_RX_TYPE_ERROR_DROP_CNT,    
+    SWCR_DBG_ALL_RX_TYPE_ERROR_DROP_CNT,
     SWCR_DBG_ALL_RX_CLASS_ERROR_DROP_CNT,
     SWCR_DBG_ALL_RX_AMPDU_ERROR_DROP_CNT,
-    
+
     SWCR_DBG_ALL_RX_STATUS_ERROR_DROP_CNT,
     SWCR_DBG_ALL_RX_FORMAT_ERROR_DROP_CNT,
     SWCR_DBG_ALL_RX_ICV_ERROR_DROP_CNT,
-    SWCR_DBG_ALL_RX_KEY_ERROR_DROP_CNT,    
+    SWCR_DBG_ALL_RX_KEY_ERROR_DROP_CNT,
     SWCR_DBG_ALL_RX_TKIP_ERROR_DROP_CNT,
     SWCR_DBG_ALL_RX_MIC_ERROR_DROP_CNT,
     SWCR_DBG_ALL_RX_BIP_ERROR_DROP_CNT,
-    
+
     SWCR_DBG_ALL_RX_FCSERR_CNT,
     SWCR_DBG_ALL_RX_FIFOFULL_CNT,
     SWCR_DBG_ALL_RX_PFDROP_CNT,
-    
+
     SWCR_DBG_ALL_PWR_PS_POLL_CNT,
     SWCR_DBG_ALL_PWR_TRIGGER_NULL_CNT,
     SWCR_DBG_ALL_PWR_BCN_IND_CNT,
@@ -112,7 +126,7 @@ typedef enum _ENUM_SWCR_DBG_ALL_T {
     SWCR_DBG_ALL_PWR_PM_STATE1,
     SWCR_DBG_ALL_PWR_CUR_PS_PROF0,
     SWCR_DBG_ALL_PWR_CUR_PS_PROF1,
-    
+
     SWCR_DBG_ALL_AR_STA0_RATE,
     SWCR_DBG_ALL_AR_STA0_BWGI,
     SWCR_DBG_ALL_AR_STA0_RX_RATE_RCPI,
@@ -129,7 +143,7 @@ typedef enum _ENUM_SWCR_DBG_ALL_T {
     SWCR_DBG_ALL_BB_CCK_SIGERR_CNT,
     SWCR_DBG_ALL_BB_OFDM_TAGERR_CNT,
     SWCR_DBG_ALL_BB_OFDM_SIGERR_CNT,
-    
+
     SWCR_DBG_ALL_NUM
 } ENUM_SWCR_DBG_ALL_T;
 
@@ -165,11 +179,11 @@ typedef enum _ENUM_SWCR_DBG_ALL_T {
 */
 
 VOID swCrReadWriteCmd(
-        P_ADAPTER_T prAdapter,
-        UINT_8 ucRead, 
-        UINT_16 u2Addr, 
-        UINT_32 *pu4Data
-        );
+	P_ADAPTER_T prAdapter,
+	UINT_8 ucRead,
+	UINT_16 u2Addr,
+	UINT_32 *pu4Data
+	);
 
 /* Debug Support */
 VOID swCrFrameCheckEnable(P_ADAPTER_T  prAdapter, UINT_32 u4DumpType);
@@ -177,4 +191,4 @@ VOID swCrDebugInit(P_ADAPTER_T  prAdapter);
 VOID swCrDebugCheckEnable(P_ADAPTER_T  prAdapter, BOOLEAN fgIsEnable, UINT_8 ucType, UINT_32 u4Timeout);
 VOID swCrDebugUninit(P_ADAPTER_T  prAdapter);
 
-#endif 
+#endif

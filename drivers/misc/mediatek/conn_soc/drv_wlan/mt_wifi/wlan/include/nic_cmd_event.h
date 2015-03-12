@@ -1,10 +1,24 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/nic_cmd_event.h#1 $
 */
 
 /*! \file   "nic_cmd_event.h"
     \brief This file contains the declairation file of the WLAN OID processing routines
-           of Windows driver for MediaTek Inc. 802.11 Wireless LAN Adapters.
+	   of Windows driver for MediaTek Inc. 802.11 Wireless LAN Adapters.
 */
 
 
@@ -727,9 +741,8 @@ typedef enum _ENUM_CMD_ID_T {
     CMD_ID_SET_TXPWR_CTRL,              /* 0x38 (Set) */
     CMD_ID_SET_AUTOPWR_CTRL,            /* 0x39 (Set) */
     CMD_ID_SET_WFD_CTRL  ,              /* 0x3A (Set) */
-    CMD_ID_SET_5G_EDGE_TXPWR_LIMIT,     /* 0x3B (Set) */
-    CMD_ID_SET_RSSI_COMPENSATE,         /* 0x3C (Set) */
-    CMD_ID_SET_BAND_SUPPORT = 0x3D,     /* 0x3D (Set) */
+    CMD_ID_SET_5G_EDGE_TXPWR_LIMIT = 0x3B,/* 0x3B (Set) */
+
     CMD_ID_GET_NIC_CAPABILITY = 0x80,   /* 0x80 (Query) */
     CMD_ID_GET_LINK_QUALITY,            /* 0x81 (Query) */
     CMD_ID_GET_STATISTICS,              /* 0x82 (Query) */
@@ -737,9 +750,7 @@ typedef enum _ENUM_CMD_ID_T {
     CMD_ID_GET_ASSOC_INFO,              /* 0x84 (Query) (obsolete) */
     CMD_ID_GET_STA_STATISTICS = 0x85,   /* 0x85 (Query) */
 	CMD_ID_GET_DEBUG_CODE = 0x86,		/* 0x86 (Query) */
-    CMD_ID_GET_LTE_CHN = 0x87,   	/* 0x87 (Query) */
-    CMD_ID_GET_CHN_LOADING = 0x88,   	/* 0x88 (Query) */
-    CMD_ID_GET_STATISTICS_PL = 0x89,    /* 0x87 (Query) */
+
     CMD_ID_BASIC_CONFIG = 0xc1,         /* 0xc1 (Set / Query) */
     CMD_ID_ACCESS_REG,                  /* 0xc2 (Set / Query) */
     CMD_ID_MAC_MCAST_ADDR,              /* 0xc3 (Set / Query) */
@@ -765,11 +776,9 @@ typedef enum _ENUM_CMD_ID_T {
     CMD_ID_GET_BUILD_DATE_CODE = 0xF8,
 #endif
     CMD_ID_GET_BSS_INFO = 0xF9,
-#if 1 //CFG_SUPPORT_HOTSPOT_OPTIMIZATION
+#if 1 /* CFG_SUPPORT_HOTSPOT_OPTIMIZATION */
     CMD_ID_SET_HOTSPOT_OPTIMIZATION = 0xFA,    /* 0xFA (Set) */
 #endif
-
-	CMD_ID_TDLS_CORE = 0xFC, /* ++ TDLS */
 
 } ENUM_CMD_ID_T, *P_ENUM_CMD_ID_T;
 
@@ -822,9 +831,8 @@ typedef enum _ENUM_EVENT_ID_T {
 #endif
     EVENT_ID_RX_ERR,
     EVENT_ID_DUMP_MEM,
-    EVENT_ID_STA_STATISTICS= 0x29,            /* 0x29 (Query ) */
+    EVENT_ID_STA_STATISTICS = 0x29,            /* 0x29 (Query ) */
     EVENT_ID_STA_STATISTICS_UPDATE,           /* 0x2A (Unsolicited) */
-	EVENT_ID_TDLS = 0x80, /* ++ TDLS */
 
 #if CFG_SUPPORT_BUILD_DATE_CODE
     EVENT_ID_BUILD_DATE_CODE = 0xF8,
@@ -869,18 +877,18 @@ typedef struct _WIFI_EVENT_T {
     UINT_8      aucBuffer[0];
 } WIFI_EVENT_T, *P_WIFI_EVENT_T;
 
-// CMD_ID_TEST_MODE
+/* CMD_ID_TEST_MODE */
 typedef struct _CMD_TEST_CTRL_T {
     UINT_8      ucAction;
     UINT_8      aucReserved[3];
     union {
-        UINT_32                 u4OpMode;
-        UINT_32                 u4ChannelFreq;
-        PARAM_MTK_WIFI_TEST_STRUC_T rRfATInfo;
+	UINT_32                 u4OpMode;
+	UINT_32                 u4ChannelFreq;
+	PARAM_MTK_WIFI_TEST_STRUC_T rRfATInfo;
     } u;
 } CMD_TEST_CTRL_T, *P_CMD_TEST_CTRL_T;
 
-// EVENT_TEST_STATUS
+/* EVENT_TEST_STATUS */
 typedef struct _PARAM_CUSTOM_RFTEST_TX_STATUS_STRUC_T {
     UINT_32             u4PktSentStatus;
     UINT_32             u4PktSentCount;
@@ -902,11 +910,11 @@ typedef struct  _PARAM_CUSTOM_RFTEST_RX_STATUS_STRUC_T {
 
 typedef union _EVENT_TEST_STATUS {
     PARAM_MTK_WIFI_TEST_STRUC_T             rATInfo;
-//    PARAM_CUSTOM_RFTEST_TX_STATUS_STRUC_T   rTxStatus;
-//    PARAM_CUSTOM_RFTEST_RX_STATUS_STRUC_T   rRxStatus;
+/* PARAM_CUSTOM_RFTEST_TX_STATUS_STRUC_T   rTxStatus; */
+/* PARAM_CUSTOM_RFTEST_RX_STATUS_STRUC_T   rRxStatus; */
 } EVENT_TEST_STATUS, *P_EVENT_TEST_STATUS;
 
-// CMD_BUILD_CONNECTION
+/* CMD_BUILD_CONNECTION */
 typedef struct _CMD_BUILD_CONNECTION {
     UINT_8      ucInfraMode;
     UINT_8      ucAuthMode;
@@ -926,7 +934,7 @@ typedef struct _CMD_BUILD_CONNECTION {
     UINT_8      aucScanResult[0];
 } CMD_BUILD_CONNECTION, *P_CMD_BUILD_CONNECTION;
 
-//CMD_ADD_REMOVE_KEY
+/* CMD_ADD_REMOVE_KEY */
 typedef struct _CMD_802_11_KEY {
     UINT_8      ucAddRemove;
     UINT_8      ucTxKey;
@@ -954,10 +962,10 @@ typedef struct _CMD_802_11_PMKID
     P_PMKID_ENTRY_T     arPMKIDInfo[1];
 } CMD_802_11_PMKID, *P_CMD_802_11_PMKID;
 
-// CMD_BASIC_CONFIG
+/* CMD_BASIC_CONFIG */
 typedef struct _CMD_CSUM_OFFLOAD {
-    UINT_16     u2RxChecksum; // bit0: IP, bit1: UDP, bit2: TCP
-    UINT_16     u2TxChecksum; // bit0: IP, bit1: UDP, bit2: TCP
+    UINT_16     u2RxChecksum; /* bit0: IP, bit1: UDP, bit2: TCP */
+    UINT_16     u2TxChecksum; /* bit0: IP, bit1: UDP, bit2: TCP */
 } CMD_CSUM_OFFLOAD, *P_CMD_CSUM_OFFLOAD;
 
 typedef struct _CMD_BASIC_CONFIG {
@@ -968,7 +976,7 @@ typedef struct _CMD_BASIC_CONFIG {
     CMD_CSUM_OFFLOAD    rCsumOffload;
 } CMD_BASIC_CONFIG, *P_CMD_BASIC_CONFIG, EVENT_BASIC_CONFIG, *P_EVENT_BASIC_CONFIG;
 
-// CMD_MAC_MCAST_ADDR
+/* CMD_MAC_MCAST_ADDR */
 typedef struct _CMD_MAC_MCAST_ADDR {
     UINT_32             u4NumOfGroupAddr;
     UINT_8              ucNetTypeIndex;
@@ -976,7 +984,7 @@ typedef struct _CMD_MAC_MCAST_ADDR {
     PARAM_MAC_ADDRESS   arAddress[MAX_NUM_GROUP_ADDR];
 } CMD_MAC_MCAST_ADDR, *P_CMD_MAC_MCAST_ADDR, EVENT_MAC_MCAST_ADDR, *P_EVENT_MAC_MCAST_ADDR;
 
-// CMD_ACCESS_EEPROM
+/* CMD_ACCESS_EEPROM */
 typedef struct _CMD_ACCESS_EEPROM {
     UINT_16             u2Offset;
     UINT_16             u2Data;
@@ -1002,7 +1010,7 @@ typedef struct _CMD_CUSTOM_UAPSD_PARAM_STRUC_T {
     UINT_8  aucResv[2];
 } CMD_CUSTOM_UAPSD_PARAM_STRUC_T, *P_CMD_CUSTOM_UAPSD_PARAM_STRUC_T;
 
-// EVENT_CONNECTION_STATUS
+/* EVENT_CONNECTION_STATUS */
 typedef struct _EVENT_CONNECTION_STATUS {
     UINT_8  ucMediaStatus;
     UINT_8  ucReasonOfDisconnect;
@@ -1026,7 +1034,7 @@ typedef struct _EVENT_CONNECTION_STATUS {
 
 } EVENT_CONNECTION_STATUS, *P_EVENT_CONNECTION_STATUS;
 
-// EVENT_NIC_CAPABILITY
+/* EVENT_NIC_CAPABILITY */
 typedef struct _EVENT_NIC_CAPABILITY {
     UINT_16     u2ProductID;
     UINT_16     u2FwVersion;
@@ -1043,21 +1051,13 @@ typedef struct _EVENT_NIC_CAPABILITY {
     UINT_8      ucRfCalFail;
     UINT_8      ucBbCalFail;
 #endif
-
-/* ++ TDLS */
-#define FEATURE_SET_OFFSET_TDLS					0
-#define FEATURE_SET_OFFSET_5G_SUPPORT			1
-		UINT_8		ucFeatureSet; /* bit0: TDLS */
-
-		UINT_8		aucReserved[1];
-/* -- TDLS */
-
+    UINT_8      aucReserved[2];
 #if CFG_EMBED_FIRMWARE_BUILD_DATE_CODE
     UINT_8      aucDateCode[16];
 #endif
 } EVENT_NIC_CAPABILITY, *P_EVENT_NIC_CAPABILITY;
 
-// modified version of WLAN_BEACON_FRAME_BODY_T for simplier buffering
+/* modified version of WLAN_BEACON_FRAME_BODY_T for simplier buffering */
 typedef struct _WLAN_BEACON_FRAME_BODY_T_LOCAL {
     /* Beacon frame body */
     UINT_32     au4Timestamp[2];            /* Timestamp */
@@ -1067,7 +1067,7 @@ typedef struct _WLAN_BEACON_FRAME_BODY_T_LOCAL {
     UINT_16     u2IELength;                 /* This field is *NOT* carried by F/W but caculated by nic_rx */
 } WLAN_BEACON_FRAME_BODY_T_LOCAL, *P_WLAN_BEACON_FRAME_BODY_T_LOCAL;
 
-// EVENT_SCAN_RESULT
+/* EVENT_SCAN_RESULT */
 typedef struct _EVENT_SCAN_RESULT_T {
     INT_32                          i4RSSI;
     UINT_32                         u4LinkQuality;
@@ -1109,24 +1109,13 @@ typedef struct _CMD_MCU_LP_PARAM_T {
 #endif
 
 
-// CMD_ID_ACCESS_REG & EVENT_ID_ACCESS_REG
+/* CMD_ID_ACCESS_REG & EVENT_ID_ACCESS_REG */
 typedef struct _CMD_ACCESS_REG {
     UINT_32     u4Address;
     UINT_32     u4Data;
 } CMD_ACCESS_REG, *P_CMD_ACCESS_REG;
 
-// CMD_ID_ACCESS_REG & EVENT_ID_ACCESS_REG
-#if CFG_AUTO_CHANNEL_SEL_SUPPORT
-
-typedef struct _CMD_ACCESS_CHN_LOAD {
-    UINT_32     u4Address;
-    UINT_32     u4Data;
-	UINT_16		u2Channel;
-	UINT_8      aucReserved[2];
-} CMD_ACCESS_CHN_LOAD, *P_ACCESS_CHN_LOAD;
-
-#endif
-// CMD_DUMP_MEMORY
+/* CMD_DUMP_MEMORY */
 typedef struct _CMD_DUMP_MEM {
     UINT_32     u4Address;
     UINT_32     u4Length;
@@ -1150,7 +1139,7 @@ typedef struct _CMD_SW_DBG_CTRL_T {
 } CMD_SW_DBG_CTRL_T, *P_CMD_SW_DBG_CTRL_T;
 
 
-// CMD_ID_LINK_ATTRIB
+/* CMD_ID_LINK_ATTRIB */
 typedef struct _CMD_LINK_ATTRIB {
     INT_8       cRssiTrigger;
     UINT_8      ucDesiredRateLen;
@@ -1159,13 +1148,13 @@ typedef struct _CMD_LINK_ATTRIB {
     UINT_8      aucReserved[1];
 } CMD_LINK_ATTRIB, *P_CMD_LINK_ATTRIB;
 
-// CMD_ID_NIC_POWER_CTRL
+/* CMD_ID_NIC_POWER_CTRL */
 typedef struct _CMD_NIC_POWER_CTRL {
     UINT_8  ucPowerMode;
     UINT_8  aucReserved[3];
 } CMD_NIC_POWER_CTRL, *P_CMD_NIC_POWER_CTRL;
 
-// CMD_ID_POWER_SAVE_MODE
+/* CMD_ID_POWER_SAVE_MODE */
 typedef struct _CMD_PS_PROFILE_T {
     UINT_8  ucNetTypeIndex;
     UINT_8  ucPsProfile;
@@ -1173,7 +1162,7 @@ typedef struct _CMD_PS_PROFILE_T {
 } CMD_PS_PROFILE_T, *P_CMD_PS_PROFILE_T;
 
 
-// EVENT_LINK_QUALITY
+/* EVENT_LINK_QUALITY */
 typedef struct _EVENT_LINK_QUALITY {
     INT_8       cRssi;
     INT_8       cLinkQuality;
@@ -1182,7 +1171,7 @@ typedef struct _EVENT_LINK_QUALITY {
 } EVENT_LINK_QUALITY, *P_EVENT_LINK_QUALITY;
 
 #if CFG_SUPPORT_P2P_RSSI_QUERY
-// EVENT_LINK_QUALITY
+/* EVENT_LINK_QUALITY */
 typedef struct _EVENT_LINK_QUALITY_EX {
     INT_8       cRssi;
     INT_8       cLinkQuality;
@@ -1197,7 +1186,7 @@ typedef struct _EVENT_LINK_QUALITY_EX {
 } EVENT_LINK_QUALITY_EX, *P_EVENT_LINK_QUALITY_EX;
 #endif
 
-// EVENT_ID_STATISTICS
+/* EVENT_ID_STATISTICS */
 typedef struct _EVENT_STATISTICS {
     LARGE_INTEGER   rTransmittedFragmentCount;
     LARGE_INTEGER   rMulticastTransmittedFrameCount;
@@ -1213,7 +1202,7 @@ typedef struct _EVENT_STATISTICS {
     LARGE_INTEGER   rFCSErrorCount;
 } EVENT_STATISTICS, *P_EVENT_STATISTICS;
 
-// EVENT_ID_FW_SLEEPY_NOTIFY
+/* EVENT_ID_FW_SLEEPY_NOTIFY */
 typedef struct _EVENT_SLEEPY_NOTIFY {
     UINT_8  ucSleepyState;
     UINT_8  aucReserved[3];
@@ -1233,7 +1222,7 @@ typedef struct _EVENT_DEACTIVATE_STA_REC_T {
     UINT_8      aucReserved[3];
 } EVENT_DEACTIVATE_STA_REC_T, *P_EVENT_DEACTIVATE_STA_REC_T;
 
-// CMD_BT_OVER_WIFI
+/* CMD_BT_OVER_WIFI */
 typedef struct _CMD_BT_OVER_WIFI {
     UINT_8              ucAction;       /* 0: query, 1: setup, 2: destroy */
     UINT_8              ucChannelNum;
@@ -1248,7 +1237,7 @@ typedef struct _CMD_BT_OVER_WIFI {
     UINT_8              ucReserved[1];
 } CMD_BT_OVER_WIFI, *P_CMD_BT_OVER_WIFI;
 
-// EVENT_BT_OVER_WIFI
+/* EVENT_BT_OVER_WIFI */
 typedef struct _EVENT_BT_OVER_WIFI {
     UINT_8      ucLinkStatus;
     UINT_8      ucSelectedChannel;
@@ -1256,7 +1245,7 @@ typedef struct _EVENT_BT_OVER_WIFI {
     UINT_8      ucReserved[1];
 } EVENT_BT_OVER_WIFI, *P_EVENT_BT_OVER_WIFI;
 
-// Same with DOMAIN_SUBBAND_INFO
+/* Same with DOMAIN_SUBBAND_INFO */
 typedef struct _CMD_SUBBAND_INFO {
     UINT_8              ucRegClass;
     UINT_8              ucBand;
@@ -1266,7 +1255,7 @@ typedef struct _CMD_SUBBAND_INFO {
     UINT_8              aucReserved[3];
 } CMD_SUBBAND_INFO, *P_CMD_SUBBAND_INFO;
 
-// CMD_SET_DOMAIN_INFO
+/* CMD_SET_DOMAIN_INFO */
 typedef struct _CMD_SET_DOMAIN_INFO_T {
     UINT_16             u2CountryCode;
     UINT_16             u2Reserved;
@@ -1277,7 +1266,7 @@ typedef struct _CMD_SET_DOMAIN_INFO_T {
     UINT_8              aucReserved[2];
 } CMD_SET_DOMAIN_INFO_T, *P_CMD_SET_DOMAIN_INFO_T;
 
-// CMD_SET_IP_ADDRESS
+/* CMD_SET_IP_ADDRESS */
 typedef struct _IPV4_NETWORK_ADDRESS {
     UINT_8 aucIpAddr[4];
 } IPV4_NETWORK_ADDRESS, *P_IPV4_NETWORK_ADDRESS;
@@ -1429,7 +1418,7 @@ typedef struct _CMD_INDICATE_PM_BSS_ABORT {
 } CMD_INDICATE_PM_BSS_ABORT, *P_CMD_INDICATE_PM_BSS_ABORT;
 
 typedef struct _CMD_BEACON_TEMPLATE_UPDATE {
-    UINT_8    ucUpdateMethod; // 0: update randomly, 1: update all, 2: delete all (1 and 2 will update directly without search)
+    UINT_8    ucUpdateMethod; /* 0: update randomly, 1: update all, 2: delete all (1 and 2 will update directly without search) */
     UINT_8    ucNetTypeIndex;
     UINT_8    aucReserved[2];
     UINT_16   u2Capability;
@@ -1596,7 +1585,7 @@ typedef struct _CMD_AUTO_POWER_PARAM_T {
     UINT_8      aucReserved[2];
     UINT_8      aucLevelRcpiTh[3];
     UINT_8      aucReserved2[1];
-    INT_8       aicLevelPowerOffset[3]; 	/* signed, in unit of 0.5dBm */
+    INT_8       aicLevelPowerOffset[3];	/* signed, in unit of 0.5dBm */
     UINT_8      aucReserved3[1];
     UINT_8      aucReserved4[8];
 } CMD_AUTO_POWER_PARAM_T, *P_CMD_AUTO_POWER_PARAM_T;
@@ -1662,19 +1651,6 @@ typedef struct _CMD_EDGE_TXPWR_LIMIT_T {
     INT_8       cReserved;
 } CMD_EDGE_TXPWR_LIMIT_T, *P_CMD_EDGE_TXPWR_LIMIT_T;
 
-typedef struct _CMD_RSSI_COMPENSATE_T {
-    UINT_8       uc2GRssiCompensation;
-    UINT_8       uc5GRssiCompensation;
-    UINT_8       ucRssiCompensationValidbit;
-    UINT_8       cReserved;
-} CMD_RSSI_COMPENSATE_T, *P_CMD_RSSI_COMPENSATE_T;
-
-typedef struct _CMD_BAND_SUPPORT_T {
-    UINT_8       uc5GBandSupport;
-    UINT_8       cReserved[3];
-} CMD_BAND_SUPPORT_T, *P_CMD_BAND_SUPPORT_T;
-
-
 typedef struct _CMD_SET_DEVICE_MODE_T {
     UINT_16     u2ChipID;
     UINT_16     u2Mode;
@@ -1699,14 +1675,14 @@ typedef struct _EVENT_RDD_STATUS_T {
 } EVENT_RDD_STATUS_T, *P_EVENT_RDD_STATUS_T;
 #endif
 
-typedef struct _EVENT_AIS_BSS_INFO_T{
+typedef struct _EVENT_AIS_BSS_INFO_T {
     ENUM_PARAM_MEDIA_STATE_T eConnectionState; /* Connected Flag used in AIS_NORMAL_TR */
     ENUM_OP_MODE_T eCurrentOPMode; /* Current Operation Mode - Infra/IBSS */
     BOOLEAN fgIsNetActive; /* TRUE if this network has been actived */
     UINT_8 ucReserved[3];
-}EVENT_AIS_BSS_INFO_T, *P_EVENT_AIS_BSS_INFO_T;
+} EVENT_AIS_BSS_INFO_T, *P_EVENT_AIS_BSS_INFO_T;
 
-typedef struct _CMD_SET_TXPWR_CTRL_T{
+typedef struct _CMD_SET_TXPWR_CTRL_T {
     INT_8    c2GLegacyStaPwrOffset;  /* Unit: 0.5dBm, default: 0*/
     INT_8    c2GHotspotPwrOffset;
     INT_8    c2GP2pPwrOffset;
@@ -1716,9 +1692,9 @@ typedef struct _CMD_SET_TXPWR_CTRL_T{
     INT_8    c5GP2pPwrOffset;
     INT_8    c5GBowPwrOffset;
     UINT_8  ucConcurrencePolicy;   /* TX power policy when concurrence
-                                                            in the same channel
-                                                            0: Highest power has priority
-                                                            1: Lowest power has priority */
+							    in the same channel
+							    0: Highest power has priority
+							    1: Lowest power has priority */
     INT_8    acReserved1[3];            /* Must be zero */
 
     /* Power limit by channel for all data rates */
@@ -1750,11 +1726,11 @@ typedef struct _CMD_GET_STA_STATISTICS_T {
 /* CFG_SUPPORT_WFD */
 typedef struct _EVENT_STA_STATISTICS_T {
     /* Event header */
-    //UINT_16     u2Length;
-    //UINT_16     u2Reserved1;    /* Must be filled with 0x0001 (EVENT Packet) */
-    //UINT_8		ucEID;
-    //UINT_8      ucSeqNum;
-    //UINT_8		aucReserved2[2];
+    /* UINT_16     u2Length; */
+    /* UINT_16     u2Reserved1;    /* Must be filled with 0x0001 (EVENT Packet) */ */
+    /* UINT_8		ucEID; */
+    /* UINT_8      ucSeqNum; */
+    /* UINT_8		aucReserved2[2]; */
 
     /* Event Body */
     UINT_8      ucVersion;
@@ -1772,14 +1748,14 @@ typedef struct _EVENT_STA_STATISTICS_T {
 
     UINT_32     u4PhyMode;          /* SGI BW */
     UINT_16     u2LinkSpeed;       /* unit is 0.5 Mbits*/
-    UINT_8      ucLinkQuality;          
-    UINT_8      ucLinkReserved;            
+    UINT_8      ucLinkQuality;
+    UINT_8      ucLinkReserved;
 
     UINT_32      u4TxCount;
     UINT_32      u4TxFailCount;
     UINT_32      u4TxLifeTimeoutCount;
     UINT_32      u4TxDoneAirTime;
-    
+
     UINT_8      aucReserved[64];
 } EVENT_STA_STATISTICS_T, *P_EVENT_STA_STATISTICS_T;
 
@@ -1789,61 +1765,7 @@ typedef struct _CMD_HOTSPOT_OPTIMIZATION_CONFIG {
     UINT_32     u4Level;
 } CMD_HOTSPOT_OPTIMIZATION_CONFIG, *P_HOTSPOT_OPTIMIZATION_CONFIG;
 #endif
-#if CFG_AUTO_CHANNEL_SEL_SUPPORT
 
-//4 Auto Channel Selection
-
-typedef struct _CMD_GET_CHN_LOAD_T {
-    UINT_8  ucIndex;
-    UINT_8  ucFlags;
-    UINT_8  ucReadClear;
-    UINT_8  aucReserved0[1];
-	
-	UINT_8  ucChannel;
-    UINT_16 u2ChannelLoad;
-    UINT_8  aucReserved1[1];
-    UINT_8  aucReserved2[16];
-} CMD_GET_CHN_LOAD_T, *P_CMD_GET_CHN_LOAD_T;
-//4  Auto Channel Selection
-
-typedef struct _EVENT_CHN_LOAD_T {
-   /* Event Body */
-    UINT_8      ucVersion;
-    UINT_8		aucReserved1[3];
-    UINT_32     u4Flags; /* Bit0: valid */
-
-    UINT_8      ucChannel;
-    UINT_16     u2ChannelLoad;
-    UINT_8		aucReserved4[1];
-
-    
-    UINT_8      aucReserved[64];
-   
-    
-} EVENT_CHN_LOAD_T, *P_EVENT_CHN_LOAD_T;
-typedef struct _CMD_GET_LTE_SAFE_CHN_T {
-    UINT_8  ucIndex;
-    UINT_8  ucFlags;
-    UINT_8  aucReserved0[2];
-
-    UINT_8  aucReserved2[16];
-} CMD_GET_LTE_SAFE_CHN_T, *P_CMD_GET_LTE_SAFE_CHN_T;
-
-typedef struct _EVENT_LTE_MODE_T {
-   /* Event Body */
-    UINT_8      			ucVersion;
-    UINT_8					aucReserved1[3];
-    UINT_32     			u4Flags; /* Bit0: valid */
-
-    LTE_SAFE_CH_INFO_T      rLteSafeChn;
-    UINT_8					aucReserved4[3];
-
-
-    UINT_8      			aucReserved[4];
-   
-    
-} EVENT_LTE_MODE_T, *P_EVENT_LTE_MODE_T;
-#endif
 typedef struct _CMD_ROAMING_INFO_T {
 	UINT_32		fgIsFastRoamingApplied;
 	UINT_32		Reserved[9];
@@ -1870,21 +1792,21 @@ typedef struct _CMD_ROAMING_INFO_T {
 ********************************************************************************
 */
 VOID
-nicCmdEventQueryMcrRead (
+nicCmdEventQueryMcrRead(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo,
     IN PUINT_8      pucEventBuf
     );
 
 VOID
-nicCmdEventQueryMemDump (
+nicCmdEventQueryMemDump(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo,
     IN PUINT_8      pucEventBuf
     );
 
 VOID
-nicCmdEventQuerySwCtrlRead (
+nicCmdEventQuerySwCtrlRead(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo,
     IN PUINT_8      pucEventBuf
@@ -1900,21 +1822,21 @@ nicCmdEventQueryRfTestATInfo(
     );
 
 VOID
-nicCmdEventSetCommon (
+nicCmdEventSetCommon(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo,
     IN PUINT_8      pucEventBuf
     );
 
 VOID
-nicCmdEventSetDisassociate (
+nicCmdEventSetDisassociate(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo,
     IN PUINT_8      pucEventBuf
     );
 
 VOID
-nicCmdEventSetIpAddress (
+nicCmdEventSetIpAddress(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo,
     IN PUINT_8      pucEventBuf
@@ -2056,26 +1978,26 @@ nicCmdEventQueryXmitMaxCollisions(
 
 /* for timeout check */
 VOID
-nicOidCmdTimeoutCommon (
+nicOidCmdTimeoutCommon(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo
     );
 
 VOID
-nicCmdTimeoutCommon (
+nicCmdTimeoutCommon(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo
     );
 
 VOID
-nicOidCmdEnterRFTestTimeout (
+nicOidCmdEnterRFTestTimeout(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo
     );
 
 #if CFG_SUPPORT_BUILD_DATE_CODE
 VOID
-nicCmdEventBuildDateCode (
+nicCmdEventBuildDateCode(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo,
     IN PUINT_8      pucEventBuf
@@ -2083,31 +2005,14 @@ nicCmdEventBuildDateCode (
 #endif
 
 VOID
-nicCmdEventQueryStaStatistics (
-    IN P_ADAPTER_T  prAdapter,
-    IN P_CMD_INFO_T prCmdInfo,
-    IN PUINT_8      pucEventBuf
-    );
-
-#if CFG_AUTO_CHANNEL_SEL_SUPPORT
-//4 Auto Channel Selection
-VOID
-nicCmdEventQueryChannelLoad (
+nicCmdEventQueryStaStatistics(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo,
     IN PUINT_8      pucEventBuf
     );
 
 VOID
-nicCmdEventQueryLTESafeChn (
-    IN P_ADAPTER_T  prAdapter,
-    IN P_CMD_INFO_T prCmdInfo,
-    IN PUINT_8      pucEventBuf
-    );
-#endif
-
-VOID
-nicCmdEventGetBSSInfo (
+nicCmdEventGetBSSInfo(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo,
     IN PUINT_8      pucEventBuf
@@ -2120,4 +2025,3 @@ nicCmdEventGetBSSInfo (
 */
 
 #endif /* _NIC_CMD_EVENT_H */
-

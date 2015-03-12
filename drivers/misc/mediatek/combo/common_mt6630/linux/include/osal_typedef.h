@@ -43,4 +43,3 @@ typedef int MTK_WCN_BOOL;
 #endif
 
 #endif /*_OSAL_TYPEDEF_H_*/
-

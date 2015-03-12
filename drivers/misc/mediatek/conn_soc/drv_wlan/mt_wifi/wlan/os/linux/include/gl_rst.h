@@ -1,10 +1,24 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/os/linux/include/gl_rst.h#1 $
 */
 
 /*! \file   gl_rst.h
-    \brief  Declaration of functions and finite state machine for 
-            MT6620 Whole-Chip Reset Mechanism
+    \brief  Declaration of functions and finite state machine for
+	    MT6620 Whole-Chip Reset Mechanism
 */
 
 
@@ -40,12 +54,12 @@ typedef INT32(*wmt_wlan_remove_cb)(VOID);
 typedef INT32(*wmt_wlan_bus_cnt_get_cb)(VOID);
 typedef INT32(*wmt_wlan_bus_cnt_clr_cb)(VOID);
 
-typedef struct _MTK_WCN_WMT_WLAN_CB_INFO{
+typedef struct _MTK_WCN_WMT_WLAN_CB_INFO {
 	wmt_wlan_probe_cb wlan_probe_cb;
 	wmt_wlan_remove_cb wlan_remove_cb;
 	wmt_wlan_bus_cnt_get_cb wlan_bus_cnt_get_cb;
 	wmt_wlan_bus_cnt_clr_cb wlan_bus_cnt_clr_cb;
-}MTK_WCN_WMT_WLAN_CB_INFO,*P_MTK_WCN_WMT_WLAN_CB_INFO;
+} MTK_WCN_WMT_WLAN_CB_INFO, *P_MTK_WCN_WMT_WLAN_CB_INFO;
 
 extern INT32 mtk_wcn_wmt_wlan_reg(P_MTK_WCN_WMT_WLAN_CB_INFO pWmtWlanCbInfo);
 extern INT32 mtk_wcn_wmt_wlan_unreg(VOID);
@@ -67,12 +81,12 @@ typedef enum _ENUM_WMTMSG_TYPE_T {
     WMTMSG_TYPE_POWER_ON = 0,
     WMTMSG_TYPE_POWER_OFF = 1,
     WMTMSG_TYPE_RESET = 2,
-    WMTMSG_TYPE_STP_RDY= 3,
-    WMTMSG_TYPE_HW_FUNC_ON= 4,
+    WMTMSG_TYPE_STP_RDY = 3,
+    WMTMSG_TYPE_HW_FUNC_ON = 4,
     WMTMSG_TYPE_MAX
 } ENUM_WMTMSG_TYPE_T, *P_ENUM_WMTMSG_TYPE_T;
 
-typedef enum _ENUM_WMTRSTMSG_TYPE_T{
+typedef enum _ENUM_WMTRSTMSG_TYPE_T {
     WMTRSTMSG_RESET_START = 0x0,
     WMTRSTMSG_RESET_END = 0x1,
     WMTRSTMSG_RESET_MAX,
@@ -84,17 +98,16 @@ typedef void (*PF_WMT_CB)(
     ENUM_WMTDRV_TYPE_T, /* Destination driver type */
     ENUM_WMTMSG_TYPE_T, /* Message type */
     void *, /* READ-ONLY buffer. Buffer is allocated and freed by WMT_drv. Client
-               can't touch this buffer after this function return. */
+	       can't touch this buffer after this function return. */
     unsigned int /* Buffer size in unit of byte */
     );
 
 
-typedef enum _ENUM_WIFI_NETLINK_GRP_T{
+typedef enum _ENUM_WIFI_NETLINK_GRP_T {
     WIFI_NETLINK_GRP_RESET,
     WIFI_NETLINK_GRP_MAX
 } ENUM_WIFI_NETLINK_GRP_T, *P_ENUM_WIFI_NETLINK_GRP_T;
 
-int mtk_wcn_wmt_assert(ENUM_WMTDRV_TYPE_T type, UINT32 reason);
 
 /*******************************************************************************
 *                            P U B L I C   D A T A

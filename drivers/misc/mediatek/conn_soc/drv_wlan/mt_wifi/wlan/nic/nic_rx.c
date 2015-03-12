@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/nic/nic_rx.c#3 $
 */
 
@@ -13,7 +27,7 @@
 
 /*
 ** $Log: nic_rx.c $
-** 
+**
 ** 08 31 2012 yuche.tsai
 ** [ALPS00349585] [6577JB][WiFi direct][KE]Establish p2p connection while both device have connected to AP previously,one device reboots automatically with KE
 ** Fix possible KE when concurrent & disconnect.
@@ -885,7 +899,7 @@ static PROCESS_RX_MGT_FUNCTION apfnProcessRxMgtFrame[MAX_NUM_OF_FC_SUBTYPES] = {
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxInitialize (
+nicRxInitialize(
     IN P_ADAPTER_T prAdapter
     )
 {
@@ -899,29 +913,29 @@ nicRxInitialize (
     ASSERT(prAdapter);
     prRxCtrl = &prAdapter->rRxCtrl;
 
-    //4 <0> Clear allocated memory.
+    /* 4 <0> Clear allocated memory. */
     kalMemZero((PVOID) prRxCtrl->pucRxCached, prRxCtrl->u4RxCachedSize);
 
-    //4 <1> Initialize the RFB lists
+    /* 4 <1> Initialize the RFB lists */
     QUEUE_INITIALIZE(&prRxCtrl->rFreeSwRfbList);
     QUEUE_INITIALIZE(&prRxCtrl->rReceivedRfbList);
     QUEUE_INITIALIZE(&prRxCtrl->rIndicatedRfbList);
 
     pucMemHandle = prRxCtrl->pucRxCached;
     for (i = CFG_RX_MAX_PKT_NUM; i != 0; i--) {
-        prSwRfb = (P_SW_RFB_T)pucMemHandle;
+	prSwRfb = (P_SW_RFB_T)pucMemHandle;
 
-        nicRxSetupRFB(prAdapter, prSwRfb);
-        nicRxReturnRFB(prAdapter, prSwRfb);
+	nicRxSetupRFB(prAdapter, prSwRfb);
+	nicRxReturnRFB(prAdapter, prSwRfb);
 
-        pucMemHandle += ALIGN_4(sizeof(SW_RFB_T));
+	pucMemHandle += ALIGN_4(sizeof(SW_RFB_T));
     }
 
     ASSERT(prRxCtrl->rFreeSwRfbList.u4NumElem == CFG_RX_MAX_PKT_NUM);
     /* Check if the memory allocation consist with this initialization function */
     ASSERT((UINT_32)(pucMemHandle - prRxCtrl->pucRxCached) == prRxCtrl->u4RxCachedSize);
 
-    //4 <2> Clear all RX counters
+    /* 4 <2> Clear all RX counters */
     RX_RESET_ALL_CNTS(prRxCtrl);
 
 #if CFG_SDIO_RX_AGG
@@ -960,7 +974,7 @@ nicRxInitialize (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxPostInitialize (
+nicRxPostInitialize(
     IN P_ADAPTER_T prAdapter
     )
 {
@@ -990,7 +1004,7 @@ nicRxPostInitialize (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxUninitialize (
+nicRxUninitialize(
     IN P_ADAPTER_T prAdapter
     )
 {
@@ -1005,34 +1019,34 @@ nicRxUninitialize (
     nicRxFlush(prAdapter);
 
     do {
-        KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
-        QUEUE_REMOVE_HEAD(&prRxCtrl->rReceivedRfbList, prSwRfb, P_SW_RFB_T);
-        KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
-        if (prSwRfb){
-            if (prSwRfb->pvPacket) {
-                kalPacketFree(prAdapter->prGlueInfo, prSwRfb->pvPacket);
-            }
-            prSwRfb->pvPacket = NULL;
-        }
-        else {
-            break;
-        }
-    }while (TRUE);
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	QUEUE_REMOVE_HEAD(&prRxCtrl->rReceivedRfbList, prSwRfb, P_SW_RFB_T);
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	if (prSwRfb) {
+	    if (prSwRfb->pvPacket) {
+		kalPacketFree(prAdapter->prGlueInfo, prSwRfb->pvPacket);
+	    }
+	    prSwRfb->pvPacket = NULL;
+	}
+	else {
+	    break;
+	}
+    } while (TRUE);
 
     do {
-        KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
-        QUEUE_REMOVE_HEAD(&prRxCtrl->rFreeSwRfbList, prSwRfb, P_SW_RFB_T);
-        KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
-        if (prSwRfb){
-            if (prSwRfb->pvPacket) {
-                kalPacketFree(prAdapter->prGlueInfo, prSwRfb->pvPacket);
-            }
-            prSwRfb->pvPacket = NULL;
-        }
-        else {
-            break;
-        }
-    }while (TRUE);
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	QUEUE_REMOVE_HEAD(&prRxCtrl->rFreeSwRfbList, prSwRfb, P_SW_RFB_T);
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	if (prSwRfb) {
+	    if (prSwRfb->pvPacket) {
+		kalPacketFree(prAdapter->prGlueInfo, prSwRfb->pvPacket);
+	    }
+	    prSwRfb->pvPacket = NULL;
+	}
+	else {
+	    break;
+	}
+    } while (TRUE);
 
     return;
 } /* end of nicRxUninitialize() */
@@ -1050,7 +1064,7 @@ nicRxUninitialize (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxFillRFB (
+nicRxFillRFB(
     IN P_ADAPTER_T    prAdapter,
     IN OUT P_SW_RFB_T prSwRfb
     )
@@ -1069,48 +1083,48 @@ nicRxFillRFB (
     prHifRxHdr = prSwRfb->prHifRxHdr;
     ASSERT(prHifRxHdr);
 
-    u4PktLen= prHifRxHdr->u2PacketLen;
+    u4PktLen = prHifRxHdr->u2PacketLen;
 
     u4HeaderOffset = (UINT_32)(prHifRxHdr->ucHerderLenOffset & HIF_RX_HDR_HEADER_OFFSET_MASK);
     u4MacHeaderLen = (UINT_32)(prHifRxHdr->ucHerderLenOffset & HIF_RX_HDR_HEADER_LEN)
-                    >> HIF_RX_HDR_HEADER_LEN_OFFSET;
+		    >> HIF_RX_HDR_HEADER_LEN_OFFSET;
 
-    //DBGLOG(RX, TRACE, ("u4HeaderOffset = %d, u4MacHeaderLen = %d\n",
-    //    u4HeaderOffset, u4MacHeaderLen));
+    /* DBGLOG(RX, TRACE, ("u4HeaderOffset = %d, u4MacHeaderLen = %d\n", */
+    /* u4HeaderOffset, u4MacHeaderLen)); */
 
     prSwRfb->u2HeaderLen = (UINT_16)u4MacHeaderLen;
     prSwRfb->pvHeader = (PUINT_8)prHifRxHdr + HIF_RX_HDR_SIZE + u4HeaderOffset;
     prSwRfb->u2PacketLen = (UINT_16)(u4PktLen - (HIF_RX_HDR_SIZE + u4HeaderOffset));
 
-    //DBGLOG(RX, TRACE, ("Dump Rx packet, u2PacketLen = %d\n", prSwRfb->u2PacketLen));
-    //DBGLOG_MEM8(RX, TRACE, prSwRfb->pvHeader, prSwRfb->u2PacketLen);
+    /* DBGLOG(RX, TRACE, ("Dump Rx packet, u2PacketLen = %d\n", prSwRfb->u2PacketLen)); */
+    /* DBGLOG_MEM8(RX, TRACE, prSwRfb->pvHeader, prSwRfb->u2PacketLen); */
 
 #if 0
-    if (prHifRxHdr->ucReorder & HIF_RX_HDR_80211_HEADER_FORMAT){
-        prSwRfb->u4HifRxHdrFlag |= HIF_RX_HDR_FLAG_802_11_FORMAT;
-        DBGLOG(RX, TRACE, ("HIF_RX_HDR_FLAG_802_11_FORMAT\n"));
+    if (prHifRxHdr->ucReorder & HIF_RX_HDR_80211_HEADER_FORMAT) {
+	prSwRfb->u4HifRxHdrFlag |= HIF_RX_HDR_FLAG_802_11_FORMAT;
+	DBGLOG(RX, TRACE, ("HIF_RX_HDR_FLAG_802_11_FORMAT\n"));
     }
 
-    if (prHifRxHdr->ucReorder & HIF_RX_HDR_DO_REORDER){
-        prSwRfb->u4HifRxHdrFlag |= HIF_RX_HDR_FLAG_DO_REORDERING;
-        DBGLOG(RX, TRACE, ("HIF_RX_HDR_FLAG_DO_REORDERING\n"));
+    if (prHifRxHdr->ucReorder & HIF_RX_HDR_DO_REORDER) {
+	prSwRfb->u4HifRxHdrFlag |= HIF_RX_HDR_FLAG_DO_REORDERING;
+	DBGLOG(RX, TRACE, ("HIF_RX_HDR_FLAG_DO_REORDERING\n"));
 
-        /* Get Seq. No and TID, Wlan Index info */
-        if (prHifRxHdr->u2SeqNoTid & HIF_RX_HDR_BAR_FRAME){
-            prSwRfb->u4HifRxHdrFlag |= HIF_RX_HDR_FLAG_BAR_FRAME;
-            DBGLOG(RX, TRACE, ("HIF_RX_HDR_FLAG_BAR_FRAME\n"));
-        }
+	/* Get Seq. No and TID, Wlan Index info */
+	if (prHifRxHdr->u2SeqNoTid & HIF_RX_HDR_BAR_FRAME) {
+	    prSwRfb->u4HifRxHdrFlag |= HIF_RX_HDR_FLAG_BAR_FRAME;
+	    DBGLOG(RX, TRACE, ("HIF_RX_HDR_FLAG_BAR_FRAME\n"));
+	}
 
-        prSwRfb->u2SSN = prHifRxHdr->u2SeqNoTid & HIF_RX_HDR_SEQ_NO_MASK;
-        prSwRfb->ucTid = (UINT_8)((prHifRxHdr->u2SeqNoTid & HIF_RX_HDR_TID_MASK)
-                        >> HIF_RX_HDR_TID_OFFSET);
-        DBGLOG(RX, TRACE, ("u2SSN = %d, ucTid = %d\n",
-            prSwRfb->u2SSN, prSwRfb->ucTid));
+	prSwRfb->u2SSN = prHifRxHdr->u2SeqNoTid & HIF_RX_HDR_SEQ_NO_MASK;
+	prSwRfb->ucTid = (UINT_8)((prHifRxHdr->u2SeqNoTid & HIF_RX_HDR_TID_MASK)
+			>> HIF_RX_HDR_TID_OFFSET);
+	DBGLOG(RX, TRACE, ("u2SSN = %d, ucTid = %d\n",
+	    prSwRfb->u2SSN, prSwRfb->ucTid));
     }
 
-    if (prHifRxHdr->ucReorder & HIF_RX_HDR_WDS){
-        prSwRfb->u4HifRxHdrFlag |= HIF_RX_HDR_FLAG_AMP_WDS;
-        DBGLOG(RX, TRACE, ("HIF_RX_HDR_FLAG_AMP_WDS\n"));
+    if (prHifRxHdr->ucReorder & HIF_RX_HDR_WDS) {
+	prSwRfb->u4HifRxHdrFlag |= HIF_RX_HDR_FLAG_AMP_WDS;
+	DBGLOG(RX, TRACE, ("HIF_RX_HDR_FLAG_AMP_WDS\n"));
     }
 #endif
 }
@@ -1140,65 +1154,65 @@ nicRxFillChksumStatus(
     ASSERT(prAdapter);
     ASSERT(prSwRfb);
 
-    if (prAdapter->u4CSUMFlags != CSUM_NOT_SUPPORTED){
-        if (u4TcpUdpIpCksStatus & RX_CS_TYPE_IPv4) { // IPv4 packet
-            prSwRfb->aeCSUM[CSUM_TYPE_IPV6] = CSUM_RES_NONE;
-            if(u4TcpUdpIpCksStatus & RX_CS_STATUS_IP) { //IP packet csum failed
-                prSwRfb->aeCSUM[CSUM_TYPE_IPV4] = CSUM_RES_FAILED;
-            } else {
-                prSwRfb->aeCSUM[CSUM_TYPE_IPV4] = CSUM_RES_SUCCESS;
-            }
+    if (prAdapter->u4CSUMFlags != CSUM_NOT_SUPPORTED) {
+	if (u4TcpUdpIpCksStatus & RX_CS_TYPE_IPv4) { /* IPv4 packet */
+	    prSwRfb->aeCSUM[CSUM_TYPE_IPV6] = CSUM_RES_NONE;
+	    if (u4TcpUdpIpCksStatus & RX_CS_STATUS_IP) { /* IP packet csum failed */
+		prSwRfb->aeCSUM[CSUM_TYPE_IPV4] = CSUM_RES_FAILED;
+	    } else {
+		prSwRfb->aeCSUM[CSUM_TYPE_IPV4] = CSUM_RES_SUCCESS;
+	    }
 
-            if (u4TcpUdpIpCksStatus & RX_CS_TYPE_TCP) { //TCP packet
-                prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_NONE;
-                if(u4TcpUdpIpCksStatus & RX_CS_STATUS_TCP) { //TCP packet csum failed
-                    prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_FAILED;
-                } else {
-                    prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_SUCCESS;
-                }
-            }
-            else if (u4TcpUdpIpCksStatus & RX_CS_TYPE_UDP) { //UDP packet
-                prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_NONE;
-                if(u4TcpUdpIpCksStatus & RX_CS_STATUS_UDP) { //UDP packet csum failed
-                    prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_FAILED;
-                } else {
-                    prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_SUCCESS;
-                }
-            }
-            else {
-                prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_NONE;
-                prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_NONE;
-            }
-        }
-        else if (u4TcpUdpIpCksStatus & RX_CS_TYPE_IPv6) {//IPv6 packet
-            prSwRfb->aeCSUM[CSUM_TYPE_IPV4] = CSUM_RES_NONE;
-            prSwRfb->aeCSUM[CSUM_TYPE_IPV6] = CSUM_RES_SUCCESS;
+	    if (u4TcpUdpIpCksStatus & RX_CS_TYPE_TCP) { /* TCP packet */
+		prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_NONE;
+		if (u4TcpUdpIpCksStatus & RX_CS_STATUS_TCP) { /* TCP packet csum failed */
+		    prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_FAILED;
+		} else {
+		    prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_SUCCESS;
+		}
+	    }
+	    else if (u4TcpUdpIpCksStatus & RX_CS_TYPE_UDP) { /* UDP packet */
+		prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_NONE;
+		if (u4TcpUdpIpCksStatus & RX_CS_STATUS_UDP) { /* UDP packet csum failed */
+		    prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_FAILED;
+		} else {
+		    prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_SUCCESS;
+		}
+	    }
+	    else {
+		prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_NONE;
+		prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_NONE;
+	    }
+	}
+	else if (u4TcpUdpIpCksStatus & RX_CS_TYPE_IPv6) {/* IPv6 packet */
+	    prSwRfb->aeCSUM[CSUM_TYPE_IPV4] = CSUM_RES_NONE;
+	    prSwRfb->aeCSUM[CSUM_TYPE_IPV6] = CSUM_RES_SUCCESS;
 
-            if (u4TcpUdpIpCksStatus & RX_CS_TYPE_TCP) { //TCP packet
-                prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_NONE;
-                if(u4TcpUdpIpCksStatus & RX_CS_STATUS_TCP) { //TCP packet csum failed
-                    prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_FAILED;
-                } else {
-                    prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_SUCCESS;
-                }
-            }
-            else if (u4TcpUdpIpCksStatus & RX_CS_TYPE_UDP) { //UDP packet
-                prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_NONE;
-                if(u4TcpUdpIpCksStatus & RX_CS_STATUS_UDP) { //UDP packet csum failed
-                    prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_FAILED;
-                } else {
-                    prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_SUCCESS;
-                }
-            }
-            else {
-                prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_NONE;
-                prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_NONE;
-            }
-        }
-        else {
-            prSwRfb->aeCSUM[CSUM_TYPE_IPV4] = CSUM_RES_NONE;
-            prSwRfb->aeCSUM[CSUM_TYPE_IPV6] = CSUM_RES_NONE;
-        }
+	    if (u4TcpUdpIpCksStatus & RX_CS_TYPE_TCP) { /* TCP packet */
+		prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_NONE;
+		if (u4TcpUdpIpCksStatus & RX_CS_STATUS_TCP) { /* TCP packet csum failed */
+		    prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_FAILED;
+		} else {
+		    prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_SUCCESS;
+		}
+	    }
+	    else if (u4TcpUdpIpCksStatus & RX_CS_TYPE_UDP) { /* UDP packet */
+		prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_NONE;
+		if (u4TcpUdpIpCksStatus & RX_CS_STATUS_UDP) { /* UDP packet csum failed */
+		    prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_FAILED;
+		} else {
+		    prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_SUCCESS;
+		}
+	    }
+	    else {
+		prSwRfb->aeCSUM[CSUM_TYPE_UDP] = CSUM_RES_NONE;
+		prSwRfb->aeCSUM[CSUM_TYPE_TCP] = CSUM_RES_NONE;
+	    }
+	}
+	else {
+	    prSwRfb->aeCSUM[CSUM_TYPE_IPV4] = CSUM_RES_NONE;
+	    prSwRfb->aeCSUM[CSUM_TYPE_IPV6] = CSUM_RES_NONE;
+	}
     }
 
 }
@@ -1217,7 +1231,7 @@ nicRxFillChksumStatus(
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxProcessPktWithoutReorder (
+nicRxProcessPktWithoutReorder(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T  prSwRfb
     )
@@ -1229,7 +1243,7 @@ nicRxProcessPktWithoutReorder (
     P_STA_RECORD_T prStaRec = (P_STA_RECORD_T)NULL;
 
     DEBUGFUNC("nicRxProcessPktWithoutReorder");
-    //DBGLOG(RX, TRACE, ("\n"));
+    /* DBGLOG(RX, TRACE, ("\n")); */
 
     ASSERT(prAdapter);
     ASSERT(prSwRfb);
@@ -1256,54 +1270,54 @@ nicRxProcessPktWithoutReorder (
      *
      */
     fgIsRetained = (((u4CurrentRxBufferCount +
-                    qmGetRxReorderQueuedBufferCount(prAdapter) +
-                    prTxCtrl->i4PendingFwdFrameCount) < CFG_RX_RETAINED_PKT_THRESHOLD) ?
-                           TRUE : FALSE);
+		    qmGetRxReorderQueuedBufferCount(prAdapter) +
+		    prTxCtrl->i4PendingFwdFrameCount) < CFG_RX_RETAINED_PKT_THRESHOLD) ?
+			   TRUE : FALSE);
 
-    //DBGLOG(RX, INFO, ("fgIsRetained = %d\n", fgIsRetained));
+    /* DBGLOG(RX, INFO, ("fgIsRetained = %d\n", fgIsRetained)); */
 
     if (kalProcessRxPacket(prAdapter->prGlueInfo,
-                         prSwRfb->pvPacket,
-                         prSwRfb->pvHeader,
-                         (UINT_32)prSwRfb->u2PacketLen,
-                         fgIsRetained,
-                         prSwRfb->aeCSUM) != WLAN_STATUS_SUCCESS) {
-        DBGLOG(RX, ERROR, ("kalProcessRxPacket return value != WLAN_STATUS_SUCCESS\n"));
-        ASSERT(0);
+			 prSwRfb->pvPacket,
+			 prSwRfb->pvHeader,
+			 (UINT_32)prSwRfb->u2PacketLen,
+			 fgIsRetained,
+			 prSwRfb->aeCSUM) != WLAN_STATUS_SUCCESS) {
+	DBGLOG(RX, ERROR, ("kalProcessRxPacket return value != WLAN_STATUS_SUCCESS\n"));
+	ASSERT(0);
 
-        nicRxReturnRFB(prAdapter, prSwRfb);
-        return;
+	nicRxReturnRFB(prAdapter, prSwRfb);
+	return;
     }
     else {
-        prStaRec = cnmGetStaRecByIndex(prAdapter, prSwRfb->ucStaRecIdx);
+	prStaRec = cnmGetStaRecByIndex(prAdapter, prSwRfb->ucStaRecIdx);
 
-        if (prStaRec) {
+	if (prStaRec) {
 #if CFG_ENABLE_WIFI_DIRECT
-            if (prStaRec->ucNetTypeIndex == NETWORK_TYPE_P2P_INDEX &&
-                prAdapter->fgIsP2PRegistered == TRUE) {
-                GLUE_SET_PKT_FLAG_P2P(prSwRfb->pvPacket);
-            }
+	    if (prStaRec->ucNetTypeIndex == NETWORK_TYPE_P2P_INDEX &&
+		prAdapter->fgIsP2PRegistered == TRUE) {
+		GLUE_SET_PKT_FLAG_P2P(prSwRfb->pvPacket);
+	    }
 #endif
 #if CFG_ENABLE_BT_OVER_WIFI
-            if (prStaRec->ucNetTypeIndex == NETWORK_TYPE_BOW_INDEX) {
-                GLUE_SET_PKT_FLAG_PAL(prSwRfb->pvPacket);
-            }
+	    if (prStaRec->ucNetTypeIndex == NETWORK_TYPE_BOW_INDEX) {
+		GLUE_SET_PKT_FLAG_PAL(prSwRfb->pvPacket);
+	    }
 #endif
-        }
-        prRxCtrl->apvIndPacket[prRxCtrl->ucNumIndPacket] = prSwRfb->pvPacket;
-        prRxCtrl->ucNumIndPacket++;
+	}
+	prRxCtrl->apvIndPacket[prRxCtrl->ucNumIndPacket] = prSwRfb->pvPacket;
+	prRxCtrl->ucNumIndPacket++;
     }
 
     if (fgIsRetained) {
-        prRxCtrl->apvRetainedPacket[prRxCtrl->ucNumRetainedPacket] = prSwRfb->pvPacket;
-        prRxCtrl->ucNumRetainedPacket++;
-            /* TODO : error handling of nicRxSetupRFB */
-        nicRxSetupRFB(prAdapter, prSwRfb);
-        nicRxReturnRFB(prAdapter, prSwRfb);
+	prRxCtrl->apvRetainedPacket[prRxCtrl->ucNumRetainedPacket] = prSwRfb->pvPacket;
+	prRxCtrl->ucNumRetainedPacket++;
+	    /* TODO : error handling of nicRxSetupRFB */
+	nicRxSetupRFB(prAdapter, prSwRfb);
+	nicRxReturnRFB(prAdapter, prSwRfb);
     }
     else{
-        prSwRfb->pvPacket = NULL;
-        nicRxReturnRFB(prAdapter, prSwRfb);
+	prSwRfb->pvPacket = NULL;
+	nicRxReturnRFB(prAdapter, prSwRfb);
     }
 }
 
@@ -1320,7 +1334,7 @@ nicRxProcessPktWithoutReorder (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxProcessForwardPkt (
+nicRxProcessForwardPkt(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T  prSwRfb
     )
@@ -1342,42 +1356,42 @@ nicRxProcessForwardPkt (
     QUEUE_REMOVE_HEAD(&prTxCtrl->rFreeMsduInfoList, prMsduInfo, P_MSDU_INFO_T);
     KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
 
-    if(prMsduInfo && kalProcessRxPacket(prAdapter->prGlueInfo,
-                prSwRfb->pvPacket,
-                prSwRfb->pvHeader,
-                (UINT_32)prSwRfb->u2PacketLen,
-                prRxCtrl->rFreeSwRfbList.u4NumElem < CFG_RX_RETAINED_PKT_THRESHOLD ? TRUE : FALSE,
-                prSwRfb->aeCSUM) == WLAN_STATUS_SUCCESS) {
+    if (prMsduInfo && kalProcessRxPacket(prAdapter->prGlueInfo,
+		prSwRfb->pvPacket,
+		prSwRfb->pvHeader,
+		(UINT_32)prSwRfb->u2PacketLen,
+		prRxCtrl->rFreeSwRfbList.u4NumElem < CFG_RX_RETAINED_PKT_THRESHOLD ? TRUE : FALSE,
+		prSwRfb->aeCSUM) == WLAN_STATUS_SUCCESS) {
 
-        prMsduInfo->eSrc = TX_PACKET_FORWARDING;
-        // pack into MSDU_INFO_T
-        nicTxFillMsduInfo(prAdapter, prMsduInfo, (P_NATIVE_PACKET)(prSwRfb->pvPacket));
-        // Overwrite the ucNetworkType
-        prMsduInfo->ucNetworkType = HIF_RX_HDR_GET_NETWORK_IDX(prSwRfb->prHifRxHdr);
+	prMsduInfo->eSrc = TX_PACKET_FORWARDING;
+	/* pack into MSDU_INFO_T */
+	nicTxFillMsduInfo(prAdapter, prMsduInfo, (P_NATIVE_PACKET)(prSwRfb->pvPacket));
+	/* Overwrite the ucNetworkType */
+	prMsduInfo->ucNetworkType = HIF_RX_HDR_GET_NETWORK_IDX(prSwRfb->prHifRxHdr);
 
-        // release RX buffer (to rIndicatedRfbList)
-        prSwRfb->pvPacket = NULL;
-        nicRxReturnRFB(prAdapter, prSwRfb);
+	/* release RX buffer (to rIndicatedRfbList) */
+	prSwRfb->pvPacket = NULL;
+	nicRxReturnRFB(prAdapter, prSwRfb);
 
-        // increase forward frame counter
-        GLUE_INC_REF_CNT(prTxCtrl->i4PendingFwdFrameCount);
+	/* increase forward frame counter */
+	GLUE_INC_REF_CNT(prTxCtrl->i4PendingFwdFrameCount);
 
-        // send into TX queue
-        KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_QM_TX_QUEUE);
-        prRetMsduInfoList = qmEnqueueTxPackets(prAdapter, prMsduInfo);
-        KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_QM_TX_QUEUE);
+	/* send into TX queue */
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_QM_TX_QUEUE);
+	prRetMsduInfoList = qmEnqueueTxPackets(prAdapter, prMsduInfo);
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_QM_TX_QUEUE);
 
-        if(prRetMsduInfoList != NULL) { // TX queue refuses queuing the packet
-            nicTxFreeMsduInfoPacket(prAdapter, prRetMsduInfoList);
-            nicTxReturnMsduInfo(prAdapter, prRetMsduInfoList);
-        }
-        /* indicate service thread for sending */
-        if(prTxCtrl->i4PendingFwdFrameCount > 0) {
-            kalSetEvent(prAdapter->prGlueInfo);
-        }
+	if (prRetMsduInfoList != NULL) { /* TX queue refuses queuing the packet */
+	    nicTxFreeMsduInfoPacket(prAdapter, prRetMsduInfoList);
+	    nicTxReturnMsduInfo(prAdapter, prRetMsduInfoList);
+	}
+	/* indicate service thread for sending */
+	if (prTxCtrl->i4PendingFwdFrameCount > 0) {
+	    kalSetEvent(prAdapter->prGlueInfo);
+	}
     }
-    else { // no TX resource
-        nicRxReturnRFB(prAdapter, prSwRfb);
+    else { /* no TX resource */
+	nicRxReturnRFB(prAdapter, prSwRfb);
     }
 
     return;
@@ -1396,7 +1410,7 @@ nicRxProcessForwardPkt (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxProcessGOBroadcastPkt (
+nicRxProcessGOBroadcastPkt(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T  prSwRfb
     )
@@ -1421,32 +1435,32 @@ nicRxProcessGOBroadcastPkt (
 
     ASSERT(CFG_NUM_OF_QM_RX_PKT_NUM >= 16);
 
-    if( prRxCtrl->rFreeSwRfbList.u4NumElem
-                    >= (CFG_RX_MAX_PKT_NUM - (CFG_NUM_OF_QM_RX_PKT_NUM - 16 /* Reserved for others */) )  ) {
+    if (prRxCtrl->rFreeSwRfbList.u4NumElem
+		    >= (CFG_RX_MAX_PKT_NUM - (CFG_NUM_OF_QM_RX_PKT_NUM - 16 /* Reserved for others */))  ) {
 
-        /* 1. Duplicate SW_RFB_T */
-        KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
-        QUEUE_REMOVE_HEAD(&prRxCtrl->rFreeSwRfbList, prSwRfbDuplicated, P_SW_RFB_T);
-        KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	/* 1. Duplicate SW_RFB_T */
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	QUEUE_REMOVE_HEAD(&prRxCtrl->rFreeSwRfbList, prSwRfbDuplicated, P_SW_RFB_T);
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
 
-        if(prSwRfbDuplicated){
-            kalMemCopy(prSwRfbDuplicated->pucRecvBuff,
-                    prSwRfb->pucRecvBuff,
-                    ALIGN_4(prHifRxHdr->u2PacketLen + HIF_RX_HW_APPENDED_LEN));
+	if (prSwRfbDuplicated) {
+	    kalMemCopy(prSwRfbDuplicated->pucRecvBuff,
+		    prSwRfb->pucRecvBuff,
+		    ALIGN_4(prHifRxHdr->u2PacketLen + HIF_RX_HW_APPENDED_LEN));
 
-            prSwRfbDuplicated->ucPacketType = HIF_RX_PKT_TYPE_DATA;
-            prSwRfbDuplicated->ucStaRecIdx = (UINT_8)(prHifRxHdr->ucStaRecIdx);
-            nicRxFillRFB(prAdapter, prSwRfbDuplicated);
+	    prSwRfbDuplicated->ucPacketType = HIF_RX_PKT_TYPE_DATA;
+	    prSwRfbDuplicated->ucStaRecIdx = (UINT_8)(prHifRxHdr->ucStaRecIdx);
+	    nicRxFillRFB(prAdapter, prSwRfbDuplicated);
 
-            /* 2. Modify eDst */
-            prSwRfbDuplicated->eDst = RX_PKT_DESTINATION_FORWARD;
+	    /* 2. Modify eDst */
+	    prSwRfbDuplicated->eDst = RX_PKT_DESTINATION_FORWARD;
 
-            /* 4. Forward */
-            nicRxProcessForwardPkt(prAdapter, prSwRfbDuplicated);
-        }
+	    /* 4. Forward */
+	    nicRxProcessForwardPkt(prAdapter, prSwRfbDuplicated);
+	}
     }
     else {
-        DBGLOG(RX, WARN, ("Stop to forward BMC packet due to less free Sw Rfb %u\n",
+	DBGLOG(RX, WARN, ("Stop to forward BMC packet due to less free Sw Rfb %u\n",
 			(UINT32)prRxCtrl->rFreeSwRfbList.u4NumElem));
     }
 
@@ -1470,7 +1484,7 @@ nicRxProcessGOBroadcastPkt (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxProcessDataPacket (
+nicRxProcessDataPacket(
     IN P_ADAPTER_T    prAdapter,
     IN OUT P_SW_RFB_T prSwRfb
     )
@@ -1481,7 +1495,7 @@ nicRxProcessDataPacket (
     P_STA_RECORD_T prStaRec;
 
     DEBUGFUNC("nicRxProcessDataPacket");
-    //DBGLOG(INIT, TRACE, ("\n"));
+    /* DBGLOG(INIT, TRACE, ("\n")); */
 
     ASSERT(prAdapter);
     ASSERT(prSwRfb);
@@ -1493,82 +1507,82 @@ nicRxProcessDataPacket (
 
 #if 1 /* Check 1x Pkt */
     if (prSwRfb->u2PacketLen > 14) {
-        PUINT_8 pc = (PUINT_8)prSwRfb->pvHeader;
-        UINT_16 u2Etype = 0;
+	PUINT_8 pc = (PUINT_8)prSwRfb->pvHeader;
+	UINT_16 u2Etype = 0;
 
-        u2Etype = (pc[ETH_TYPE_LEN_OFFSET] << 8) | (pc[ETH_TYPE_LEN_OFFSET + 1]);
+	u2Etype = (pc[ETH_TYPE_LEN_OFFSET] << 8) | (pc[ETH_TYPE_LEN_OFFSET + 1]);
 
 #if CFG_SUPPORT_WAPI
-        if (u2Etype == ETH_P_1X || u2Etype == ETH_WPI_1X) {
-            DBGLOG(RSN, INFO, ("R1X len=%d\n", prSwRfb->u2PacketLen));
-        }
+	if (u2Etype == ETH_P_1X || u2Etype == ETH_WPI_1X) {
+	    DBGLOG(RSN, INFO, ("R1X len=%d\n", prSwRfb->u2PacketLen));
+	}
 #else
-        if (u2Etype == ETH_P_1X) {
-            DBGLOG(RSN, INFO, ("R1X len=%d\n", prSwRfb->u2PacketLen));
-        }
+	if (u2Etype == ETH_P_1X) {
+	    DBGLOG(RSN, INFO, ("R1X len=%d\n", prSwRfb->u2PacketLen));
+	}
 #endif
-        else if (u2Etype == ETH_P_PRE_1X) {
-            DBGLOG(RSN, INFO, ("Pre R1X len=%d\n", prSwRfb->u2PacketLen));
-        }
+	else if (u2Etype == ETH_P_PRE_1X) {
+	    DBGLOG(RSN, INFO, ("Pre R1X len=%d\n", prSwRfb->u2PacketLen));
+	}
     }
 #endif
 
 #if CFG_TCP_IP_CHKSUM_OFFLOAD || CFG_TCP_IP_CHKSUM_OFFLOAD_NDIS_60
     {
-        UINT_32 u4TcpUdpIpCksStatus;
+	UINT_32 u4TcpUdpIpCksStatus;
 
-        u4TcpUdpIpCksStatus = *((PUINT_32)((UINT_32)prHifRxHdr +
-                (UINT_32)(ALIGN_4(prHifRxHdr->u2PacketLen))));
-        nicRxFillChksumStatus(prAdapter, prSwRfb, u4TcpUdpIpCksStatus);
+	u4TcpUdpIpCksStatus = *((PUINT_32)((UINT_32)prHifRxHdr +
+		(UINT_32)(ALIGN_4(prHifRxHdr->u2PacketLen))));
+	nicRxFillChksumStatus(prAdapter, prSwRfb, u4TcpUdpIpCksStatus);
 
     }
 #endif /* CFG_TCP_IP_CHKSUM_OFFLOAD */
 
     prStaRec = cnmGetStaRecByIndex(prAdapter, prHifRxHdr->ucStaRecIdx);
-    if(secCheckClassError(prAdapter, prSwRfb, prStaRec) == TRUE &&
-    	 prAdapter->fgTestMode == FALSE) {
+    if (secCheckClassError(prAdapter, prSwRfb, prStaRec) == TRUE &&
+	 prAdapter->fgTestMode == FALSE) {
 #if CFG_HIF_RX_STARVATION_WARNING
-        prRxCtrl->u4QueuedCnt++;
+	prRxCtrl->u4QueuedCnt++;
 #endif
 
-        if((prRetSwRfb = qmHandleRxPackets(prAdapter, prSwRfb)) != NULL) {
-            do {
-                // save next first
-                prNextSwRfb = (P_SW_RFB_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prRetSwRfb);
+	if ((prRetSwRfb = qmHandleRxPackets(prAdapter, prSwRfb)) != NULL) {
+	    do {
+		/* save next first */
+		prNextSwRfb = (P_SW_RFB_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prRetSwRfb);
 
-                switch(prRetSwRfb->eDst) {
-                case RX_PKT_DESTINATION_HOST:
-                    nicRxProcessPktWithoutReorder(prAdapter, prRetSwRfb);
-                    break;
+		switch (prRetSwRfb->eDst) {
+		case RX_PKT_DESTINATION_HOST:
+		    nicRxProcessPktWithoutReorder(prAdapter, prRetSwRfb);
+		    break;
 
-                case RX_PKT_DESTINATION_FORWARD:
-                    nicRxProcessForwardPkt(prAdapter, prRetSwRfb);
-                    break;
+		case RX_PKT_DESTINATION_FORWARD:
+		    nicRxProcessForwardPkt(prAdapter, prRetSwRfb);
+		    break;
 
-                case RX_PKT_DESTINATION_HOST_WITH_FORWARD:
-                    nicRxProcessGOBroadcastPkt(prAdapter, prRetSwRfb);
-                    break;
+		case RX_PKT_DESTINATION_HOST_WITH_FORWARD:
+		    nicRxProcessGOBroadcastPkt(prAdapter, prRetSwRfb);
+		    break;
 
-                case RX_PKT_DESTINATION_NULL:
-                    nicRxReturnRFB(prAdapter, prRetSwRfb);
-                    RX_INC_CNT(prRxCtrl, RX_DST_NULL_DROP_COUNT);
-                    RX_INC_CNT(prRxCtrl, RX_DROP_TOTAL_COUNT);
-                    break;
+		case RX_PKT_DESTINATION_NULL:
+		    nicRxReturnRFB(prAdapter, prRetSwRfb);
+		    RX_INC_CNT(prRxCtrl, RX_DST_NULL_DROP_COUNT);
+		    RX_INC_CNT(prRxCtrl, RX_DROP_TOTAL_COUNT);
+		    break;
 
-                default:
-                    break;
-                }
+		default:
+		    break;
+		}
 #if CFG_HIF_RX_STARVATION_WARNING
-                prRxCtrl->u4DequeuedCnt++;
+		prRxCtrl->u4DequeuedCnt++;
 #endif
-                prRetSwRfb = prNextSwRfb;
-            } while(prRetSwRfb);
-        }
+		prRetSwRfb = prNextSwRfb;
+	    } while (prRetSwRfb);
+	}
     }
     else {
-        nicRxReturnRFB(prAdapter, prSwRfb);
-        RX_INC_CNT(prRxCtrl, RX_CLASS_ERR_DROP_COUNT);
-        RX_INC_CNT(prRxCtrl, RX_DROP_TOTAL_COUNT);
+	nicRxReturnRFB(prAdapter, prSwRfb);
+	RX_INC_CNT(prRxCtrl, RX_CLASS_ERR_DROP_COUNT);
+	RX_INC_CNT(prRxCtrl, RX_DROP_TOTAL_COUNT);
     }
 }
 
@@ -1585,7 +1599,7 @@ nicRxProcessDataPacket (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxProcessEventPacket (
+nicRxProcessEventPacket(
     IN P_ADAPTER_T    prAdapter,
     IN OUT P_SW_RFB_T prSwRfb
     )
@@ -1596,7 +1610,7 @@ nicRxProcessEventPacket (
     P_GLUE_INFO_T prGlueInfo;
 
     DEBUGFUNC("nicRxProcessEventPacket");
-    //DBGLOG(INIT, TRACE, ("\n"));
+    /* DBGLOG(INIT, TRACE, ("\n")); */
 
     ASSERT(prAdapter);
     ASSERT(prSwRfb);
@@ -1604,613 +1618,613 @@ nicRxProcessEventPacket (
     prEvent = (P_WIFI_EVENT_T) prSwRfb->pucRecvBuff;
     prGlueInfo = prAdapter->prGlueInfo;
 
-    // Event Handling
-    switch(prEvent->ucEID) {
+    /* Event Handling */
+    switch (prEvent->ucEID) {
     case EVENT_ID_CMD_RESULT:
-        prCmdInfo = nicGetPendingCmdInfo(prAdapter, prEvent->ucSeqNum);
+	prCmdInfo = nicGetPendingCmdInfo(prAdapter, prEvent->ucSeqNum);
 
-        if(prCmdInfo != NULL) {
-            P_EVENT_CMD_RESULT prCmdResult;
-            prCmdResult = (P_EVENT_CMD_RESULT) ((PUINT_8)prEvent + EVENT_HDR_SIZE);
+	if (prCmdInfo != NULL) {
+	    P_EVENT_CMD_RESULT prCmdResult;
+	    prCmdResult = (P_EVENT_CMD_RESULT) ((PUINT_8)prEvent + EVENT_HDR_SIZE);
 
-            /* CMD_RESULT should be only in response to Set commands */
-            ASSERT(prCmdInfo->fgSetQuery == FALSE || prCmdInfo->fgNeedResp == TRUE);
+	    /* CMD_RESULT should be only in response to Set commands */
+	    ASSERT(prCmdInfo->fgSetQuery == FALSE || prCmdInfo->fgNeedResp == TRUE);
 
-            if(prCmdResult->ucStatus == 0) { // success
-                if(prCmdInfo->pfCmdDoneHandler) {
-                    prCmdInfo->pfCmdDoneHandler(prAdapter, prCmdInfo, prEvent->aucBuffer);
-                }
-                else if(prCmdInfo->fgIsOid == TRUE) {
-                    kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_SUCCESS);
-                }
-            }
-            else if(prCmdResult->ucStatus == 1) { // reject
-                if(prCmdInfo->fgIsOid == TRUE)
-                    kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_FAILURE);
-            }
-            else if(prCmdResult->ucStatus == 2) { // unknown CMD
-                if(prCmdInfo->fgIsOid == TRUE)
-                    kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_NOT_SUPPORTED);
-            }
+	    if (prCmdResult->ucStatus == 0) { /* success */
+		if (prCmdInfo->pfCmdDoneHandler) {
+		    prCmdInfo->pfCmdDoneHandler(prAdapter, prCmdInfo, prEvent->aucBuffer);
+		}
+		else if (prCmdInfo->fgIsOid == TRUE) {
+		    kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_SUCCESS);
+		}
+	    }
+	    else if (prCmdResult->ucStatus == 1) { /* reject */
+		if (prCmdInfo->fgIsOid == TRUE)
+		    kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_FAILURE);
+	    }
+	    else if (prCmdResult->ucStatus == 2) { /* unknown CMD */
+		if (prCmdInfo->fgIsOid == TRUE)
+		    kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_NOT_SUPPORTED);
+	    }
 
-            // return prCmdInfo
-            cmdBufFreeCmdInfo(prAdapter, prCmdInfo);
-        }
+	    /* return prCmdInfo */
+	    cmdBufFreeCmdInfo(prAdapter, prCmdInfo);
+	}
 
-        break;
+	break;
 
 #if 0
     case EVENT_ID_CONNECTION_STATUS:
-        /* OBSELETE */
-        {
-            P_EVENT_CONNECTION_STATUS prConnectionStatus;
-            prConnectionStatus = (P_EVENT_CONNECTION_STATUS) (prEvent->aucBuffer);
+	/* OBSELETE */
+	{
+	    P_EVENT_CONNECTION_STATUS prConnectionStatus;
+	    prConnectionStatus = (P_EVENT_CONNECTION_STATUS) (prEvent->aucBuffer);
 
-            DbgPrint("RX EVENT: EVENT_ID_CONNECTION_STATUS = %d\n", prConnectionStatus->ucMediaStatus);
-            if (prConnectionStatus->ucMediaStatus == PARAM_MEDIA_STATE_DISCONNECTED) { // disconnected
-                if(kalGetMediaStateIndicated(prGlueInfo) != PARAM_MEDIA_STATE_DISCONNECTED) {
+	    DbgPrint("RX EVENT: EVENT_ID_CONNECTION_STATUS = %d\n", prConnectionStatus->ucMediaStatus);
+	    if (prConnectionStatus->ucMediaStatus == PARAM_MEDIA_STATE_DISCONNECTED) { /* disconnected */
+		if (kalGetMediaStateIndicated(prGlueInfo) != PARAM_MEDIA_STATE_DISCONNECTED) {
 
-                    kalIndicateStatusAndComplete(prGlueInfo,
-                            WLAN_STATUS_MEDIA_DISCONNECT,
-                            NULL,
-                            0);
+		    kalIndicateStatusAndComplete(prGlueInfo,
+			    WLAN_STATUS_MEDIA_DISCONNECT,
+			    NULL,
+			    0);
 
-                    prAdapter->rWlanInfo.u4SysTime = kalGetTimeTick();
-                }
-            }
-            else if(prConnectionStatus->ucMediaStatus == PARAM_MEDIA_STATE_CONNECTED) { // connected
-                prAdapter->rWlanInfo.u4SysTime = kalGetTimeTick();
+		    prAdapter->rWlanInfo.u4SysTime = kalGetTimeTick();
+		}
+	    }
+	    else if (prConnectionStatus->ucMediaStatus == PARAM_MEDIA_STATE_CONNECTED) { /* connected */
+		prAdapter->rWlanInfo.u4SysTime = kalGetTimeTick();
 
-                // fill information for association result
-                prAdapter->rWlanInfo.rCurrBssId.rSsid.u4SsidLen
-                    = prConnectionStatus->ucSsidLen;
-                kalMemCopy(prAdapter->rWlanInfo.rCurrBssId.rSsid.aucSsid,
-                        prConnectionStatus->aucSsid,
-                        prConnectionStatus->ucSsidLen);
+		/* fill information for association result */
+		prAdapter->rWlanInfo.rCurrBssId.rSsid.u4SsidLen
+		    = prConnectionStatus->ucSsidLen;
+		kalMemCopy(prAdapter->rWlanInfo.rCurrBssId.rSsid.aucSsid,
+			prConnectionStatus->aucSsid,
+			prConnectionStatus->ucSsidLen);
 
-                kalMemCopy(prAdapter->rWlanInfo.rCurrBssId.arMacAddress,
-                        prConnectionStatus->aucBssid,
-                        MAC_ADDR_LEN);
+		kalMemCopy(prAdapter->rWlanInfo.rCurrBssId.arMacAddress,
+			prConnectionStatus->aucBssid,
+			MAC_ADDR_LEN);
 
-                prAdapter->rWlanInfo.rCurrBssId.u4Privacy
-                    = prConnectionStatus->ucEncryptStatus; // @FIXME
-                prAdapter->rWlanInfo.rCurrBssId.rRssi
-                    = 0; //@FIXME
-                prAdapter->rWlanInfo.rCurrBssId.eNetworkTypeInUse
-                    = PARAM_NETWORK_TYPE_AUTOMODE; //@FIXME
-                prAdapter->rWlanInfo.rCurrBssId.rConfiguration.u4BeaconPeriod
-                    = prConnectionStatus->u2BeaconPeriod;
-                prAdapter->rWlanInfo.rCurrBssId.rConfiguration.u4ATIMWindow
-                    = prConnectionStatus->u2ATIMWindow;
-                prAdapter->rWlanInfo.rCurrBssId.rConfiguration.u4DSConfig
-                    = prConnectionStatus->u4FreqInKHz;
-                prAdapter->rWlanInfo.ucNetworkType
-                    = prConnectionStatus->ucNetworkType;
+		prAdapter->rWlanInfo.rCurrBssId.u4Privacy
+		    = prConnectionStatus->ucEncryptStatus; /* @FIXME */
+		prAdapter->rWlanInfo.rCurrBssId.rRssi
+; /* @FIXME */
+		prAdapter->rWlanInfo.rCurrBssId.eNetworkTypeInUse
+		    = PARAM_NETWORK_TYPE_AUTOMODE; /* @FIXME */
+		prAdapter->rWlanInfo.rCurrBssId.rConfiguration.u4BeaconPeriod
+		    = prConnectionStatus->u2BeaconPeriod;
+		prAdapter->rWlanInfo.rCurrBssId.rConfiguration.u4ATIMWindow
+		    = prConnectionStatus->u2ATIMWindow;
+		prAdapter->rWlanInfo.rCurrBssId.rConfiguration.u4DSConfig
+		    = prConnectionStatus->u4FreqInKHz;
+		prAdapter->rWlanInfo.ucNetworkType
+		    = prConnectionStatus->ucNetworkType;
 
-                switch(prConnectionStatus->ucInfraMode) {
-                case 0:
-                    prAdapter->rWlanInfo.rCurrBssId.eOpMode = NET_TYPE_IBSS;
-                    break;
-                case 1:
-                    prAdapter->rWlanInfo.rCurrBssId.eOpMode = NET_TYPE_INFRA;
-                    break;
-                case 2:
-                default:
-                    prAdapter->rWlanInfo.rCurrBssId.eOpMode = NET_TYPE_AUTO_SWITCH;
-                    break;
-                }
-                // always indicate to OS according to MSDN (re-association/roaming)
-                kalIndicateStatusAndComplete(prGlueInfo,
-                        WLAN_STATUS_MEDIA_CONNECT,
-                        NULL,
-                        0);
-            }
-        }
-        break;
+		switch (prConnectionStatus->ucInfraMode) {
+		case 0:
+		    prAdapter->rWlanInfo.rCurrBssId.eOpMode = NET_TYPE_IBSS;
+		    break;
+		case 1:
+		    prAdapter->rWlanInfo.rCurrBssId.eOpMode = NET_TYPE_INFRA;
+		    break;
+		case 2:
+		default:
+		    prAdapter->rWlanInfo.rCurrBssId.eOpMode = NET_TYPE_AUTO_SWITCH;
+		    break;
+		}
+		/* always indicate to OS according to MSDN (re-association/roaming) */
+		kalIndicateStatusAndComplete(prGlueInfo,
+			WLAN_STATUS_MEDIA_CONNECT,
+			NULL,
+			0);
+	    }
+	}
+	break;
 
     case EVENT_ID_SCAN_RESULT:
-        /* OBSELETE */
-        break;
+	/* OBSELETE */
+	break;
 #endif
 
     case EVENT_ID_RX_ADDBA:
-        /* The FW indicates that an RX BA agreement will be established */
-        qmHandleEventRxAddBa(prAdapter, prEvent);
-        break;
+	/* The FW indicates that an RX BA agreement will be established */
+	qmHandleEventRxAddBa(prAdapter, prEvent);
+	break;
 
     case EVENT_ID_RX_DELBA:
-        /* The FW indicates that an RX BA agreement has been deleted */
-        qmHandleEventRxDelBa(prAdapter, prEvent);
-        break;
+	/* The FW indicates that an RX BA agreement has been deleted */
+	qmHandleEventRxDelBa(prAdapter, prEvent);
+	break;
 
     case EVENT_ID_LINK_QUALITY:
 #if CFG_ENABLE_WIFI_DIRECT && CFG_SUPPORT_P2P_RSSI_QUERY
-        if (prEvent->u2PacketLen == EVENT_HDR_SIZE + sizeof(EVENT_LINK_QUALITY_EX)) {
-            P_EVENT_LINK_QUALITY_EX prLqEx = (P_EVENT_LINK_QUALITY_EX)(prEvent->aucBuffer);
+	if (prEvent->u2PacketLen == EVENT_HDR_SIZE + sizeof(EVENT_LINK_QUALITY_EX)) {
+	    P_EVENT_LINK_QUALITY_EX prLqEx = (P_EVENT_LINK_QUALITY_EX)(prEvent->aucBuffer);
 
-            if (prLqEx->ucIsLQ0Rdy) {
-                nicUpdateLinkQuality(prAdapter, NETWORK_TYPE_AIS_INDEX, (P_EVENT_LINK_QUALITY)prLqEx);
-            }
-            if (prLqEx->ucIsLQ1Rdy) {
-                nicUpdateLinkQuality(prAdapter, NETWORK_TYPE_P2P_INDEX, (P_EVENT_LINK_QUALITY)prLqEx);
-            }
-        }
-        else {
-            /* For old FW, P2P may invoke link quality query, and make driver flag becone TRUE. */
-            DBGLOG(P2P, WARN, ("Old FW version, not support P2P RSSI query.\n"));
+	    if (prLqEx->ucIsLQ0Rdy) {
+		nicUpdateLinkQuality(prAdapter, NETWORK_TYPE_AIS_INDEX, (P_EVENT_LINK_QUALITY)prLqEx);
+	    }
+	    if (prLqEx->ucIsLQ1Rdy) {
+		nicUpdateLinkQuality(prAdapter, NETWORK_TYPE_P2P_INDEX, (P_EVENT_LINK_QUALITY)prLqEx);
+	    }
+	}
+	else {
+	    /* For old FW, P2P may invoke link quality query, and make driver flag becone TRUE. */
+	    DBGLOG(P2P, WARN, ("Old FW version, not support P2P RSSI query.\n"));
 
-            /* Must not use NETWORK_TYPE_P2P_INDEX, cause the structure is mismatch. */
-        nicUpdateLinkQuality(prAdapter, NETWORK_TYPE_AIS_INDEX, (P_EVENT_LINK_QUALITY)(prEvent->aucBuffer));
-        }
+	    /* Must not use NETWORK_TYPE_P2P_INDEX, cause the structure is mismatch. */
+	nicUpdateLinkQuality(prAdapter, NETWORK_TYPE_AIS_INDEX, (P_EVENT_LINK_QUALITY)(prEvent->aucBuffer));
+	}
 #else
-        nicUpdateLinkQuality(prAdapter, NETWORK_TYPE_AIS_INDEX, (P_EVENT_LINK_QUALITY)(prEvent->aucBuffer));
+	nicUpdateLinkQuality(prAdapter, NETWORK_TYPE_AIS_INDEX, (P_EVENT_LINK_QUALITY)(prEvent->aucBuffer));
 #endif
 
-        /* command response handling */
-        prCmdInfo = nicGetPendingCmdInfo(prAdapter, prEvent->ucSeqNum);
+	/* command response handling */
+	prCmdInfo = nicGetPendingCmdInfo(prAdapter, prEvent->ucSeqNum);
 
-        if(prCmdInfo != NULL) {
-            if (prCmdInfo->pfCmdDoneHandler) {
-                prCmdInfo->pfCmdDoneHandler(prAdapter, prCmdInfo, prEvent->aucBuffer);
-            }
-            else if(prCmdInfo->fgIsOid) {
-                kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_SUCCESS);
-            }
+	if (prCmdInfo != NULL) {
+	    if (prCmdInfo->pfCmdDoneHandler) {
+		prCmdInfo->pfCmdDoneHandler(prAdapter, prCmdInfo, prEvent->aucBuffer);
+	    }
+	    else if (prCmdInfo->fgIsOid) {
+		kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_SUCCESS);
+	    }
 
-            // return prCmdInfo
-            cmdBufFreeCmdInfo(prAdapter, prCmdInfo);
-        }
+	    /* return prCmdInfo */
+	    cmdBufFreeCmdInfo(prAdapter, prCmdInfo);
+	}
 
-        #ifndef LINUX
-        if(prAdapter->rWlanInfo.eRssiTriggerType == ENUM_RSSI_TRIGGER_GREATER &&
-                prAdapter->rWlanInfo.rRssiTriggerValue >= (PARAM_RSSI)(prAdapter->rLinkQuality.cRssi)) {
-            prAdapter->rWlanInfo.eRssiTriggerType = ENUM_RSSI_TRIGGER_TRIGGERED;
+	#ifndef LINUX
+	if (prAdapter->rWlanInfo.eRssiTriggerType == ENUM_RSSI_TRIGGER_GREATER &&
+		prAdapter->rWlanInfo.rRssiTriggerValue >= (PARAM_RSSI)(prAdapter->rLinkQuality.cRssi)) {
+	    prAdapter->rWlanInfo.eRssiTriggerType = ENUM_RSSI_TRIGGER_TRIGGERED;
 
-            kalIndicateStatusAndComplete(prGlueInfo,
-                    WLAN_STATUS_MEDIA_SPECIFIC_INDICATION,
-                    (PVOID) &(prAdapter->rWlanInfo.rRssiTriggerValue), sizeof(PARAM_RSSI));
-        }
-        else if(prAdapter->rWlanInfo.eRssiTriggerType == ENUM_RSSI_TRIGGER_LESS &&
-                prAdapter->rWlanInfo.rRssiTriggerValue <= (PARAM_RSSI)(prAdapter->rLinkQuality.cRssi)) {
-            prAdapter->rWlanInfo.eRssiTriggerType = ENUM_RSSI_TRIGGER_TRIGGERED;
+	    kalIndicateStatusAndComplete(prGlueInfo,
+		    WLAN_STATUS_MEDIA_SPECIFIC_INDICATION,
+                    (PVOID) & (prAdapter->rWlanInfo.rRssiTriggerValue), sizeof(PARAM_RSSI));
+	}
+	else if (prAdapter->rWlanInfo.eRssiTriggerType == ENUM_RSSI_TRIGGER_LESS &&
+		prAdapter->rWlanInfo.rRssiTriggerValue <= (PARAM_RSSI)(prAdapter->rLinkQuality.cRssi)) {
+	    prAdapter->rWlanInfo.eRssiTriggerType = ENUM_RSSI_TRIGGER_TRIGGERED;
 
-            kalIndicateStatusAndComplete(prGlueInfo,
-                    WLAN_STATUS_MEDIA_SPECIFIC_INDICATION,
-                    (PVOID) &(prAdapter->rWlanInfo.rRssiTriggerValue), sizeof(PARAM_RSSI));
-        }
-        #endif
+	    kalIndicateStatusAndComplete(prGlueInfo,
+		    WLAN_STATUS_MEDIA_SPECIFIC_INDICATION,
+                    (PVOID) & (prAdapter->rWlanInfo.rRssiTriggerValue), sizeof(PARAM_RSSI));
+	}
+	#endif
 
-        break;
+	break;
 
     case EVENT_ID_MIC_ERR_INFO:
-        {
-            P_EVENT_MIC_ERR_INFO prMicError;
-            //P_PARAM_AUTH_EVENT_T prAuthEvent;
-            P_STA_RECORD_T prStaRec;
+	{
+	    P_EVENT_MIC_ERR_INFO prMicError;
+	    /* P_PARAM_AUTH_EVENT_T prAuthEvent; */
+	    P_STA_RECORD_T prStaRec;
 
-            DBGLOG(RSN, EVENT, ("EVENT_ID_MIC_ERR_INFO\n"));
+	    DBGLOG(RSN, EVENT, ("EVENT_ID_MIC_ERR_INFO\n"));
 
-            prMicError = (P_EVENT_MIC_ERR_INFO)(prEvent->aucBuffer);
-            prStaRec = cnmGetStaRecByAddress(prAdapter,
-                            (UINT_8) NETWORK_TYPE_AIS_INDEX,
-                            prAdapter->rWlanInfo.rCurrBssId.arMacAddress);
-            ASSERT(prStaRec);
+	    prMicError = (P_EVENT_MIC_ERR_INFO)(prEvent->aucBuffer);
+	    prStaRec = cnmGetStaRecByAddress(prAdapter,
+			    (UINT_8) NETWORK_TYPE_AIS_INDEX,
+			    prAdapter->rWlanInfo.rCurrBssId.arMacAddress);
+	    ASSERT(prStaRec);
 
-            if (prStaRec) {
-                rsnTkipHandleMICFailure(prAdapter, prStaRec, (BOOLEAN)prMicError->u4Flags);
-            }
-            else {
-                DBGLOG(RSN, INFO, ("No STA rec!!\n"));
-            }
+	    if (prStaRec) {
+		rsnTkipHandleMICFailure(prAdapter, prStaRec, (BOOLEAN)prMicError->u4Flags);
+	    }
+	    else {
+		DBGLOG(RSN, INFO, ("No STA rec!!\n"));
+	    }
 #if 0
-            prAuthEvent = (P_PARAM_AUTH_EVENT_T)prAdapter->aucIndicationEventBuffer;
+	    prAuthEvent = (P_PARAM_AUTH_EVENT_T)prAdapter->aucIndicationEventBuffer;
 
-            /* Status type: Authentication Event */
-            prAuthEvent->rStatus.eStatusType = ENUM_STATUS_TYPE_AUTHENTICATION;
+	    /* Status type: Authentication Event */
+	    prAuthEvent->rStatus.eStatusType = ENUM_STATUS_TYPE_AUTHENTICATION;
 
-            /* Authentication request */
-            prAuthEvent->arRequest[0].u4Length = sizeof(PARAM_AUTH_REQUEST_T);
-            kalMemCopy((PVOID)prAuthEvent->arRequest[0].arBssid,
-                (PVOID)prAdapter->rWlanInfo.rCurrBssId.arMacAddress, /* whsu:Todo? */
-                PARAM_MAC_ADDR_LEN);
+	    /* Authentication request */
+	    prAuthEvent->arRequest[0].u4Length = sizeof(PARAM_AUTH_REQUEST_T);
+	    kalMemCopy((PVOID)prAuthEvent->arRequest[0].arBssid,
+		(PVOID)prAdapter->rWlanInfo.rCurrBssId.arMacAddress, /* whsu:Todo? */
+		PARAM_MAC_ADDR_LEN);
 
-            if (prMicError->u4Flags != 0) {
-                prAuthEvent->arRequest[0].u4Flags = PARAM_AUTH_REQUEST_GROUP_ERROR;
-            }
-            else {
-                prAuthEvent->arRequest[0].u4Flags = PARAM_AUTH_REQUEST_PAIRWISE_ERROR;
-            }
+	    if (prMicError->u4Flags != 0) {
+		prAuthEvent->arRequest[0].u4Flags = PARAM_AUTH_REQUEST_GROUP_ERROR;
+	    }
+	    else {
+		prAuthEvent->arRequest[0].u4Flags = PARAM_AUTH_REQUEST_PAIRWISE_ERROR;
+	    }
 
-            kalIndicateStatusAndComplete(prAdapter->prGlueInfo,
-                WLAN_STATUS_MEDIA_SPECIFIC_INDICATION,
-                (PVOID)prAuthEvent,
-                sizeof(PARAM_STATUS_INDICATION_T) + sizeof(PARAM_AUTH_REQUEST_T));
+	    kalIndicateStatusAndComplete(prAdapter->prGlueInfo,
+		WLAN_STATUS_MEDIA_SPECIFIC_INDICATION,
+		(PVOID)prAuthEvent,
+		sizeof(PARAM_STATUS_INDICATION_T) + sizeof(PARAM_AUTH_REQUEST_T));
 #endif
-        }
-        break;
+	}
+	break;
 
     case EVENT_ID_ASSOC_INFO:
-        {
-            P_EVENT_ASSOC_INFO prAssocInfo;
-            prAssocInfo = (P_EVENT_ASSOC_INFO)(prEvent->aucBuffer);
+	{
+	    P_EVENT_ASSOC_INFO prAssocInfo;
+	    prAssocInfo = (P_EVENT_ASSOC_INFO)(prEvent->aucBuffer);
 
-            kalHandleAssocInfo(prAdapter->prGlueInfo, prAssocInfo);
-        }
-        break;
+	    kalHandleAssocInfo(prAdapter->prGlueInfo, prAssocInfo);
+	}
+	break;
 
     case EVENT_ID_802_11_PMKID:
-        {
-            P_PARAM_AUTH_EVENT_T           prAuthEvent;
-            PUINT_8                        cp;
-            UINT_32                        u4LenOfUsedBuffer;
+	{
+	    P_PARAM_AUTH_EVENT_T           prAuthEvent;
+	    PUINT_8                        cp;
+	    UINT_32                        u4LenOfUsedBuffer;
 
-            prAuthEvent = (P_PARAM_AUTH_EVENT_T)prAdapter->aucIndicationEventBuffer;
+	    prAuthEvent = (P_PARAM_AUTH_EVENT_T)prAdapter->aucIndicationEventBuffer;
 
-            prAuthEvent->rStatus.eStatusType = ENUM_STATUS_TYPE_CANDIDATE_LIST;
+	    prAuthEvent->rStatus.eStatusType = ENUM_STATUS_TYPE_CANDIDATE_LIST;
 
-            u4LenOfUsedBuffer = (UINT_32)(prEvent->u2PacketLen - 8);
+	    u4LenOfUsedBuffer = (UINT_32)(prEvent->u2PacketLen - 8);
 
-            prAuthEvent->arRequest[0].u4Length = u4LenOfUsedBuffer;
+	    prAuthEvent->arRequest[0].u4Length = u4LenOfUsedBuffer;
 
-            cp = (PUINT_8)&prAuthEvent->arRequest[0];
+	    cp = (PUINT_8)&prAuthEvent->arRequest[0];
 
-            /* Status type: PMKID Candidatelist Event */
-            kalMemCopy(cp, (P_EVENT_PMKID_CANDIDATE_LIST_T)(prEvent->aucBuffer), prEvent->u2PacketLen - 8);
+	    /* Status type: PMKID Candidatelist Event */
+	    kalMemCopy(cp, (P_EVENT_PMKID_CANDIDATE_LIST_T)(prEvent->aucBuffer), prEvent->u2PacketLen - 8);
 
-            kalIndicateStatusAndComplete(prAdapter->prGlueInfo,
-                WLAN_STATUS_MEDIA_SPECIFIC_INDICATION,
-                (PVOID)prAuthEvent,
-                sizeof(PARAM_STATUS_INDICATION_T) + u4LenOfUsedBuffer);
-        }
-        break;
+	    kalIndicateStatusAndComplete(prAdapter->prGlueInfo,
+		WLAN_STATUS_MEDIA_SPECIFIC_INDICATION,
+		(PVOID)prAuthEvent,
+		sizeof(PARAM_STATUS_INDICATION_T) + u4LenOfUsedBuffer);
+	}
+	break;
 
 #if 0
     case EVENT_ID_ACTIVATE_STA_REC_T:
-        {
-            P_EVENT_ACTIVATE_STA_REC_T prActivateStaRec;
-            prActivateStaRec = (P_EVENT_ACTIVATE_STA_REC_T)(prEvent->aucBuffer);
+	{
+	    P_EVENT_ACTIVATE_STA_REC_T prActivateStaRec;
+	    prActivateStaRec = (P_EVENT_ACTIVATE_STA_REC_T)(prEvent->aucBuffer);
 
-            DbgPrint("RX EVENT: EVENT_ID_ACTIVATE_STA_REC_T Index:%d, MAC:["MACSTR"]\n",
-                prActivateStaRec->ucStaRecIdx,
-                MAC2STR(prActivateStaRec->aucMacAddr));
+	    DbgPrint("RX EVENT: EVENT_ID_ACTIVATE_STA_REC_T Index:%d, MAC:["MACSTR"]\n",
+		prActivateStaRec->ucStaRecIdx,
+		MAC2STR(prActivateStaRec->aucMacAddr));
 
-            qmActivateStaRec(prAdapter,
-                             (UINT_32)prActivateStaRec->ucStaRecIdx,
-                             ((prActivateStaRec->fgIsQoS) ? TRUE: FALSE),
-                             prActivateStaRec->ucNetworkTypeIndex,
-                             ((prActivateStaRec->fgIsAP) ? TRUE: FALSE),
-                             prActivateStaRec->aucMacAddr);
+	    qmActivateStaRec(prAdapter,
+			     (UINT_32)prActivateStaRec->ucStaRecIdx,
+                             ((prActivateStaRec->fgIsQoS) ? TRUE : FALSE),
+			     prActivateStaRec->ucNetworkTypeIndex,
+                             ((prActivateStaRec->fgIsAP) ? TRUE : FALSE),
+			     prActivateStaRec->aucMacAddr);
 
-        }
-        break;
+	}
+	break;
 
     case EVENT_ID_DEACTIVATE_STA_REC_T:
-        {
-            P_EVENT_DEACTIVATE_STA_REC_T prDeactivateStaRec;
-            prDeactivateStaRec = (P_EVENT_DEACTIVATE_STA_REC_T)(prEvent->aucBuffer);
+	{
+	    P_EVENT_DEACTIVATE_STA_REC_T prDeactivateStaRec;
+	    prDeactivateStaRec = (P_EVENT_DEACTIVATE_STA_REC_T)(prEvent->aucBuffer);
 
-            DbgPrint("RX EVENT: EVENT_ID_DEACTIVATE_STA_REC_T Index:%d, MAC:["MACSTR"]\n",
-                prDeactivateStaRec->ucStaRecIdx);
+	    DbgPrint("RX EVENT: EVENT_ID_DEACTIVATE_STA_REC_T Index:%d, MAC:["MACSTR"]\n",
+		prDeactivateStaRec->ucStaRecIdx);
 
-            qmDeactivateStaRec(prAdapter,
-                               prDeactivateStaRec->ucStaRecIdx);
-        }
-        break;
+	    qmDeactivateStaRec(prAdapter,
+			       prDeactivateStaRec->ucStaRecIdx);
+	}
+	break;
 #endif
 
     case EVENT_ID_SCAN_DONE:
-        scnEventScanDone(prAdapter, (P_EVENT_SCAN_DONE)(prEvent->aucBuffer));
-        break;
+	scnEventScanDone(prAdapter, (P_EVENT_SCAN_DONE)(prEvent->aucBuffer));
+	break;
 
     case EVENT_ID_TX_DONE:
-        {
-            P_EVENT_TX_DONE_T prTxDone;
-            prTxDone = (P_EVENT_TX_DONE_T)(prEvent->aucBuffer);
+	{
+	    P_EVENT_TX_DONE_T prTxDone;
+	    prTxDone = (P_EVENT_TX_DONE_T)(prEvent->aucBuffer);
 
-            DBGLOG(INIT, TRACE,("EVENT_ID_TX_DONE PacketSeq:%u ucStatus: %u SN: %u\n",
-                prTxDone->ucPacketSeq, prTxDone->ucStatus, prTxDone->u2SequenceNumber));
+            DBGLOG(INIT, TRACE, ("EVENT_ID_TX_DONE PacketSeq:%u ucStatus: %u SN: %u\n",
+		prTxDone->ucPacketSeq, prTxDone->ucStatus, prTxDone->u2SequenceNumber));
 
-            /* call related TX Done Handler */
-            prMsduInfo = nicGetPendingTxMsduInfo(prAdapter, prTxDone->ucPacketSeq);
+	    /* call related TX Done Handler */
+	    prMsduInfo = nicGetPendingTxMsduInfo(prAdapter, prTxDone->ucPacketSeq);
 
 #if CFG_SUPPORT_802_11V_TIMING_MEASUREMENT
-            DBGLOG(INIT, TRACE, ("EVENT_ID_TX_DONE u4TimeStamp = %x u2AirDelay = %x\n", 
-                prTxDone->au4Reserved1, prTxDone->au4Reserved2));
-            
-            wnmReportTimingMeas(prAdapter, prMsduInfo->ucStaRecIndex, 
-                                prTxDone->au4Reserved1, prTxDone->au4Reserved1 + prTxDone->au4Reserved2);
+	    DBGLOG(INIT, TRACE, ("EVENT_ID_TX_DONE u4TimeStamp = %x u2AirDelay = %x\n",
+		prTxDone->au4Reserved1, prTxDone->au4Reserved2));
+
+	    wnmReportTimingMeas(prAdapter, prMsduInfo->ucStaRecIndex,
+				prTxDone->au4Reserved1, prTxDone->au4Reserved1 + prTxDone->au4Reserved2);
 #endif
 
-            if(prMsduInfo) {
-                prMsduInfo->pfTxDoneHandler(prAdapter, prMsduInfo, (ENUM_TX_RESULT_CODE_T)(prTxDone->ucStatus));
+	    if (prMsduInfo) {
+		prMsduInfo->pfTxDoneHandler(prAdapter, prMsduInfo, (ENUM_TX_RESULT_CODE_T)(prTxDone->ucStatus));
 
-                cnmMgtPktFree(prAdapter, prMsduInfo);
-            }
-        }
-        break;
+		cnmMgtPktFree(prAdapter, prMsduInfo);
+	    }
+	}
+	break;
 
     case EVENT_ID_SLEEPY_NOTIFY:
-        {
-            P_EVENT_SLEEPY_NOTIFY prEventSleepyNotify;
-            prEventSleepyNotify = (P_EVENT_SLEEPY_NOTIFY)(prEvent->aucBuffer);
+	{
+	    P_EVENT_SLEEPY_NOTIFY prEventSleepyNotify;
+	    prEventSleepyNotify = (P_EVENT_SLEEPY_NOTIFY)(prEvent->aucBuffer);
 
-            //DBGLOG(RX, INFO, ("ucSleepyState = %d\n", prEventSleepyNotify->ucSleepyState));
+	    /* DBGLOG(RX, INFO, ("ucSleepyState = %d\n", prEventSleepyNotify->ucSleepyState)); */
 
-            prAdapter->fgWiFiInSleepyState = (BOOLEAN)(prEventSleepyNotify->ucSleepyState);
-        }
-        break;
+	    prAdapter->fgWiFiInSleepyState = (BOOLEAN)(prEventSleepyNotify->ucSleepyState);
+	}
+	break;
     case EVENT_ID_BT_OVER_WIFI:
 #if CFG_ENABLE_BT_OVER_WIFI
-        {
-            UINT_8 aucTmp[sizeof(AMPC_EVENT) + sizeof(BOW_LINK_DISCONNECTED)];
-            P_EVENT_BT_OVER_WIFI prEventBtOverWifi;
-            P_AMPC_EVENT prBowEvent;
-            P_BOW_LINK_CONNECTED prBowLinkConnected;
-            P_BOW_LINK_DISCONNECTED prBowLinkDisconnected;
+	{
+	    UINT_8 aucTmp[sizeof(AMPC_EVENT) + sizeof(BOW_LINK_DISCONNECTED)];
+	    P_EVENT_BT_OVER_WIFI prEventBtOverWifi;
+	    P_AMPC_EVENT prBowEvent;
+	    P_BOW_LINK_CONNECTED prBowLinkConnected;
+	    P_BOW_LINK_DISCONNECTED prBowLinkDisconnected;
 
-            prEventBtOverWifi = (P_EVENT_BT_OVER_WIFI)(prEvent->aucBuffer);
+	    prEventBtOverWifi = (P_EVENT_BT_OVER_WIFI)(prEvent->aucBuffer);
 
-            // construct event header
-            prBowEvent = (P_AMPC_EVENT)aucTmp;
+	    /* construct event header */
+	    prBowEvent = (P_AMPC_EVENT)aucTmp;
 
-            if(prEventBtOverWifi->ucLinkStatus == 0) {
-                // Connection
-                prBowEvent->rHeader.ucEventId = BOW_EVENT_ID_LINK_CONNECTED;
-                prBowEvent->rHeader.ucSeqNumber = 0;
-                prBowEvent->rHeader.u2PayloadLength = sizeof(BOW_LINK_CONNECTED);
+	    if (prEventBtOverWifi->ucLinkStatus == 0) {
+		/* Connection */
+		prBowEvent->rHeader.ucEventId = BOW_EVENT_ID_LINK_CONNECTED;
+		prBowEvent->rHeader.ucSeqNumber = 0;
+		prBowEvent->rHeader.u2PayloadLength = sizeof(BOW_LINK_CONNECTED);
 
-                // fill event body
-                prBowLinkConnected = (P_BOW_LINK_CONNECTED)(prBowEvent->aucPayload);
-                prBowLinkConnected->rChannel.ucChannelNum = prEventBtOverWifi->ucSelectedChannel;
-                kalMemZero(prBowLinkConnected->aucPeerAddress, MAC_ADDR_LEN); //@FIXME
+		/* fill event body */
+		prBowLinkConnected = (P_BOW_LINK_CONNECTED)(prBowEvent->aucPayload);
+		prBowLinkConnected->rChannel.ucChannelNum = prEventBtOverWifi->ucSelectedChannel;
+		kalMemZero(prBowLinkConnected->aucPeerAddress, MAC_ADDR_LEN); /* @FIXME */
 
-                kalIndicateBOWEvent(prAdapter->prGlueInfo, prBowEvent);
-            }
-            else {
-                // Disconnection
-                prBowEvent->rHeader.ucEventId = BOW_EVENT_ID_LINK_DISCONNECTED;
-                prBowEvent->rHeader.ucSeqNumber = 0;
-                prBowEvent->rHeader.u2PayloadLength = sizeof(BOW_LINK_DISCONNECTED);
+		kalIndicateBOWEvent(prAdapter->prGlueInfo, prBowEvent);
+	    }
+	    else {
+		/* Disconnection */
+		prBowEvent->rHeader.ucEventId = BOW_EVENT_ID_LINK_DISCONNECTED;
+		prBowEvent->rHeader.ucSeqNumber = 0;
+		prBowEvent->rHeader.u2PayloadLength = sizeof(BOW_LINK_DISCONNECTED);
 
-                // fill event body
-                prBowLinkDisconnected = (P_BOW_LINK_DISCONNECTED)(prBowEvent->aucPayload);
-                prBowLinkDisconnected->ucReason = 0; //@FIXME
-                kalMemZero(prBowLinkDisconnected->aucPeerAddress, MAC_ADDR_LEN); //@FIXME
+		/* fill event body */
+		prBowLinkDisconnected = (P_BOW_LINK_DISCONNECTED)(prBowEvent->aucPayload);
+		prBowLinkDisconnected->ucReason = 0; /* @FIXME */
+		kalMemZero(prBowLinkDisconnected->aucPeerAddress, MAC_ADDR_LEN); /* @FIXME */
 
-                kalIndicateBOWEvent(prAdapter->prGlueInfo, prBowEvent);
-            }
-        }
-        break;
+		kalIndicateBOWEvent(prAdapter->prGlueInfo, prBowEvent);
+	    }
+	}
+	break;
 #endif
     case EVENT_ID_STATISTICS:
-        /* buffer statistics for further query */
-        prAdapter->fgIsStatValid = TRUE;
-        prAdapter->rStatUpdateTime = kalGetTimeTick();
-        kalMemCopy(&prAdapter->rStatStruct, prEvent->aucBuffer, sizeof(EVENT_STATISTICS));
+	/* buffer statistics for further query */
+	prAdapter->fgIsStatValid = TRUE;
+	prAdapter->rStatUpdateTime = kalGetTimeTick();
+	kalMemCopy(&prAdapter->rStatStruct, prEvent->aucBuffer, sizeof(EVENT_STATISTICS));
 
-        /* command response handling */
-        prCmdInfo = nicGetPendingCmdInfo(prAdapter, prEvent->ucSeqNum);
+	/* command response handling */
+	prCmdInfo = nicGetPendingCmdInfo(prAdapter, prEvent->ucSeqNum);
 
-        if(prCmdInfo != NULL) {
-            if (prCmdInfo->pfCmdDoneHandler) {
-                prCmdInfo->pfCmdDoneHandler(prAdapter, prCmdInfo, prEvent->aucBuffer);
-            }
-            else if(prCmdInfo->fgIsOid) {
-                kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_SUCCESS);
-            }
+	if (prCmdInfo != NULL) {
+	    if (prCmdInfo->pfCmdDoneHandler) {
+		prCmdInfo->pfCmdDoneHandler(prAdapter, prCmdInfo, prEvent->aucBuffer);
+	    }
+	    else if (prCmdInfo->fgIsOid) {
+		kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_SUCCESS);
+	    }
 
-            // return prCmdInfo
-            cmdBufFreeCmdInfo(prAdapter, prCmdInfo);
-        }
+	    /* return prCmdInfo */
+	    cmdBufFreeCmdInfo(prAdapter, prCmdInfo);
+	}
 
-        break;
+	break;
 
     case EVENT_ID_CH_PRIVILEGE:
-        cnmChMngrHandleChEvent(prAdapter, prEvent);
-        break;
+	cnmChMngrHandleChEvent(prAdapter, prEvent);
+	break;
 
     case EVENT_ID_BSS_ABSENCE_PRESENCE:
-        qmHandleEventBssAbsencePresence(prAdapter, prEvent);
-        break;
+	qmHandleEventBssAbsencePresence(prAdapter, prEvent);
+	break;
 
     case EVENT_ID_STA_CHANGE_PS_MODE:
-        qmHandleEventStaChangePsMode(prAdapter, prEvent);
-        break;
+	qmHandleEventStaChangePsMode(prAdapter, prEvent);
+	break;
 #if CFG_ENABLE_WIFI_DIRECT
     case EVENT_ID_STA_UPDATE_FREE_QUOTA:
-        qmHandleEventStaUpdateFreeQuota(prAdapter, prEvent);
-        break;
+	qmHandleEventStaUpdateFreeQuota(prAdapter, prEvent);
+	break;
 #endif
     case EVENT_ID_BSS_BEACON_TIMEOUT:
-        DBGLOG(INIT, INFO,("EVENT_ID_BSS_BEACON_TIMEOUT\n"));
+        DBGLOG(INIT, INFO, ("EVENT_ID_BSS_BEACON_TIMEOUT\n"));
 
-        if (prAdapter->fgDisBcnLostDetection == FALSE) {
-            P_EVENT_BSS_BEACON_TIMEOUT_T prEventBssBeaconTimeout;
-            prEventBssBeaconTimeout = (P_EVENT_BSS_BEACON_TIMEOUT_T)(prEvent->aucBuffer);
+	if (prAdapter->fgDisBcnLostDetection == FALSE) {
+	    P_EVENT_BSS_BEACON_TIMEOUT_T prEventBssBeaconTimeout;
+	    prEventBssBeaconTimeout = (P_EVENT_BSS_BEACON_TIMEOUT_T)(prEvent->aucBuffer);
 
-            if(prEventBssBeaconTimeout->ucNetTypeIndex == NETWORK_TYPE_AIS_INDEX) {
-                aisBssBeaconTimeout(prAdapter);
-            }
+	    if (prEventBssBeaconTimeout->ucNetTypeIndex == NETWORK_TYPE_AIS_INDEX) {
+		aisBssBeaconTimeout(prAdapter);
+	    }
 #if CFG_ENABLE_WIFI_DIRECT
-            else if((prAdapter->fgIsP2PRegistered) &&
-                (prEventBssBeaconTimeout->ucNetTypeIndex == NETWORK_TYPE_P2P_INDEX)) {
+	    else if ((prAdapter->fgIsP2PRegistered) &&
+		(prEventBssBeaconTimeout->ucNetTypeIndex == NETWORK_TYPE_P2P_INDEX)) {
 
-                p2pFsmRunEventBeaconTimeout(prAdapter);
-            }
+		p2pFsmRunEventBeaconTimeout(prAdapter);
+	    }
 #endif
 #if CFG_ENABLE_BT_OVER_WIFI
-            else if(prEventBssBeaconTimeout->ucNetTypeIndex == NETWORK_TYPE_BOW_INDEX) {
-            }
+	    else if (prEventBssBeaconTimeout->ucNetTypeIndex == NETWORK_TYPE_BOW_INDEX) {
+	    }
 #endif
-            else {
-                DBGLOG(RX, ERROR, ("EVENT_ID_BSS_BEACON_TIMEOUT: (ucNetTypeIdx = %d)\n",
-                            prEventBssBeaconTimeout->ucNetTypeIndex));
-            }
-        }
+	    else {
+		DBGLOG(RX, ERROR, ("EVENT_ID_BSS_BEACON_TIMEOUT: (ucNetTypeIdx = %d)\n",
+			    prEventBssBeaconTimeout->ucNetTypeIndex));
+	    }
+	}
 
-        break;
+	break;
     case EVENT_ID_UPDATE_NOA_PARAMS:
 #if CFG_ENABLE_WIFI_DIRECT
-        if(prAdapter->fgIsP2PRegistered){
-            P_EVENT_UPDATE_NOA_PARAMS_T prEventUpdateNoaParam;
-            prEventUpdateNoaParam = (P_EVENT_UPDATE_NOA_PARAMS_T)(prEvent->aucBuffer);
+	if (prAdapter->fgIsP2PRegistered) {
+	    P_EVENT_UPDATE_NOA_PARAMS_T prEventUpdateNoaParam;
+	    prEventUpdateNoaParam = (P_EVENT_UPDATE_NOA_PARAMS_T)(prEvent->aucBuffer);
 
-            if (prEventUpdateNoaParam->ucNetTypeIndex == NETWORK_TYPE_P2P_INDEX) {
-                p2pProcessEvent_UpdateNOAParam(prAdapter,
-                                                prEventUpdateNoaParam->ucNetTypeIndex,
-                                                prEventUpdateNoaParam);
-            } else {
-                ASSERT(0);
-            }
-        }
+	    if (prEventUpdateNoaParam->ucNetTypeIndex == NETWORK_TYPE_P2P_INDEX) {
+		p2pProcessEvent_UpdateNOAParam(prAdapter,
+						prEventUpdateNoaParam->ucNetTypeIndex,
+						prEventUpdateNoaParam);
+	    } else {
+		ASSERT(0);
+	    }
+	}
 #else
-        ASSERT(0);
+	ASSERT(0);
 #endif
-        break;
+	break;
 
     case EVENT_ID_STA_AGING_TIMEOUT:
 #if CFG_ENABLE_WIFI_DIRECT
-        {
-            if (prAdapter->fgDisStaAgingTimeoutDetection == FALSE) {
-                P_EVENT_STA_AGING_TIMEOUT_T prEventStaAgingTimeout;
-                P_STA_RECORD_T prStaRec;
-                P_BSS_INFO_T prBssInfo = (P_BSS_INFO_T)NULL;
+	{
+	    if (prAdapter->fgDisStaAgingTimeoutDetection == FALSE) {
+		P_EVENT_STA_AGING_TIMEOUT_T prEventStaAgingTimeout;
+		P_STA_RECORD_T prStaRec;
+		P_BSS_INFO_T prBssInfo = (P_BSS_INFO_T)NULL;
 
-                prEventStaAgingTimeout = (P_EVENT_STA_AGING_TIMEOUT_T)(prEvent->aucBuffer);
-                prStaRec = cnmGetStaRecByIndex(prAdapter, prEventStaAgingTimeout->ucStaRecIdx);
-                if (prStaRec == NULL) {
-                    break;
-                }
+		prEventStaAgingTimeout = (P_EVENT_STA_AGING_TIMEOUT_T)(prEvent->aucBuffer);
+		prStaRec = cnmGetStaRecByIndex(prAdapter, prEventStaAgingTimeout->ucStaRecIdx);
+		if (prStaRec == NULL) {
+		    break;
+		}
 
-                DBGLOG(INIT, INFO,("EVENT_ID_STA_AGING_TIMEOUT %u " MACSTR "\n",
-                                prEventStaAgingTimeout->ucStaRecIdx, MAC2STR(prStaRec->aucMacAddr)));
+                DBGLOG(INIT, INFO, ("EVENT_ID_STA_AGING_TIMEOUT %u " MACSTR "\n",
+				prEventStaAgingTimeout->ucStaRecIdx, MAC2STR(prStaRec->aucMacAddr)));
 
-                prBssInfo = &(prAdapter->rWifiVar.arBssInfo[prStaRec->ucNetTypeIndex]);
+		prBssInfo = &(prAdapter->rWifiVar.arBssInfo[prStaRec->ucNetTypeIndex]);
 
-                bssRemoveStaRecFromClientList(prAdapter, prBssInfo, prStaRec);
-            
-                /* Call False Auth */
-                if (prAdapter->fgIsP2PRegistered) {
-                    p2pFuncDisconnect(prAdapter, prStaRec, TRUE, REASON_CODE_DISASSOC_INACTIVITY);
-                }
+		bssRemoveStaRecFromClientList(prAdapter, prBssInfo, prStaRec);
 
-            
-            } /* gDisStaAgingTimeoutDetection */
+		/* Call False Auth */
+		if (prAdapter->fgIsP2PRegistered) {
+		    p2pFuncDisconnect(prAdapter, prStaRec, TRUE, REASON_CODE_DISASSOC_INACTIVITY);
+		}
 
-        }
+
+	    } /* gDisStaAgingTimeoutDetection */
+
+	}
 #endif
-        break;
+	break;
 
     case EVENT_ID_AP_OBSS_STATUS:
 #if CFG_ENABLE_WIFI_DIRECT
-        if(prAdapter->fgIsP2PRegistered){
-            rlmHandleObssStatusEventPkt(prAdapter, (P_EVENT_AP_OBSS_STATUS_T) prEvent->aucBuffer);
-        }
+	if (prAdapter->fgIsP2PRegistered) {
+	    rlmHandleObssStatusEventPkt(prAdapter, (P_EVENT_AP_OBSS_STATUS_T) prEvent->aucBuffer);
+	}
 #endif
-        break;
+	break;
 
     case EVENT_ID_ROAMING_STATUS:
 #if CFG_SUPPORT_ROAMING
-        {
-            P_ROAMING_PARAM_T prParam;
+	{
+	    P_ROAMING_PARAM_T prParam;
 
-            prParam = (P_ROAMING_PARAM_T)(prEvent->aucBuffer);
-            roamingFsmProcessEvent(prAdapter, prParam);
-        }
+	    prParam = (P_ROAMING_PARAM_T)(prEvent->aucBuffer);
+	    roamingFsmProcessEvent(prAdapter, prParam);
+	}
 #endif /* CFG_SUPPORT_ROAMING */
-        break;
+	break;
     case EVENT_ID_SEND_DEAUTH:
-//#if DBG
-        {
-            P_WLAN_MAC_HEADER_T prWlanMacHeader;
+/* #if DBG */
+	{
+	    P_WLAN_MAC_HEADER_T prWlanMacHeader;
 
-            prWlanMacHeader = (P_WLAN_MAC_HEADER_T)&prEvent->aucBuffer[0];
-            DBGLOG(RSN, INFO, ("nicRx: aucAddr1: "MACSTR"\n", MAC2STR(prWlanMacHeader->aucAddr1)));
-            DBGLOG(RSN, INFO, ("nicRx: aucAddr2: "MACSTR"\n", MAC2STR(prWlanMacHeader->aucAddr2)));
-        }
-//#endif
-    	  /* receive packets without StaRec */
-    	  prSwRfb->pvHeader = (P_WLAN_MAC_HEADER_T)&prEvent->aucBuffer[0];
-    	  if (WLAN_STATUS_SUCCESS == authSendDeauthFrame(prAdapter,
-                                                       NULL,
-                                                       prSwRfb,
-                                                       REASON_CODE_CLASS_3_ERR,
-                                                       (PFN_TX_DONE_HANDLER)NULL)) {
-            DBGLOG(RSN, INFO, ("Send Deauth Error\n"));
-        }
+	    prWlanMacHeader = (P_WLAN_MAC_HEADER_T)&prEvent->aucBuffer[0];
+	    DBGLOG(RSN, INFO, ("nicRx: aucAddr1: "MACSTR"\n", MAC2STR(prWlanMacHeader->aucAddr1)));
+	    DBGLOG(RSN, INFO, ("nicRx: aucAddr2: "MACSTR"\n", MAC2STR(prWlanMacHeader->aucAddr2)));
+	}
+/* #endif */
+	  /* receive packets without StaRec */
+	  prSwRfb->pvHeader = (P_WLAN_MAC_HEADER_T)&prEvent->aucBuffer[0];
+	  if (WLAN_STATUS_SUCCESS == authSendDeauthFrame(prAdapter,
+						       NULL,
+						       prSwRfb,
+						       REASON_CODE_CLASS_3_ERR,
+						       (PFN_TX_DONE_HANDLER)NULL)) {
+	    DBGLOG(RSN, INFO, ("Send Deauth Error\n"));
+	}
 
 		DBGLOG(RSN, INFO, ("FW want to send Deauth for Rx Class 3 error!\n"));
-    	  break;
+	  break;
 
 #if CFG_SUPPORT_RDD_TEST_MODE
     case EVENT_ID_UPDATE_RDD_STATUS:
-        {
-            P_EVENT_RDD_STATUS_T prEventRddStatus;
+	{
+	    P_EVENT_RDD_STATUS_T prEventRddStatus;
 
-            prEventRddStatus = (P_EVENT_RDD_STATUS_T) (prEvent->aucBuffer);
+	    prEventRddStatus = (P_EVENT_RDD_STATUS_T) (prEvent->aucBuffer);
 
-            prAdapter->ucRddStatus = prEventRddStatus->ucRddStatus;
-        }
+	    prAdapter->ucRddStatus = prEventRddStatus->ucRddStatus;
+	}
 
-        break;
+	break;
 #endif
 
 #if CFG_SUPPORT_BCM && CFG_SUPPORT_BCM_BWCS
     case EVENT_ID_UPDATE_BWCS_STATUS:
-        {
-            P_PTA_IPC_T prEventBwcsStatus;
+	{
+	    P_PTA_IPC_T prEventBwcsStatus;
 
-            prEventBwcsStatus = (P_PTA_IPC_T) (prEvent->aucBuffer);
+	    prEventBwcsStatus = (P_PTA_IPC_T) (prEvent->aucBuffer);
 
 #if CFG_SUPPORT_BCM_BWCS_DEBUG
-            printk(KERN_INFO DRV_NAME "BCM BWCS Event: %02x%02x%02x%02x\n", prEventBwcsStatus->u.aucBTPParams[0],
-                prEventBwcsStatus->u.aucBTPParams[1],
-                prEventBwcsStatus->u.aucBTPParams[2],
-                prEventBwcsStatus->u.aucBTPParams[3]);
+	    printk(KERN_INFO DRV_NAME "BCM BWCS Event: %02x%02x%02x%02x\n", prEventBwcsStatus->u.aucBTPParams[0],
+		prEventBwcsStatus->u.aucBTPParams[1],
+		prEventBwcsStatus->u.aucBTPParams[2],
+		prEventBwcsStatus->u.aucBTPParams[3]);
 
-            printk(KERN_INFO DRV_NAME "BCM BWCS Event: aucBTPParams[0] = %02x, aucBTPParams[1] = %02x, aucBTPParams[2] = %02x, aucBTPParams[3] = %02x\n",
-                prEventBwcsStatus->u.aucBTPParams[0],
-                prEventBwcsStatus->u.aucBTPParams[1],
-                prEventBwcsStatus->u.aucBTPParams[2],
-                prEventBwcsStatus->u.aucBTPParams[3]);
+	    printk(KERN_INFO DRV_NAME "BCM BWCS Event: aucBTPParams[0] = %02x, aucBTPParams[1] = %02x, aucBTPParams[2] = %02x, aucBTPParams[3] = %02x\n",
+		prEventBwcsStatus->u.aucBTPParams[0],
+		prEventBwcsStatus->u.aucBTPParams[1],
+		prEventBwcsStatus->u.aucBTPParams[2],
+		prEventBwcsStatus->u.aucBTPParams[3]);
 #endif
 
-            kalIndicateStatusAndComplete(prAdapter->prGlueInfo,
-                WLAN_STATUS_BWCS_UPDATE,
-                (PVOID) prEventBwcsStatus,
-                sizeof(PTA_IPC_T));
-        }
+	    kalIndicateStatusAndComplete(prAdapter->prGlueInfo,
+		WLAN_STATUS_BWCS_UPDATE,
+		(PVOID) prEventBwcsStatus,
+		sizeof(PTA_IPC_T));
+	}
 
-        break;
+	break;
 
     case EVENT_ID_UPDATE_BCM_DEBUG:
-        {
-            P_PTA_IPC_T prEventBwcsStatus;
+	{
+	    P_PTA_IPC_T prEventBwcsStatus;
 
-            prEventBwcsStatus = (P_PTA_IPC_T) (prEvent->aucBuffer);
+	    prEventBwcsStatus = (P_PTA_IPC_T) (prEvent->aucBuffer);
 
 #if CFG_SUPPORT_BCM_BWCS_DEBUG
-            printk(KERN_INFO DRV_NAME "BCM FW status: %02x%02x%02x%02x\n", prEventBwcsStatus->u.aucBTPParams[0],
-                prEventBwcsStatus->u.aucBTPParams[1],
-                prEventBwcsStatus->u.aucBTPParams[2],
-                prEventBwcsStatus->u.aucBTPParams[3]);
+	    printk(KERN_INFO DRV_NAME "BCM FW status: %02x%02x%02x%02x\n", prEventBwcsStatus->u.aucBTPParams[0],
+		prEventBwcsStatus->u.aucBTPParams[1],
+		prEventBwcsStatus->u.aucBTPParams[2],
+		prEventBwcsStatus->u.aucBTPParams[3]);
 
-            printk(KERN_INFO DRV_NAME "BCM FW status: aucBTPParams[0] = %02x, aucBTPParams[1] = %02x, aucBTPParams[2] = %02x, aucBTPParams[3] = %02x\n",
-                prEventBwcsStatus->u.aucBTPParams[0],
-                prEventBwcsStatus->u.aucBTPParams[1],
-                prEventBwcsStatus->u.aucBTPParams[2],
-                prEventBwcsStatus->u.aucBTPParams[3]);
+	    printk(KERN_INFO DRV_NAME "BCM FW status: aucBTPParams[0] = %02x, aucBTPParams[1] = %02x, aucBTPParams[2] = %02x, aucBTPParams[3] = %02x\n",
+		prEventBwcsStatus->u.aucBTPParams[0],
+		prEventBwcsStatus->u.aucBTPParams[1],
+		prEventBwcsStatus->u.aucBTPParams[2],
+		prEventBwcsStatus->u.aucBTPParams[3]);
 #endif
-        }
+	}
 
-        break;
+	break;
 #endif
 
 	case EVENT_ID_DEBUG_CODE: /* only for debug */
 	{
 		UINT32 u4CodeId;
 		printk("[wlan-fw] function sequence: ");
-		for(u4CodeId=0; u4CodeId<1000; u4CodeId++)
+		for (u4CodeId = 0; u4CodeId < 1000; u4CodeId++)
 			printk("%d ", prEvent->aucBuffer[u4CodeId]);
 		printk("\n\n");
 	}
@@ -2218,31 +2232,23 @@ nicRxProcessEventPacket (
 
     case EVENT_ID_RFTEST_READY:
 
-        /* command response handling */
-        prCmdInfo = nicGetPendingCmdInfo(prAdapter, prEvent->ucSeqNum);
+	/* command response handling */
+	prCmdInfo = nicGetPendingCmdInfo(prAdapter, prEvent->ucSeqNum);
 
-        if(prCmdInfo != NULL) {
-            if (prCmdInfo->pfCmdDoneHandler) {
-                prCmdInfo->pfCmdDoneHandler(prAdapter, prCmdInfo, prEvent->aucBuffer);
-            }
-            else if(prCmdInfo->fgIsOid) {
-                kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_SUCCESS);
-            }
+	if (prCmdInfo != NULL) {
+	    if (prCmdInfo->pfCmdDoneHandler) {
+		prCmdInfo->pfCmdDoneHandler(prAdapter, prCmdInfo, prEvent->aucBuffer);
+	    }
+	    else if (prCmdInfo->fgIsOid) {
+		kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_SUCCESS);
+	    }
 
-            // return prCmdInfo
-            cmdBufFreeCmdInfo(prAdapter, prCmdInfo);
-        }
+	    /* return prCmdInfo */
+	    cmdBufFreeCmdInfo(prAdapter, prCmdInfo);
+	}
 
-        break;
+	break;
 
-#if (CFG_SUPPORT_TDLS == 1)
-	case EVENT_ID_TDLS:
-		TdlsexEventHandle(\
-			prAdapter->prGlueInfo,
-			(UINT8 *)prEvent->aucBuffer,
-			(UINT32)(prEvent->u2PacketLen-8));
-		break;
-#endif /* CFG_SUPPORT_TDLS */
     case EVENT_ID_ACCESS_REG:
     case EVENT_ID_NIC_CAPABILITY:
     case EVENT_ID_BASIC_CONFIG:
@@ -2254,21 +2260,21 @@ nicRxProcessEventPacket (
 #endif
     case EVENT_ID_GET_AIS_BSS_INFO:
     default:
-        prCmdInfo = nicGetPendingCmdInfo(prAdapter, prEvent->ucSeqNum);
+	prCmdInfo = nicGetPendingCmdInfo(prAdapter, prEvent->ucSeqNum);
 
-        if(prCmdInfo != NULL) {
-            if (prCmdInfo->pfCmdDoneHandler) {
-                prCmdInfo->pfCmdDoneHandler(prAdapter, prCmdInfo, prEvent->aucBuffer);
-            }
-            else if(prCmdInfo->fgIsOid) {
-                kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_SUCCESS);
-            }
+	if (prCmdInfo != NULL) {
+	    if (prCmdInfo->pfCmdDoneHandler) {
+		prCmdInfo->pfCmdDoneHandler(prAdapter, prCmdInfo, prEvent->aucBuffer);
+	    }
+	    else if (prCmdInfo->fgIsOid) {
+		kalOidComplete(prAdapter->prGlueInfo, prCmdInfo->fgSetQuery, 0, WLAN_STATUS_SUCCESS);
+	    }
 
-            // return prCmdInfo
-            cmdBufFreeCmdInfo(prAdapter, prCmdInfo);
-        }
+	    /* return prCmdInfo */
+	    cmdBufFreeCmdInfo(prAdapter, prCmdInfo);
+	}
 
-        break;
+	break;
     }
 
     nicRxReturnRFB(prAdapter, prSwRfb);
@@ -2287,7 +2293,7 @@ nicRxProcessEventPacket (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxProcessMgmtPacket (
+nicRxProcessMgmtPacket(
     IN P_ADAPTER_T    prAdapter,
     IN OUT P_SW_RFB_T prSwRfb
     )
@@ -2301,31 +2307,31 @@ nicRxProcessMgmtPacket (
 
     nicRxFillRFB(prAdapter, prSwRfb);
 
-    ucSubtype = (*(PUINT_8)(prSwRfb->pvHeader) & MASK_FC_SUBTYPE )>> OFFSET_OF_FC_SUBTYPE;
+    ucSubtype = (*(PUINT_8)(prSwRfb->pvHeader) & MASK_FC_SUBTYPE) >> OFFSET_OF_FC_SUBTYPE;
 
 #if CFG_RX_PKTS_DUMP
     {
-        P_HIF_RX_HEADER_T   prHifRxHdr;
-        UINT_16 u2TxFrameCtrl;
+	P_HIF_RX_HEADER_T   prHifRxHdr;
+	UINT_16 u2TxFrameCtrl;
 
-        prHifRxHdr = prSwRfb->prHifRxHdr;
-        u2TxFrameCtrl = (*(PUINT_8)(prSwRfb->pvHeader) & MASK_FRAME_TYPE);
-        if (prAdapter->rRxCtrl.u4RxPktsDumpTypeMask & BIT(HIF_RX_PKT_TYPE_MANAGEMENT)) {
-            if (u2TxFrameCtrl == MAC_FRAME_BEACON ||
-            	  u2TxFrameCtrl == MAC_FRAME_PROBE_RSP) {
+	prHifRxHdr = prSwRfb->prHifRxHdr;
+	u2TxFrameCtrl = (*(PUINT_8)(prSwRfb->pvHeader) & MASK_FRAME_TYPE);
+	if (prAdapter->rRxCtrl.u4RxPktsDumpTypeMask & BIT(HIF_RX_PKT_TYPE_MANAGEMENT)) {
+	    if (u2TxFrameCtrl == MAC_FRAME_BEACON ||
+		  u2TxFrameCtrl == MAC_FRAME_PROBE_RSP) {
 
-                DBGLOG(SW4, INFO, ("QM RX MGT: net %u sta idx %u wlan idx %u ssn %u ptype %u subtype %u 11 %u\n",
-                    (UINT32)HIF_RX_HDR_GET_NETWORK_IDX(prHifRxHdr),
-                    prHifRxHdr->ucStaRecIdx,
-                    prSwRfb->ucWlanIdx,
-                    (UINT32)HIF_RX_HDR_GET_SN(prHifRxHdr),  /* The new SN of the frame */
-                    prSwRfb->ucPacketType,
-                    ucSubtype,
-                    HIF_RX_HDR_GET_80211_FLAG(prHifRxHdr)));
+		DBGLOG(SW4, INFO, ("QM RX MGT: net %u sta idx %u wlan idx %u ssn %u ptype %u subtype %u 11 %u\n",
+		    (UINT32)HIF_RX_HDR_GET_NETWORK_IDX(prHifRxHdr),
+		    prHifRxHdr->ucStaRecIdx,
+		    prSwRfb->ucWlanIdx,
+		    (UINT32)HIF_RX_HDR_GET_SN(prHifRxHdr),  /* The new SN of the frame */
+		    prSwRfb->ucPacketType,
+		    ucSubtype,
+		    HIF_RX_HDR_GET_80211_FLAG(prHifRxHdr)));
 
-                DBGLOG_MEM8(SW4, TRACE, (PUINT_8)prSwRfb->pvHeader, prSwRfb->u2PacketLen);
-            }
-        }
+		DBGLOG_MEM8(SW4, TRACE, (PUINT_8)prSwRfb->pvHeader, prSwRfb->u2PacketLen);
+	    }
+	}
     }
 #endif
 
@@ -2334,30 +2340,30 @@ nicRxProcessMgmtPacket (
 	{
 #if CFG_MGMT_FRAME_HANDLING
 #if CFG_SUPPORT_802_11W
-        fgMfgDrop = rsnCheckRxMgmt(prAdapter, prSwRfb, ucSubtype);
-        if (fgMfgDrop) {
-            #if DBG
-            LOG_FUNC("QM RX MGT: Drop Unprotected Mgmt frame!!!\n");
-            #endif
-            nicRxReturnRFB(prAdapter, prSwRfb);
-            RX_INC_CNT(prRxCtrl, RX_DROP_TOTAL_COUNT);
-            return;
-        }
-        else
+	fgMfgDrop = rsnCheckRxMgmt(prAdapter, prSwRfb, ucSubtype);
+	if (fgMfgDrop) {
+	    #if DBG
+	    LOG_FUNC("QM RX MGT: Drop Unprotected Mgmt frame!!!\n");
+	    #endif
+	    nicRxReturnRFB(prAdapter, prSwRfb);
+	    RX_INC_CNT(prRxCtrl, RX_DROP_TOTAL_COUNT);
+	    return;
+	}
+	else
 #endif
-        if(apfnProcessRxMgtFrame[ucSubtype]) {
-            switch(apfnProcessRxMgtFrame[ucSubtype](prAdapter, prSwRfb)){
-            case WLAN_STATUS_PENDING:
-                return;
-            case WLAN_STATUS_SUCCESS:
-            case WLAN_STATUS_FAILURE:
-                break;
+	if (apfnProcessRxMgtFrame[ucSubtype]) {
+	    switch (apfnProcessRxMgtFrame[ucSubtype](prAdapter, prSwRfb)) {
+	    case WLAN_STATUS_PENDING:
+		return;
+	    case WLAN_STATUS_SUCCESS:
+	    case WLAN_STATUS_FAILURE:
+		break;
 
-            default:
-                DBGLOG(RX, WARN, ("Unexpected MMPDU(0x%02X) returned with abnormal status\n", ucSubtype));
-                break;
-            }
-        }
+	    default:
+		DBGLOG(RX, WARN, ("Unexpected MMPDU(0x%02X) returned with abnormal status\n", ucSubtype));
+		break;
+	    }
+	}
 #endif
     }
 
@@ -2374,7 +2380,7 @@ nicRxProcessMgmtPacket (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxProcessRFBs (
+nicRxProcessRFBs(
     IN  P_ADAPTER_T prAdapter
     )
 {
@@ -2393,63 +2399,63 @@ nicRxProcessRFBs (
     prRxCtrl->ucNumRetainedPacket = 0;
 
     do {
-        KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
-        QUEUE_REMOVE_HEAD(&prRxCtrl->rReceivedRfbList, prSwRfb, P_SW_RFB_T);
-        KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	QUEUE_REMOVE_HEAD(&prRxCtrl->rReceivedRfbList, prSwRfb, P_SW_RFB_T);
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
 
-        if (prSwRfb){
-            switch(prSwRfb->ucPacketType){
-                case HIF_RX_PKT_TYPE_DATA:
-                    nicRxProcessDataPacket(prAdapter, prSwRfb);
-                    break;
+	if (prSwRfb) {
+	    switch (prSwRfb->ucPacketType) {
+		case HIF_RX_PKT_TYPE_DATA:
+		    nicRxProcessDataPacket(prAdapter, prSwRfb);
+		    break;
 
-                case HIF_RX_PKT_TYPE_EVENT:
-                    nicRxProcessEventPacket(prAdapter, prSwRfb);
-                    break;
+		case HIF_RX_PKT_TYPE_EVENT:
+		    nicRxProcessEventPacket(prAdapter, prSwRfb);
+		    break;
 
-                case HIF_RX_PKT_TYPE_TX_LOOPBACK:
+		case HIF_RX_PKT_TYPE_TX_LOOPBACK:
 #if (CONF_HIF_LOOPBACK_AUTO == 1)
 {
-                    extern void
-                        kalDevLoopbkRxHandle(
-                            IN P_ADAPTER_T    prAdapter,
-                            IN OUT P_SW_RFB_T prSwRfb
-                            );
-                    kalDevLoopbkRxHandle(prAdapter, prSwRfb);
-                    nicRxReturnRFB(prAdapter, prSwRfb);
+		    extern void
+			kalDevLoopbkRxHandle(
+			    IN P_ADAPTER_T    prAdapter,
+			    IN OUT P_SW_RFB_T prSwRfb
+			    );
+		    kalDevLoopbkRxHandle(prAdapter, prSwRfb);
+		    nicRxReturnRFB(prAdapter, prSwRfb);
 }
 #else
-                    DBGLOG(RX, ERROR, ("ucPacketType = %d\n", prSwRfb->ucPacketType));
+		    DBGLOG(RX, ERROR, ("ucPacketType = %d\n", prSwRfb->ucPacketType));
 #endif /* CONF_HIF_LOOPBACK_AUTO */
-                    break;
+		    break;
 
-                case HIF_RX_PKT_TYPE_MANAGEMENT:
-                    nicRxProcessMgmtPacket(prAdapter, prSwRfb);
-                    break;
+		case HIF_RX_PKT_TYPE_MANAGEMENT:
+		    nicRxProcessMgmtPacket(prAdapter, prSwRfb);
+		    break;
 
-                default:
-                    RX_INC_CNT(prRxCtrl, RX_TYPE_ERR_DROP_COUNT);
-                    RX_INC_CNT(prRxCtrl, RX_DROP_TOTAL_COUNT);
-                    DBGLOG(RX, ERROR, ("ucPacketType = %d\n", prSwRfb->ucPacketType));
-                    nicRxReturnRFB(prAdapter, prSwRfb); /* need to free it */
-                    break;
-            }
-        }
-        else {
-            break;
-        }
-    }while(TRUE);
+		default:
+		    RX_INC_CNT(prRxCtrl, RX_TYPE_ERR_DROP_COUNT);
+		    RX_INC_CNT(prRxCtrl, RX_DROP_TOTAL_COUNT);
+		    DBGLOG(RX, ERROR, ("ucPacketType = %d\n", prSwRfb->ucPacketType));
+		    nicRxReturnRFB(prAdapter, prSwRfb); /* need to free it */
+		    break;
+	    }
+	}
+	else {
+	    break;
+	}
+    } while (TRUE);
 
      if (prRxCtrl->ucNumIndPacket > 0) {
-        RX_ADD_CNT(prRxCtrl, RX_DATA_INDICATION_COUNT, prRxCtrl->ucNumIndPacket);
-        RX_ADD_CNT(prRxCtrl, RX_DATA_RETAINED_COUNT, prRxCtrl->ucNumRetainedPacket);
+	RX_ADD_CNT(prRxCtrl, RX_DATA_INDICATION_COUNT, prRxCtrl->ucNumIndPacket);
+	RX_ADD_CNT(prRxCtrl, RX_DATA_RETAINED_COUNT, prRxCtrl->ucNumRetainedPacket);
 
-        //DBGLOG(RX, INFO, ("%d packets indicated, Retained cnt = %d\n",
-        //    prRxCtrl->ucNumIndPacket, prRxCtrl->ucNumRetainedPacket));
+	/* DBGLOG(RX, INFO, ("%d packets indicated, Retained cnt = %d\n", */
+	/* prRxCtrl->ucNumIndPacket, prRxCtrl->ucNumRetainedPacket)); */
     #if CFG_NATIVE_802_11
-        kalRxIndicatePkts(prAdapter->prGlueInfo, (UINT_32)prRxCtrl->ucNumIndPacket, (UINT_32)prRxCtrl->ucNumRetainedPacket);
+	kalRxIndicatePkts(prAdapter->prGlueInfo, (UINT_32)prRxCtrl->ucNumIndPacket, (UINT_32)prRxCtrl->ucNumRetainedPacket);
     #else
-        kalRxIndicatePkts(prAdapter->prGlueInfo, prRxCtrl->apvIndPacket, (UINT_32)prRxCtrl->ucNumIndPacket);
+	kalRxIndicatePkts(prAdapter->prGlueInfo, prRxCtrl->apvIndPacket, (UINT_32)prRxCtrl->ucNumIndPacket);
     #endif
     }
 
@@ -2470,7 +2476,7 @@ nicRxProcessRFBs (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicRxReadBuffer (
+nicRxReadBuffer(
     IN P_ADAPTER_T prAdapter,
     IN OUT P_SW_RFB_T prSwRfb
     )
@@ -2498,59 +2504,59 @@ nicRxReadBuffer (
     DBGLOG(RX, TRACE, ("pucBuf= 0x%x, prHifRxHdr= 0x%x\n", pucBuf, prHifRxHdr));
 
     do {
-        /* Read the RFB DW length and packet length */
-        HAL_MCR_RD(prAdapter, MCR_WRPLR, &u4RegValue);
-        if (!fgResult) {
-            DBGLOG(RX, ERROR, ("Read RX Packet Lentgh Error\n"));
-            return WLAN_STATUS_FAILURE;
-        }
+	/* Read the RFB DW length and packet length */
+	HAL_MCR_RD(prAdapter, MCR_WRPLR, &u4RegValue);
+	if (!fgResult) {
+	    DBGLOG(RX, ERROR, ("Read RX Packet Lentgh Error\n"));
+	    return WLAN_STATUS_FAILURE;
+	}
 
-        //20091021 move the line to get the HIF RX header (for RX0/1)
-        if(u4RegValue == 0) {
-            DBGLOG(RX, ERROR, ("No RX packet\n"));
-            return WLAN_STATUS_FAILURE;
-        }
+	/* 20091021 move the line to get the HIF RX header (for RX0/1) */
+	if (u4RegValue == 0) {
+	    DBGLOG(RX, ERROR, ("No RX packet\n"));
+	    return WLAN_STATUS_FAILURE;
+	}
 
-        u4PktLen = u4RegValue & BITS(0, 15);
-        if(u4PktLen != 0) {
-            rxNum = 0;
-        }
-        else {
-            rxNum = 1;
-            u4PktLen = (u4RegValue & BITS(16, 31)) >> 16;
-        }
+	u4PktLen = u4RegValue & BITS(0, 15);
+	if (u4PktLen != 0) {
+	    rxNum = 0;
+	}
+	else {
+	    rxNum = 1;
+	    u4PktLen = (u4RegValue & BITS(16, 31)) >> 16;
+	}
 
-        DBGLOG(RX, TRACE, ("RX%d: u4PktLen = %d\n", rxNum, u4PktLen));
+	DBGLOG(RX, TRACE, ("RX%d: u4PktLen = %d\n", rxNum, u4PktLen));
 
-        //4 <4> Read Entire RFB and packet, include HW appended DW (Checksum Status)
-        u4ReadBytes = ALIGN_4(u4PktLen) + 4;
-        HAL_READ_RX_PORT(prAdapter, rxNum, u4ReadBytes, pucBuf, CFG_RX_MAX_PKT_SIZE);
+	/* 4 <4> Read Entire RFB and packet, include HW appended DW (Checksum Status) */
+	u4ReadBytes = ALIGN_4(u4PktLen) + 4;
+	HAL_READ_RX_PORT(prAdapter, rxNum, u4ReadBytes, pucBuf, CFG_RX_MAX_PKT_SIZE);
 
-        //20091021 move the line to get the HIF RX header
-        //u4PktLen = (UINT_32)prHifRxHdr->u2PacketLen;
-        if (u4PktLen != (UINT_32)prHifRxHdr->u2PacketLen) {
-           DBGLOG(RX, ERROR, ("Read u4PktLen = %d, prHifRxHdr->u2PacketLen: %d\n",
-                                u4PktLen, prHifRxHdr->u2PacketLen));
+	/* 20091021 move the line to get the HIF RX header */
+	/* u4PktLen = (UINT_32)prHifRxHdr->u2PacketLen; */
+	if (u4PktLen != (UINT_32)prHifRxHdr->u2PacketLen) {
+	   DBGLOG(RX, ERROR, ("Read u4PktLen = %d, prHifRxHdr->u2PacketLen: %d\n",
+				u4PktLen, prHifRxHdr->u2PacketLen));
     #if DBG
-            dumpMemory8((PUINT_8)prHifRxHdr, (prHifRxHdr->u2PacketLen > 4096) ? 4096 : prHifRxHdr->u2PacketLen);
+	    dumpMemory8((PUINT_8)prHifRxHdr, (prHifRxHdr->u2PacketLen > 4096) ? 4096 : prHifRxHdr->u2PacketLen);
     #endif
-            ASSERT(0);
-        }
-        /* u4PktLen is byte unit, not inlude HW appended DW */
+	    ASSERT(0);
+	}
+	/* u4PktLen is byte unit, not inlude HW appended DW */
 
-        prSwRfb->ucPacketType = (UINT_8)(prHifRxHdr->u2PacketType & HIF_RX_HDR_PACKET_TYPE_MASK);
-        DBGLOG(RX, TRACE, ("ucPacketType = %d\n", prSwRfb->ucPacketType));
+	prSwRfb->ucPacketType = (UINT_8)(prHifRxHdr->u2PacketType & HIF_RX_HDR_PACKET_TYPE_MASK);
+	DBGLOG(RX, TRACE, ("ucPacketType = %d\n", prSwRfb->ucPacketType));
 
-        prSwRfb->ucStaRecIdx = (UINT_8)(prHifRxHdr->ucStaRecIdx);
+	prSwRfb->ucStaRecIdx = (UINT_8)(prHifRxHdr->ucStaRecIdx);
 
-        /* fgResult will be updated in MACRO */
-        if (!fgResult) {
-            return WLAN_STATUS_FAILURE;
-        }
+	/* fgResult will be updated in MACRO */
+	if (!fgResult) {
+	    return WLAN_STATUS_FAILURE;
+	}
 
-        DBGLOG(RX, TRACE, ("Dump RX buffer, length = 0x%x\n", u4ReadBytes));
-        DBGLOG_MEM8(RX, TRACE, pucBuf, u4ReadBytes);
-    }while(FALSE);
+	DBGLOG(RX, TRACE, ("Dump RX buffer, length = 0x%x\n", u4ReadBytes));
+	DBGLOG_MEM8(RX, TRACE, pucBuf, u4ReadBytes);
+    } while (FALSE);
 
     return u4Status;
 }
@@ -2567,7 +2573,7 @@ nicRxReadBuffer (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxReceiveRFBs (
+nicRxReceiveRFBs(
     IN P_ADAPTER_T  prAdapter
     )
 {
@@ -2587,34 +2593,34 @@ nicRxReceiveRFBs (
     ASSERT(prRxCtrl);
 
     do {
-        KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
-        QUEUE_REMOVE_HEAD(&prRxCtrl->rFreeSwRfbList, prSwRfb, P_SW_RFB_T);
-        KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	QUEUE_REMOVE_HEAD(&prRxCtrl->rFreeSwRfbList, prSwRfb, P_SW_RFB_T);
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
 
-        if (!prSwRfb) {
-            DBGLOG(RX, TRACE, ("No More RFB\n"));
-            break;
-        }
+	if (!prSwRfb) {
+	    DBGLOG(RX, TRACE, ("No More RFB\n"));
+	    break;
+	}
 
-        // need to consider
-        if (nicRxReadBuffer(prAdapter, prSwRfb) == WLAN_STATUS_FAILURE) {
-            DBGLOG(RX, TRACE, ("halRxFillRFB failed\n"));
-            nicRxReturnRFB(prAdapter, prSwRfb);
-            break;
-        }
+	/* need to consider */
+	if (nicRxReadBuffer(prAdapter, prSwRfb) == WLAN_STATUS_FAILURE) {
+	    DBGLOG(RX, TRACE, ("halRxFillRFB failed\n"));
+	    nicRxReturnRFB(prAdapter, prSwRfb);
+	    break;
+	}
 
-        KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
-        QUEUE_INSERT_TAIL(&prRxCtrl->rReceivedRfbList, &prSwRfb->rQueEntry);
-        RX_INC_CNT(prRxCtrl, RX_MPDU_TOTAL_COUNT);
-        KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	QUEUE_INSERT_TAIL(&prRxCtrl->rReceivedRfbList, &prSwRfb->rQueEntry);
+	RX_INC_CNT(prRxCtrl, RX_MPDU_TOTAL_COUNT);
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
 
-        prHifRxHdr = prSwRfb->prHifRxHdr;
-        u4HwAppendDW = *((PUINT_32)((UINT_32)prHifRxHdr +
-            (UINT_32)(ALIGN_4(prHifRxHdr->u2PacketLen))));
-        DBGLOG(RX, TRACE, ("u4HwAppendDW = 0x%x\n", u4HwAppendDW));
-        DBGLOG(RX, TRACE, ("u2PacketLen = 0x%x\n", prHifRxHdr->u2PacketLen));
+	prHifRxHdr = prSwRfb->prHifRxHdr;
+	u4HwAppendDW = *((PUINT_32)((UINT_32)prHifRxHdr +
+	    (UINT_32)(ALIGN_4(prHifRxHdr->u2PacketLen))));
+	DBGLOG(RX, TRACE, ("u4HwAppendDW = 0x%x\n", u4HwAppendDW));
+	DBGLOG(RX, TRACE, ("u2PacketLen = 0x%x\n", prHifRxHdr->u2PacketLen));
       }
-//    while (RX_STATUS_TEST_MORE_FLAG(u4HwAppendDW));
+/* while (RX_STATUS_TEST_MORE_FLAG(u4HwAppendDW)); */
     while (FALSE);
 
     return;
@@ -2637,7 +2643,7 @@ nicRxReceiveRFBs (
 /*----------------------------------------------------------------------------*/
 
 WLAN_STATUS
-nicRxEnhanceReadBuffer (
+nicRxEnhanceReadBuffer(
     IN P_ADAPTER_T prAdapter,
     IN UINT_32      u4DataPort,
     IN UINT_16      u2RxLength,
@@ -2665,44 +2671,44 @@ nicRxEnhanceReadBuffer (
     prHifRxHdr = prSwRfb->prHifRxHdr;
     ASSERT(prHifRxHdr);
 
-    //DBGLOG(RX, TRACE, ("u2RxLength = %d\n", u2RxLength));
+    /* DBGLOG(RX, TRACE, ("u2RxLength = %d\n", u2RxLength)); */
 
     do {
-        //4 <1> Read RFB frame from MCR_WRDR0, include HW appended DW
-        HAL_READ_RX_PORT(prAdapter,
-                         u4DataPort,
-                         ALIGN_4(u2RxLength + HIF_RX_HW_APPENDED_LEN),
-                         pucBuf,
-                         CFG_RX_MAX_PKT_SIZE);
+	/* 4 <1> Read RFB frame from MCR_WRDR0, include HW appended DW */
+	HAL_READ_RX_PORT(prAdapter,
+			 u4DataPort,
+			 ALIGN_4(u2RxLength + HIF_RX_HW_APPENDED_LEN),
+			 pucBuf,
+			 CFG_RX_MAX_PKT_SIZE);
 
-        if (!fgResult) {
-            DBGLOG(RX, ERROR, ("Read RX Packet Lentgh Error\n"));
-            break;
-        }
+	if (!fgResult) {
+	    DBGLOG(RX, ERROR, ("Read RX Packet Lentgh Error\n"));
+	    break;
+	}
 
-        u4PktLen = (UINT_32)(prHifRxHdr->u2PacketLen);
-        //DBGLOG(RX, TRACE, ("u4PktLen = %d\n", u4PktLen));
+	u4PktLen = (UINT_32)(prHifRxHdr->u2PacketLen);
+	/* DBGLOG(RX, TRACE, ("u4PktLen = %d\n", u4PktLen)); */
 
-        prSwRfb->ucPacketType = (UINT_8)(prHifRxHdr->u2PacketType & HIF_RX_HDR_PACKET_TYPE_MASK);
-        //DBGLOG(RX, TRACE, ("ucPacketType = %d\n", prSwRfb->ucPacketType));
+	prSwRfb->ucPacketType = (UINT_8)(prHifRxHdr->u2PacketType & HIF_RX_HDR_PACKET_TYPE_MASK);
+	/* DBGLOG(RX, TRACE, ("ucPacketType = %d\n", prSwRfb->ucPacketType)); */
 
-        prSwRfb->ucStaRecIdx = (UINT_8)(prHifRxHdr->ucStaRecIdx);
+	prSwRfb->ucStaRecIdx = (UINT_8)(prHifRxHdr->ucStaRecIdx);
 
-        //4 <2> if the RFB dw size or packet size is zero
-        if (u4PktLen == 0) {
-            DBGLOG(RX, ERROR, ("Packet Length = %u\n", (UINT32)u4PktLen));
-            ASSERT(0);
-            break;
-        }
+	/* 4 <2> if the RFB dw size or packet size is zero */
+	if (u4PktLen == 0) {
+	    DBGLOG(RX, ERROR, ("Packet Length = %u\n", (UINT32)u4PktLen));
+	    ASSERT(0);
+	    break;
+	}
 
-        //4 <3> if the packet is too large or too small
-        if (u4PktLen > CFG_RX_MAX_PKT_SIZE) {
-            DBGLOG(RX, TRACE, ("Read RX Packet Lentgh Error (%u)\n", (UINT32)u4PktLen));
-            ASSERT(0);
-            break;
-        }
+	/* 4 <3> if the packet is too large or too small */
+	if (u4PktLen > CFG_RX_MAX_PKT_SIZE) {
+	    DBGLOG(RX, TRACE, ("Read RX Packet Lentgh Error (%u)\n", (UINT32)u4PktLen));
+	    ASSERT(0);
+	    break;
+	}
 
-        u4Status = WLAN_STATUS_SUCCESS;
+	u4Status = WLAN_STATUS_SUCCESS;
     }
     while (FALSE);
 
@@ -2722,7 +2728,7 @@ nicRxEnhanceReadBuffer (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxSDIOReceiveRFBs (
+nicRxSDIOReceiveRFBs(
     IN  P_ADAPTER_T prAdapter
     )
 {
@@ -2743,56 +2749,56 @@ nicRxSDIOReceiveRFBs (
     prRxCtrl = &prAdapter->rRxCtrl;
     ASSERT(prRxCtrl);
 
-    for (rxNum = 0 ; rxNum < 2 ; rxNum++) {
-        u2RxPktNum = (rxNum == 0 ? prSDIOCtrl->rRxInfo.u.u2NumValidRx0Len : prSDIOCtrl->rRxInfo.u.u2NumValidRx1Len);
+    for (rxNum = 0; rxNum < 2; rxNum++) {
+	u2RxPktNum = (rxNum == 0 ? prSDIOCtrl->rRxInfo.u.u2NumValidRx0Len : prSDIOCtrl->rRxInfo.u.u2NumValidRx1Len);
 
-        if(u2RxPktNum == 0) {
-            continue;
-        }
+	if (u2RxPktNum == 0) {
+	    continue;
+	}
 
-        for (i = 0; i < u2RxPktNum; i++) {
-            if(rxNum == 0) {
-                HAL_READ_RX_LENGTH(prAdapter, &u2RxLength, &u2Tmp);
-            }
-            else if(rxNum == 1) {
-                HAL_READ_RX_LENGTH(prAdapter, &u2Tmp, &u2RxLength);
-            }
+	for (i = 0; i < u2RxPktNum; i++) {
+	    if (rxNum == 0) {
+		HAL_READ_RX_LENGTH(prAdapter, &u2RxLength, &u2Tmp);
+	    }
+	    else if (rxNum == 1) {
+		HAL_READ_RX_LENGTH(prAdapter, &u2Tmp, &u2RxLength);
+	    }
 
-            if (!u2RxLength) {
-                break;
-            }
+	    if (!u2RxLength) {
+		break;
+	    }
 
 
-            KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
-            QUEUE_REMOVE_HEAD(&prRxCtrl->rFreeSwRfbList, prSwRfb, P_SW_RFB_T);
-            KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	    KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	    QUEUE_REMOVE_HEAD(&prRxCtrl->rFreeSwRfbList, prSwRfb, P_SW_RFB_T);
+	    KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
 
-            if (!prSwRfb) {
-                DBGLOG(RX, TRACE, ("No More RFB\n"));
-                break;
-            }
-            ASSERT(prSwRfb);
+	    if (!prSwRfb) {
+		DBGLOG(RX, TRACE, ("No More RFB\n"));
+		break;
+	    }
+	    ASSERT(prSwRfb);
 
-            if (nicRxEnhanceReadBuffer(prAdapter, rxNum, u2RxLength, prSwRfb) == WLAN_STATUS_FAILURE) {
-                DBGLOG(RX, TRACE, ("nicRxEnhanceRxReadBuffer failed\n"));
-                nicRxReturnRFB(prAdapter, prSwRfb);
-                break;
-            }
+	    if (nicRxEnhanceReadBuffer(prAdapter, rxNum, u2RxLength, prSwRfb) == WLAN_STATUS_FAILURE) {
+		DBGLOG(RX, TRACE, ("nicRxEnhanceRxReadBuffer failed\n"));
+		nicRxReturnRFB(prAdapter, prSwRfb);
+		break;
+	    }
 
-            //prSDIOCtrl->au4RxLength[i] = 0;
+	    /* prSDIOCtrl->au4RxLength[i] = 0; */
 
-            KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
-            QUEUE_INSERT_TAIL(&prRxCtrl->rReceivedRfbList, &prSwRfb->rQueEntry);
-            RX_INC_CNT(prRxCtrl, RX_MPDU_TOTAL_COUNT);
-            KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
-        }
+	    KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	    QUEUE_INSERT_TAIL(&prRxCtrl->rReceivedRfbList, &prSwRfb->rQueEntry);
+	    RX_INC_CNT(prRxCtrl, RX_MPDU_TOTAL_COUNT);
+	    KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+	}
     }
 
     prSDIOCtrl->rRxInfo.u.u2NumValidRx0Len = 0;
     prSDIOCtrl->rRxInfo.u.u2NumValidRx1Len = 0;
 
     return;
-}/* end of nicRxSDIOReceiveRFBs() */
+} /* end of nicRxSDIOReceiveRFBs() */
 
 #endif /* CFG_SDIO_INTR_ENHANCE */
 
@@ -2810,7 +2816,7 @@ nicRxSDIOReceiveRFBs (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxSDIOAggReceiveRFBs (
+nicRxSDIOAggReceiveRFBs(
     IN  P_ADAPTER_T prAdapter
     )
 {
@@ -2848,156 +2854,156 @@ nicRxSDIOAggReceiveRFBs (
 
     do {
 #if CFG_SDIO_RX_ENHANCE
-        /* to limit maximum loop for RX */
-        u4MaxLoopCount--;
-        if (u4MaxLoopCount == 0) {
-            break;
-        }
+	/* to limit maximum loop for RX */
+	u4MaxLoopCount--;
+	if (u4MaxLoopCount == 0) {
+	    break;
+	}
 #endif
 
-        if(prEnhDataStr->rRxInfo.u.u2NumValidRx0Len == 0 &&
-                prEnhDataStr->rRxInfo.u.u2NumValidRx1Len == 0) {
-            break;
-        }
+	if (prEnhDataStr->rRxInfo.u.u2NumValidRx0Len == 0 &&
+		prEnhDataStr->rRxInfo.u.u2NumValidRx1Len == 0) {
+	    break;
+	}
 
-        for(rxNum = 0 ; rxNum < 2 ; rxNum++) {
-            u2RxPktNum = (rxNum == 0 ? prEnhDataStr->rRxInfo.u.u2NumValidRx0Len : prEnhDataStr->rRxInfo.u.u2NumValidRx1Len);
+	for (rxNum = 0; rxNum < 2; rxNum++) {
+	    u2RxPktNum = (rxNum == 0 ? prEnhDataStr->rRxInfo.u.u2NumValidRx0Len : prEnhDataStr->rRxInfo.u.u2NumValidRx1Len);
 
-            // if this assertion happened, it is most likely a F/W bug
-            ASSERT(u2RxPktNum <= 16);
+	    /* if this assertion happened, it is most likely a F/W bug */
+	    ASSERT(u2RxPktNum <= 16);
 
-            if (u2RxPktNum > 16)
-            	  continue;
+	    if (u2RxPktNum > 16)
+		  continue;
 
-            if(u2RxPktNum == 0)
-                continue;
+	    if (u2RxPktNum == 0)
+		continue;
 
     #if CFG_HIF_STATISTICS
-            prRxCtrl->u4TotalRxAccessNum++;
-            prRxCtrl->u4TotalRxPacketNum += u2RxPktNum;
+	    prRxCtrl->u4TotalRxAccessNum++;
+	    prRxCtrl->u4TotalRxPacketNum += u2RxPktNum;
     #endif
 
-            u4CurrAvailFreeRfbCnt = prRxCtrl->rFreeSwRfbList.u4NumElem;
+	    u4CurrAvailFreeRfbCnt = prRxCtrl->rFreeSwRfbList.u4NumElem;
 
-            // if SwRfb is not enough, abort reading this time
-             if(u4CurrAvailFreeRfbCnt < u2RxPktNum) {
+	    /* if SwRfb is not enough, abort reading this time */
+	     if (u4CurrAvailFreeRfbCnt < u2RxPktNum) {
     #if CFG_HIF_RX_STARVATION_WARNING
-                DbgPrint("FreeRfb is not enough: %d available, need %d\n", u4CurrAvailFreeRfbCnt, u2RxPktNum);
-                DbgPrint("Queued Count: %d / Dequeud Count: %d\n", prRxCtrl->u4QueuedCnt, prRxCtrl->u4DequeuedCnt);
+		DbgPrint("FreeRfb is not enough: %d available, need %d\n", u4CurrAvailFreeRfbCnt, u2RxPktNum);
+		DbgPrint("Queued Count: %d / Dequeud Count: %d\n", prRxCtrl->u4QueuedCnt, prRxCtrl->u4DequeuedCnt);
     #endif
-                continue;
-            }
+		continue;
+	    }
 
 #if CFG_SDIO_RX_ENHANCE
-            u4RxAvailAggLen = CFG_RX_COALESCING_BUFFER_SIZE - (sizeof(ENHANCE_MODE_DATA_STRUCT_T) + 4/* extra HW padding */);
+	    u4RxAvailAggLen = CFG_RX_COALESCING_BUFFER_SIZE - (sizeof(ENHANCE_MODE_DATA_STRUCT_T) + 4/* extra HW padding */);
 #else
-            u4RxAvailAggLen = CFG_RX_COALESCING_BUFFER_SIZE;
+	    u4RxAvailAggLen = CFG_RX_COALESCING_BUFFER_SIZE;
 #endif
-            u4RxAggCount = 0;
+	    u4RxAggCount = 0;
 
-            for (i = 0; i < u2RxPktNum ; i++) {
-                u4RxLength = (rxNum == 0 ?
-                        (UINT_32)prEnhDataStr->rRxInfo.u.au2Rx0Len[i] :
-                        (UINT_32)prEnhDataStr->rRxInfo.u.au2Rx1Len[i]);
+	    for (i = 0; i < u2RxPktNum; i++) {
+		u4RxLength = (rxNum == 0 ?
+			(UINT_32)prEnhDataStr->rRxInfo.u.au2Rx0Len[i] :
+			(UINT_32)prEnhDataStr->rRxInfo.u.au2Rx1Len[i]);
 
-                if (!u4RxLength) {
-                    ASSERT(0);
-                    break;
-                }
+		if (!u4RxLength) {
+		    ASSERT(0);
+		    break;
+		}
 
-                if (ALIGN_4(u4RxLength + HIF_RX_HW_APPENDED_LEN) < u4RxAvailAggLen) {
-                    if (u4RxAggCount < u4CurrAvailFreeRfbCnt) {
-                        u4RxAvailAggLen -= ALIGN_4(u4RxLength + HIF_RX_HW_APPENDED_LEN);
-                        u4RxAggCount++;
-                    }
-                    else {
-                        // no FreeSwRfb for rx packet
-                        ASSERT(0);
-                        break;
-                    }
-                }
-                else {
-                    // CFG_RX_COALESCING_BUFFER_SIZE is not large enough
-                    ASSERT(0);
-                    break;
-                }
-            }
+		if (ALIGN_4(u4RxLength + HIF_RX_HW_APPENDED_LEN) < u4RxAvailAggLen) {
+		    if (u4RxAggCount < u4CurrAvailFreeRfbCnt) {
+			u4RxAvailAggLen -= ALIGN_4(u4RxLength + HIF_RX_HW_APPENDED_LEN);
+			u4RxAggCount++;
+		    }
+		    else {
+			/* no FreeSwRfb for rx packet */
+			ASSERT(0);
+			break;
+		    }
+		}
+		else {
+		    /* CFG_RX_COALESCING_BUFFER_SIZE is not large enough */
+		    ASSERT(0);
+		    break;
+		}
+	    }
 
-            u4RxAggLength = (CFG_RX_COALESCING_BUFFER_SIZE - u4RxAvailAggLen);
-            //DBGLOG(RX, INFO, ("u4RxAggCount = %d, u4RxAggLength = %d\n",
-            //            u4RxAggCount, u4RxAggLength));
+	    u4RxAggLength = (CFG_RX_COALESCING_BUFFER_SIZE - u4RxAvailAggLen);
+	    /* DBGLOG(RX, INFO, ("u4RxAggCount = %d, u4RxAggLength = %d\n", */
+	    /* u4RxAggCount, u4RxAggLength)); */
 
-            HAL_READ_RX_PORT(prAdapter,
-                         rxNum,
-                         u4RxAggLength,
-                         prRxCtrl->pucRxCoalescingBufPtr,
-                         CFG_RX_COALESCING_BUFFER_SIZE);
-            if (!fgResult) {
-                DBGLOG(RX, ERROR, ("Read RX Agg Packet Error\n"));
-                continue;
-            }
+	    HAL_READ_RX_PORT(prAdapter,
+			 rxNum,
+			 u4RxAggLength,
+			 prRxCtrl->pucRxCoalescingBufPtr,
+			 CFG_RX_COALESCING_BUFFER_SIZE);
+	    if (!fgResult) {
+		DBGLOG(RX, ERROR, ("Read RX Agg Packet Error\n"));
+		continue;
+	    }
 
-            pucSrcAddr = prRxCtrl->pucRxCoalescingBufPtr;
-            for (i = 0; i < u4RxAggCount; i++) {
-                UINT_16 u2PktLength;
+	    pucSrcAddr = prRxCtrl->pucRxCoalescingBufPtr;
+	    for (i = 0; i < u4RxAggCount; i++) {
+		UINT_16 u2PktLength;
 
-                u2PktLength = (rxNum == 0 ?
-                        prEnhDataStr->rRxInfo.u.au2Rx0Len[i] :
-                        prEnhDataStr->rRxInfo.u.au2Rx1Len[i]);
+		u2PktLength = (rxNum == 0 ?
+			prEnhDataStr->rRxInfo.u.au2Rx0Len[i] :
+			prEnhDataStr->rRxInfo.u.au2Rx1Len[i]);
 
-                KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
-                QUEUE_REMOVE_HEAD(&prRxCtrl->rFreeSwRfbList, prSwRfb, P_SW_RFB_T);
-                KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+		KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+		QUEUE_REMOVE_HEAD(&prRxCtrl->rFreeSwRfbList, prSwRfb, P_SW_RFB_T);
+		KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
 
-                ASSERT(prSwRfb);
-                kalMemCopy(prSwRfb->pucRecvBuff, pucSrcAddr,
-                        ALIGN_4(u2PktLength + HIF_RX_HW_APPENDED_LEN));
+		ASSERT(prSwRfb);
+		kalMemCopy(prSwRfb->pucRecvBuff, pucSrcAddr,
+			ALIGN_4(u2PktLength + HIF_RX_HW_APPENDED_LEN));
 
-                prHifRxHdr = prSwRfb->prHifRxHdr;
-                ASSERT(prHifRxHdr);
+		prHifRxHdr = prSwRfb->prHifRxHdr;
+		ASSERT(prHifRxHdr);
 
-                prSwRfb->ucPacketType = (UINT_8)(prHifRxHdr->u2PacketType & HIF_RX_HDR_PACKET_TYPE_MASK);
-                //DBGLOG(RX, TRACE, ("ucPacketType = %d\n", prSwRfb->ucPacketType));
+		prSwRfb->ucPacketType = (UINT_8)(prHifRxHdr->u2PacketType & HIF_RX_HDR_PACKET_TYPE_MASK);
+		/* DBGLOG(RX, TRACE, ("ucPacketType = %d\n", prSwRfb->ucPacketType)); */
 
-                prSwRfb->ucStaRecIdx = (UINT_8)(prHifRxHdr->ucStaRecIdx);
+		prSwRfb->ucStaRecIdx = (UINT_8)(prHifRxHdr->ucStaRecIdx);
 
-                KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
-                QUEUE_INSERT_TAIL(&prRxCtrl->rReceivedRfbList, &prSwRfb->rQueEntry);
-                RX_INC_CNT(prRxCtrl, RX_MPDU_TOTAL_COUNT);
-                KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+		KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
+		QUEUE_INSERT_TAIL(&prRxCtrl->rReceivedRfbList, &prSwRfb->rQueEntry);
+		RX_INC_CNT(prRxCtrl, RX_MPDU_TOTAL_COUNT);
+		KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
 
-                pucSrcAddr += ALIGN_4(u2PktLength + HIF_RX_HW_APPENDED_LEN);
-                //prEnhDataStr->au4RxLength[i] = 0;
-            }
+		pucSrcAddr += ALIGN_4(u2PktLength + HIF_RX_HW_APPENDED_LEN);
+		/* prEnhDataStr->au4RxLength[i] = 0; */
+	    }
 
 #if CFG_SDIO_RX_ENHANCE
-            kalMemCopy(prAdapter->prSDIOCtrl, (pucSrcAddr + 4), sizeof(ENHANCE_MODE_DATA_STRUCT_T));
+	    kalMemCopy(prAdapter->prSDIOCtrl, (pucSrcAddr + 4), sizeof(ENHANCE_MODE_DATA_STRUCT_T));
 
-            /* do the same thing what nicSDIOReadIntStatus() does */
-            if((prSDIOCtrl->u4WHISR & WHISR_TX_DONE_INT) == 0 &&
-                    (prSDIOCtrl->rTxInfo.au4WTSR[0] | prSDIOCtrl->rTxInfo.au4WTSR[1])) {
-                prSDIOCtrl->u4WHISR |= WHISR_TX_DONE_INT;
-            }
+	    /* do the same thing what nicSDIOReadIntStatus() does */
+	    if ((prSDIOCtrl->u4WHISR & WHISR_TX_DONE_INT) == 0 &&
+		    (prSDIOCtrl->rTxInfo.au4WTSR[0] | prSDIOCtrl->rTxInfo.au4WTSR[1])) {
+		prSDIOCtrl->u4WHISR |= WHISR_TX_DONE_INT;
+	    }
 
-            if((prSDIOCtrl->u4WHISR & BIT(31)) == 0 &&
-                    HAL_GET_MAILBOX_READ_CLEAR(prAdapter) == TRUE &&
-                    (prSDIOCtrl->u4RcvMailbox0 != 0 || prSDIOCtrl->u4RcvMailbox1 != 0)) {
-                prSDIOCtrl->u4WHISR |= BIT(31);
-            }
+	    if ((prSDIOCtrl->u4WHISR & BIT(31)) == 0 &&
+		    HAL_GET_MAILBOX_READ_CLEAR(prAdapter) == TRUE &&
+		    (prSDIOCtrl->u4RcvMailbox0 != 0 || prSDIOCtrl->u4RcvMailbox1 != 0)) {
+		prSDIOCtrl->u4WHISR |= BIT(31);
+	    }
 
-            /* dispatch to interrupt handler with RX bits masked */
-            nicProcessIST_impl(prAdapter, prSDIOCtrl->u4WHISR & (~(WHISR_RX0_DONE_INT | WHISR_RX1_DONE_INT)));
+	    /* dispatch to interrupt handler with RX bits masked */
+	    nicProcessIST_impl(prAdapter, prSDIOCtrl->u4WHISR & (~(WHISR_RX0_DONE_INT | WHISR_RX1_DONE_INT)));
 #endif
-        }
+	}
 
 #if !CFG_SDIO_RX_ENHANCE
-        prEnhDataStr->rRxInfo.u.u2NumValidRx0Len = 0;
-        prEnhDataStr->rRxInfo.u.u2NumValidRx1Len = 0;
+	prEnhDataStr->rRxInfo.u.u2NumValidRx0Len = 0;
+	prEnhDataStr->rRxInfo.u.u2NumValidRx1Len = 0;
 #endif
     }
     while ((prEnhDataStr->rRxInfo.u.u2NumValidRx0Len
-                || prEnhDataStr->rRxInfo.u.u2NumValidRx1Len)
-            && fgIsRxEnhanceMode);
+		|| prEnhDataStr->rRxInfo.u.u2NumValidRx1Len)
+	    && fgIsRxEnhanceMode);
 
     return;
 }
@@ -3016,7 +3022,7 @@ nicRxSDIOAggReceiveRFBs (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicRxSetupRFB (
+nicRxSetupRFB(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T  prSwRfb
     )
@@ -3028,19 +3034,19 @@ nicRxSetupRFB (
     ASSERT(prSwRfb);
 
     if (!prSwRfb->pvPacket) {
-        kalMemZero(prSwRfb, sizeof(SW_RFB_T));
-        pvPacket = kalPacketAlloc(prAdapter->prGlueInfo, CFG_RX_MAX_PKT_SIZE,
-            &pucRecvBuff);
-        if (pvPacket == NULL) {
-            return WLAN_STATUS_RESOURCES;
-        }
+	kalMemZero(prSwRfb, sizeof(SW_RFB_T));
+	pvPacket = kalPacketAlloc(prAdapter->prGlueInfo, CFG_RX_MAX_PKT_SIZE,
+	    &pucRecvBuff);
+	if (pvPacket == NULL) {
+	    return WLAN_STATUS_RESOURCES;
+	}
 
-        prSwRfb->pvPacket = pvPacket;
-        prSwRfb->pucRecvBuff= (PVOID)pucRecvBuff;
+	prSwRfb->pvPacket = pvPacket;
+        prSwRfb->pucRecvBuff = (PVOID)pucRecvBuff;
     }
     else {
-        kalMemZero(((PUINT_8)prSwRfb + OFFSET_OF(SW_RFB_T, prHifRxHdr)),
-            (sizeof(SW_RFB_T)-OFFSET_OF(SW_RFB_T, prHifRxHdr)));
+	kalMemZero(((PUINT_8)prSwRfb + OFFSET_OF(SW_RFB_T, prHifRxHdr)),
+	    (sizeof(SW_RFB_T)-OFFSET_OF(SW_RFB_T, prHifRxHdr)));
     }
 
     prSwRfb->prHifRxHdr = (P_HIF_RX_HEADER_T)(prSwRfb->pucRecvBuff);
@@ -3062,7 +3068,7 @@ nicRxSetupRFB (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxReturnRFB (
+nicRxReturnRFB(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T  prSwRfb
     )
@@ -3083,10 +3089,10 @@ nicRxReturnRFB (
     KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
 
     if (prSwRfb->pvPacket) {
-        QUEUE_INSERT_TAIL(&prRxCtrl->rFreeSwRfbList, prQueEntry);
+	QUEUE_INSERT_TAIL(&prRxCtrl->rFreeSwRfbList, prQueEntry);
     }
     else {
-        QUEUE_INSERT_TAIL(&prRxCtrl->rIndicatedRfbList, prQueEntry);
+	QUEUE_INSERT_TAIL(&prRxCtrl->rIndicatedRfbList, prQueEntry);
     }
 
     KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_RX_QUE);
@@ -3104,7 +3110,7 @@ nicRxReturnRFB (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicProcessRxInterrupt (
+nicProcessRxInterrupt(
     IN  P_ADAPTER_T prAdapter
     )
 {
@@ -3112,9 +3118,9 @@ nicProcessRxInterrupt (
 
 #if CFG_SDIO_INTR_ENHANCE
     #if CFG_SDIO_RX_AGG
-        nicRxSDIOAggReceiveRFBs(prAdapter);
+	nicRxSDIOAggReceiveRFBs(prAdapter);
     #else
-        nicRxSDIOReceiveRFBs(prAdapter);
+	nicRxSDIOReceiveRFBs(prAdapter);
     #endif
 #else
     nicRxReceiveRFBs(prAdapter);
@@ -3139,7 +3145,7 @@ nicProcessRxInterrupt (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxUpdateCSUMStatistics (
+nicRxUpdateCSUMStatistics(
     IN P_ADAPTER_T prAdapter,
     IN const ENUM_CSUM_RESULT_T aeCSUM[]
     )
@@ -3153,43 +3159,43 @@ nicRxUpdateCSUMStatistics (
     ASSERT(prRxCtrl);
 
     if ((aeCSUM[CSUM_TYPE_IPV4] == CSUM_RES_SUCCESS) ||
-        (aeCSUM[CSUM_TYPE_IPV6] == CSUM_RES_SUCCESS)) {
+	(aeCSUM[CSUM_TYPE_IPV6] == CSUM_RES_SUCCESS)) {
 
-        RX_INC_CNT(prRxCtrl, RX_CSUM_IP_SUCCESS_COUNT);
+	RX_INC_CNT(prRxCtrl, RX_CSUM_IP_SUCCESS_COUNT);
     }
     else if ((aeCSUM[CSUM_TYPE_IPV4] == CSUM_RES_FAILED) ||
-             (aeCSUM[CSUM_TYPE_IPV6] == CSUM_RES_FAILED)) {
+	     (aeCSUM[CSUM_TYPE_IPV6] == CSUM_RES_FAILED)) {
 
-        RX_INC_CNT(prRxCtrl, RX_CSUM_IP_FAILED_COUNT);
+	RX_INC_CNT(prRxCtrl, RX_CSUM_IP_FAILED_COUNT);
     }
     else if ((aeCSUM[CSUM_TYPE_IPV4] == CSUM_RES_NONE) &&
-             (aeCSUM[CSUM_TYPE_IPV6] == CSUM_RES_NONE)) {
+	     (aeCSUM[CSUM_TYPE_IPV6] == CSUM_RES_NONE)) {
 
-        RX_INC_CNT(prRxCtrl, RX_CSUM_UNKNOWN_L3_PKT_COUNT);
+	RX_INC_CNT(prRxCtrl, RX_CSUM_UNKNOWN_L3_PKT_COUNT);
     }
     else {
-        ASSERT(0);
+	ASSERT(0);
     }
 
     if (aeCSUM[CSUM_TYPE_TCP] == CSUM_RES_SUCCESS) {
-        RX_INC_CNT(prRxCtrl, RX_CSUM_TCP_SUCCESS_COUNT);
+	RX_INC_CNT(prRxCtrl, RX_CSUM_TCP_SUCCESS_COUNT);
     }
     else if (aeCSUM[CSUM_TYPE_TCP] == CSUM_RES_FAILED) {
-        RX_INC_CNT(prRxCtrl, RX_CSUM_TCP_FAILED_COUNT);
+	RX_INC_CNT(prRxCtrl, RX_CSUM_TCP_FAILED_COUNT);
     }
     else if (aeCSUM[CSUM_TYPE_UDP] == CSUM_RES_SUCCESS) {
-        RX_INC_CNT(prRxCtrl, RX_CSUM_UDP_SUCCESS_COUNT);
+	RX_INC_CNT(prRxCtrl, RX_CSUM_UDP_SUCCESS_COUNT);
     }
     else if (aeCSUM[CSUM_TYPE_UDP] == CSUM_RES_FAILED) {
-        RX_INC_CNT(prRxCtrl, RX_CSUM_UDP_FAILED_COUNT);
+	RX_INC_CNT(prRxCtrl, RX_CSUM_UDP_FAILED_COUNT);
     }
     else if ((aeCSUM[CSUM_TYPE_UDP] == CSUM_RES_NONE) &&
-             (aeCSUM[CSUM_TYPE_TCP] == CSUM_RES_NONE)) {
+	     (aeCSUM[CSUM_TYPE_TCP] == CSUM_RES_NONE)) {
 
-        RX_INC_CNT(prRxCtrl, RX_CSUM_UNKNOWN_L4_PKT_COUNT);
+	RX_INC_CNT(prRxCtrl, RX_CSUM_UNKNOWN_L4_PKT_COUNT);
     }
     else {
-        ASSERT(0);
+	ASSERT(0);
     }
 
     return;
@@ -3209,7 +3215,7 @@ nicRxUpdateCSUMStatistics (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxQueryStatus (
+nicRxQueryStatus(
     IN P_ADAPTER_T prAdapter,
     IN PUINT_8 pucBuffer,
     OUT PUINT_32 pu4Count
@@ -3223,7 +3229,7 @@ nicRxQueryStatus (
     prRxCtrl = &prAdapter->rRxCtrl;
     ASSERT(prRxCtrl);
 
-    //if (pucBuffer) {} /* For Windows, we'll print directly instead of sprintf() */
+    /* if (pucBuffer) {} /* For Windows, we'll print directly instead of sprintf() */ */
     ASSERT(pu4Count);
 
     SPRINTF(pucCurrBuf, ("\n\nRX CTRL STATUS:"));
@@ -3234,7 +3240,7 @@ nicRxQueryStatus (
 
     SPRINTF(pucCurrBuf, ("\n\n"));
 
-    //*pu4Count = (UINT_32)((UINT_32)pucCurrBuf - (UINT_32)pucBuffer);
+    /* *pu4Count = (UINT_32)((UINT_32)pucCurrBuf - (UINT_32)pucBuffer); */
 
     return;
 } /* end of nicRxQueryStatus() */
@@ -3250,7 +3256,7 @@ nicRxQueryStatus (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxClearStatistics (
+nicRxClearStatistics(
     IN P_ADAPTER_T prAdapter
     )
 {
@@ -3277,7 +3283,7 @@ nicRxClearStatistics (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxQueryStatistics (
+nicRxQueryStatistics(
     IN P_ADAPTER_T prAdapter,
     IN PUINT_8 pucBuffer,
     OUT PUINT_32 pu4Count
@@ -3290,7 +3296,7 @@ nicRxQueryStatistics (
     prRxCtrl = &prAdapter->rRxCtrl;
     ASSERT(prRxCtrl);
 
-    //if (pucBuffer) {} /* For Windows, we'll print directly instead of sprintf() */
+    /* if (pucBuffer) {} /* For Windows, we'll print directly instead of sprintf() */ */
     ASSERT(pu4Count);
 
 #define SPRINTF_RX_COUNTER(eCounter) \
@@ -3314,7 +3320,7 @@ nicRxQueryStatistics (
     SPRINTF_RX_COUNTER(RX_IP_V6_PKT_CCOUNT);
 #endif
 
-    //*pu4Count = (UINT_32)(pucCurrBuf - pucBuffer);
+    /* *pu4Count = (UINT_32)(pucCurrBuf - pucBuffer); */
 
     nicRxClearStatistics(prAdapter);
 
@@ -3334,7 +3340,7 @@ nicRxQueryStatistics (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicRxWaitResponse (
+nicRxWaitResponse(
     IN P_ADAPTER_T prAdapter,
     IN UINT_8 ucPortIdx,
     OUT PUINT_8 pucRspBuffer,
@@ -3357,73 +3363,73 @@ nicRxWaitResponse (
     u4Time = (UINT_32)kalGetTimeTick();
 
     do {
-        /* Read the packet length */
-        HAL_MCR_RD(prAdapter, MCR_WRPLR, &u4Value);
+	/* Read the packet length */
+	HAL_MCR_RD(prAdapter, MCR_WRPLR, &u4Value);
 
-        if (!fgResult) {
-            DBGLOG(RX, ERROR, ("Read Response Packet Error\n"));
-            return WLAN_STATUS_FAILURE;
-        }
+	if (!fgResult) {
+	    DBGLOG(RX, ERROR, ("Read Response Packet Error\n"));
+	    return WLAN_STATUS_FAILURE;
+	}
 
-        if(ucPortIdx == 0) {
-            u4PktLen = u4Value & 0xFFFF;
-        }
-        else {
-            u4PktLen = (u4Value >> 16) & 0xFFFF;
-        }
+	if (ucPortIdx == 0) {
+	    u4PktLen = u4Value & 0xFFFF;
+	}
+	else {
+	    u4PktLen = (u4Value >> 16) & 0xFFFF;
+	}
 
-//        DBGLOG(RX, TRACE, ("i = %d, u4PktLen = %d\n", i, u4PktLen));
+/* DBGLOG(RX, TRACE, ("i = %d, u4PktLen = %d\n", i, u4PktLen)); */
 
-        if (u4PktLen == 0) {
-            /* timeout exceeding check */
-            u4Current = (UINT_32)kalGetTimeTick();
+	if (u4PktLen == 0) {
+	    /* timeout exceeding check */
+	    u4Current = (UINT_32)kalGetTimeTick();
 
-            if((u4Current > u4Time) && ((u4Current - u4Time) > RX_RESPONSE_TIMEOUT)) {
-				DBGLOG(INIT, ERROR,("RX_RESPONSE_TIMEOUT1 %u %d %lu\n", (UINT32)u4PktLen, i,
+	    if ((u4Current > u4Time) && ((u4Current - u4Time) > RX_RESPONSE_TIMEOUT)) {
+				DBGLOG(INIT, ERROR, ("RX_RESPONSE_TIMEOUT1 %u %d %lu\n", (UINT32)u4PktLen, i,
 					(unsigned long)u4Current));
-                return WLAN_STATUS_FAILURE;
-            }
-            else if(u4Current < u4Time && ((u4Current + (0xFFFFFFFF - u4Time)) > RX_RESPONSE_TIMEOUT)) {
-				DBGLOG(INIT, ERROR,("RX_RESPONSE_TIMEOUT2 %u %d %lu\n", (UINT32)u4PktLen, i, u4Current));
-                return WLAN_STATUS_FAILURE;
-            }
+		return WLAN_STATUS_FAILURE;
+	    }
+	    else if (u4Current < u4Time && ((u4Current + (0xFFFFFFFF - u4Time)) > RX_RESPONSE_TIMEOUT)) {
+				DBGLOG(INIT, ERROR, ("RX_RESPONSE_TIMEOUT2 %u %d %lu\n", (UINT32)u4PktLen, i, u4Current));
+		return WLAN_STATUS_FAILURE;
+	    }
 
-            /* Response packet is not ready */
-            kalUdelay(50);
+	    /* Response packet is not ready */
+	    kalUdelay(50);
 
-            i++;
-        }
-        else if (u4PktLen > u4MaxRespBufferLen) {
-            /*
-                    TO: buffer is not enough but we still need to read all data from HIF to avoid
-                    HIF crazy.
-                */
-            DBGLOG(INIT, ERROR, ("Not enough Event Buffer: required length = 0x%x, available buffer length = %d\n",
-                (UINT32)u4PktLen, (UINT32)u4MaxRespBufferLen));
+	    i++;
+	}
+	else if (u4PktLen > u4MaxRespBufferLen) {
+	    /*
+		    TO: buffer is not enough but we still need to read all data from HIF to avoid
+		    HIF crazy.
+		*/
+	    DBGLOG(INIT, ERROR, ("Not enough Event Buffer: required length = 0x%x, available buffer length = %d\n",
+		(UINT32)u4PktLen, (UINT32)u4MaxRespBufferLen));
 			DBGLOG(INIT, ERROR, ("i = %d, u4PktLen = %u\n", i, (UINT32)u4PktLen));
-            return WLAN_STATUS_FAILURE;
-        }
-        else {
-            HAL_PORT_RD(prAdapter,
-                        ucPortIdx == 0 ? MCR_WRDR0 : MCR_WRDR1,
-                        u4PktLen,
-                        pucRspBuffer,
-                        u4MaxRespBufferLen);
+	    return WLAN_STATUS_FAILURE;
+	}
+	else {
+	    HAL_PORT_RD(prAdapter,
+			ucPortIdx == 0 ? MCR_WRDR0 : MCR_WRDR1,
+			u4PktLen,
+			pucRspBuffer,
+			u4MaxRespBufferLen);
 
-            /* fgResult will be updated in MACRO */
-            if (!fgResult) {
-                DBGLOG(INIT, ERROR, ("Read Response Packet Error\n"));
-                return WLAN_STATUS_FAILURE;
-            }
+	    /* fgResult will be updated in MACRO */
+	    if (!fgResult) {
+		DBGLOG(INIT, ERROR, ("Read Response Packet Error\n"));
+		return WLAN_STATUS_FAILURE;
+	    }
 
-            DBGLOG(RX, TRACE, ("Dump Response buffer, length = 0x%x\n",
-                (UINT32)u4PktLen));
-            DBGLOG_MEM8(RX, TRACE, pucRspBuffer, u4PktLen);
+	    DBGLOG(RX, TRACE, ("Dump Response buffer, length = 0x%x\n",
+		(UINT32)u4PktLen));
+	    DBGLOG_MEM8(RX, TRACE, pucRspBuffer, u4PktLen);
 
-            *pu4Length = u4PktLen;
-            break;
-        }
-    } while(TRUE);
+	    *pu4Length = u4PktLen;
+	    break;
+	}
+    } while (TRUE);
 
     return u4Status;
 }
@@ -3438,7 +3444,7 @@ nicRxWaitResponse (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxEnablePromiscuousMode (
+nicRxEnablePromiscuousMode(
     IN P_ADAPTER_T prAdapter
     )
 {
@@ -3458,7 +3464,7 @@ nicRxEnablePromiscuousMode (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicRxDisablePromiscuousMode (
+nicRxDisablePromiscuousMode(
     IN P_ADAPTER_T prAdapter
     )
 {
@@ -3478,7 +3484,7 @@ nicRxDisablePromiscuousMode (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicRxFlush (
+nicRxFlush(
     IN P_ADAPTER_T  prAdapter
     )
 {
@@ -3486,18 +3492,18 @@ nicRxFlush (
 
     ASSERT(prAdapter);
 
-    if((prSwRfb = qmFlushRxQueues(prAdapter)) != NULL) {
-        do {
-            P_SW_RFB_T prNextSwRfb;
+    if ((prSwRfb = qmFlushRxQueues(prAdapter)) != NULL) {
+	do {
+	    P_SW_RFB_T prNextSwRfb;
 
-            // save next first
-            prNextSwRfb = (P_SW_RFB_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prSwRfb);
+	    /* save next first */
+	    prNextSwRfb = (P_SW_RFB_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prSwRfb);
 
-            // free
-            nicRxReturnRFB(prAdapter, prSwRfb);
+	    /* free */
+	    nicRxReturnRFB(prAdapter, prSwRfb);
 
-            prSwRfb = prNextSwRfb;
-        } while(prSwRfb);
+	    prSwRfb = prNextSwRfb;
+	} while (prSwRfb);
     }
 
     return WLAN_STATUS_SUCCESS;
@@ -3514,7 +3520,7 @@ nicRxFlush (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicRxProcessActionFrame (
+nicRxProcessActionFrame(
     IN P_ADAPTER_T      prAdapter,
     IN P_SW_RFB_T       prSwRfb
     )
@@ -3525,93 +3531,81 @@ nicRxProcessActionFrame (
     ASSERT(prSwRfb);
 
     if (prSwRfb->u2PacketLen < sizeof(WLAN_ACTION_FRAME) - 1) {
-        return WLAN_STATUS_INVALID_PACKET;
+	return WLAN_STATUS_INVALID_PACKET;
     }
     prActFrame = (P_WLAN_ACTION_FRAME) prSwRfb->pvHeader;
 
     switch (prActFrame->ucCategory) {
     case CATEGORY_PUBLIC_ACTION:
-        if (HIF_RX_HDR_GET_NETWORK_IDX(prSwRfb->prHifRxHdr) == NETWORK_TYPE_AIS_INDEX) {
-            aisFuncValidateRxActionFrame(prAdapter, prSwRfb);
-        }
+	if (HIF_RX_HDR_GET_NETWORK_IDX(prSwRfb->prHifRxHdr) == NETWORK_TYPE_AIS_INDEX) {
+	    aisFuncValidateRxActionFrame(prAdapter, prSwRfb);
+	}
     #if CFG_ENABLE_WIFI_DIRECT
-        else if (prAdapter->fgIsP2PRegistered) {
-            rlmProcessPublicAction(prAdapter, prSwRfb);
+	else if (prAdapter->fgIsP2PRegistered) {
+	    rlmProcessPublicAction(prAdapter, prSwRfb);
 
-            p2pFuncValidateRxActionFrame(
-                        prAdapter, prSwRfb);
+	    p2pFuncValidateRxActionFrame(
+			prAdapter, prSwRfb);
 
-        }
+	}
     #endif
-        break;
+	break;
 
     case CATEGORY_HT_ACTION:
     #if CFG_ENABLE_WIFI_DIRECT
-        if (prAdapter->fgIsP2PRegistered) {
-            rlmProcessHtAction(prAdapter, prSwRfb);
-        }
+	if (prAdapter->fgIsP2PRegistered) {
+	    rlmProcessHtAction(prAdapter, prSwRfb);
+	}
     #endif
-        break;
+	break;
     case CATEGORY_VENDOR_SPECIFIC_ACTION:
     #if CFG_ENABLE_WIFI_DIRECT
-        if (prAdapter->fgIsP2PRegistered) {
-            p2pFuncValidateRxActionFrame(prAdapter, prSwRfb);
-        }
+	if (prAdapter->fgIsP2PRegistered) {
+	    p2pFuncValidateRxActionFrame(prAdapter, prSwRfb);
+	}
     #endif
-        break;
+	break;
 #if CFG_SUPPORT_802_11W
     case CATEGORY_SA_QUERT_ACTION:
-        {
-            P_HIF_RX_HEADER_T   prHifRxHdr;
+	{
+	    P_HIF_RX_HEADER_T   prHifRxHdr;
 
-            prHifRxHdr = prSwRfb->prHifRxHdr;
+	    prHifRxHdr = prSwRfb->prHifRxHdr;
 
-            if ((HIF_RX_HDR_GET_NETWORK_IDX(prHifRxHdr) == NETWORK_TYPE_AIS_INDEX) &&
-                prAdapter->rWifiVar.rAisSpecificBssInfo.fgMgmtProtection /* Use MFP */
-                ) {
-                if (!(prHifRxHdr->ucReserved & CONTROL_FLAG_UC_MGMT_NO_ENC)) {
-                    /* MFP test plan 5.3.3.4 */
-                    rsnSaQueryAction(prAdapter, prSwRfb);
-                }
-                else {
-                    DBGLOG(RSN, TRACE, ("Un-Protected SA Query, do nothing\n"));
-                }
-            }
-        }
-        break;
+	    if ((HIF_RX_HDR_GET_NETWORK_IDX(prHifRxHdr) == NETWORK_TYPE_AIS_INDEX) &&
+		prAdapter->rWifiVar.rAisSpecificBssInfo.fgMgmtProtection /* Use MFP */
+		) {
+		if (!(prHifRxHdr->ucReserved & CONTROL_FLAG_UC_MGMT_NO_ENC)) {
+		    /* MFP test plan 5.3.3.4 */
+		    rsnSaQueryAction(prAdapter, prSwRfb);
+		}
+		else {
+		    DBGLOG(RSN, TRACE, ("Un-Protected SA Query, do nothing\n"));
+		}
+	    }
+	}
+	break;
 #endif
 #if CFG_SUPPORT_802_11V
     case CATEGORY_WNM_ACTION:
-        {
-            wnmWNMAction(prAdapter, prSwRfb);
-        }
-        break;
+	{
+	    wnmWNMAction(prAdapter, prSwRfb);
+	}
+	break;
 #endif
 
-#if CFG_SUPPORT_DFS // Add by Enlai
+#if CFG_SUPPORT_DFS /* Add by Enlai */
 case CATEGORY_SPEC_MGT:
     {
-        if(prAdapter->fgEnable5GBand == TRUE)
-           rlmProcessSpecMgtAction(prAdapter, prSwRfb);
+	if (prAdapter->fgEnable5GBand == TRUE)
+	   rlmProcessSpecMgtAction(prAdapter, prSwRfb);
     }
     break;
 #endif
 
-#if (CFG_SUPPORT_TDLS == 1)
-		case 12: /* shall not be here */
-			/*
-			 	A received TDLS Action frame with the Type field set to Management shall
-				be discarded. Note that the TDLS Discovery Response frame is not a TDLS
-				frame but a Public Action frame.
-			*/
-			break;
-#endif /* CFG_SUPPORT_TDLS */
-
     default:
-        break;
+	break;
     } /* end of switch case */
 
     return WLAN_STATUS_SUCCESS;
 }
-
-

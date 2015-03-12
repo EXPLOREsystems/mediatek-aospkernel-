@@ -85,9 +85,9 @@ static VOID wmt_plat_func_ctrl(UINT32 type, UINT32 on);
 static VOID wmt_plat_func_ctrl(UINT32 type, UINT32 on)
 {
     if (on) {
-        mtk_wcn_wmt_func_on((ENUM_WMTDRV_TYPE_T) type);
+	mtk_wcn_wmt_func_on((ENUM_WMTDRV_TYPE_T) type);
     } else {
-        mtk_wcn_wmt_func_off((ENUM_WMTDRV_TYPE_T) type);
+	mtk_wcn_wmt_func_off((ENUM_WMTDRV_TYPE_T) type);
     }
     return;
 }
@@ -105,5 +105,3 @@ INT32 wmt_plat_stub_init(void)
     iRet = mtk_wcn_cmb_stub_reg(&stub_cb);
     return iRet;
 }
-
-

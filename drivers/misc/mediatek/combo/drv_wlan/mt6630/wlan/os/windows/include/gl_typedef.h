@@ -183,8 +183,8 @@ extern void DbgBreakPoint(void);
 #ifndef BIT
 #define BIT(n)                          ((UINT_32) 1 << (n))
 #define BITS2(m, n)                      (BIT(m) | BIT(n))
-#define BITS3(m, n, o)                    (BIT(m) | BIT (n) | BIT (o))
-#define BITS4(m, n, o, p)                  (BIT(m) | BIT (n) | BIT (o) | BIT(p))
+#define BITS3(m, n, o)                    (BIT(m) | BIT(n) | BIT(o))
+#define BITS4(m, n, o, p)                  (BIT(m) | BIT(n) | BIT(o) | BIT(p))
 
 /* bits range: for example BITS(16,23) = 0xFF0000
  *   ==>  (BIT(m)-1)   = 0x0000FFFF     ~(BIT(m)-1)   => 0xFFFF0000

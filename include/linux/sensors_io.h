@@ -167,7 +167,9 @@ typedef struct {
 #define BAROMETER_GET_TEMP_DATA			    _IOR(BROMETER, 0x03, int)
 #define BAROMETER_IOCTL_READ_CHIPINFO		_IOR(BROMETER, 0x04, int)
 
-
+#define HEARTMONITOR						0x88
+#define HRM_IOCTL_INIT						_IO(HEARTMONITOR, 0x01)
+#define HRM_READ_SENSOR_DATA				_IOR(HEARTMONITOR, 0x02, int)
 
 
 #endif

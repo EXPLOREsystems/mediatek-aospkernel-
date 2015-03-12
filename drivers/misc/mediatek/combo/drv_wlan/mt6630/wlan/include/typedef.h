@@ -1,5 +1,5 @@
 /*
-** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/typedef.h#1 $
+** Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/typedef.h#1
 */
 
 /*! \file   typedef.h
@@ -10,110 +10,6 @@
 */
 
 
-
-/*
-** $Log: typedef.h $
-**
-** 03 13 2013 terry.wu
-** [BORA00002207] [MT6630 Wi-Fi] TXM & MQM Implementation
-** .
-**
-** 01 23 2013 cp.wu
-** [BORA00002253] [MT6630 Wi-Fi][Driver][Firmware] Add NLO and timeout mechanism to SCN module
-** modify AIS behavior: stop join trial if failed
-**
-** 09 17 2012 cm.chang
-** [BORA00002149] [MT6630 Wi-Fi] Initial software development
-** Duplicate source from MT6620 v2.3 driver branch
-** (Davinci label: MT6620_WIFI_Driver_V2_3_120913_1942_As_MT6630_Base)
- *
- * 07 18 2011 chinghwa.yu
- * [WCXRP00000063] Update BCM CoEx design and settings[WCXRP00000612] [MT6620 Wi-Fi] [FW] CSD update SWRDD algorithm
- * Add CMD/Event for RDD and BWCS.
- *
- * 12 30 2010 cp.wu
- * [WCXRP00000327] [MT6620 Wi-Fi][Driver] Improve HEC WHQA 6972 workaround coverage in driver side
- * host driver not to set FW-own when there is still pending interrupts
- *
- * 09 03 2010 kevin.huang
- * NULL
- * Refine #include sequence and solve recursive/nested #include issue
- *
- * 08 16 2010 kevin.huang
- * NULL
- * Refine AAA functions
- *
- * 07 19 2010 jeffrey.chang
- *
- * Linux port modification
- *
- * 07 08 2010 cp.wu
- *
- * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
- *
- * 06 23 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration
- * integrate .
- *
- * 06 18 2010 cm.chang
- * [WPD00003841][LITE Driver] Migrate RLM/CNM to host driver
- * Provide cnmMgtPktAlloc() and alloc/free function of msg/buf
- *
- * 06 11 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration
- * 1) migrate assoc.c.
- * 2) add ucTxSeqNum for tracking frames which needs TX-DONE awareness
- * 3) add configuration options for CNM_MEM and RSN modules
- * 4) add data path for management frames
- * 5) eliminate rPacketInfo of MSDU_INFO_T
- *
- * 06 09 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration
- * add necessary changes to driver data paths.
- *
- * 06 09 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration
- * add definitions for module migration.
- *
- * 06 07 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration
- * add aa_fsm.h, ais_fsm.h, bss.h, mib.h and scan.h.
- *
- * 06 06 2010 kevin.huang
- * [WPD00003832][MT6620 5931] Create driver base
- * [MT6620 5931] Create driver base
- *
- * 06 03 2010 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP
- * move timer callback to glue layer.
- *
- * 05 31 2010 cp.wu
- * [WPD00003831][MT6620 Wi-Fi] Add framework for Wi-Fi Direct support
- * add cfg80211 interface, which is to replace WE, for further extension
- *
- * 03 24 2010 jeffrey.chang
- * [WPD00003826]Initial import for Linux port
- * initial import for Linux port
- *
- * 02 24 2010 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP
- * add Ethernet destination address information in packet info for TX
- *
- * 02 23 2010 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP
- * add new API: wlanProcessQueuedPackets()
-**  \main\maintrunk.MT6620WiFiDriver_Prj\6 2009-03-23 21:41:37 GMT mtk01461
-**  Update PACKET_INFO_INIT for TX Path
-**  \main\maintrunk.MT6620WiFiDriver_Prj\5 2009-03-23 00:30:17 GMT mtk01461
-**  Add parameter in PACKET_INFO_T for HIF Loopback
-**  \main\maintrunk.MT6620WiFiDriver_Prj\4 2009-03-18 20:25:22 GMT mtk01461
-**  Fix LINT warning
-**  \main\maintrunk.MT6620WiFiDriver_Prj\3 2009-03-16 09:08:28 GMT mtk01461
-**  Update TX PATH API
-**  \main\maintrunk.MT6620WiFiDriver_Prj\2 2009-03-10 20:11:54 GMT mtk01426
-**  Init for develop
-**
-*/
 
 #ifndef _TYPEDEF_H
 #define _TYPEDEF_H

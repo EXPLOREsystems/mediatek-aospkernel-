@@ -2072,9 +2072,9 @@ typedef struct _WAPI_INFO_ELEM_T {
 
 /* Convert the dBm to RCPI */
 #define dBm_TO_RCPI(_dbm)                           \
-    (RCPI)(( (((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1) > RCPI_HIGH_BOUND) ? RCPI_HIGH_BOUND : \
+    (RCPI)(((((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1) > RCPI_HIGH_BOUND) ? RCPI_HIGH_BOUND : \
 	    ((((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1) < RCPI_LOW_BOUND ? RCPI_LOW_BOUND : \
-	     (((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1)) )
+	     (((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1)))
 
 /* Convert an unsigned char pointer to an information element pointer */
 #define IE_ID(fp)               (((P_IE_HDR_T) fp)->ucId)

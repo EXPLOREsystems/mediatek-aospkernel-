@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/TRUNK/WiFi_P2P_Driver/include/mgmt/p2p_fsm.h#23 $
 */
 
@@ -12,19 +26,19 @@
 
 /*
 ** $Log: p2p_fsm.h $
-** 
+**
 ** 09 12 2012 wcpadmin
 ** [ALPS00276400] Remove MTK copyright and legal header on GPL/LGPL related packages
 ** .
-** 
+**
 ** 08 14 2012 yuche.tsai
 ** NULL
 ** Fix compile error.
-** 
+**
 ** 07 26 2012 yuche.tsai
 ** [ALPS00324337] [ALPS.JB][Hot-Spot] Driver update for Hot-Spot
 ** Update driver code of ALPS.JB for hot-spot.
-** 
+**
 ** 07 19 2012 yuche.tsai
 ** NULL
 ** Code update for JB.
@@ -506,11 +520,11 @@ typedef struct _P2P_SSID_STRUCT_T {
 
 typedef struct _P2P_STATION_INFO_T {
     UINT_32 u4InactiveTime;
-    UINT_32 u4RxBytes;          // TODO:
-    UINT_32 u4TxBytes;          // TODO:
-    UINT_32 u4RxPackets;            // TODO:
-    UINT_32 u4TxPackets;            // TODO:
-    // TODO: Add more for requirement.
+    UINT_32 u4RxBytes;          /* TODO: */
+    UINT_32 u4TxBytes;          /* TODO: */
+    UINT_32 u4RxPackets;            /* TODO: */
+    UINT_32 u4TxPackets;            /* TODO: */
+    /* TODO: Add more for requirement. */
 }
 P2P_STATION_INFO_T, *P_P2P_STATION_INFO_T;
 
@@ -555,7 +569,7 @@ typedef struct _P2P_SCAN_REQ_INFO_T {
     RF_CHANNEL_INFO_T arScanChannelList[MAXIMUM_OPERATION_CHANNEL_LIST];
     UINT_32 u4BufLength;
     UINT_8 aucIEBuf[MAX_IE_LENGTH];
-    P2P_SSID_STRUCT_T rSsidStruct;    // Currently we can only take one SSID scan request
+    P2P_SSID_STRUCT_T rSsidStruct;    /* Currently we can only take one SSID scan request */
     BOOLEAN fgIsGOInitialDone;
 }
 P2P_SCAN_REQ_INFO_T, *P_P2P_SCAN_REQ_INFO_T;
@@ -686,7 +700,7 @@ struct _P2P_FSM_INFO_T {
     P2P_JOIN_INFO_T rJoinInfo;
 
     /* FSM Timer */
-//    TIMER_T rP2pFsmTimeoutTimer;
+/* TIMER_T rP2pFsmTimeoutTimer; */
 
 
     /* GC Target BSS. */
@@ -703,13 +717,12 @@ struct _P2P_FSM_INFO_T {
     /* Packet filter for P2P module. */
     UINT_32 u4P2pPacketFilter;
 
-    //vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Prepare for use vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+    /* vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Prepare for use vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv */
     /* Msg event queue. */
     LINK_T rMsgEventQueue;
 
 #if CFG_SUPPORT_WFD
     WFD_CFG_SETTINGS_T rWfdConfigureSettings;
-    UINT_32 u4DelscanCount;
 #endif
 
     BOOLEAN fgIsWPSMode;
@@ -750,7 +763,7 @@ typedef struct _MSG_P2P_CONNECTION_REQUEST_T {
     RF_CHANNEL_INFO_T rChannelInfo;
     UINT_32 u4IELen;
     UINT_8 aucIEBuf[1];
-    // TODO: Auth Type, OPEN, SHARED, FT, EAP...
+    /* TODO: Auth Type, OPEN, SHARED, FT, EAP... */
 } MSG_P2P_CONNECTION_REQUEST_T, *P_MSG_P2P_CONNECTION_REQUEST_T;
 
 
@@ -940,15 +953,15 @@ p2pFsmRunEventWfdSettingUpdate(
 
 
 #if 0
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
+/* ///////////////////////////////////////////////////////////////////////////////////// */
+/* ///////////////////////////////////////////////////////////////////////////////////// */
+/* ///////////////////////////////////////////////////////////////////////////////////// */
+/* ///////////////////////////////////////////////////////////////////////////////////// */
+/* //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
 #endif
 
-//3 /* --------------- WFA P2P DEFAULT PARAMETERS --------------- */
+/* 3 /* --------------- WFA P2P DEFAULT PARAMETERS --------------- */ */
 #define P2P_WILDCARD_SSID                           "DIRECT-"
 #define P2P_WILDCARD_SSID_LEN                       7
 #define P2P_GROUP_ID_LEN                            9
@@ -980,13 +993,13 @@ p2pFsmRunEventWfdSettingUpdate(
 #define P2P_MAXIMUM_ATTRIBUTES_CACHE_SIZE           768
 
 /* P2P 3.1.2.1.3 - Find Phase */
-#define P2P_MAX_DISCOVERABLE_INTERVAL    8   //3//3
-#define P2P_MIN_DISCOVERABLE_INTERVAL    5   // 1
+#define P2P_MAX_DISCOVERABLE_INTERVAL    8   /* 3//3 */
+#define P2P_MIN_DISCOVERABLE_INTERVAL    5   /* 1 */
 
-#define P2P_LISTEN_SCAN_UNIT                     100    // MS
+#define P2P_LISTEN_SCAN_UNIT                     100    /* MS */
 
 /* FSM Time Related constrain. */
-#define P2P_SERACH_STATE_PERIOD_MS              1000   // Deprecated.
+#define P2P_SERACH_STATE_PERIOD_MS              1000   /* Deprecated. */
 
 #define P2P_GO_CHANNEL_STAY_INTERVAL             1000
 
@@ -996,7 +1009,7 @@ p2pFsmRunEventWfdSettingUpdate(
 #define P2P_INVITAION_TIMEOUT_MS                         500   /* Timeout Wait Invitation Resonse. */
 #define P2P_PROVISION_DISCOVERY_TIMEOUT_MS     500   /* Timeout Wait Provision Discovery Resonse. */
 
-//3 /* --------------- WFA P2P IE --------------- */
+/* 3 /* --------------- WFA P2P IE --------------- */ */
 /* P2P 4.1.1 - P2P IE format */
 #define P2P_OUI_TYPE_LEN                            4
 #define P2P_IE_OUI_HDR                              (ELEM_HDR_LEN + P2P_OUI_TYPE_LEN) /* == OFFSET_OF(IE_P2P_T, aucP2PAttributes[0]) */
@@ -1042,18 +1055,18 @@ p2pFsmRunEventWfdSettingUpdate(
 #define P2P_ATTRI_MAX_LEN_EXT_LISTEN_TIMING                 4 /* 8 */
 #define P2P_ATTRI_MAX_LEN_INTENDED_P2P_IF_ADDR              6 /* 9 */
 #define P2P_ATTRI_MAX_LEN_P2P_MANAGEABILITY                 1 /* 10 */
-//#define P2P_ATTRI_MAX_LEN_CHANNEL_LIST                      3 + (n* (2 + num_of_ch)) /* 11 */
+/* #define P2P_ATTRI_MAX_LEN_CHANNEL_LIST                      3 + (n* (2 + num_of_ch)) /* 11 */ */
 #define P2P_ATTRI_LEN_CHANNEL_LIST                                  3 /* 11 */
 #define P2P_ATTRI_LEN_CHANNEL_ENTRY                                  2 /* 11 */
 
 
-//#define P2P_ATTRI_MAX_LEN_NOTICE_OF_ABSENCE                 2 + (n* (13)) /* 12 */
+/* #define P2P_ATTRI_MAX_LEN_NOTICE_OF_ABSENCE                 2 + (n* (13)) /* 12 */ */
 #define P2P_ATTRI_MAX_LEN_NOTICE_OF_ABSENCE                 (2 + (P2P_MAXIMUM_NOA_COUNT*(13))) /* 12 */
 
 #define P2P_ATTRI_MAX_LEN_P2P_DEV_INFO                      17 + (8 * (8)) + 36 /* 13 */
-//#define P2P_ATTRI_MAX_LEN_P2P_GROUP_INFO                    n* (25 + (m* (8)) + 32) /* 14 */
+/* #define P2P_ATTRI_MAX_LEN_P2P_GROUP_INFO                    n* (25 + (m* (8)) + 32) /* 14 */ */
 #define P2P_ATTRI_MAX_LEN_P2P_GROUP_ID                      38 /* 15 */
-#define P2P_ATTRI_MAX_LEN_P2P_INTERFACE                     253 // 7 + 6* [0~41] /* 16 */
+#define P2P_ATTRI_MAX_LEN_P2P_INTERFACE                     253 /* 7 + 6* [0~41] /* 16 */ */
 #if CID52_53_54
     #define P2P_ATTRI_MAX_LEN_OPERATING_CHANNEL                 5 /* 17 */
 #else
@@ -1104,7 +1117,7 @@ p2pFsmRunEventWfdSettingUpdate(
 
 /* P2P 4.1.6 - GO Intent field definitions */
 #define P2P_GO_INTENT_TIE_BREAKER_FIELD                     BIT(0)
-#define P2P_GO_INTENT_VALUE_MASK                            BITS(1,7)
+#define P2P_GO_INTENT_VALUE_MASK                            BITS(1, 7)
 #define P2P_GO_INTENT_VALUE_OFFSET                          1
 
 /* P2P 4.1.12 - Manageability Bitmap definitions */
@@ -1112,21 +1125,21 @@ p2pFsmRunEventWfdSettingUpdate(
 
 /* P2P 4.1.14 - CTWindow and OppPS Parameters definitions */
 #define P2P_CTW_OPPPS_PARAM_OPPPS_FIELD                     BIT(7)
-#define P2P_CTW_OPPPS_PARAM_CTWINDOW_MASK                   BITS(0,6)
+#define P2P_CTW_OPPPS_PARAM_CTWINDOW_MASK                   BITS(0, 6)
 
 
 #define ELEM_MAX_LEN_P2P_FOR_PROBE_REQ                      \
-            (P2P_OUI_TYPE_LEN + \
-             (P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_P2P_CAPABILITY) + \
-             (P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_P2P_DEV_ID) + \
-             (P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_LISTEN_CHANNEL) + \
-             (P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_OPERATING_CHANNEL))
+	    (P2P_OUI_TYPE_LEN + \
+	     (P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_P2P_CAPABILITY) + \
+	     (P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_P2P_DEV_ID) + \
+	     (P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_LISTEN_CHANNEL) + \
+	     (P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_OPERATING_CHANNEL))
 
 #define ELEM_MAX_LEN_P2P_FOR_ASSOC_REQ                      \
-            (P2P_OUI_TYPE_LEN + \
-             (P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_P2P_CAPABILITY) + \
-             (P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_EXT_LISTEN_TIMING) + \
-             (P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_P2P_DEV_INFO))
+	    (P2P_OUI_TYPE_LEN + \
+	     (P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_P2P_CAPABILITY) + \
+	     (P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_EXT_LISTEN_TIMING) + \
+	     (P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_P2P_DEV_INFO))
 
 
 /* P2P 4.1.16 - P2P Client Infor Descriptor */
@@ -1136,7 +1149,7 @@ p2pFsmRunEventWfdSettingUpdate(
 #define P2P_INVITATION_FLAGS_INVITATION_TYPE       BIT(0)
 #define P2P_INVITATION_TYPE_INVITATION                      0
 #define P2P_INVITATION_TYPE_REINVOKE                          1
-//3 /* --------------- WPS Data Element Definitions --------------- */
+/* 3 /* --------------- WPS Data Element Definitions --------------- */ */
 /* P2P 4.2.2 - General WSC Attribute */
 #define WSC_ATTRI_HDR_LEN                                   4 /* ID(2 octet) + Length(2 octets) */
 #define WSC_ATTRI_MAX_LEN_VERSION                           1
@@ -1194,13 +1207,13 @@ p2pFsmRunEventWfdSettingUpdate(
 
 /* MACRO for flag operation */
 #define SET_FLAGS(_FlagsVar, _BitsToSet) \
-        (_FlagsVar) = ((_FlagsVar) | (_BitsToSet))
+	(_FlagsVar) = ((_FlagsVar) | (_BitsToSet))
 
 #define TEST_FLAGS(_FlagsVar, _BitsToCheck) \
-        (((_FlagsVar) & (_BitsToCheck)) == (_BitsToCheck))
+	(((_FlagsVar) & (_BitsToCheck)) == (_BitsToCheck))
 
 #define CLEAR_FLAGS(_FlagsVar, _BitsToClear) \
-        (_FlagsVar) &= ~(_BitsToClear)
+	(_FlagsVar) &= ~(_BitsToClear)
 
 
 
@@ -1234,7 +1247,7 @@ enum wps_dev_password_id {
 #pragma pack(1)
 #endif
 
-//3 /* --------------- WFA P2P IE and Attributes --------------- */
+/* 3 /* --------------- WFA P2P IE and Attributes --------------- */ */
 
 /* P2P 4.1.1 - P2P Information Element */
 typedef struct _IE_P2P_T {
@@ -1391,7 +1404,7 @@ typedef struct _P2P_ATTRI_DEV_INFO_T {
 typedef struct _DEVICE_NAME_TLV_T {
     UINT_16     u2Id;                       /* WPS Attribute Type */
     UINT_16     u2Length;                   /* Data Length */
-    UINT_8      aucName[32];                /* Device Name */    // TODO: Fixme
+    UINT_8      aucName[32];                /* Device Name */    /* TODO: Fixme */
 } __KAL_ATTRIB_PACKED__ DEVICE_NAME_TLV_T, *P_DEVICE_NAME_TLV_T;
 
 
@@ -1485,7 +1498,7 @@ typedef struct _WSC_ATTRI_CONFIGURATION_METHOD_T {
 #endif
 
 
-//3 /* --------------- WFA P2P Attributes Handler prototype --------------- */
+/* 3 /* --------------- WFA P2P Attributes Handler prototype --------------- */ */
 typedef UINT_32 (*PFN_APPEND_ATTRI_FUNC)(P_ADAPTER_T, BOOLEAN, PUINT_16, PUINT_8, UINT_16);
 
 typedef VOID (*PFN_HANDLE_ATTRI_FUNC)(P_SW_RFB_T, P_P2P_ATTRIBUTE_T);
@@ -1520,8 +1533,8 @@ typedef enum _ENUM_P2P_INVITATION_POLICY {
     ENUM_P2P_INVITATION_POLICY_NUM
 } ENUM_P2P_INVITATION_POLICY, P_ENUM_P2P_INVITATION_POLICY;
 
-//3 /* --------------- Data Structure for P2P Operation --------------- */
-//3 /* Session for CONNECTION SETTINGS of P2P */
+/* 3 /* --------------- Data Structure for P2P Operation --------------- */ */
+/* 3 /* Session for CONNECTION SETTINGS of P2P */ */
 struct _P2P_CONNECTION_SETTINGS_T {
     UINT_8 ucDevNameLen;
     UINT_8 aucDevName[WPS_ATTRI_MAX_LEN_DEVICE_NAME];
@@ -1532,8 +1545,8 @@ struct _P2P_CONNECTION_SETTINGS_T {
 
     /*------------WSC Related Param---------------*/
     UINT_16 u2ConfigMethodsSupport;              /* Prefered configure method.
-                                                                        * Some device may not have keypad.
-                                                                        */
+									* Some device may not have keypad.
+									*/
     ENUM_CONFIG_METHOD_SEL eConfigMethodSelType;
     UINT_16 u2TargetConfigMethod;                        /* Configure method selected by user or auto. */
     UINT_16 u2LocalConfigMethod;                        /* Configure method of target. */
@@ -1673,8 +1686,8 @@ typedef struct _SERVICE_DISCOVERY_FRAME_DATA_T {
     UINT_8 ucSeqNum;
     union {
 
-        UINT_8 ucChannelNum;
-        UINT_8 aucPeerAddr[MAC_ADDR_LEN];
+	UINT_8 ucChannelNum;
+	UINT_8 aucPeerAddr[MAC_ADDR_LEN];
     } uTypeData;
     BOOLEAN fgIsTxDoneIndicate;
 } SERVICE_DISCOVERY_FRAME_DATA_T, *P_SERVICE_DISCOVERY_FRAME_DATA_T;
@@ -1774,7 +1787,7 @@ struct _P2P_SPECIFIC_BSS_INFO_T {
     UINT_16                 u2SmallestAID;
     UINT_16                 u2LargestAID;
     UINT_8                  ucBitmapCtrl;
-    //UINT_8                  aucPartialVirtualBitmap[MAX_LEN_TIM_PARTIAL_BMP];
+    /* UINT_8                  aucPartialVirtualBitmap[MAX_LEN_TIM_PARTIAL_BMP]; */
 
     /* For GC/GO OppPS */
     BOOLEAN                 fgEnableOppPS;
@@ -1800,16 +1813,16 @@ struct _P2P_SPECIFIC_BSS_INFO_T {
     UINT_16 u2AvailabilityInterval;
 
 
-#if 0 //LINUX_VERSION_CODE >= KERNEL_VERSION(3, 2, 0)
+#if 0 /* LINUX_VERSION_CODE >= KERNEL_VERSION(3, 2, 0) */
     UINT_16                 u2IELenForBCN;
     UINT_8                  aucBeaconIECache[P2P_MAXIMUM_ATTRIBUTES_CACHE_SIZE + WPS_MAXIMUM_ATTRIBUTES_CACHE_SIZE];
 
-//    UINT_16                 u2IELenForProbeRsp;
-//    UINT_8                  aucProbeRspIECache[P2P_MAXIMUM_ATTRIBUTES_CACHE_SIZE + WPS_MAXIMUM_ATTRIBUTES_CACHE_SIZE];
+/* UINT_16                 u2IELenForProbeRsp; */
+/* UINT_8                  aucProbeRspIECache[P2P_MAXIMUM_ATTRIBUTES_CACHE_SIZE + WPS_MAXIMUM_ATTRIBUTES_CACHE_SIZE]; */
 
     UINT_16                 u2IELenForAssocRsp;
     UINT_8                  aucAssocRspIECache[P2P_MAXIMUM_ATTRIBUTES_CACHE_SIZE + WPS_MAXIMUM_ATTRIBUTES_CACHE_SIZE];
-    
+
 #else
     UINT_16                 u2AttributeLen;
     UINT_8                  aucAttributesCache[P2P_MAXIMUM_ATTRIBUTES_CACHE_SIZE];
@@ -1880,39 +1893,39 @@ typedef struct _MSG_P2P_SERVICE_DISCOVERY_REQUEST_T {
 ********************************************************************************
 */
 #define p2pChangeMediaState(_prAdapter, _eNewMediaState) \
-            (_prAdapter->rWifiVar.arBssInfo[NETWORK_TYPE_P2P_INDEX].eConnectionState = (_eNewMediaState));\
-            wfdChangeMediaState((_prAdapter),NETWORK_TYPE_P2P_INDEX,(_eNewMediaState));
+	    (_prAdapter->rWifiVar.arBssInfo[NETWORK_TYPE_P2P_INDEX].eConnectionState = (_eNewMediaState));\
+            wfdChangeMediaState((_prAdapter), NETWORK_TYPE_P2P_INDEX, (_eNewMediaState));
 
 #define ATTRI_ID(_fp)       (((P_P2P_ATTRIBUTE_T) _fp)->ucId)
 #define ATTRI_LEN(_fp)      \
-            (((UINT_16) ((PUINT_8)&((P_P2P_ATTRIBUTE_T) _fp)->u2Length)[0]) | \
-             ((UINT_16) ((PUINT_8)&((P_P2P_ATTRIBUTE_T) _fp)->u2Length)[1] << 8))
+	    (((UINT_16) ((PUINT_8)&((P_P2P_ATTRIBUTE_T) _fp)->u2Length)[0]) | \
+	     ((UINT_16) ((PUINT_8)&((P_P2P_ATTRIBUTE_T) _fp)->u2Length)[1] << 8))
 
 
 #define ATTRI_SIZE(_fp)     (P2P_ATTRI_HDR_LEN + ATTRI_LEN(_fp))
 
 #define P2P_ATTRI_FOR_EACH(_pucAttriBuf, _u2AttriBufLen, _u2Offset) \
     for ((_u2Offset) = 0; ((_u2Offset) < (_u2AttriBufLen)); \
-        (_u2Offset) += ATTRI_SIZE(_pucAttriBuf), ((_pucAttriBuf) += ATTRI_SIZE(_pucAttriBuf)) )
+	(_u2Offset) += ATTRI_SIZE(_pucAttriBuf), ((_pucAttriBuf) += ATTRI_SIZE(_pucAttriBuf)))
 
 
 #define P2P_IE(_fp)          ((P_IE_P2P_T) _fp)
 
 
 #define WSC_ATTRI_ID(_fp)     \
-             (((UINT_16) ((PUINT_8)&((P_WSC_ATTRIBUTE_T) _fp)->u2Id)[0] << 8) | \
-             ((UINT_16) ((PUINT_8)&((P_WSC_ATTRIBUTE_T) _fp)->u2Id)[1]))
+	     (((UINT_16) ((PUINT_8)&((P_WSC_ATTRIBUTE_T) _fp)->u2Id)[0] << 8) | \
+	     ((UINT_16) ((PUINT_8)&((P_WSC_ATTRIBUTE_T) _fp)->u2Id)[1]))
 
 #define WSC_ATTRI_LEN(_fp)      \
-            (((UINT_16) ((PUINT_8)&((P_WSC_ATTRIBUTE_T) _fp)->u2Length)[0] << 8) | \
-             ((UINT_16) ((PUINT_8)&((P_WSC_ATTRIBUTE_T) _fp)->u2Length)[1]))
+	    (((UINT_16) ((PUINT_8)&((P_WSC_ATTRIBUTE_T) _fp)->u2Length)[0] << 8) | \
+	     ((UINT_16) ((PUINT_8)&((P_WSC_ATTRIBUTE_T) _fp)->u2Length)[1]))
 
 
 #define WSC_ATTRI_SIZE(_fp)     (WSC_ATTRI_HDR_LEN + WSC_ATTRI_LEN(_fp))
 
 #define WSC_ATTRI_FOR_EACH(_pucAttriBuf, _u2AttriBufLen, _u2Offset) \
     for ((_u2Offset) = 0; ((_u2Offset) < (_u2AttriBufLen)); \
-        (_u2Offset) += WSC_ATTRI_SIZE(_pucAttriBuf), ((_pucAttriBuf) += WSC_ATTRI_SIZE(_pucAttriBuf)) )
+	(_u2Offset) += WSC_ATTRI_SIZE(_pucAttriBuf), ((_pucAttriBuf) += WSC_ATTRI_SIZE(_pucAttriBuf)))
 
 #define WSC_IE(_fp)          ((P_IE_P2P_T) _fp)
 
@@ -1920,26 +1933,26 @@ typedef struct _MSG_P2P_SERVICE_DISCOVERY_REQUEST_T {
 #define WFD_ATTRI_ID(_fp)       (((P_WFD_ATTRIBUTE_T) _fp)->ucElemID)
 
 #define WFD_ATTRI_LEN(_fp)      \
-            (((UINT_16) ((PUINT_8)&((P_WFD_ATTRIBUTE_T) _fp)->u2Length)[0] << 8) | \
-             ((UINT_16) ((PUINT_8)&((P_WFD_ATTRIBUTE_T) _fp)->u2Length)[1]))
+	    (((UINT_16) ((PUINT_8)&((P_WFD_ATTRIBUTE_T) _fp)->u2Length)[0] << 8) | \
+	     ((UINT_16) ((PUINT_8)&((P_WFD_ATTRIBUTE_T) _fp)->u2Length)[1]))
 
 #define WFD_ATTRI_SIZE(_fp)     (WFD_ATTRI_HDR_LEN + WFD_ATTRI_LEN(_fp))
 
 #define WFD_ATTRI_FOR_EACH(_pucAttriBuf, _u2AttriBufLen, _u2Offset) \
     for ((_u2Offset) = 0; ((_u2Offset) < (_u2AttriBufLen)); \
-        (_u2Offset) += WFD_ATTRI_SIZE(_pucAttriBuf), ((_pucAttriBuf) += WFD_ATTRI_SIZE(_pucAttriBuf)) )
+	(_u2Offset) += WFD_ATTRI_SIZE(_pucAttriBuf), ((_pucAttriBuf) += WFD_ATTRI_SIZE(_pucAttriBuf)))
 
 
 
 
 #if DBG
     #define ASSERT_BREAK(_exp) \
-        { \
-            if (!(_exp)) { \
-                ASSERT(FALSE); \
-                break; \
-            } \
-        }
+	{ \
+	    if (!(_exp)) { \
+		ASSERT(FALSE); \
+		break; \
+	    } \
+	}
 
 #else
     #define ASSERT_BREAK(_exp)
@@ -2130,7 +2143,7 @@ p2pFsmRunEventProvisionDiscoveryResponseTxDone(
 
 
 WLAN_STATUS
-p2pFsmRunEventInvitationRequestTxDone (
+p2pFsmRunEventInvitationRequestTxDone(
     IN P_ADAPTER_T prAdapter,
     IN P_MSDU_INFO_T prMsduInfo,
     IN ENUM_TX_RESULT_CODE_T rTxDoneStatus
@@ -2171,17 +2184,17 @@ p2pFsmRunEventDeauthTxDone(
 #endif
 
 
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
+/* //////////////////////////////////////////////////////////////////////// */
+/* //////////////////////////////////////////////////////////////////////// */
+/* //////////////////////////////////////////////////////////////////////// */
+/* //////////////////////////////////////////////////////////////////////// */
+/* //////////////////////////////////////////////////////////////////////// */
+/* //////////////////////////////////////////////////////////////////////// */
+/* //////////////////////////////////////////////////////////////////////// */
+/* //////////////////////////////////////////////////////////////////////// */
+/* //////////////////////////////////////////////////////////////////////// */
+/* //////////////////////////////////////////////////////////////////////// */
+/* //////////////////////////////////////////////////////////////////////// */
 /*======Mail Box Event Message=====*/
 
 
@@ -2465,12 +2478,12 @@ p2pAppendAttriDeviceIDForProbeReq(
 
 UINT_32
 p2pAppendAttriDeviceIDForDeviceDiscoveryReq(
-        IN P_ADAPTER_T prAdapter,
-        IN BOOLEAN fgIsAssocFrame,
-        IN PUINT_16 pu2Offset,
-        IN PUINT_8 pucBuf,
-        IN UINT_16 u2BufSize
-        );
+	IN P_ADAPTER_T prAdapter,
+	IN BOOLEAN fgIsAssocFrame,
+	IN PUINT_16 pu2Offset,
+	IN PUINT_8 pucBuf,
+	IN UINT_16 u2BufSize
+	);
 
 UINT_32
 p2pAppendAttriListenChannel(
@@ -2575,7 +2588,7 @@ p2pAppendAttriInvitationFlag(
 
 
 VOID
-p2pGenerateWscIE (
+p2pGenerateWscIE(
     IN P_ADAPTER_T prAdapter,
     IN UINT_8 ucOuiType,
     IN BOOLEAN fgIsAssocFrame,
@@ -2587,7 +2600,7 @@ p2pGenerateWscIE (
     );
 
 UINT_32
-p2pAppendAttriWSCConfigMethod (
+p2pAppendAttriWSCConfigMethod(
     IN P_ADAPTER_T prAdapter,
     IN BOOLEAN fgIsAssocFrame,
     IN PUINT_16 pu2Offset,
@@ -2596,7 +2609,7 @@ p2pAppendAttriWSCConfigMethod (
     );
 
 UINT_32
-p2pAppendAttriWSCVersion (
+p2pAppendAttriWSCVersion(
     IN P_ADAPTER_T prAdapter,
     IN BOOLEAN fgIsAssocFrame,
     IN PUINT_16 pu2Offset,
@@ -2605,7 +2618,7 @@ p2pAppendAttriWSCVersion (
     );
 
 UINT_32
-p2pAppendAttriWSCGONegReqDevPasswordId (
+p2pAppendAttriWSCGONegReqDevPasswordId(
     IN P_ADAPTER_T prAdapter,
     IN BOOLEAN fgIsAssocFrame,
     IN PUINT_16 pu2Offset,
@@ -2614,7 +2627,7 @@ p2pAppendAttriWSCGONegReqDevPasswordId (
     );
 
 UINT_32
-p2pAppendAttriWSCGONegRspDevPasswordId (
+p2pAppendAttriWSCGONegRspDevPasswordId(
     IN P_ADAPTER_T prAdapter,
     IN BOOLEAN fgIsAssocFrame,
     IN PUINT_16 pu2Offset,
@@ -2633,7 +2646,7 @@ p2pGetWscAttriList(
     );
 
 WLAN_STATUS
-p2pGetAttriList (
+p2pGetAttriList(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_8       ucOuiType,
     IN PUINT_8      pucIE,
@@ -2643,20 +2656,20 @@ p2pGetAttriList (
     );
 
 VOID
-p2pRunEventAAATxFail (
+p2pRunEventAAATxFail(
     IN P_ADAPTER_T prAdapter,
     IN P_STA_RECORD_T prStaRec
     );
 
 WLAN_STATUS
-p2pRunEventAAASuccess (
+p2pRunEventAAASuccess(
     IN P_ADAPTER_T prAdapter,
     IN P_STA_RECORD_T prStaRec
     );
 
 
 WLAN_STATUS
-p2pRunEventAAAComplete (
+p2pRunEventAAAComplete(
     IN P_ADAPTER_T prAdapter,
     IN P_STA_RECORD_T prStaRec
     );
@@ -2705,16 +2718,16 @@ p2pFsmRunEventRxGroupNegotiationCfmFrame(
     );
 
 
-#if 0 // frog
+#if 0 /* frog */
 BOOLEAN
-scanMatchFilterOfP2P (
+scanMatchFilterOfP2P(
     IN P_SW_RFB_T prSWRfb,
     IN PP_BSS_DESC_T pprBssDesc
     );
-#endif // frog
+#endif /* frog */
 
 VOID
-p2pProcessEvent_UpdateNOAParam (
+p2pProcessEvent_UpdateNOAParam(
     IN P_ADAPTER_T    prAdapter,
     UINT_8  ucNetTypeIndex,
     P_EVENT_UPDATE_NOA_PARAMS_T prEventUpdateNoaParam
@@ -2736,11 +2749,11 @@ p2pFuncCompleteIOCTL(
  * We'll need this for porting driver to different RTOS.
  */
 __KAL_INLINE__ VOID
-p2pDataTypeCheck (
+p2pDataTypeCheck(
     VOID
     )
 {
-    DATA_STRUC_INSPECTING_ASSERT(sizeof(IE_P2P_T) == (2+4+1)); // all UINT_8
+    DATA_STRUC_INSPECTING_ASSERT(sizeof(IE_P2P_T) == (2+4+1)); /* all UINT_8 */
     DATA_STRUC_INSPECTING_ASSERT(sizeof(P2P_ATTRIBUTE_T) == (3+1));
     DATA_STRUC_INSPECTING_ASSERT(sizeof(P2P_ATTRI_STATUS_T) == (3+1));
     DATA_STRUC_INSPECTING_ASSERT(sizeof(P2P_ATTRI_REASON_T) == (3+1));
@@ -2781,7 +2794,3 @@ p2pDataTypeCheck (
 #endif /* _lint */
 
 #endif /* _P2P_FSM_H */
-
-
-
-

@@ -11,8 +11,8 @@
 
 #include <mach/mtk_wcn_cmb_stub.h>
 #include "osal.h"
-//not to reference to internal wmt
-//#include "wmt_core.h"
+/* not to reference to internal wmt */
+/* #include "wmt_core.h" */
 /*******************************************************************************
 *                         C O M P I L E R   F L A G S
 ********************************************************************************
@@ -27,12 +27,12 @@
 #define DFT_TAG         "[WMT-DFT]"
 #endif
 
-#define WMT_LOUD_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_LOUD) { osal_dbg_print(DFT_TAG "[L]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define WMT_INFO_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_INFO) { osal_info_print(DFT_TAG "[I]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define WMT_WARN_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_WARN) { osal_warn_print(DFT_TAG "[W]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define WMT_ERR_FUNC(fmt, arg...)    if (gWmtDbgLvl >= WMT_LOG_ERR) { osal_err_print(DFT_TAG "[E]%s(%d):"  fmt, __FUNCTION__ , __LINE__, ##arg);}
-#define WMT_DBG_FUNC(fmt, arg...)    if (gWmtDbgLvl >= WMT_LOG_DBG) { osal_dbg_print(DFT_TAG "[D]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define WMT_TRC_FUNC(f)              if (gWmtDbgLvl >= WMT_LOG_DBG) { osal_dbg_print(DFT_TAG "<%s> <%d>\n", __FUNCTION__, __LINE__);}
+#define WMT_LOUD_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_LOUD) { osal_dbg_print(DFT_TAG "[L]%s:"  fmt, __func__ , ##arg); }
+#define WMT_INFO_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_INFO) { osal_info_print(DFT_TAG "[I]%s:"  fmt, __func__ , ##arg); }
+#define WMT_WARN_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_WARN) { osal_warn_print(DFT_TAG "[W]%s:"  fmt, __func__ , ##arg); }
+#define WMT_ERR_FUNC(fmt, arg...)    if (gWmtDbgLvl >= WMT_LOG_ERR) { osal_err_print(DFT_TAG "[E]%s(%d):"  fmt, __func__ , __LINE__, ##arg); }
+#define WMT_DBG_FUNC(fmt, arg...)    if (gWmtDbgLvl >= WMT_LOG_DBG) { osal_dbg_print(DFT_TAG "[D]%s:"  fmt, __func__ , ##arg); }
+#define WMT_TRC_FUNC(f)              if (gWmtDbgLvl >= WMT_LOG_DBG) { osal_dbg_print(DFT_TAG "<%s> <%d>\n", __func__, __LINE__); }
 #endif
 
 /*******************************************************************************
@@ -40,7 +40,7 @@
 ********************************************************************************
 */
 #if 1 /* moved from wmt_lib.h */
-extern UINT32 gWmtDbgLvl ;
+extern UINT32 gWmtDbgLvl;
 #endif
 
 /*******************************************************************************
@@ -79,9 +79,9 @@ typedef enum _ENUM_WMTDRV_TYPE_T {
     WMTDRV_TYPE_MAX
 } ENUM_WMTDRV_TYPE_T, *P_ENUM_WMTDRV_TYPE_T;
 
-// TODO: [ChangeFeature][GeorgeKuo] Reconsider usage of this type
-// TODO: how do we extend for new chip and newer revision?
-// TODO: This way is hard to extend
+/* TODO: [ChangeFeature][GeorgeKuo] Reconsider usage of this type */
+/* TODO: how do we extend for new chip and newer revision? */
+/* TODO: This way is hard to extend */
 typedef enum _ENUM_WMTHWVER_TYPE_T {
     WMTHWVER_MT6620_E1 = 0x0,
     WMTHWVER_MT6620_E2 = 0x1,
@@ -139,7 +139,7 @@ typedef void (*PF_WMT_CB)(
     ENUM_WMTDRV_TYPE_T, /* Destination driver type */
     ENUM_WMTMSG_TYPE_T, /* Message type */
     VOID *, /* READ-ONLY buffer. Buffer is allocated and freed by WMT_drv. Client
-            can't touch this buffer after this function return. */
+	    can't touch this buffer after this function return. */
     UINT32 /* Buffer size in unit of byte */
 );
 
@@ -252,10 +252,3 @@ wmt_lib_ps_irq_cb(VOID);
 */
 
 #endif /* _WMT_EXP_H_ */
-
-
-
-
-
-
-

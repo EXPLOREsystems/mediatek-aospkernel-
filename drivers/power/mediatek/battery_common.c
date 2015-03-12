@@ -64,7 +64,6 @@
 #include <asm/uaccess.h>
 #include <asm/io.h>
 #include <asm/irq.h>
-#include <mach/hardware.h>
 #include <mach/system.h>
 #include <mach/mt_sleep.h>
 
@@ -130,7 +129,7 @@ kal_uint32 g_bcct_value = 0;
 
 kal_uint32 g_usb_state = USB_UNCONFIGURED;
 bool usb_unlimited=false;
-kal_bool chargin_hw_init_done = KAL_FALSE;
+extern kal_bool chargin_hw_init_done;
 
 /* ///////////////////////////////////////////////////////////////////////////////////////// */
 /* // JEITA */

@@ -351,41 +351,41 @@ static int confirm_hwreboot(void)
 static void suspend_notify(void)
 {
 
-	printk("dummy suspend_notify  \n ");
+	printk("dummy suspend_notify \n ");
 
 }
 
 static void resume_notify(void)
 {
 
-	printk("dummy resume_notify \n ");
+	printk("dummy resume_notify\n ");
 
 }
 
 static int disable_all_wd(void)
 {
-	printk("dummy disable_all_wd \n ");
+	printk("dummy disable_all_wd\n ");
 	return 0;
 }
 
 static int spmwdt_mode_config(WD_REQ_CTL en, WD_REQ_MODE mode)
 {
 	int res = 0;
-	printk("dummy spmwdt_mode_config \n ");
+	printk("dummy spmwdt_mode_config\n ");
 	return res;
 }
 
 static int thermal_mode_config(WD_REQ_CTL en, WD_REQ_MODE mode)
 {
 	int res = 0;
-	printk("dummy thermal_mode_config \n ");
+	printk("dummy thermal_mode_config\n ");
 	return res;
 }
 
 static int wd_dram_reserved_mode(bool enabled)
 {
 	int res = 0;
-	printk("dummy wd_dram_reserved_mode \n ");
+	printk("dummy wd_dram_reserved_mode\n ");
 	return res;
 }
 

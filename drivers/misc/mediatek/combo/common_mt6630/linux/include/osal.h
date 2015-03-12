@@ -85,27 +85,27 @@
 
 #define RB_PUT(prb, value) \
 { \
-    if (!RB_FULL( prb )) { \
-        (prb)->queue[ (prb)->write & RB_MASK(prb) ] = value; \
-        ++((prb)->write); \
+    if (!RB_FULL(prb)) { \
+	(prb)->queue[(prb)->write & RB_MASK(prb)] = value; \
+	++((prb)->write); \
     } \
     else { \
-        osal_assert(!RB_FULL(prb)); \
+	osal_assert(!RB_FULL(prb)); \
     } \
 }
 
 #define RB_GET(prb, value) \
 { \
     if (!RB_EMPTY(prb)) { \
-        value = (prb)->queue[ (prb)->read & RB_MASK(prb) ]; \
-        ++((prb)->read); \
-        if (RB_EMPTY(prb)) { \
-            (prb)->read = (prb)->write = 0; \
-        } \
+	value = (prb)->queue[(prb)->read & RB_MASK(prb)]; \
+	++((prb)->read); \
+	if (RB_EMPTY(prb)) { \
+	    (prb)->read = (prb)->write = 0; \
+	} \
     } \
     else { \
-        value = NULL; \
-        osal_assert(!RB_EMPTY(prb)); \
+	value = NULL; \
+	osal_assert(!RB_EMPTY(prb)); \
     } \
 }
 
@@ -128,7 +128,7 @@
 
 
 
-typedef VOID (*P_TIMEOUT_HANDLER)(ULONG);
+typedef VOID(*P_TIMEOUT_HANDLER)(ULONG);
 typedef INT32(*P_COND)(VOID *);
 
 typedef struct _OSAL_TIMER_ {
@@ -155,7 +155,7 @@ typedef struct _OSAL_SIGNAL_ {
 
 typedef struct _OSAL_EVENT_ {
     wait_queue_head_t waitQueue;
-//    VOID *pWaitQueueData;
+/* VOID *pWaitQueueData; */
     UINT32 timeoutValue;
     INT32 waitFlag;
 
@@ -188,9 +188,9 @@ typedef struct _OSAL_FIFO_ {
 typedef struct firmware osal_firmware;
 
 typedef struct _OSAL_OP_DAT {
-    UINT32 opId; // Event ID
-    UINT32 u4InfoBit; // Reserved
-    UINT32 au4OpData[OSAL_OP_DATA_SIZE]; // OP Data
+    UINT32 opId; /* Event ID */
+    UINT32 u4InfoBit; /* Reserved */
+    UINT32 au4OpData[OSAL_OP_DATA_SIZE]; /* OP Data */
 } OSAL_OP_DAT, *P_OSAL_OP_DAT;
 
 typedef struct _OSAL_LXOP_ {
@@ -293,7 +293,7 @@ extern INT32  osal_wake_unlock(P_OSAL_WAKE_LOCK plock);
 extern INT32  osal_wake_lock_count(P_OSAL_WAKE_LOCK plock);
 
 #if defined(CONFIG_PROVE_LOCKING)
-#define osal_unsleepable_lock_init(l) { spin_lock_init(&((l)->lock));}
+#define osal_unsleepable_lock_init(l) { spin_lock_init(&((l)->lock)); }
 #else
 extern INT32 osal_unsleepable_lock_init(P_OSAL_UNSLEEPABLE_LOCK);
 #endif
@@ -302,7 +302,7 @@ extern INT32 osal_unlock_unsleepable_lock(P_OSAL_UNSLEEPABLE_LOCK);
 extern INT32 osal_unsleepable_lock_deinit(P_OSAL_UNSLEEPABLE_LOCK);
 
 #if defined(CONFIG_PROVE_LOCKING)
-#define osal_sleepable_lock_init(l) { mutex_init(&((l)->lock));}
+#define osal_sleepable_lock_init(l) { mutex_init(&((l)->lock)); }
 #else
 extern INT32 osal_sleepable_lock_init(P_OSAL_SLEEPABLE_LOCK);
 #endif
@@ -373,7 +373,6 @@ extern UINT16 osal_crc16(const UINT8 *buffer, const UINT32 length);
 #define osal_warn_print(fmt, arg...) osal_print(KERN_ERR fmt, ##arg)
 #define osal_info_print(fmt, arg...) osal_print(KERN_ERR fmt, ##arg)
 #define osal_load_print(fmt, arg...) osal_print(KERN_DEBUG fmt, ##arg)
-#define osal_assert(condition) if (!(condition)) {osal_err_print("%s, %d, (%s)\n", __FILE__, __LINE__, #condition);}
+#define osal_assert(condition) if (!(condition)) {osal_err_print("%s, %d, (%s)\n", __FILE__, __LINE__, #condition); }
 
 #endif /* _OSAL_H_ */
-

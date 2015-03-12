@@ -11,10 +11,9 @@
 * You should have received a copy of the GNU General Public License along with this program.
 * If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef __CUST_GYRO_H__
 #define __CUST_GYRO_H__
-
-
 
 struct gyro_hw {
     unsigned short addr;
@@ -27,5 +26,6 @@ struct gyro_hw {
     int is_batch_supported;
 };
 
-extern struct gyro_hw* get_cust_gyro_hw(void);
+extern struct gyro_hw *get_cust_gyro_hw(void);
+
 #endif __CUST_GYRO_H__

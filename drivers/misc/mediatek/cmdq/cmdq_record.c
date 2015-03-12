@@ -1,17 +1,3 @@
-/*
-* Copyright (C) 2011-2014 MediaTek Inc.
-*
-* This program is free software: you can redistribute it and/or modify it under the terms of the
-* GNU General Public License version 2 as published by the Free Software Foundation.
-*
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with this program.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include <linux/slab.h>
 #include <linux/errno.h>
 #include <mach/memory.h>
@@ -92,9 +78,6 @@ int32_t cmdq_append_command(cmdqRecHandle handle, CMDQ_CODE_ENUM code, uint32_t 
 	int32_t subsys;
 	uint32_t *pCommand;
 
-	/* be careful that subsys encoding position is different among platforms */
-	const uint32_t subsysBit = cmdq_core_get_subsys_LSB_in_argA();
-
 	pCommand = (uint32_t *) ((uint8_t *) handle->pBuffer + handle->blockSize);
 
 	if (handle->finalized) {
@@ -137,7 +120,7 @@ int32_t cmdq_append_command(cmdqRecHandle handle, CMDQ_CODE_ENUM code, uint32_t 
 		/* bit 54: argB type, 1 for GPR */
 		*pCommand++ = argB;
 		*pCommand++ =
-		    (CMDQ_CODE_READ << 24) | (argA & 0xffff) | ((subsys & 0x1f) << subsysBit) | (2 << 21);
+		    (CMDQ_CODE_READ << 24) | (argA & 0xffff) | ((subsys & 0x1f) << 16) | (2 << 21);
 		break;
 	case CMDQ_CODE_MOVE:
 		*pCommand++ = argB;
@@ -151,7 +134,7 @@ int32_t cmdq_append_command(cmdqRecHandle handle, CMDQ_CODE_ENUM code, uint32_t 
 		}
 
 		*pCommand++ = argB;
-		*pCommand++ = (CMDQ_CODE_WRITE << 24) | (argA & 0x0FFFF) | ((subsys & 0x01F) << subsysBit);
+		*pCommand++ = (CMDQ_CODE_WRITE << 24) | (argA & 0x0FFFF) | ((subsys & 0x01F) << 16);
 		break;
 	case CMDQ_CODE_POLL:
 		subsys = cmdq_subsys_from_phys_addr(argA);
@@ -160,7 +143,7 @@ int32_t cmdq_append_command(cmdqRecHandle handle, CMDQ_CODE_ENUM code, uint32_t 
 			return -EFAULT;
 		}
 		*pCommand++ = argB;
-		*pCommand++ = (CMDQ_CODE_POLL << 24) | (argA & 0x0FFFF) | ((subsys & 0x01F) << subsysBit);
+		*pCommand++ = (CMDQ_CODE_POLL << 24) | (argA & 0x0FFFF) | ((subsys & 0x01F) << 16);
 		break;
 	case CMDQ_CODE_JUMP:
 		*pCommand++ = argB;
@@ -347,34 +330,9 @@ int32_t cmdqRecSetEventToken(cmdqRecHandle handle, CMDQ_EVENT_ENUM event)
 int32_t cmdqRecReadToDataRegister(cmdqRecHandle handle, uint32_t hwRegAddr,
 				  CMDQ_DATA_REGISTER_ENUM dstDataReg)
 {
-#ifdef CMDQ_GPR_SUPPORT
-	/* read from hwRegAddr(argA) to dstDataReg(argB) */
 	return cmdq_append_command(handle, CMDQ_CODE_READ, hwRegAddr, dstDataReg);
-
-#else
-	CMDQ_ERR("func:%s failed since CMDQ dosen't support GPR\n", __func__);
-	return -EFAULT;
-#endif
 }
 
-int32_t cmdqRecWriteFromDataRegister(cmdqRecHandle handle,
-				  CMDQ_DATA_REGISTER_ENUM srcDataReg, uint32_t hwRegAddr)
-{
-#ifdef CMDQ_GPR_SUPPORT
-	const uint32_t subsys = cmdq_subsys_from_phys_addr(hwRegAddr);
-	const uint32_t subsysBit = cmdq_core_get_subsys_LSB_in_argA();
-
-	/* write HW register(argA) with data of GPR data register(argB)*/
-	return cmdq_append_command(
-				handle,
-				CMDQ_CODE_RAW,
-				((CMDQ_CODE_WRITE << 24) | (hwRegAddr & 0x0FFFF) | ((subsys & 0x01F) << subsysBit) | (2 << 21)),
-				srcDataReg);
-#else
-	CMDQ_ERR("func:%s failed since CMDQ dosen't support GPR\n", __func__);
-	return -EFAULT;
-#endif /* CMDQ_GPR_SUPPORT */
-}
 
 /**
  *  Allocate 32-bit register backup slot
@@ -382,8 +340,6 @@ int32_t cmdqRecWriteFromDataRegister(cmdqRecHandle handle,
  */
 int32_t cmdqBackupAllocateSlot(cmdqBackupSlotHandle *phBackupSlot, uint32_t slotCount)
 {
-#ifdef CMDQ_GPR_SUPPORT
-
 	dma_addr_t paStart = 0;
 	int status = 0;
 
@@ -395,11 +351,6 @@ int32_t cmdqBackupAllocateSlot(cmdqBackupSlotHandle *phBackupSlot, uint32_t slot
 	*phBackupSlot = paStart;
 
 	return status;
-
-#else
-	CMDQ_ERR("func:%s failed since CMDQ dosen't support GPR\n", __func__);
-	return -EFAULT;
-#endif /* CMDQ_GPR_SUPPORT */
 }
 
 /**
@@ -408,8 +359,6 @@ int32_t cmdqBackupAllocateSlot(cmdqBackupSlotHandle *phBackupSlot, uint32_t slot
  */
 int32_t cmdqBackupReadSlot(cmdqBackupSlotHandle hBackupSlot, uint32_t slotIndex, uint32_t *value)
 {
-#ifdef CMDQ_GPR_SUPPORT
-
 	if (NULL == value) {
 		return -EINVAL;
 	}
@@ -417,26 +366,14 @@ int32_t cmdqBackupReadSlot(cmdqBackupSlotHandle hBackupSlot, uint32_t slotIndex,
 	*value = cmdqCoreReadWriteAddress(hBackupSlot + slotIndex * sizeof(uint32_t));
 
 	return 0;
-
-#else
-	CMDQ_ERR("func:%s failed since CMDQ dosen't support GPR\n", __func__);
-	return -EFAULT;
-#endif /* CMDQ_GPR_SUPPORT */
 }
 
 int32_t cmdqBackupWriteSlot(cmdqBackupSlotHandle hBackupSlot, uint32_t slotIndex, uint32_t value)
 {
-#ifdef CMDQ_GPR_SUPPORT
-
 	int status = 0;
 	/* set the slot value directly */
 	status = cmdqCoreWriteWriteAddress(hBackupSlot + slotIndex * sizeof(uint32_t), value);
 	return status;
-
-#else
-	CMDQ_ERR("func:%s failed since CMDQ dosen't support GPR\n", __func__);
-	return -EFAULT;
-#endif /* CMDQ_GPR_SUPPORT */
 }
 
 
@@ -447,12 +384,7 @@ int32_t cmdqBackupWriteSlot(cmdqBackupSlotHandle hBackupSlot, uint32_t slotIndex
  */
 int32_t cmdqBackupFreeSlot(cmdqBackupSlotHandle hBackupSlot)
 {
-#ifdef CMDQ_GPR_SUPPORT
 	return cmdqCoreFreeWriteAddress(hBackupSlot);
-#else
-	CMDQ_ERR("func:%s failed since CMDQ dosen't support GPR\n", __func__);
-	return -EFAULT;
-#endif /* CMDQ_GPR_SUPPORT */
 }
 
 /**
@@ -466,8 +398,6 @@ int32_t cmdqRecBackupRegisterToSlot(cmdqRecHandle handle,
 				    cmdqBackupSlotHandle hBackupSlot,
 				    uint32_t slotIndex, uint32_t regAddr)
 {
-#ifdef CMDQ_GPR_SUPPORT
-
 	const CMDQ_DATA_REGISTER_ENUM valueRegId = CMDQ_DATA_REG_DEBUG;
 	const CMDQ_DATA_REGISTER_ENUM destRegId = CMDQ_DATA_REG_DEBUG_DST;
 	const CMDQ_EVENT_ENUM regAccessToken = CMDQ_SYNC_TOKEN_GPR_SET_4;
@@ -489,71 +419,15 @@ int32_t cmdqRecBackupRegisterToSlot(cmdqRecHandle handle,
 			    ((destRegId & 0x1f) << 16) | (4 << 21), (uint32_t) dramAddr);
 
 	/* write value in GPR to memory pointed by GPR */
-	cmdq_append_command(handle,
-			    CMDQ_CODE_RAW,
-			    (CMDQ_CODE_WRITE << 24) | (0 & 0xffff) | ((destRegId & 0x1f) << 16) | (6
-												   <<
-												   21),
+	cmdq_append_command(handle, CMDQ_CODE_RAW, (CMDQ_CODE_WRITE << 24) | (0 & 0xffff) | ((destRegId & 0x1f) << 16) | (6 << 21),	/* 1 0 */
 			    valueRegId);
 
 	/* release the GPR lock */
 	cmdqRecSetEventToken(handle, regAccessToken);
 
 	return 0;
-
-#else
-	CMDQ_ERR("func:%s failed since CMDQ dosen't support GPR\n", __func__);
-	return -EFAULT;
-#endif /* CMDQ_GPR_SUPPORT */
 }
 
-int32_t cmdqRecBackupUpdateSlot(cmdqRecHandle handle,
-					cmdqBackupSlotHandle hBackupSlot,
-					uint32_t slotIndex, uint32_t value)
-{
-#ifdef CMDQ_GPR_SUPPORT
-	const CMDQ_DATA_REGISTER_ENUM valueRegId = CMDQ_DATA_REG_DEBUG;
-	const CMDQ_DATA_REGISTER_ENUM destRegId = CMDQ_DATA_REG_DEBUG_DST;
-	const CMDQ_EVENT_ENUM regAccessToken = CMDQ_SYNC_TOKEN_GPR_SET_4;
-	const dma_addr_t dramAddr = hBackupSlot + slotIndex * sizeof(uint32_t);
-
-	/* lock GPR because we may access it in multiple CMDQ HW threads */
-	cmdqRecWait(handle, regAccessToken);
-
-	/* Assign 32-bit GRP with value */
-	cmdq_append_command(
-			handle,
-			CMDQ_CODE_RAW,
-			(CMDQ_CODE_MOVE << 24) | (valueRegId << 16) | (4 << 21), /* argA is GPR */
-			value);
-
-	/* Note that <MOVE> argB is 48-bit */
-	/* so writeAddress is split into 2 parts */
-	/* and we store address in 64-bit GPR (P0-P7) */
-	cmdq_append_command(handle, CMDQ_CODE_MOVE,
-#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
-			    ((dramAddr >> 32) & 0xffff) |
-#endif
-			    ((destRegId & 0x1f) << 16) | (4 << 21), (uint32_t) dramAddr);
-
-	/* write value in GPR to memory pointed by GPR */
-	cmdq_append_command(
-			handle,
-			CMDQ_CODE_RAW,
-			(CMDQ_CODE_WRITE << 24) | (0 & 0xffff) | ((destRegId & 0x1f) << 16) | (6 << 21),
-			valueRegId);
-
-	/* release the GPR lock */
-	cmdqRecSetEventToken(handle, regAccessToken);
-
-	return 0;
-
-#else
-	CMDQ_ERR("func:%s failed since CMDQ dosen't support GPR\n", __func__);
-	return -EFAULT;
-#endif /* CMDQ_GPR_SUPPORT */
-
-}
 
 int32_t cmdq_rec_finalize_command(cmdqRecHandle handle, bool loop)
 {
@@ -561,8 +435,7 @@ int32_t cmdq_rec_finalize_command(cmdqRecHandle handle, bool loop)
 	uint32_t argB = 0;
 
 	if (!handle->finalized) {
-#if 0
-		/* we don't generate these instructions now. */
+#if 0				/* we don't generate these instructions now. */
 		/* FOR disp sys, we should insert CONFIG_DIRTY event */
 		/* so that trigger loop wakes up */
 		if (cmdq_core_should_enable_prefetch(handle->scenario)) {

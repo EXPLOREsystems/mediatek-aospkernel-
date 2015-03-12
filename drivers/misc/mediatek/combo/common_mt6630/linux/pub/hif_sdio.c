@@ -52,7 +52,7 @@ extern void mmc_power_off_ext(struct mmc_host *host);
 *                              C O N S T A N T S
 ********************************************************************************
 */
-//#define DRV_NAME "[hif_sdio]"
+/* #define DRV_NAME "[hif_sdio]" */
 
 /*******************************************************************************
 *                             D A T A   T Y P E S
@@ -75,10 +75,10 @@ extern void mmc_power_off_ext(struct mmc_host *host);
  * \param b_sz    the 16 bit function block size
  */
 #define CLTCTX(cid, func, blk_sz, idx) \
-    (MTK_WCN_HIF_SDIO_CLTCTX)( (((UINT32)(cid) & 0xFFFFUL) << 16) | \
-        (((UINT32)(func) & 0xFUL) << 4) | \
-        (((UINT32)(blk_sz) & 0xFF00UL) << 0) | \
-        (((UINT32)idx & 0xFUL) << 0) )
+    (MTK_WCN_HIF_SDIO_CLTCTX)((((UINT32)(cid) & 0xFFFFUL) << 16) | \
+	(((UINT32)(func) & 0xFUL) << 4) | \
+	(((UINT32)(blk_sz) & 0xFF00UL) << 0) | \
+	(((UINT32)idx & 0xFUL) << 0))
 
 /*!
  * \brief A set of macros used to get information out of an hif_sdio client context
@@ -109,7 +109,7 @@ static void hif_sdio_irq(
 );
 
 static int hif_sdio_clt_probe_func(
-    MTK_WCN_HIF_SDIO_REGISTINFO *registinfo_p,
+    MTK_WCN_HIF_SDIO_REGISTINFO * registinfo_p,
     INT8 probe_idx
 );
 
@@ -121,7 +121,7 @@ static int hif_sdio_find_probed_list_index_by_func(
     struct sdio_func *func
 );
 
-#if 0 // TODO:[ChangeFeature][George] remove obsolete function?
+#if 0 /* TODO:[ChangeFeature][George] remove obsolete function? */
 static int hif_sdio_find_probed_list_index_by_clt_index(
     INT32 clt_index
 );
@@ -155,7 +155,7 @@ static int hif_sdio_check_duplicate_sdio_id(
 );
 
 static int hif_sdio_add_clt_list(
-    INT32  *clt_index_p,
+    INT32 * clt_index_p,
     const MTK_WCN_HIF_SDIO_CLTINFO *pinfo,
     UINT32 tbl_index
 );
@@ -224,7 +224,7 @@ static MTK_WCN_HIF_SDIO_LOCKINFO g_hif_sdio_lock_info;
 
 /* reference count, debug information? */
 static int gRefCount;
-static int (*fp_wmt_tra_sdio_update)(void) = NULL;
+static int (*fp_wmt_tra_sdio_update)(void);
 
 
 /*******************************************************************************
@@ -256,10 +256,10 @@ extern int mtk_wcn_sdio_irq_flag_set(int falg);
 extern INT32 mtk_wcn_hif_sdio_update_cb_reg(int (*ts_update)(void))
 {
     if (ts_update) {
-        fp_wmt_tra_sdio_update = ts_update;
-        return 0;
+	fp_wmt_tra_sdio_update = ts_update;
+	return 0;
     } else {
-        return -EINVAL;
+	return -EINVAL;
     }
 }
 
@@ -275,10 +275,10 @@ extern INT32 mtk_wcn_hif_sdio_update_cb_reg(int (*ts_update)(void))
 static INT32 wmt_tra_sdio_update(VOID)
 {
     if (fp_wmt_tra_sdio_update) {
-        return (*fp_wmt_tra_sdio_update)();
+	return (*fp_wmt_tra_sdio_update)();
     } else {
-        //HIF_SDIO_WARN_FUNC("wmt_tra_sdio_update == NULL\n");
-        return -EINVAL;
+	/* HIF_SDIO_WARN_FUNC("wmt_tra_sdio_update == NULL\n"); */
+	return -EINVAL;
     }
 }
 /*!
@@ -298,17 +298,17 @@ static inline struct sdio_func *hif_sdio_ctx_to_func(
     MTK_WCN_HIF_SDIO_CLTCTX ctx) {
     UINT32 probe_index;
 
-    //4 <1> check if ctx is valid, registered, and probed
+    /* 4 <1> check if ctx is valid, registered, and probed */
     probe_index = CLTCTX_IDX(ctx);
     if (unlikely(!CLTCTX_IDX_VALID(probe_index))) {         /* invalid index in CLTCTX */
-        HIF_SDIO_WARN_FUNC("invalid ctx(0x%x)\n", ctx);
-        return NULL;
+	HIF_SDIO_WARN_FUNC("invalid ctx(0x%x)\n", ctx);
+	return NULL;
     } else {
-        if (unlikely(g_hif_sdio_probed_func_list[probe_index].clt_idx < 0)) {      /* the client has not been registered */
-            HIF_SDIO_WARN_FUNC("can't find client idx in probed list!ctx(0x%x) prob_idx(%d) clt_idx(%d)\n",
-                               ctx, probe_index, g_hif_sdio_probed_func_list[probe_index].clt_idx);
-            return NULL;
-        }
+	if (unlikely(g_hif_sdio_probed_func_list[probe_index].clt_idx < 0)) {      /* the client has not been registered */
+	    HIF_SDIO_WARN_FUNC("can't find client idx in probed list!ctx(0x%x) prob_idx(%d) clt_idx(%d)\n",
+			       ctx, probe_index, g_hif_sdio_probed_func_list[probe_index].clt_idx);
+	    return NULL;
+	}
     }
     return g_hif_sdio_probed_func_list[probe_index].func;
 }
@@ -335,100 +335,100 @@ INT32 mtk_wcn_hif_sdio_client_reg(
 
     HIF_SDIO_INFO_FUNC("start!\n");
 
-    //4 <1> check input pointer is valid
+    /* 4 <1> check input pointer is valid */
     HIF_SDIO_ASSERT(pinfo);
 
-    //4 <2> check if input parameters are all supported and valid
+    /* 4 <2> check if input parameters are all supported and valid */
     for (i = 0; i < pinfo->func_tbl_size; i++) {
-        ret = hif_sdio_check_supported_sdio_id(pinfo->func_tbl[i].manf_id, pinfo->func_tbl[i].card_id);
-        if (ret) {
-            HIF_SDIO_WARN_FUNC("vendor id(0x%x) and device id(0x%x) of sdio_func are not supported in mtk_sdio_id_tbl!\n",
-                               pinfo->func_tbl[i].manf_id,
-                               pinfo->func_tbl[i].card_id);
-            goto out;
-        }
+	ret = hif_sdio_check_supported_sdio_id(pinfo->func_tbl[i].manf_id, pinfo->func_tbl[i].card_id);
+	if (ret) {
+	    HIF_SDIO_WARN_FUNC("vendor id(0x%x) and device id(0x%x) of sdio_func are not supported in mtk_sdio_id_tbl!\n",
+			       pinfo->func_tbl[i].manf_id,
+			       pinfo->func_tbl[i].card_id);
+	    goto out;
+	}
     }
     HIF_SDIO_DBG_FUNC("hif_sdio_check_supported_sdio_id() done!\n");
 
-    //4 <3> check if the specific {manf id, card id, function number} tuple is
-    //4 already resigstered
+    /* 4 <3> check if the specific {manf id, card id, function number} tuple is */
+    /* 4 already resigstered */
     for (i = 0; i < pinfo->func_tbl_size; i++) {
-        ret = hif_sdio_check_duplicate_sdio_id(pinfo->func_tbl[i].manf_id, pinfo->func_tbl[i].card_id, pinfo->func_tbl[i].func_num);
-        if (ret) {
-            HIF_SDIO_WARN_FUNC("vendor id(0x%x), device id(0x%x), and fun_num(%d) of sdio_func are duplicated in g_hif_sdio_clt_drv_list!\n",
-                               pinfo->func_tbl[i].manf_id,
-                               pinfo->func_tbl[i].card_id,
-                               pinfo->func_tbl[i].func_num);
-            goto out;
-        }
+	ret = hif_sdio_check_duplicate_sdio_id(pinfo->func_tbl[i].manf_id, pinfo->func_tbl[i].card_id, pinfo->func_tbl[i].func_num);
+	if (ret) {
+	    HIF_SDIO_WARN_FUNC("vendor id(0x%x), device id(0x%x), and fun_num(%d) of sdio_func are duplicated in g_hif_sdio_clt_drv_list!\n",
+			       pinfo->func_tbl[i].manf_id,
+			       pinfo->func_tbl[i].card_id,
+			       pinfo->func_tbl[i].func_num);
+	    goto out;
+	}
     }
     HIF_SDIO_DBG_FUNC("hif_sdio_check_duplicate_sdio_id() done!\n");
 
-    //4 <4> add the specified {manf id, card id, function number} tuple to registered client list
+    /* 4 <4> add the specified {manf id, card id, function number} tuple to registered client list */
     HIF_SDIO_DBG_FUNC("pinfo->func_tbl_size:%d\n", pinfo->func_tbl_size);
     for (i = 0; i < pinfo->func_tbl_size; i++) {
-        ret = hif_sdio_add_clt_list(&clt_index, pinfo, i);
-        if (ret) {
-            HIF_SDIO_WARN_FUNC("client's info are added in registed client list failed (buffer is full)!\n");
-            goto out;
-        }
-        HIF_SDIO_DBG_FUNC("hif_sdio_add_clt_list() done (gRefCount=%d)!\n", gRefCount);
+	ret = hif_sdio_add_clt_list(&clt_index, pinfo, i);
+	if (ret) {
+	    HIF_SDIO_WARN_FUNC("client's info are added in registed client list failed (buffer is full)!\n");
+	    goto out;
+	}
+	HIF_SDIO_DBG_FUNC("hif_sdio_add_clt_list() done (gRefCount=%d)!\n", gRefCount);
 
-        //4 <5> if the specific {manf id, card id, function number} tuple has already
-        //4 been probed by mmc, schedule another task to call client's .hif_clt_probe()
-        for (j = 0; j < CFG_CLIENT_COUNT; j++) {
-            // probed spin lock
-            spin_lock_bh(&g_hif_sdio_lock_info.probed_list_lock);
-            if (g_hif_sdio_probed_func_list[j].func == 0) {
-                // probed spin unlock
-                spin_unlock_bh(&g_hif_sdio_lock_info.probed_list_lock);
-                continue;
-            }
-            /* the function has been probed */
-            if ((g_hif_sdio_clt_drv_list[clt_index].func_info->manf_id == g_hif_sdio_probed_func_list[j].func->vendor) && \
-                (g_hif_sdio_clt_drv_list[clt_index].func_info->card_id == g_hif_sdio_probed_func_list[j].func->device) && \
-                (g_hif_sdio_clt_drv_list[clt_index].func_info->func_num == g_hif_sdio_probed_func_list[j].func->num)) {
-                g_hif_sdio_probed_func_list[j].clt_idx = clt_index;
-                // probed spin unlock
-                spin_unlock_bh(&g_hif_sdio_lock_info.probed_list_lock);
+	/* 4 <5> if the specific {manf id, card id, function number} tuple has already */
+	/* 4 been probed by mmc, schedule another task to call client's .hif_clt_probe() */
+	for (j = 0; j < CFG_CLIENT_COUNT; j++) {
+	    /* probed spin lock */
+	    spin_lock_bh(&g_hif_sdio_lock_info.probed_list_lock);
+	    if (g_hif_sdio_probed_func_list[j].func == 0) {
+		/* probed spin unlock */
+		spin_unlock_bh(&g_hif_sdio_lock_info.probed_list_lock);
+		continue;
+	    }
+	    /* the function has been probed */
+	    if ((g_hif_sdio_clt_drv_list[clt_index].func_info->manf_id == g_hif_sdio_probed_func_list[j].func->vendor) && \
+		(g_hif_sdio_clt_drv_list[clt_index].func_info->card_id == g_hif_sdio_probed_func_list[j].func->device) && \
+		(g_hif_sdio_clt_drv_list[clt_index].func_info->func_num == g_hif_sdio_probed_func_list[j].func->num)) {
+		g_hif_sdio_probed_func_list[j].clt_idx = clt_index;
+		/* probed spin unlock */
+		spin_unlock_bh(&g_hif_sdio_lock_info.probed_list_lock);
 
-                /* use worker thread to perform the client's .hif_clt_probe() */
-                clt_probe_worker_info = vmalloc(sizeof(MTK_WCN_HIF_SDIO_CLT_PROBE_WORKERINFO));
-                INIT_WORK(&clt_probe_worker_info->probe_work, hif_sdio_clt_probe_worker);
-                clt_probe_worker_info->registinfo_p = &g_hif_sdio_clt_drv_list[clt_index];
-                clt_probe_worker_info->probe_idx = j;
-                schedule_work(&clt_probe_worker_info->probe_work);
+		/* use worker thread to perform the client's .hif_clt_probe() */
+		clt_probe_worker_info = vmalloc(sizeof(MTK_WCN_HIF_SDIO_CLT_PROBE_WORKERINFO));
+		INIT_WORK(&clt_probe_worker_info->probe_work, hif_sdio_clt_probe_worker);
+		clt_probe_worker_info->registinfo_p = &g_hif_sdio_clt_drv_list[clt_index];
+		clt_probe_worker_info->probe_idx = j;
+		schedule_work(&clt_probe_worker_info->probe_work);
 
-                //4 <5.1> remember to do claim_irq for the func if it's irq had been released.
-                if (!(g_hif_sdio_probed_func_list[j].func->irq_handler)) {
-                    sdio_claim_host(g_hif_sdio_probed_func_list[j].func);
-                    ret = sdio_claim_irq(g_hif_sdio_probed_func_list[j].func, hif_sdio_irq);
-                    mtk_wcn_sdio_irq_flag_set(1);
-                    sdio_release_host(g_hif_sdio_probed_func_list[j].func);
-                    HIF_SDIO_INFO_FUNC("sdio_claim_irq for func(0x%p) j(%d) v(0x%x) d(0x%x) ok\n",
-                                       g_hif_sdio_probed_func_list[j].func, j,
-                                       g_hif_sdio_probed_func_list[j].func->vendor,
-                                       g_hif_sdio_probed_func_list[j].func->device
-                                      );
-                }
-                //4 <5.2> Reset the block size of the function provided by client
-                HIF_SDIO_INFO_FUNC("Reset sdio block size: %d!\n", g_hif_sdio_clt_drv_list[clt_index].func_info->blk_sz);
-                sdio_claim_host(g_hif_sdio_probed_func_list[j].func);
-                ret = sdio_set_block_size(g_hif_sdio_probed_func_list[j].func, \
-                                          g_hif_sdio_clt_drv_list[clt_index].func_info->blk_sz);
-                sdio_release_host(g_hif_sdio_probed_func_list[j].func);
-            } else {
-                // probed spin unlock
-                spin_unlock_bh(&g_hif_sdio_lock_info.probed_list_lock);
-            }
-        }
-        HIF_SDIO_DBG_FUNC("map g_hif_sdio_clt_drv_list to g_hif_sdio_probed_func_list done!\n");
+		/* 4 <5.1> remember to do claim_irq for the func if it's irq had been released. */
+		if (!(g_hif_sdio_probed_func_list[j].func->irq_handler)) {
+		    sdio_claim_host(g_hif_sdio_probed_func_list[j].func);
+		    ret = sdio_claim_irq(g_hif_sdio_probed_func_list[j].func, hif_sdio_irq);
+		    mtk_wcn_sdio_irq_flag_set(1);
+		    sdio_release_host(g_hif_sdio_probed_func_list[j].func);
+		    HIF_SDIO_INFO_FUNC("sdio_claim_irq for func(0x%p) j(%d) v(0x%x) d(0x%x) ok\n",
+				       g_hif_sdio_probed_func_list[j].func, j,
+				       g_hif_sdio_probed_func_list[j].func->vendor,
+				       g_hif_sdio_probed_func_list[j].func->device
+				      );
+		}
+		/* 4 <5.2> Reset the block size of the function provided by client */
+		HIF_SDIO_INFO_FUNC("Reset sdio block size: %d!\n", g_hif_sdio_clt_drv_list[clt_index].func_info->blk_sz);
+		sdio_claim_host(g_hif_sdio_probed_func_list[j].func);
+		ret = sdio_set_block_size(g_hif_sdio_probed_func_list[j].func, \
+					  g_hif_sdio_clt_drv_list[clt_index].func_info->blk_sz);
+		sdio_release_host(g_hif_sdio_probed_func_list[j].func);
+	    } else {
+		/* probed spin unlock */
+		spin_unlock_bh(&g_hif_sdio_lock_info.probed_list_lock);
+	    }
+	}
+	HIF_SDIO_DBG_FUNC("map g_hif_sdio_clt_drv_list to g_hif_sdio_probed_func_list done!\n");
     }
     ret = HIF_SDIO_ERR_SUCCESS;
     gRefCount++;
 
 out:
-    //4 <last> error handling
+    /* 4 <last> error handling */
 
     HIF_SDIO_DBG_FUNC("end!\n");
     return ret;
@@ -455,43 +455,43 @@ INT32 mtk_wcn_hif_sdio_client_unreg(
 
     HIF_SDIO_INFO_FUNC("start!\n");
 
-    //4 <1> check if input pointer is valid
+    /* 4 <1> check if input pointer is valid */
     HIF_SDIO_ASSERT(pinfo);
 
-    //4 <2> check if input parameters are all supported and valid
+    /* 4 <2> check if input parameters are all supported and valid */
     for (i = 0; i < pinfo->func_tbl_size; i++) {
-        ret = hif_sdio_check_supported_sdio_id(pinfo->func_tbl[i].manf_id, pinfo->func_tbl[i].card_id);
-        if (ret) {
-            HIF_SDIO_WARN_FUNC("vendor id(0x%x) and device id(0x%x) of sdio_func are not supported in mtk_sdio_id_tbl!\n",
-                               pinfo->func_tbl[i].manf_id,
-                               pinfo->func_tbl[i].card_id);
-            goto out;
-        }
+	ret = hif_sdio_check_supported_sdio_id(pinfo->func_tbl[i].manf_id, pinfo->func_tbl[i].card_id);
+	if (ret) {
+	    HIF_SDIO_WARN_FUNC("vendor id(0x%x) and device id(0x%x) of sdio_func are not supported in mtk_sdio_id_tbl!\n",
+			       pinfo->func_tbl[i].manf_id,
+			       pinfo->func_tbl[i].card_id);
+	    goto out;
+	}
     }
 
-    //4 <3> check if the specific {manf id, card id, function number} tuple is already resigstered
-    //4 and find the corresponding client ctx and call client's .hif_clt_remove() in THIS context
+    /* 4 <3> check if the specific {manf id, card id, function number} tuple is already resigstered */
+    /* 4 and find the corresponding client ctx and call client's .hif_clt_remove() in THIS context */
     for (i = 0; i < pinfo->func_tbl_size; i++) {
-        clt_list_index = hif_sdio_find_clt_list_index(pinfo->func_tbl[i].manf_id, pinfo->func_tbl[i].card_id, pinfo->func_tbl[i].func_num);
-        if (clt_list_index < 0) {
-            HIF_SDIO_WARN_FUNC("vendor id(0x%x), device id(0x%x), and fun_num(%d) client info is not in the client's registed list!\n",
-                               pinfo->func_tbl[i].manf_id,
-                               pinfo->func_tbl[i].card_id,
-                               pinfo->func_tbl[i].func_num);
-            ret = -HIF_SDIO_ERR_FAIL;
-            goto out;
-        }
+	clt_list_index = hif_sdio_find_clt_list_index(pinfo->func_tbl[i].manf_id, pinfo->func_tbl[i].card_id, pinfo->func_tbl[i].func_num);
+	if (clt_list_index < 0) {
+	    HIF_SDIO_WARN_FUNC("vendor id(0x%x), device id(0x%x), and fun_num(%d) client info is not in the client's registed list!\n",
+			       pinfo->func_tbl[i].manf_id,
+			       pinfo->func_tbl[i].card_id,
+			       pinfo->func_tbl[i].func_num);
+	    ret = -HIF_SDIO_ERR_FAIL;
+	    goto out;
+	}
 
-        //4 <4> mark the specified {manf id, card id, function number} tuple as
-        //4 un-registered and invalidate client's context
-        hif_sdio_init_clt_list(clt_list_index);
+	/* 4 <4> mark the specified {manf id, card id, function number} tuple as */
+	/* 4 un-registered and invalidate client's context */
+	hif_sdio_init_clt_list(clt_list_index);
 
-        /* un-map g_hif_sdio_clt_drv_list index in g_hif_sdio_probed_func_list */
-        for (j = 0; j < CFG_CLIENT_COUNT; j++) {
-            if (g_hif_sdio_probed_func_list[j].clt_idx == clt_list_index) {
-                g_hif_sdio_probed_func_list[j].clt_idx = -1;
-            }
-        }
+	/* un-map g_hif_sdio_clt_drv_list index in g_hif_sdio_probed_func_list */
+	for (j = 0; j < CFG_CLIENT_COUNT; j++) {
+	    if (g_hif_sdio_probed_func_list[j].clt_idx == clt_list_index) {
+		g_hif_sdio_probed_func_list[j].clt_idx = -1;
+	    }
+	}
     }
     gRefCount--;
 
@@ -499,7 +499,7 @@ INT32 mtk_wcn_hif_sdio_client_unreg(
 out:
     HIF_SDIO_INFO_FUNC("end (gRefCount=%d) !\n", gRefCount);
     return ret;
-}/* end of mtk_wcn_hif_sdio_client_unreg() */
+} /* end of mtk_wcn_hif_sdio_client_unreg() */
 
 /*!
  * \brief
@@ -529,38 +529,38 @@ INT32 mtk_wcn_hif_sdio_readb(
     HIF_SDIO_DBG_FUNC("start!\n");
     HIF_SDIO_ASSERT(pvb);
 
-    //4 <1> check if ctx is valid, registered, and probed
+    /* 4 <1> check if ctx is valid, registered, and probed */
 #if HIF_SDIO_UPDATE
     ret = -HIF_SDIO_ERR_FAIL;
     func = hif_sdio_ctx_to_func(ctx);
     if (!func) {
-        ret = -HIF_SDIO_ERR_FAIL;
-        goto out;
+	ret = -HIF_SDIO_ERR_FAIL;
+	goto out;
     }
 #else
     probe_index = CLTCTX_IDX(ctx);
     if (probe_index < 0) {   /* the function has not been probed */
-        HIF_SDIO_WARN_FUNC("can't find client in probed list!\n");
-        ret = -HIF_SDIO_ERR_FAIL;
-        goto out;
+	HIF_SDIO_WARN_FUNC("can't find client in probed list!\n");
+	ret = -HIF_SDIO_ERR_FAIL;
+	goto out;
     } else {
-        if (g_hif_sdio_probed_func_list[probe_index].clt_idx < 0) {   /* the client has not been registered */
-            HIF_SDIO_WARN_FUNC("can't find client in registered list!\n");
-            ret = -HIF_SDIO_ERR_FAIL;
-            goto out;
-        }
+	if (g_hif_sdio_probed_func_list[probe_index].clt_idx < 0) {   /* the client has not been registered */
+	    HIF_SDIO_WARN_FUNC("can't find client in registered list!\n");
+	    ret = -HIF_SDIO_ERR_FAIL;
+	    goto out;
+	}
     }
     func = g_hif_sdio_probed_func_list[probe_index].func;
 #endif
 
-    //4 <2>
+    /* 4 <2> */
     sdio_claim_host(func);
     *pvb = sdio_readb(func, offset, &ret);
     sdio_release_host(func);
 
-    //4 <3> check result code and return proper error code
+    /* 4 <3> check result code and return proper error code */
 
-out:
+out :
     HIF_SDIO_DBG_FUNC("end!\n");
     return ret;
 } /* end of mtk_wcn_hif_sdio_client_unreg() */
@@ -592,41 +592,41 @@ INT32 mtk_wcn_hif_sdio_writeb(
 
     HIF_SDIO_DBG_FUNC("start!\n");
 
-    //4 <1> check if ctx is valid, registered, and probed
+    /* 4 <1> check if ctx is valid, registered, and probed */
 #if HIF_SDIO_UPDATE
     ret = -HIF_SDIO_ERR_FAIL;
     func = hif_sdio_ctx_to_func(ctx);
     if (!func) {
-        ret = -HIF_SDIO_ERR_FAIL;
-        goto out;
+	ret = -HIF_SDIO_ERR_FAIL;
+	goto out;
     }
 #else
     probe_index = CLTCTX_IDX(ctx);
     if (probe_index < 0) {   /* the function has not been probed */
-        HIF_SDIO_WARN_FUNC("can't find client in probed list!\n");
-        ret = -HIF_SDIO_ERR_FAIL;
-        goto out;
+	HIF_SDIO_WARN_FUNC("can't find client in probed list!\n");
+	ret = -HIF_SDIO_ERR_FAIL;
+	goto out;
     } else {
-        if (g_hif_sdio_probed_func_list[probe_index].clt_idx < 0) {   /* the client has not been registered */
-            HIF_SDIO_WARN_FUNC("can't find client in registered list!\n");
-            ret = -HIF_SDIO_ERR_FAIL;
-            goto out;
-        }
+	if (g_hif_sdio_probed_func_list[probe_index].clt_idx < 0) {   /* the client has not been registered */
+	    HIF_SDIO_WARN_FUNC("can't find client in registered list!\n");
+	    ret = -HIF_SDIO_ERR_FAIL;
+	    goto out;
+	}
     }
     func = g_hif_sdio_probed_func_list[probe_index].func;
 #endif
 
-    //4 <1.1> check if input parameters are valid
+    /* 4 <1.1> check if input parameters are valid */
 
-    //4 <2>
+    /* 4 <2> */
     wmt_tra_sdio_update();
     sdio_claim_host(func);
     sdio_writeb(func, vb, offset, &ret);
     sdio_release_host(func);
 
-    //4 <3> check result code and return proper error code
+    /* 4 <3> check result code and return proper error code */
 
-out:
+out :
     HIF_SDIO_DBG_FUNC("end!\n");
     return ret;
 } /* end of mtk_wcn_hif_sdio_client_unreg() */
@@ -659,39 +659,39 @@ INT32 mtk_wcn_hif_sdio_readl(
     HIF_SDIO_DBG_FUNC("start!\n");
     HIF_SDIO_ASSERT(pvl);
 
-    //4 <1> check if ctx is valid, registered, and probed
+    /* 4 <1> check if ctx is valid, registered, and probed */
 #if HIF_SDIO_UPDATE
     ret = -HIF_SDIO_ERR_FAIL;
     func = hif_sdio_ctx_to_func(ctx);
     if (!func) {
-        ret = -HIF_SDIO_ERR_FAIL;
-        goto out;
+	ret = -HIF_SDIO_ERR_FAIL;
+	goto out;
     }
 #else
     probe_index = CLTCTX_IDX(ctx);
     if (probe_index < 0) {   /* the function has not been probed */
-        HIF_SDIO_WARN_FUNC("can't find client in probed list!\n");
-        ret = -HIF_SDIO_ERR_FAIL;
-        goto out;
+	HIF_SDIO_WARN_FUNC("can't find client in probed list!\n");
+	ret = -HIF_SDIO_ERR_FAIL;
+	goto out;
     } else {
-        if (g_hif_sdio_probed_func_list[probe_index].clt_idx < 0) {   /* the client has not been registered */
-            HIF_SDIO_WARN_FUNC("can't find client in registered list!\n");
-            ret = -HIF_SDIO_ERR_FAIL;
-            goto out;
-        }
+	if (g_hif_sdio_probed_func_list[probe_index].clt_idx < 0) {   /* the client has not been registered */
+	    HIF_SDIO_WARN_FUNC("can't find client in registered list!\n");
+	    ret = -HIF_SDIO_ERR_FAIL;
+	    goto out;
+	}
     }
     func = g_hif_sdio_probed_func_list[probe_index].func;
 #endif
-    //4 <1.1> check if input parameters are valid
+    /* 4 <1.1> check if input parameters are valid */
 
-    //4 <2>
+    /* 4 <2> */
     sdio_claim_host(func);
     *pvl = sdio_readl(func, offset, &ret);
     sdio_release_host(func);
 
-    //4 <3> check result code and return proper error code
+    /* 4 <3> check result code and return proper error code */
 
-out:
+out :
     HIF_SDIO_DBG_FUNC("end!\n");
     return ret;
 } /* end of mtk_wcn_hif_sdio_client_unreg() */
@@ -723,40 +723,40 @@ INT32 mtk_wcn_hif_sdio_writel(
 
     HIF_SDIO_DBG_FUNC("start!\n");
 
-    //4 <1> check if ctx is valid, registered, and probed
+    /* 4 <1> check if ctx is valid, registered, and probed */
 #if HIF_SDIO_UPDATE
     ret = -HIF_SDIO_ERR_FAIL;
     func = hif_sdio_ctx_to_func(ctx);
     if (!func) {
-        ret = -HIF_SDIO_ERR_FAIL;
-        goto out;
+	ret = -HIF_SDIO_ERR_FAIL;
+	goto out;
     }
 #else
     probe_index = CLTCTX_IDX(ctx);
     if (probe_index < 0) {   /* the function has not been probed */
-        HIF_SDIO_WARN_FUNC("can't find client in probed list!\n");
-        ret = -HIF_SDIO_ERR_FAIL;
-        goto out;
+	HIF_SDIO_WARN_FUNC("can't find client in probed list!\n");
+	ret = -HIF_SDIO_ERR_FAIL;
+	goto out;
     } else {
-        if (g_hif_sdio_probed_func_list[probe_index].clt_idx < 0) {   /* the client has not been registered */
-            HIF_SDIO_WARN_FUNC("can't find client in registered list!\n");
-            ret = -HIF_SDIO_ERR_FAIL;
-            goto out;
-        }
+	if (g_hif_sdio_probed_func_list[probe_index].clt_idx < 0) {   /* the client has not been registered */
+	    HIF_SDIO_WARN_FUNC("can't find client in registered list!\n");
+	    ret = -HIF_SDIO_ERR_FAIL;
+	    goto out;
+	}
     }
     func = g_hif_sdio_probed_func_list[probe_index].func;
 #endif
-    //4 <1.1> check if input parameters are valid
+    /* 4 <1.1> check if input parameters are valid */
 
-    //4 <2>
+    /* 4 <2> */
     wmt_tra_sdio_update();
     sdio_claim_host(func);
     sdio_writel(func, vl, offset, &ret);
     sdio_release_host(func);
 
-    //4 <3> check result code and return proper error code
+    /* 4 <3> check result code and return proper error code */
 
-out:
+out :
     HIF_SDIO_DBG_FUNC("end!\n");
     return ret;
 } /* end of mtk_wcn_hif_sdio_client_unreg() */
@@ -790,39 +790,39 @@ INT32 mtk_wcn_hif_sdio_read_buf(
     HIF_SDIO_DBG_FUNC("start!\n");
     HIF_SDIO_ASSERT(pbuf);
 
-    //4 <1> check if ctx is valid, registered, and probed
+    /* 4 <1> check if ctx is valid, registered, and probed */
 #if HIF_SDIO_UPDATE
     ret = -HIF_SDIO_ERR_FAIL;
     func = hif_sdio_ctx_to_func(ctx);
     if (!func) {
-        ret = -HIF_SDIO_ERR_FAIL;
-        goto out;
+	ret = -HIF_SDIO_ERR_FAIL;
+	goto out;
     }
 #else
     probe_index = CLTCTX_IDX(ctx);
     if (probe_index < 0) {   /* the function has not been probed */
-        HIF_SDIO_WARN_FUNC("can't find client in probed list!\n");
-        ret = -HIF_SDIO_ERR_FAIL;
-        goto out;
+	HIF_SDIO_WARN_FUNC("can't find client in probed list!\n");
+	ret = -HIF_SDIO_ERR_FAIL;
+	goto out;
     } else {
-        if (g_hif_sdio_probed_func_list[probe_index].clt_idx < 0) {   /* the client has not been registered */
-            HIF_SDIO_WARN_FUNC("can't find client in registered list!\n");
-            ret = -HIF_SDIO_ERR_FAIL;
-            goto out;
-        }
+	if (g_hif_sdio_probed_func_list[probe_index].clt_idx < 0) {   /* the client has not been registered */
+	    HIF_SDIO_WARN_FUNC("can't find client in registered list!\n");
+	    ret = -HIF_SDIO_ERR_FAIL;
+	    goto out;
+	}
     }
     func = g_hif_sdio_probed_func_list[probe_index].func;
 #endif
-    //4 <1.1> check if input parameters are valid
+    /* 4 <1.1> check if input parameters are valid */
 
-    //4 <2>
+    /* 4 <2> */
     sdio_claim_host(func);
     ret = sdio_readsb(func, pbuf, offset, len);
     sdio_release_host(func);
 
-    //4 <3> check result code and return proper error code
+    /* 4 <3> check result code and return proper error code */
 
-out:
+out :
     HIF_SDIO_DBG_FUNC("end!\n");
     return ret;
 } /* end of mtk_wcn_hif_sdio_read_buf() */
@@ -857,40 +857,40 @@ INT32 mtk_wcn_hif_sdio_write_buf(
     HIF_SDIO_DBG_FUNC("start!\n");
     HIF_SDIO_ASSERT(pbuf);
 
-    //4 <1> check if ctx is valid, registered, and probed
+    /* 4 <1> check if ctx is valid, registered, and probed */
 #if HIF_SDIO_UPDATE
     ret = -HIF_SDIO_ERR_FAIL;
     func = hif_sdio_ctx_to_func(ctx);
     if (!func) {
-        ret = -HIF_SDIO_ERR_FAIL;
-        goto out;
+	ret = -HIF_SDIO_ERR_FAIL;
+	goto out;
     }
 #else
     probe_index = CLTCTX_IDX(ctx);
     if (probe_index < 0) {   /* the function has not been probed */
-        HIF_SDIO_WARN_FUNC("can't find client in probed list!\n");
-        ret = -HIF_SDIO_ERR_FAIL;
-        goto out;
+	HIF_SDIO_WARN_FUNC("can't find client in probed list!\n");
+	ret = -HIF_SDIO_ERR_FAIL;
+	goto out;
     } else {
-        if (g_hif_sdio_probed_func_list[probe_index].clt_idx < 0) {   /* the client has not been registered */
-            HIF_SDIO_WARN_FUNC("can't find client in registered list!\n");
-            ret = -HIF_SDIO_ERR_FAIL;
-            goto out;
-        }
+	if (g_hif_sdio_probed_func_list[probe_index].clt_idx < 0) {   /* the client has not been registered */
+	    HIF_SDIO_WARN_FUNC("can't find client in registered list!\n");
+	    ret = -HIF_SDIO_ERR_FAIL;
+	    goto out;
+	}
     }
     func = g_hif_sdio_probed_func_list[probe_index].func;
 #endif
-    //4 <1.1> check if input parameters are valid
+    /* 4 <1.1> check if input parameters are valid */
 
-    //4 <2>
+    /* 4 <2> */
     wmt_tra_sdio_update();
     sdio_claim_host(func);
     ret = sdio_writesb(func, offset, pbuf, len);
     sdio_release_host(func);
 
-    //4 <3> check result code and return proper error code
+    /* 4 <3> check result code and return proper error code */
 
-out:
+out :
     HIF_SDIO_DBG_FUNC("ret(%d) end!\n", ret);
 
     return ret;
@@ -912,12 +912,12 @@ void mtk_wcn_hif_sdio_set_drvdata(
     UINT8 probed_idx = CLTCTX_IDX(ctx);
 
     if (unlikely(!CLTCTX_IDX_VALID(probed_idx))) {         /* invalid index in CLTCTX */
-        HIF_SDIO_WARN_FUNC("invalid idx in ctx(0x%x), private_data_p not stored!\n", ctx);
+	HIF_SDIO_WARN_FUNC("invalid idx in ctx(0x%x), private_data_p not stored!\n", ctx);
     } else {
-        /* store client driver's private data to dev driver */
-        g_hif_sdio_probed_func_list[probed_idx].private_data_p = private_data_p;
-        HIF_SDIO_DBG_FUNC("private_data_p(0x%p) for ctx(0x%x) probed idx(%d) stored!\n",
-                          private_data_p, ctx, probed_idx);
+	/* store client driver's private data to dev driver */
+	g_hif_sdio_probed_func_list[probed_idx].private_data_p = private_data_p;
+	HIF_SDIO_DBG_FUNC("private_data_p(0x%p) for ctx(0x%x) probed idx(%d) stored!\n",
+			  private_data_p, ctx, probed_idx);
     }
 }
 
@@ -937,11 +937,11 @@ void *mtk_wcn_hif_sdio_get_drvdata(
 
     /* get client driver's private data to dev driver */
     if (likely(CLTCTX_IDX_VALID(probed_idx))) {
-        return g_hif_sdio_probed_func_list[probed_idx].private_data_p;
+	return g_hif_sdio_probed_func_list[probed_idx].private_data_p;
     } else {
-        /* invalid index in CLTCTX */
-        HIF_SDIO_WARN_FUNC("invalid idx in ctx(0x%x), return null!\n", ctx);
-        return NULL;
+	/* invalid index in CLTCTX */
+	HIF_SDIO_WARN_FUNC("invalid idx in ctx(0x%x), return null!\n", ctx);
+	return NULL;
     }
 }
 
@@ -960,29 +960,29 @@ mtk_wcn_hif_sdio_wmt_control(
     MTK_WCN_BOOL is_on
 )
 {
-    // TODO:[FixMe][George]: return value of this function shall distinguish
-    // 1) not probed by mmc_core yet or
-    // 2) probed by mmc_core but init fail...
+    /* TODO:[FixMe][George]: return value of this function shall distinguish */
+    /* 1) not probed by mmc_core yet or */
+    /* 2) probed by mmc_core but init fail... */
     switch (func_type) {
     case WMT_SDIO_FUNC_STP:
-        if (is_on == MTK_WCN_BOOL_TRUE) {
-            return hif_sdio_stp_on();
-        } else {
-            return hif_sdio_stp_off();
-        }
-        break;
+	if (is_on == MTK_WCN_BOOL_TRUE) {
+	    return hif_sdio_stp_on();
+	} else {
+	    return hif_sdio_stp_off();
+	}
+	break;
 
     case WMT_SDIO_FUNC_WIFI:
-        if (is_on == MTK_WCN_BOOL_TRUE) {
-            return hif_sdio_wifi_on();
-        } else {
-            return hif_sdio_wifi_off();
-        }
-        break;
+	if (is_on == MTK_WCN_BOOL_TRUE) {
+	    return hif_sdio_wifi_on();
+	} else {
+	    return hif_sdio_wifi_off();
+	}
+	break;
 
     default:
-        HIF_SDIO_WARN_FUNC("unknown type(%d)\n", func_type);
-        return HIF_SDIO_ERR_INVALID_PARAM;
+	HIF_SDIO_WARN_FUNC("unknown type(%d)\n", func_type);
+	return HIF_SDIO_ERR_INVALID_PARAM;
     }
 }
 
@@ -1008,21 +1008,21 @@ void mtk_wcn_hif_sdio_get_dev(
 #endif
 
 #if HIF_SDIO_UPDATE
-    *dev = NULL; //ensure we does not return any invalid value back.
+    *dev = NULL; /* ensure we does not return any invalid value back. */
     func = hif_sdio_ctx_to_func(ctx);
     if (unlikely(!func)) {
-        HIF_SDIO_WARN_FUNC("no valid *func with ctx(0x%x)\n", ctx);
-        return;
+	HIF_SDIO_WARN_FUNC("no valid *func with ctx(0x%x)\n", ctx);
+	return;
     } else {
-        *dev = & (func->dev);
-        HIF_SDIO_DBG_FUNC("return *dev(0x%p) for ctx(0x%x)\n", *dev, ctx);
+        *dev = &(func->dev);
+	HIF_SDIO_DBG_FUNC("return *dev(0x%p) for ctx(0x%x)\n", *dev, ctx);
     }
 #else
     if (probe_index < 0) {
-        HIF_SDIO_WARN_FUNC("func not probed, probe_index = %d", probe_index);
-        return;
+	HIF_SDIO_WARN_FUNC("func not probed, probe_index = %d", probe_index);
+	return;
     } else {
-        *dev = &g_hif_sdio_probed_func_list[probe_index].func->dev;
+	*dev = &g_hif_sdio_probed_func_list[probe_index].func->dev;
     }
 #endif
 }
@@ -1048,24 +1048,24 @@ static int hif_sdio_clt_probe_func(
     HIF_SDIO_DBG_FUNC("start!\n");
     HIF_SDIO_ASSERT(registinfo_p);
     if (!registinfo_p) {
-        HIF_SDIO_WARN_FUNC("registinfo_p NULL!!!\n");
-        return -1;
+	HIF_SDIO_WARN_FUNC("registinfo_p NULL!!!\n");
+	return -1;
     }
 
     /* special case handling: if the clt's unregister is called during probe procedures */
     if (!registinfo_p->func_info || !registinfo_p->sdio_cltinfo) {
-        HIF_SDIO_WARN_FUNC("client's registinfo_p is cleared !!!\n");
-        return -1;
+	HIF_SDIO_WARN_FUNC("client's registinfo_p is cleared !!!\n");
+	return -1;
     }
 
     card_id = registinfo_p->func_info->card_id;
     func_num = registinfo_p->func_info->func_num;
     blk_sz = registinfo_p->func_info->blk_sz;
     ret = registinfo_p->sdio_cltinfo->hif_clt_probe(CLTCTX(card_id, func_num, blk_sz, probe_idx), \
-            registinfo_p->func_info);
+	    registinfo_p->func_info);
 
     HIF_SDIO_INFO_FUNC("clt_probe_func card_id(%x) func_num(%x) blk_sz(%d) prob_idx(%x) ret(%d) %s\n",
-                       card_id, func_num, blk_sz, probe_idx, ret, (ret) ? "fail" : "ok");
+		       card_id, func_num, blk_sz, probe_idx, ret, (ret) ? "fail" : "ok");
 
     return ret;
 }
@@ -1099,9 +1099,9 @@ static void hif_sdio_clt_probe_worker(
 
     /* special case handling: if the clt's unregister is called during probe procedures */
     if ((clt_worker_info_p->registinfo_p->func_info == 0) || (clt_worker_info_p->registinfo_p->sdio_cltinfo == 0)) {
-        HIF_SDIO_WARN_FUNC("client's registinfo_p is cleared !!!\n");
-        vfree(clt_worker_info_p);
-        return;
+	HIF_SDIO_WARN_FUNC("client's registinfo_p is cleared !!!\n");
+	vfree(clt_worker_info_p);
+	return;
     }
 
     card_id = clt_worker_info_p->registinfo_p->func_info->card_id;
@@ -1111,7 +1111,7 @@ static void hif_sdio_clt_probe_worker(
 
     /* Execute client's probe() func */
     clt_worker_info_p->registinfo_p->sdio_cltinfo->hif_clt_probe(CLTCTX(card_id, func_num, blk_sz, prob_idx), \
-            clt_worker_info_p->registinfo_p->func_info);
+	    clt_worker_info_p->registinfo_p->func_info);
 
     vfree(clt_worker_info_p);
 
@@ -1135,18 +1135,18 @@ hif_sdio_dump_probe_list(void)
     HIF_SDIO_DBG_FUNC("== DUMP probed list start ==\n");
 
     for (i = 0; i < CFG_CLIENT_COUNT; i++) {
-        if (g_hif_sdio_probed_func_list[i].func) {
-            HIF_SDIO_DBG_FUNC("index(%d) func(0x%p) clt_idx(%d)\n",
-                              i, g_hif_sdio_probed_func_list[i].func,
-                              g_hif_sdio_probed_func_list[i].clt_idx);
+	if (g_hif_sdio_probed_func_list[i].func) {
+	    HIF_SDIO_DBG_FUNC("index(%d) func(0x%p) clt_idx(%d)\n",
+			      i, g_hif_sdio_probed_func_list[i].func,
+			      g_hif_sdio_probed_func_list[i].clt_idx);
 
-            HIF_SDIO_DBG_FUNC("vendor(0x%x) device(0x%x) num(0x%x) state(%d)\n",
-                              g_hif_sdio_probed_func_list[i].func->vendor,
-                              g_hif_sdio_probed_func_list[i].func->device,
-                              g_hif_sdio_probed_func_list[i].func->num,
-                              g_hif_sdio_probed_func_list[i].on_by_wmt);
+	    HIF_SDIO_DBG_FUNC("vendor(0x%x) device(0x%x) num(0x%x) state(%d)\n",
+			      g_hif_sdio_probed_func_list[i].func->vendor,
+			      g_hif_sdio_probed_func_list[i].func->device,
+			      g_hif_sdio_probed_func_list[i].func->num,
+			      g_hif_sdio_probed_func_list[i].on_by_wmt);
 
-        }
+	}
     }
 
     HIF_SDIO_DBG_FUNC("== DUMP probed list end ==\n");
@@ -1166,16 +1166,16 @@ static void hif_sdio_init_probed_list(
 )
 {
     if ((index >= 0) && (index < CFG_CLIENT_COUNT)) {
-        /* probed spin lock */
-        spin_lock_bh(&g_hif_sdio_lock_info.probed_list_lock);
-        g_hif_sdio_probed_func_list[index].func = 0;
-        g_hif_sdio_probed_func_list[index].clt_idx = -1;
-        g_hif_sdio_probed_func_list[index].private_data_p = 0;
-        g_hif_sdio_probed_func_list[index].on_by_wmt = MTK_WCN_BOOL_FALSE;
-        /* probed spin unlock */
-        spin_unlock_bh(&g_hif_sdio_lock_info.probed_list_lock);
+	/* probed spin lock */
+	spin_lock_bh(&g_hif_sdio_lock_info.probed_list_lock);
+	g_hif_sdio_probed_func_list[index].func = 0;
+	g_hif_sdio_probed_func_list[index].clt_idx = -1;
+	g_hif_sdio_probed_func_list[index].private_data_p = 0;
+	g_hif_sdio_probed_func_list[index].on_by_wmt = MTK_WCN_BOOL_FALSE;
+	/* probed spin unlock */
+	spin_unlock_bh(&g_hif_sdio_lock_info.probed_list_lock);
     } else {
-        HIF_SDIO_ERR_FUNC("index is out of g_hif_sdio_probed_func_list[] boundary!\n");
+	HIF_SDIO_ERR_FUNC("index is out of g_hif_sdio_probed_func_list[] boundary!\n");
     }
 }
 
@@ -1192,15 +1192,15 @@ static void hif_sdio_init_clt_list(
     INT32 index
 )
 {
-    // client list spin lock
+    /* client list spin lock */
     spin_lock_bh(&g_hif_sdio_lock_info.clt_list_lock);
     if ((index >= 0) && (index < CFG_CLIENT_COUNT)) {
-        g_hif_sdio_clt_drv_list[index].sdio_cltinfo = 0;
-        g_hif_sdio_clt_drv_list[index].func_info = 0;
+	g_hif_sdio_clt_drv_list[index].sdio_cltinfo = 0;
+	g_hif_sdio_clt_drv_list[index].func_info = 0;
     } else {
-        HIF_SDIO_ERR_FUNC("index is out of g_hif_sdio_clt_drv_list[] boundary!\n");
+	HIF_SDIO_ERR_FUNC("index is out of g_hif_sdio_clt_drv_list[] boundary!\n");
     }
-    // client list spin unlock
+    /* client list spin unlock */
     spin_unlock_bh(&g_hif_sdio_lock_info.clt_list_lock);
 }
 
@@ -1223,9 +1223,9 @@ static int hif_sdio_find_probed_list_index_by_func(
     HIF_SDIO_ASSERT(func);
 
     for (i = 0; i < CFG_CLIENT_COUNT; i++) {
-        if (g_hif_sdio_probed_func_list[i].func == func) {
-            return i;
-        }
+	if (g_hif_sdio_probed_func_list[i].func == func) {
+	    return i;
+	}
     }
 
     return -1;
@@ -1248,30 +1248,30 @@ static int hif_sdio_find_probed_list_index_by_id_func(
 {
     int i;
     for (i = 0; i < CFG_CLIENT_COUNT; i++) {
-        if (g_hif_sdio_probed_func_list[i].func) {
-            HIF_SDIO_DBG_FUNC("probed entry: vendor(0x%x) device(0x%x) num(0x%x)\n",
-                              g_hif_sdio_probed_func_list[i].func->vendor,
-                              g_hif_sdio_probed_func_list[i].func->device,
-                              g_hif_sdio_probed_func_list[i].func->num);
-        }
+	if (g_hif_sdio_probed_func_list[i].func) {
+	    HIF_SDIO_DBG_FUNC("probed entry: vendor(0x%x) device(0x%x) num(0x%x)\n",
+			      g_hif_sdio_probed_func_list[i].func->vendor,
+			      g_hif_sdio_probed_func_list[i].func->device,
+			      g_hif_sdio_probed_func_list[i].func->num);
+	}
     }
     for (i = 0; i < CFG_CLIENT_COUNT; i++) {
-        if (!g_hif_sdio_probed_func_list[i].func) {
-            continue;
-        } else if ((g_hif_sdio_probed_func_list[i].func->vendor == vendor) &&
-                   (g_hif_sdio_probed_func_list[i].func->device == device) &&
-                   (g_hif_sdio_probed_func_list[i].func->num == func_num)) {
-            return i;
-        }
+	if (!g_hif_sdio_probed_func_list[i].func) {
+	    continue;
+	} else if ((g_hif_sdio_probed_func_list[i].func->vendor == vendor) &&
+		   (g_hif_sdio_probed_func_list[i].func->device == device) &&
+		   (g_hif_sdio_probed_func_list[i].func->num == func_num)) {
+	    return i;
+	}
     }
 
     if (i == CFG_CLIENT_COUNT) {
-        /*
-        printk(KERN_INFO DRV_NAME "Cannot find vendor:0x%x, device:0x%x, func_num:0x%x, i=%d\n",
-            vendor, device, func_num, i);
-        */
-        /* client func has not been probed */
-        return -1;
+	/*
+	printk(KERN_INFO DRV_NAME "Cannot find vendor:0x%x, device:0x%x, func_num:0x%x, i=%d\n",
+	    vendor, device, func_num, i);
+	*/
+	/* client func has not been probed */
+	return -1;
     }
     return -1;
 }
@@ -1295,13 +1295,13 @@ static int hif_sdio_find_clt_list_index(
     int i = 0;
 
     for (i = 0; i < CFG_CLIENT_COUNT; i++) {
-        if (g_hif_sdio_clt_drv_list[i].func_info != 0) {
-            if ((g_hif_sdio_clt_drv_list[i].func_info->manf_id == vendor) && \
-                (g_hif_sdio_clt_drv_list[i].func_info->card_id == device) && \
-                (g_hif_sdio_clt_drv_list[i].func_info->func_num == func_num)) {
-                return i;
-            }
-        }
+	if (g_hif_sdio_clt_drv_list[i].func_info != 0) {
+	    if ((g_hif_sdio_clt_drv_list[i].func_info->manf_id == vendor) && \
+		(g_hif_sdio_clt_drv_list[i].func_info->card_id == device) && \
+		(g_hif_sdio_clt_drv_list[i].func_info->func_num == func_num)) {
+		return i;
+	    }
+	}
     }
 
     return -1;
@@ -1325,9 +1325,9 @@ static int hif_sdio_check_supported_sdio_id(
     int i = 0;
 
     for (i = 0; i < CFG_CLIENT_COUNT; i++) {
-        if ((mtk_sdio_id_tbl[i].vendor == vendor) && (mtk_sdio_id_tbl[i].device == device)) {
-            return HIF_SDIO_ERR_SUCCESS;  /* mtk_sdio_id is supported */
-        }
+	if ((mtk_sdio_id_tbl[i].vendor == vendor) && (mtk_sdio_id_tbl[i].device == device)) {
+	    return HIF_SDIO_ERR_SUCCESS;  /* mtk_sdio_id is supported */
+	}
     }
     return (-HIF_SDIO_ERR_FAIL);    /* mtk_sdio_id is not supported */
 }
@@ -1351,13 +1351,13 @@ static int hif_sdio_check_duplicate_sdio_id(
     int i = 0;
 
     for (i = 0; i < CFG_CLIENT_COUNT; i++) {
-        if (g_hif_sdio_clt_drv_list[i].func_info != 0) {
-            if ((g_hif_sdio_clt_drv_list[i].func_info->manf_id == vendor) && \
-                (g_hif_sdio_clt_drv_list[i].func_info->card_id == device) && \
-                (g_hif_sdio_clt_drv_list[i].func_info->func_num == func_num)) {
-                return (-HIF_SDIO_ERR_DUPLICATED);   /* duplicated */
-            }
-        }
+	if (g_hif_sdio_clt_drv_list[i].func_info != 0) {
+	    if ((g_hif_sdio_clt_drv_list[i].func_info->manf_id == vendor) && \
+		(g_hif_sdio_clt_drv_list[i].func_info->card_id == device) && \
+		(g_hif_sdio_clt_drv_list[i].func_info->func_num == func_num)) {
+		return (-HIF_SDIO_ERR_DUPLICATED);   /* duplicated */
+	    }
+	}
     }
     return HIF_SDIO_ERR_SUCCESS;    /* Not duplicated */
 }
@@ -1385,18 +1385,18 @@ static int hif_sdio_add_clt_list(
     HIF_SDIO_ASSERT(pinfo);
 
     for (i = 0; i < CFG_CLIENT_COUNT; i++) {
-        // client list spin lock
-        spin_lock_bh(&g_hif_sdio_lock_info.clt_list_lock);
-        if (g_hif_sdio_clt_drv_list[i].func_info == 0) {
-            g_hif_sdio_clt_drv_list[i].func_info = & (pinfo->func_tbl[tbl_index]);
-            g_hif_sdio_clt_drv_list[i].sdio_cltinfo = pinfo;
-            // client list spin unlock
-            spin_unlock_bh(&g_hif_sdio_lock_info.clt_list_lock);
-            *clt_index_p = i;
-            return HIF_SDIO_ERR_SUCCESS;    /* Add to client list successfully */
-        }
-        // client list spin unlock
-        spin_unlock_bh(&g_hif_sdio_lock_info.clt_list_lock);
+	/* client list spin lock */
+	spin_lock_bh(&g_hif_sdio_lock_info.clt_list_lock);
+	if (g_hif_sdio_clt_drv_list[i].func_info == 0) {
+            g_hif_sdio_clt_drv_list[i].func_info = &(pinfo->func_tbl[tbl_index]);
+	    g_hif_sdio_clt_drv_list[i].sdio_cltinfo = pinfo;
+	    /* client list spin unlock */
+	    spin_unlock_bh(&g_hif_sdio_lock_info.clt_list_lock);
+	    *clt_index_p = i;
+	    return HIF_SDIO_ERR_SUCCESS;    /* Add to client list successfully */
+	}
+	/* client list spin unlock */
+	spin_unlock_bh(&g_hif_sdio_lock_info.clt_list_lock);
     }
     return (-HIF_SDIO_ERR_FAIL);    /* Add to client list failed (buffer is full) */
 }
@@ -1431,125 +1431,125 @@ static int hif_sdio_probe(
     HIF_SDIO_INFO_FUNC("start!\n");
     HIF_SDIO_ASSERT(func);
     hif_sdio_match_chipid_by_dev_id(id);
-    //4 <0> display debug information
+    /* 4 <0> display debug information */
     HIF_SDIO_INFO_FUNC("vendor(0x%x) device(0x%x) num(0x%x)\n", func->vendor, func->device, func->num);
     for (i = 0; i < func->card->num_info; i++) {
-        HIF_SDIO_INFO_FUNC("card->info[%d]: %s\n", i, func->card->info[i]);
+	HIF_SDIO_INFO_FUNC("card->info[%d]: %s\n", i, func->card->info[i]);
     }
 
-    //4 <1> Check if this  is supported by us (mtk_sdio_id_tbl)
+    /* 4 <1> Check if this  is supported by us (mtk_sdio_id_tbl) */
     ret = hif_sdio_check_supported_sdio_id(func->vendor, func->device);
     if (ret) {
-        HIF_SDIO_WARN_FUNC("vendor id and device id of sdio_func are not supported in mtk_sdio_id_tbl!\n");
-        goto out;
+	HIF_SDIO_WARN_FUNC("vendor id and device id of sdio_func are not supported in mtk_sdio_id_tbl!\n");
+	goto out;
     }
 
-    //4 <2> Add this struct sdio_func *func to g_hif_sdio_probed_func_list
+    /* 4 <2> Add this struct sdio_func *func to g_hif_sdio_probed_func_list */
     for (i = 0; i < CFG_CLIENT_COUNT; i++) {
-        /* probed spin lock */
-        spin_lock_bh(&g_hif_sdio_lock_info.probed_list_lock);
-        if (g_hif_sdio_probed_func_list[i].func == 0) {
-            hif_sdio_probed_funcp = &g_hif_sdio_probed_func_list[i];
-            hif_sdio_probed_funcp->func = func;
-            hif_sdio_probed_funcp->clt_idx = hif_sdio_find_clt_list_index(func->vendor, func->device, func->num);
-            hif_sdio_probed_funcp->on_by_wmt = MTK_WCN_BOOL_FALSE;
-            /* probed spin unlock */
-            spin_unlock_bh(&g_hif_sdio_lock_info.probed_list_lock);
-            probe_index = i;
-            break;
-        } else {
-            /* probed spin unlock */
-            spin_unlock_bh(&g_hif_sdio_lock_info.probed_list_lock);
-        }
+	/* probed spin lock */
+	spin_lock_bh(&g_hif_sdio_lock_info.probed_list_lock);
+	if (g_hif_sdio_probed_func_list[i].func == 0) {
+	    hif_sdio_probed_funcp = &g_hif_sdio_probed_func_list[i];
+	    hif_sdio_probed_funcp->func = func;
+	    hif_sdio_probed_funcp->clt_idx = hif_sdio_find_clt_list_index(func->vendor, func->device, func->num);
+	    hif_sdio_probed_funcp->on_by_wmt = MTK_WCN_BOOL_FALSE;
+	    /* probed spin unlock */
+	    spin_unlock_bh(&g_hif_sdio_lock_info.probed_list_lock);
+	    probe_index = i;
+	    break;
+	} else {
+	    /* probed spin unlock */
+	    spin_unlock_bh(&g_hif_sdio_lock_info.probed_list_lock);
+	}
     }
     if ((probe_index < 0) || (probe_index >= CFG_CLIENT_COUNT)) {
-        HIF_SDIO_ERR_FUNC("probe function list if full!\n");
-        goto out;
+	HIF_SDIO_ERR_FUNC("probe function list if full!\n");
+	goto out;
     }
 
-    //4 <3> Initialize this function
+    /* 4 <3> Initialize this function */
     if (g_hif_sdio_probed_func_list[probe_index].clt_idx < 0) {
-        for (i = 0; i < CFG_CLIENT_COUNT; i++) {
-            // client list spin lock
-            spin_lock_bh(&g_hif_sdio_lock_info.clt_list_lock);
-            if (g_hif_sdio_clt_drv_list[i].func_info == 0) {
-                // client list spin unlock
-                spin_unlock_bh(&g_hif_sdio_lock_info.clt_list_lock);
-                continue;
-            }
-            HIF_SDIO_INFO_FUNC("manf_id:%x, card_id:%x, func_num:%d\n", g_hif_sdio_clt_drv_list[i].func_info->manf_id, g_hif_sdio_clt_drv_list[i].func_info->card_id, g_hif_sdio_clt_drv_list[i].func_info->func_num);
-            if ((g_hif_sdio_clt_drv_list[i].func_info->manf_id == g_hif_sdio_probed_func_list[probe_index].func->vendor) && \
-                (g_hif_sdio_clt_drv_list[i].func_info->card_id == g_hif_sdio_probed_func_list[probe_index].func->device) && \
-                (g_hif_sdio_clt_drv_list[i].func_info->func_num == g_hif_sdio_probed_func_list[probe_index].func->num)) {
-                g_hif_sdio_probed_func_list[probe_index].clt_idx = i;
-                // client list spin unlock
-                spin_unlock_bh(&g_hif_sdio_lock_info.clt_list_lock);
-                break;
-            } else {
-                // client list spin unlock
-                spin_unlock_bh(&g_hif_sdio_lock_info.clt_list_lock);
-            }
-        }
-        HIF_SDIO_INFO_FUNC("map to g_hif_sdio_clt_drv_list[] done: %d\n", g_hif_sdio_probed_func_list[probe_index].clt_idx);
+	for (i = 0; i < CFG_CLIENT_COUNT; i++) {
+	    /* client list spin lock */
+	    spin_lock_bh(&g_hif_sdio_lock_info.clt_list_lock);
+	    if (g_hif_sdio_clt_drv_list[i].func_info == 0) {
+		/* client list spin unlock */
+		spin_unlock_bh(&g_hif_sdio_lock_info.clt_list_lock);
+		continue;
+	    }
+	    HIF_SDIO_INFO_FUNC("manf_id:%x, card_id:%x, func_num:%d\n", g_hif_sdio_clt_drv_list[i].func_info->manf_id, g_hif_sdio_clt_drv_list[i].func_info->card_id, g_hif_sdio_clt_drv_list[i].func_info->func_num);
+	    if ((g_hif_sdio_clt_drv_list[i].func_info->manf_id == g_hif_sdio_probed_func_list[probe_index].func->vendor) && \
+		(g_hif_sdio_clt_drv_list[i].func_info->card_id == g_hif_sdio_probed_func_list[probe_index].func->device) && \
+		(g_hif_sdio_clt_drv_list[i].func_info->func_num == g_hif_sdio_probed_func_list[probe_index].func->num)) {
+		g_hif_sdio_probed_func_list[probe_index].clt_idx = i;
+		/* client list spin unlock */
+		spin_unlock_bh(&g_hif_sdio_lock_info.clt_list_lock);
+		break;
+	    } else {
+		/* client list spin unlock */
+		spin_unlock_bh(&g_hif_sdio_lock_info.clt_list_lock);
+	    }
+	}
+	HIF_SDIO_INFO_FUNC("map to g_hif_sdio_clt_drv_list[] done: %d\n", g_hif_sdio_probed_func_list[probe_index].clt_idx);
     }
 
-    //4 <3.1> enable this function
+    /* 4 <3.1> enable this function */
     sdio_claim_host(func);
     ret = sdio_enable_func(func);
     sdio_release_host(func);
     if (ret) {
-        HIF_SDIO_ERR_FUNC("sdio_enable_func failed!\n");
-        goto out;
+	HIF_SDIO_ERR_FUNC("sdio_enable_func failed!\n");
+	goto out;
     }
 
-    //4 <3.2> set block size according to the table storing function characteristics
+    /* 4 <3.2> set block size according to the table storing function characteristics */
     if (hif_sdio_probed_funcp == 0) {
-        HIF_SDIO_ERR_FUNC("hif_sdio_probed_funcp is null!\n");
-        goto out;
+	HIF_SDIO_ERR_FUNC("hif_sdio_probed_funcp is null!\n");
+	goto out;
     }
     if (hif_sdio_probed_funcp->clt_idx >= 0) {   /* The clt contex has been registed */
-        sdio_claim_host(func);
-        ret = sdio_set_block_size(func, g_hif_sdio_clt_drv_list[hif_sdio_probed_funcp->clt_idx].func_info->blk_sz);
-        sdio_release_host(func);
+	sdio_claim_host(func);
+	ret = sdio_set_block_size(func, g_hif_sdio_clt_drv_list[hif_sdio_probed_funcp->clt_idx].func_info->blk_sz);
+	sdio_release_host(func);
     } else { /* The clt contex has not been registed */
-        sdio_claim_host(func);
-        ret = sdio_set_block_size(func, HIF_DEFAULT_BLK_SIZE);
-        sdio_release_host(func);
+	sdio_claim_host(func);
+	ret = sdio_set_block_size(func, HIF_DEFAULT_BLK_SIZE);
+	sdio_release_host(func);
     }
     if (ret) {
-        HIF_SDIO_ERR_FUNC("set sdio block size failed!\n");
-        goto out;
+	HIF_SDIO_ERR_FUNC("set sdio block size failed!\n");
+	goto out;
     }
 
     HIF_SDIO_INFO_FUNC("cur_blksize(%d) max(%d), host max blk_size(%d) blk_count(%d)\n",
-                       func->cur_blksize, func->max_blksize,
-                       func->card->host->max_blk_size, func->card->host->max_blk_count
-                      );
+		       func->cur_blksize, func->max_blksize,
+		       func->card->host->max_blk_size, func->card->host->max_blk_count
+		      );
 
-    // TODO:[ChangeFeature][George]: explain why this block is marked
+    /* TODO:[ChangeFeature][George]: explain why this block is marked */
 #if 0
-    //4 <3.3> claim irq for this function
+    /* 4 <3.3> claim irq for this function */
     sdio_claim_host(func);
     ret = sdio_claim_irq(func, hif_sdio_irq);
     sdio_release_host(func);
     printk(KERN_INFO "sdio_claim_irq ret=%d\n", ret);
 
-    //4 <3.4> If this struct sdio_func *func is supported by any driver in
-    //4 g_hif_sdio_clt_drv_list, schedule another task to call client's .hif_clt_probe()
+    /* 4 <3.4> If this struct sdio_func *func is supported by any driver in */
+    /* 4 g_hif_sdio_clt_drv_list, schedule another task to call client's .hif_clt_probe() */
     if ((clt_index = g_hif_sdio_probed_func_list[probe_index].clt_idx) >= 0) {     /* the function has been registered */
-        /* use worker thread to perform the client's .hif_clt_probe() */
-        clt_probe_worker_info = vmalloc(sizeof(MTK_WCN_HIF_SDIO_CLT_PROBE_WORKERINFO));
-        INIT_WORK(&clt_probe_worker_info->probe_work, hif_sdio_clt_probe_worker);
-        clt_probe_worker_info->registinfo_p = &g_hif_sdio_clt_drv_list[clt_index];
-        clt_probe_worker_info->probe_idx = probe_index;
-        schedule_work(&clt_probe_worker_info->probe_work);
+	/* use worker thread to perform the client's .hif_clt_probe() */
+	clt_probe_worker_info = vmalloc(sizeof(MTK_WCN_HIF_SDIO_CLT_PROBE_WORKERINFO));
+	INIT_WORK(&clt_probe_worker_info->probe_work, hif_sdio_clt_probe_worker);
+	clt_probe_worker_info->registinfo_p = &g_hif_sdio_clt_drv_list[clt_index];
+	clt_probe_worker_info->probe_idx = probe_index;
+	schedule_work(&clt_probe_worker_info->probe_work);
     }
 #endif
 
     hif_sdio_dump_probe_list();
 
 out:
-    //4 <last> error handling
+    /* 4 <last> error handling */
     return ret;
 }
 
@@ -1575,43 +1575,43 @@ static void hif_sdio_remove(
     HIF_SDIO_INFO_FUNC("start!\n");
     HIF_SDIO_ASSERT(func);
 
-    //4 <1> check input parameter is valid and has been probed previously
+    /* 4 <1> check input parameter is valid and has been probed previously */
     if (func == NULL) {
-        HIF_SDIO_ERR_FUNC("func null(%p)\n", func);
-        return;
+	HIF_SDIO_ERR_FUNC("func null(%p)\n", func);
+	return;
     }
 
-    //4 <2> if this function has been initialized by any client driver,
-    //4 call client's .hif_clt_remove() call back in THIS context.
+    /* 4 <2> if this function has been initialized by any client driver, */
+    /* 4 call client's .hif_clt_remove() call back in THIS context. */
     probed_list_index = hif_sdio_find_probed_list_index_by_func(func);
     if (probed_list_index < 0) {
-        HIF_SDIO_WARN_FUNC("sdio function pointer is not in g_hif_sdio_probed_func_list!\n");
-        return;
+	HIF_SDIO_WARN_FUNC("sdio function pointer is not in g_hif_sdio_probed_func_list!\n");
+	return;
     }
 #if 0
     registed_list_index = g_hif_sdio_probed_func_list[probed_list_index].clt_idx;
     if (registed_list_index >= 0) {
-        g_hif_sdio_clt_drv_list[registed_list_index].sdio_cltinfo->hif_clt_remove(CLTCTX(func->device, func->num, \
-                func->cur_blksize, probed_list_index));
+	g_hif_sdio_clt_drv_list[registed_list_index].sdio_cltinfo->hif_clt_remove(CLTCTX(func->device, func->num, \
+		func->cur_blksize, probed_list_index));
     }
 #endif
 
-    //4 <3> mark this function as de-initialized and invalidate client's context
+    /* 4 <3> mark this function as de-initialized and invalidate client's context */
     hif_sdio_init_probed_list(probed_list_index);
 
 #if 0
-    //4 <4> release irq for this function
+    /* 4 <4> release irq for this function */
     sdio_claim_host(func);
     sdio_release_irq(func);
     sdio_release_host(func);
 #endif
 
-    //4 <5> disable this function
+    /* 4 <5> disable this function */
     sdio_claim_host(func);
     sdio_disable_func(func);
     sdio_release_host(func);
 
-    //4 <6> mark this function as removed
+    /* 4 <6> mark this function as removed */
 
     HIF_SDIO_INFO_FUNC("sdio func(0x%p) is removed successfully!\n", func);
 }
@@ -1633,31 +1633,31 @@ static void hif_sdio_irq(
 
     HIF_SDIO_DBG_FUNC("start!\n");
 
-    //4 <1> check if func is valid
+    /* 4 <1> check if func is valid */
     HIF_SDIO_ASSERT(func);
 
-    //4 <2> if func has valid corresponding hif_sdio client's context, mark it
-    //4 host-locked, use it to call client's .hif_clt_irq() callback function in
-    //4 THIS context.
+    /* 4 <2> if func has valid corresponding hif_sdio client's context, mark it */
+    /* 4 host-locked, use it to call client's .hif_clt_irq() callback function in */
+    /* 4 THIS context. */
     probed_list_index = hif_sdio_find_probed_list_index_by_func(func);
     if ((probed_list_index < 0) || (probed_list_index >= CFG_CLIENT_COUNT)) {
-        HIF_SDIO_ERR_FUNC("probed_list_index not found!\n");
-        return;
+	HIF_SDIO_ERR_FUNC("probed_list_index not found!\n");
+	return;
     }
 
     registed_list_index = g_hif_sdio_probed_func_list[probed_list_index].clt_idx;
-//    g_hif_sdio_probed_func_list[probed_list_index].interrupted = MTK_WCN_BOOL_TRUE;
+/* g_hif_sdio_probed_func_list[probed_list_index].interrupted = MTK_WCN_BOOL_TRUE; */
     if ((registed_list_index >= 0)
-        && (registed_list_index < CFG_CLIENT_COUNT)) {
-        g_hif_sdio_clt_drv_list[registed_list_index].sdio_cltinfo->hif_clt_irq(CLTCTX(func->device, \
-                func->num, func->cur_blksize, probed_list_index));
+	&& (registed_list_index < CFG_CLIENT_COUNT)) {
+	g_hif_sdio_clt_drv_list[registed_list_index].sdio_cltinfo->hif_clt_irq(CLTCTX(func->device, \
+		func->num, func->cur_blksize, probed_list_index));
     } else {
-        //4 <3> if func has no VALID hif_sdio client's context, release irq for this
-        //4 func and mark it in g_hif_sdio_probed_func_list (remember: donnot claim host in irq contex).
-        HIF_SDIO_WARN_FUNC("release irq (func:0x%p) v(0x%x) d(0x%x) n(0x%x)\n",
-                           func, func->vendor, func->device, func->num);
-        mtk_wcn_sdio_irq_flag_set(0);
-        sdio_release_irq(func);
+	/* 4 <3> if func has no VALID hif_sdio client's context, release irq for this */
+	/* 4 func and mark it in g_hif_sdio_probed_func_list (remember: donnot claim host in irq contex). */
+	HIF_SDIO_WARN_FUNC("release irq (func:0x%p) v(0x%x) d(0x%x) n(0x%x)\n",
+			   func, func->vendor, func->device, func->num);
+	mtk_wcn_sdio_irq_flag_set(0);
+	sdio_release_irq(func);
     }
 
     return;
@@ -1677,7 +1677,7 @@ static int __init hif_sdio_init(void)
 
     HIF_SDIO_INFO_FUNC("start!\n");
 
-    //4 <1> init all private variables
+    /* 4 <1> init all private variables */
     /* init reference count to 0 */
     gRefCount = 0;
 
@@ -1687,17 +1687,17 @@ static int __init hif_sdio_init(void)
 
     /* init probed function list and g_hif_sdio_clt_drv_list */
     for (i = 0; i < CFG_CLIENT_COUNT; i++) {
-        hif_sdio_init_probed_list(i);
-        hif_sdio_init_clt_list(i);
+	hif_sdio_init_probed_list(i);
+	hif_sdio_init_clt_list(i);
     }
 
-    //4 <2> register to mmc driver
+    /* 4 <2> register to mmc driver */
     ret = sdio_register_driver(&mtk_sdio_client_drv);
     HIF_SDIO_INFO_FUNC("sdio_register_driver() ret=%d\n", ret);
 
-    //4 <3> create thread for query chip id and device node for launcher to access
+    /* 4 <3> create thread for query chip id and device node for launcher to access */
     if (0 == hifsdiod_start()) {
-        hif_sdio_create_dev_node();
+	hif_sdio_create_dev_node();
     }
     HIF_SDIO_DBG_FUNC("end!\n");
     return ret;
@@ -1717,18 +1717,18 @@ static VOID __exit hif_sdio_exit(void)
     hif_sdio_remove_dev_node();
 
     hifsdiod_stop();
-    //4 <0> if client driver is not removed yet, we shall NOT be called...
+    /* 4 <0> if client driver is not removed yet, we shall NOT be called... */
 
-    //4 <1> check reference count
+    /* 4 <1> check reference count */
     if (gRefCount != 0) {
-        HIF_SDIO_WARN_FUNC("gRefCount=%d !!!\n", gRefCount);
+	HIF_SDIO_WARN_FUNC("gRefCount=%d !!!\n", gRefCount);
     }
 
-    //4 <2> check if there is any hif_sdio-registered clients. There should be
-    //4 no registered client...
+    /* 4 <2> check if there is any hif_sdio-registered clients. There should be */
+    /* 4 no registered client... */
 
-    //4 <3> Reregister with mmc driver. Our remove handler hif_sdio_remove()
-    //4 will be called later by mmc_core. Clean up driver resources there.
+    /* 4 <3> Reregister with mmc driver. Our remove handler hif_sdio_remove() */
+    /* 4 will be called later by mmc_core. Clean up driver resources there. */
     sdio_unregister_driver(&mtk_sdio_client_drv);
 
     HIF_SDIO_DBG_FUNC("end!\n");
@@ -1758,93 +1758,93 @@ INT32 hif_sdio_stp_on(
 
     HIF_SDIO_INFO_FUNC("start!\n");
 
-    //4 <1> If stp client drv has not been probed, return error code
+    /* 4 <1> If stp client drv has not been probed, return error code */
     /* MT6620 */
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x020B, 1)) >= 0) {
-        goto stp_on_exist;
+	goto stp_on_exist;
     }
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x020C, 1)) >= 0) {
-        goto stp_on_exist;
+	goto stp_on_exist;
     }
 
     /* MT6628 */
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x6628, 2)) >= 0) {
-        goto stp_on_exist;
+	goto stp_on_exist;
     }
     /* MT6619 */
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x6619, 1)) >= 0) {
-        goto stp_on_exist;
+	goto stp_on_exist;
     }
 
     /* MT6618 */
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x018B, 1)) >= 0) {
-        goto stp_on_exist;
+	goto stp_on_exist;
     }
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x018C, 1)) >= 0) {
-        goto stp_on_exist;
+	goto stp_on_exist;
     } else {
-        //4 <2> If stp client drv has not been probed, return error code
-        /* client func has not been probed */
-        HIF_SDIO_INFO_FUNC("no supported func probed \n");
-        return HIF_SDIO_ERR_NOT_PROBED;
+	/* 4 <2> If stp client drv has not been probed, return error code */
+	/* client func has not been probed */
+	HIF_SDIO_INFO_FUNC("no supported func probed\n");
+	return HIF_SDIO_ERR_NOT_PROBED;
     }
 
 stp_on_exist:
-    //4 <3> If stp client drv has been on by wmt, return error code
+    /* 4 <3> If stp client drv has been on by wmt, return error code */
     if (MTK_WCN_BOOL_FALSE != g_hif_sdio_probed_func_list[probe_index].on_by_wmt) {
-        HIF_SDIO_INFO_FUNC("already on...\n");
-        return HIF_SDIO_ERR_ALRDY_ON;
+	HIF_SDIO_INFO_FUNC("already on...\n");
+	return HIF_SDIO_ERR_ALRDY_ON;
     } else {
-        g_hif_sdio_probed_func_list[probe_index].on_by_wmt = MTK_WCN_BOOL_TRUE;
+	g_hif_sdio_probed_func_list[probe_index].on_by_wmt = MTK_WCN_BOOL_TRUE;
     }
 
     if ((clt_index = g_hif_sdio_probed_func_list[probe_index].clt_idx) >= 0) {     /* the function has been registered */
-        //4 <4> claim irq for this function
-        func = g_hif_sdio_probed_func_list[probe_index].func;
-        sdio_claim_host(func);
-        ret = sdio_claim_irq(func, hif_sdio_irq);
-        mtk_wcn_sdio_irq_flag_set(1);
-        sdio_release_host(func);
-        if (ret) {
-            HIF_SDIO_WARN_FUNC("sdio_claim_irq() for stp fail(%d)\n", ret);
-            return ret;
-        }
-        HIF_SDIO_INFO_FUNC("sdio_claim_irq() for stp ok\n");
+	/* 4 <4> claim irq for this function */
+	func = g_hif_sdio_probed_func_list[probe_index].func;
+	sdio_claim_host(func);
+	ret = sdio_claim_irq(func, hif_sdio_irq);
+	mtk_wcn_sdio_irq_flag_set(1);
+	sdio_release_host(func);
+	if (ret) {
+	    HIF_SDIO_WARN_FUNC("sdio_claim_irq() for stp fail(%d)\n", ret);
+	    return ret;
+	}
+	HIF_SDIO_INFO_FUNC("sdio_claim_irq() for stp ok\n");
 
-        //4 <5> If this struct sdio_func *func is supported by any driver in
-        //4 g_hif_sdio_clt_drv_list, schedule another task to call client's .hif_clt_probe()
-        // TODO: [FixMe][George] WHY probe worker is removed???
+	/* 4 <5> If this struct sdio_func *func is supported by any driver in */
+	/* 4 g_hif_sdio_clt_drv_list, schedule another task to call client's .hif_clt_probe() */
+	/* TODO: [FixMe][George] WHY probe worker is removed??? */
 #if 1
-        /* Call client's .hif_clt_probe() */
-        ret = hif_sdio_clt_probe_func(&g_hif_sdio_clt_drv_list[clt_index], probe_index);
-        if (ret) {
-            HIF_SDIO_WARN_FUNC("clt_probe_func() for stp fail(%d) release irq\n", ret);
-            sdio_claim_host(func);
-            mtk_wcn_sdio_irq_flag_set(0);
-            ret2 = sdio_release_irq(func);
-            sdio_release_host(func);
-            if (ret2) {
-                HIF_SDIO_WARN_FUNC("sdio_release_irq() for stp fail(%d)\n", ret2);
-            }
+	/* Call client's .hif_clt_probe() */
+	ret = hif_sdio_clt_probe_func(&g_hif_sdio_clt_drv_list[clt_index], probe_index);
+	if (ret) {
+	    HIF_SDIO_WARN_FUNC("clt_probe_func() for stp fail(%d) release irq\n", ret);
+	    sdio_claim_host(func);
+	    mtk_wcn_sdio_irq_flag_set(0);
+	    ret2 = sdio_release_irq(func);
+	    sdio_release_host(func);
+	    if (ret2) {
+		HIF_SDIO_WARN_FUNC("sdio_release_irq() for stp fail(%d)\n", ret2);
+	    }
 
-            g_hif_sdio_probed_func_list[probe_index].on_by_wmt = MTK_WCN_BOOL_FALSE;
-            return ret;
-        }
-        HIF_SDIO_INFO_FUNC("ok!\n");
+	    g_hif_sdio_probed_func_list[probe_index].on_by_wmt = MTK_WCN_BOOL_FALSE;
+	    return ret;
+	}
+	HIF_SDIO_INFO_FUNC("ok!\n");
 
-        return 0;
+	return 0;
 #else
-        /* use worker thread to perform the client's .hif_clt_probe() */
-        clt_probe_worker_info = vmalloc(sizeof(MTK_WCN_HIF_SDIO_CLT_PROBE_WORKERINFO));
-        INIT_WORK(&clt_probe_worker_info->probe_work, hif_sdio_clt_probe_worker);
-        clt_probe_worker_info->registinfo_p = &g_hif_sdio_clt_drv_list[clt_index];
-        clt_probe_worker_info->probe_idx = probe_index;
-        schedule_work(&clt_probe_worker_info->probe_work);
+	/* use worker thread to perform the client's .hif_clt_probe() */
+	clt_probe_worker_info = vmalloc(sizeof(MTK_WCN_HIF_SDIO_CLT_PROBE_WORKERINFO));
+	INIT_WORK(&clt_probe_worker_info->probe_work, hif_sdio_clt_probe_worker);
+	clt_probe_worker_info->registinfo_p = &g_hif_sdio_clt_drv_list[clt_index];
+	clt_probe_worker_info->probe_idx = probe_index;
+	schedule_work(&clt_probe_worker_info->probe_work);
 #endif
     } else {
-        // TODO: [FixMe][George] check if clt_index is cleared in client's unregister function
-        HIF_SDIO_WARN_FUNC("probed but not registered yet (%d)\n", ret);
-        return HIF_SDIO_ERR_CLT_NOT_REG;
+	/* TODO: [FixMe][George] check if clt_index is cleared in client's unregister function */
+	HIF_SDIO_WARN_FUNC("probed but not registered yet (%d)\n", ret);
+	return HIF_SDIO_ERR_CLT_NOT_REG;
     }
 }
 
@@ -1868,86 +1868,86 @@ INT32 hif_sdio_stp_off(
 
     HIF_SDIO_INFO_FUNC("start!\n");
 
-    //4 <1> If stp client drv has not been probed, return error code
+    /* 4 <1> If stp client drv has not been probed, return error code */
     /* MT6620 */
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x020B, 1)) >= 0) {
-        goto stp_off_exist;
+	goto stp_off_exist;
     }
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x020C, 1)) >= 0) {
-        goto stp_off_exist;
+	goto stp_off_exist;
     }
 
     /* MT6628 */
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x6628, 2)) >= 0) {
-        goto stp_off_exist;
+	goto stp_off_exist;
     }
 
     /* MT6619 */
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x6619, 1)) >= 0) {
-        goto stp_off_exist;
+	goto stp_off_exist;
     }
 
     /* MT6618 */
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x018B, 1)) >= 0) {
-        goto stp_off_exist;
+	goto stp_off_exist;
     }
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x018C, 1)) >= 0) {
-        goto stp_off_exist;
+	goto stp_off_exist;
     } else {
-        //4 <2> If stp client drv has not been probed, return error code
-        /* client func has not been probed */
-        return HIF_SDIO_ERR_NOT_PROBED;
+	/* 4 <2> If stp client drv has not been probed, return error code */
+	/* client func has not been probed */
+	return HIF_SDIO_ERR_NOT_PROBED;
     }
 
 stp_off_exist:
-    //4 <3> If stp client drv has been off by wmt, return error code
+    /* 4 <3> If stp client drv has been off by wmt, return error code */
     if (MTK_WCN_BOOL_FALSE == g_hif_sdio_probed_func_list[probe_index].on_by_wmt) {
-        HIF_SDIO_WARN_FUNC("already off...\n");
-        return HIF_SDIO_ERR_ALRDY_OFF;
+	HIF_SDIO_WARN_FUNC("already off...\n");
+	return HIF_SDIO_ERR_ALRDY_OFF;
     } else {
-        g_hif_sdio_probed_func_list[probe_index].on_by_wmt = MTK_WCN_BOOL_FALSE;
+	g_hif_sdio_probed_func_list[probe_index].on_by_wmt = MTK_WCN_BOOL_FALSE;
     }
 
-#if 0 // TODO: [FixMe][George] moved below as done in stp_on.
-    //4 <4> release irq for this function
+#if 0 /* TODO: [FixMe][George] moved below as done in stp_on. */
+    /* 4 <4> release irq for this function */
     func = g_hif_sdio_probed_func_list[probe_index].func;
     sdio_claim_host(func);
     ret = sdio_release_irq(func);
     sdio_release_host(func);
     if (ret) {
-        printk(KERN_WARNING DRV_NAME "sdio_release_irq for stp fail(%d)\n", ret);
+	printk(KERN_WARNING DRV_NAME "sdio_release_irq for stp fail(%d)\n", ret);
     } else {
-        printk(KERN_INFO DRV_NAME "sdio_release_irq for stp ok\n");
+	printk(KERN_INFO DRV_NAME "sdio_release_irq for stp ok\n");
     }
 #endif
 
     if ((clt_index = g_hif_sdio_probed_func_list[probe_index].clt_idx) >= 0) {     /* the function has been registered */
-        func = g_hif_sdio_probed_func_list[probe_index].func;
+	func = g_hif_sdio_probed_func_list[probe_index].func;
 
-        //4 <4> Callback to client driver's remove() func
-        ret = g_hif_sdio_clt_drv_list[clt_index].sdio_cltinfo->hif_clt_remove(
-                  CLTCTX(func->device, func->num, func->cur_blksize, probe_index));
-        if (ret) {
-            HIF_SDIO_WARN_FUNC("clt_remove for stp fail(%d)\n", ret);
-        } else {
-            HIF_SDIO_INFO_FUNC("ok!\n");
-        }
+	/* 4 <4> Callback to client driver's remove() func */
+	ret = g_hif_sdio_clt_drv_list[clt_index].sdio_cltinfo->hif_clt_remove(
+		  CLTCTX(func->device, func->num, func->cur_blksize, probe_index));
+	if (ret) {
+	    HIF_SDIO_WARN_FUNC("clt_remove for stp fail(%d)\n", ret);
+	} else {
+	    HIF_SDIO_INFO_FUNC("ok!\n");
+	}
 
-        //4 <5> release irq for this function
-        sdio_claim_host(func);
-        mtk_wcn_sdio_irq_flag_set(0);
-        ret2 = sdio_release_irq(func);
-        sdio_release_host(func);
-        if (ret2) {
-            HIF_SDIO_WARN_FUNC("sdio_release_irq() for stp fail(%d)\n", ret2);
-        } else {
-            HIF_SDIO_INFO_FUNC("sdio_release_irq() for stp ok\n");
-        }
-        return (ret + ret2);
+	/* 4 <5> release irq for this function */
+	sdio_claim_host(func);
+	mtk_wcn_sdio_irq_flag_set(0);
+	ret2 = sdio_release_irq(func);
+	sdio_release_host(func);
+	if (ret2) {
+	    HIF_SDIO_WARN_FUNC("sdio_release_irq() for stp fail(%d)\n", ret2);
+	} else {
+	    HIF_SDIO_INFO_FUNC("sdio_release_irq() for stp ok\n");
+	}
+	return (ret + ret2);
     } else {
-        // TODO: [FixMe][George] check if clt_index is cleared in client's unregister function
-        HIF_SDIO_WARN_FUNC("probed but not registered yet (%d)\n", ret);
-        return HIF_SDIO_ERR_CLT_NOT_REG;
+	/* TODO: [FixMe][George] check if clt_index is cleared in client's unregister function */
+	HIF_SDIO_WARN_FUNC("probed but not registered yet (%d)\n", ret);
+	return HIF_SDIO_ERR_CLT_NOT_REG;
     }
 }
 
@@ -1973,85 +1973,85 @@ hif_sdio_wifi_on(void)
 
     HIF_SDIO_INFO_FUNC("start!\n");
 
-    //4 <1> If wifi client drv has not been probed, return error code
+    /* 4 <1> If wifi client drv has not been probed, return error code */
     /* MT6620 */
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x020A, 1)) >= 0) {
-        goto wifi_on_exist;
+	goto wifi_on_exist;
     }
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x020C, 2)) >= 0) {
-        goto wifi_on_exist;
+	goto wifi_on_exist;
     }
     /* MT6628 */
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x6628, 1)) >= 0) {
-        goto wifi_on_exist;
+	goto wifi_on_exist;
     }
     /* MT6618 */
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x018A, 1)) >= 0) {
-        goto wifi_on_exist;
+	goto wifi_on_exist;
     }
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x018C, 2)) >= 0) {
-        goto wifi_on_exist;
+	goto wifi_on_exist;
     } else {
-        //4 <2> If wifi client drv has not been probed, return error code
-        /* client func has not been probed */
-        return HIF_SDIO_ERR_NOT_PROBED;
+	/* 4 <2> If wifi client drv has not been probed, return error code */
+	/* client func has not been probed */
+	return HIF_SDIO_ERR_NOT_PROBED;
     }
 
 wifi_on_exist:
-    //4 <3> If wifi client drv has been on by wmt, return error code
+    /* 4 <3> If wifi client drv has been on by wmt, return error code */
     if (g_hif_sdio_probed_func_list[probe_index].on_by_wmt) {
-        HIF_SDIO_INFO_FUNC("probe_index (%d), already on...\n", probe_index);
-        return HIF_SDIO_ERR_ALRDY_ON;
+	HIF_SDIO_INFO_FUNC("probe_index (%d), already on...\n", probe_index);
+	return HIF_SDIO_ERR_ALRDY_ON;
     }
 
     if ((clt_index = g_hif_sdio_probed_func_list[probe_index].clt_idx) >= 0) {     /* the function has been registered */
-        //4 <4> claim irq for this function
-        func = g_hif_sdio_probed_func_list[probe_index].func;
-        sdio_claim_host(func);
-        ret = sdio_claim_irq(func, hif_sdio_irq);
-        mtk_wcn_sdio_irq_flag_set(1);
-        sdio_release_host(func);
-        if (ret) {
-            HIF_SDIO_WARN_FUNC("sdio_claim_irq() for wifi fail(%d)\n", ret);
-            return ret;
-        }
-        HIF_SDIO_INFO_FUNC("sdio_claim_irq() for wifi ok\n");
+	/* 4 <4> claim irq for this function */
+	func = g_hif_sdio_probed_func_list[probe_index].func;
+	sdio_claim_host(func);
+	ret = sdio_claim_irq(func, hif_sdio_irq);
+	mtk_wcn_sdio_irq_flag_set(1);
+	sdio_release_host(func);
+	if (ret) {
+	    HIF_SDIO_WARN_FUNC("sdio_claim_irq() for wifi fail(%d)\n", ret);
+	    return ret;
+	}
+	HIF_SDIO_INFO_FUNC("sdio_claim_irq() for wifi ok\n");
 
-        //4 <5> If this struct sdio_func *func is supported by any driver in
-        //4 g_hif_sdio_clt_drv_list, schedule another task to call client's .hif_clt_probe()
-        // TODO: [FixMe][George] WHY probe worker is removed???
+	/* 4 <5> If this struct sdio_func *func is supported by any driver in */
+	/* 4 g_hif_sdio_clt_drv_list, schedule another task to call client's .hif_clt_probe() */
+	/* TODO: [FixMe][George] WHY probe worker is removed??? */
 #if 1
-        /* Call client's .hif_clt_probe() */
-        ret = hif_sdio_clt_probe_func(&g_hif_sdio_clt_drv_list[clt_index], probe_index);
-        if (ret) {
-            HIF_SDIO_WARN_FUNC("clt_probe_func() for wifi fail(%d) release irq\n", ret);
-            sdio_claim_host(func);
-            mtk_wcn_sdio_irq_flag_set(0);
-            ret2 = sdio_release_irq(func);
-            sdio_release_host(func);
-            if (ret2) {
-                HIF_SDIO_WARN_FUNC("sdio_release_irq() for wifi fail(%d)\n", ret2);
-            }
+	/* Call client's .hif_clt_probe() */
+	ret = hif_sdio_clt_probe_func(&g_hif_sdio_clt_drv_list[clt_index], probe_index);
+	if (ret) {
+	    HIF_SDIO_WARN_FUNC("clt_probe_func() for wifi fail(%d) release irq\n", ret);
+	    sdio_claim_host(func);
+	    mtk_wcn_sdio_irq_flag_set(0);
+	    ret2 = sdio_release_irq(func);
+	    sdio_release_host(func);
+	    if (ret2) {
+		HIF_SDIO_WARN_FUNC("sdio_release_irq() for wifi fail(%d)\n", ret2);
+	    }
 
-            g_hif_sdio_probed_func_list[probe_index].on_by_wmt = MTK_WCN_BOOL_FALSE;
-            return ret;
-        } else {
-            g_hif_sdio_probed_func_list[probe_index].on_by_wmt = MTK_WCN_BOOL_TRUE;
-        }
-        HIF_SDIO_INFO_FUNC("ok!\n");
-        return 0;
+	    g_hif_sdio_probed_func_list[probe_index].on_by_wmt = MTK_WCN_BOOL_FALSE;
+	    return ret;
+	} else {
+	    g_hif_sdio_probed_func_list[probe_index].on_by_wmt = MTK_WCN_BOOL_TRUE;
+	}
+	HIF_SDIO_INFO_FUNC("ok!\n");
+	return 0;
 #else
-        /* use worker thread to perform the client's .hif_clt_probe() */
-        clt_probe_worker_info = vmalloc(sizeof(MTK_WCN_HIF_SDIO_CLT_PROBE_WORKERINFO));
-        INIT_WORK(&clt_probe_worker_info->probe_work, hif_sdio_clt_probe_worker);
-        clt_probe_worker_info->registinfo_p = &g_hif_sdio_clt_drv_list[clt_index];
-        clt_probe_worker_info->probe_idx = probe_index;
-        schedule_work(&clt_probe_worker_info->probe_work);
+	/* use worker thread to perform the client's .hif_clt_probe() */
+	clt_probe_worker_info = vmalloc(sizeof(MTK_WCN_HIF_SDIO_CLT_PROBE_WORKERINFO));
+	INIT_WORK(&clt_probe_worker_info->probe_work, hif_sdio_clt_probe_worker);
+	clt_probe_worker_info->registinfo_p = &g_hif_sdio_clt_drv_list[clt_index];
+	clt_probe_worker_info->probe_idx = probe_index;
+	schedule_work(&clt_probe_worker_info->probe_work);
 #endif
     } else {
-        // TODO: [FixMe][George] check if clt_index is cleared in client's unregister function
-        HIF_SDIO_WARN_FUNC("probed but not registered yet (%d)\n", ret);
-        return HIF_SDIO_ERR_CLT_NOT_REG;
+	/* TODO: [FixMe][George] check if clt_index is cleared in client's unregister function */
+	HIF_SDIO_WARN_FUNC("probed but not registered yet (%d)\n", ret);
+	return HIF_SDIO_ERR_CLT_NOT_REG;
     }
 }
 
@@ -2075,81 +2075,81 @@ INT32 hif_sdio_wifi_off(
 
     HIF_SDIO_INFO_FUNC("start!\n");
 
-    //4 <1> If wifi client drv has not been probed, return error code
+    /* 4 <1> If wifi client drv has not been probed, return error code */
     /* MT6620 */
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x020A, 1)) >= 0) {
-        goto wifi_off_exist;
+	goto wifi_off_exist;
     }
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x020C, 2)) >= 0) {
-        goto wifi_off_exist;
+	goto wifi_off_exist;
     }
 
     /* MT6628 */
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x6628, 1)) >= 0) {
-        goto wifi_off_exist;
+	goto wifi_off_exist;
     }
 
     /* MT6618 */
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x018A, 1)) >= 0) {
-        goto wifi_off_exist;
+	goto wifi_off_exist;
     }
     if ((probe_index = hif_sdio_find_probed_list_index_by_id_func(0x037A, 0x018C, 2)) >= 0) {
-        goto wifi_off_exist;
+	goto wifi_off_exist;
     } else {
-        //4 <2> If wifi client drv has not been probed, return error code
-        /* client func has not been probed */
-        return HIF_SDIO_ERR_NOT_PROBED;
+	/* 4 <2> If wifi client drv has not been probed, return error code */
+	/* client func has not been probed */
+	return HIF_SDIO_ERR_NOT_PROBED;
     }
 
 wifi_off_exist:
-    //4 <3> If wifi client drv has been off by wmt, return error code
+    /* 4 <3> If wifi client drv has been off by wmt, return error code */
     if (MTK_WCN_BOOL_FALSE == g_hif_sdio_probed_func_list[probe_index].on_by_wmt) {
-        HIF_SDIO_WARN_FUNC("already off...\n");
-        return HIF_SDIO_ERR_ALRDY_OFF;
+	HIF_SDIO_WARN_FUNC("already off...\n");
+	return HIF_SDIO_ERR_ALRDY_OFF;
     } else {
-        g_hif_sdio_probed_func_list[probe_index].on_by_wmt = MTK_WCN_BOOL_FALSE;
+	g_hif_sdio_probed_func_list[probe_index].on_by_wmt = MTK_WCN_BOOL_FALSE;
     }
 
-#if 0 // TODO: [FixMe][George] moved below as done in wifi_on.
-    //4 <4> release irq for this function
+#if 0 /* TODO: [FixMe][George] moved below as done in wifi_on. */
+    /* 4 <4> release irq for this function */
     func = g_hif_sdio_probed_func_list[probe_index].func;
     sdio_claim_host(func);
     ret = sdio_release_irq(func);
     sdio_release_host(func);
     if (ret) {
-        printk(KERN_WARNING DRV_NAME "sdio_release_irq for wifi fail(%d)\n", ret);
+	printk(KERN_WARNING DRV_NAME "sdio_release_irq for wifi fail(%d)\n", ret);
     } else {
-        printk(KERN_INFO DRV_NAME "sdio_release_irq for wifi ok\n");
+	printk(KERN_INFO DRV_NAME "sdio_release_irq for wifi ok\n");
     }
 #endif
 
     if ((clt_index = g_hif_sdio_probed_func_list[probe_index].clt_idx) >= 0) {     /* the function has been registered */
-        func = g_hif_sdio_probed_func_list[probe_index].func;
+	func = g_hif_sdio_probed_func_list[probe_index].func;
 
-        //4 <4> Callback to client driver's remove() func
-        ret = g_hif_sdio_clt_drv_list[clt_index].sdio_cltinfo->hif_clt_remove(
-                  CLTCTX(func->device, func->num, func->cur_blksize, probe_index));
-        if (ret) {
-            HIF_SDIO_WARN_FUNC("clt_remove for wifi fail(%d)\n", ret);
-        } else {
-            HIF_SDIO_INFO_FUNC("ok!\n");
-        }
+	/* 4 <4> Callback to client driver's remove() func */
+	ret = g_hif_sdio_clt_drv_list[clt_index].sdio_cltinfo->hif_clt_remove(
+		  CLTCTX(func->device, func->num, func->cur_blksize, probe_index));
+	if (ret) {
+	    HIF_SDIO_WARN_FUNC("clt_remove for wifi fail(%d)\n", ret);
+	} else {
+	    HIF_SDIO_INFO_FUNC("ok!\n");
+	}
 
-        //4 <5> release irq for this function
-        sdio_claim_host(func);
-        mtk_wcn_sdio_irq_flag_set(0);
-        ret2 = sdio_release_irq(func);
-        sdio_release_host(func);
-        if (ret2) {
-            HIF_SDIO_WARN_FUNC("sdio_release_irq() for wifi fail(%d)\n", ret2);
-        } else {
-            HIF_SDIO_INFO_FUNC("sdio_release_irq() for wifi ok\n");
-        }
-        return (ret + ret2);
+	/* 4 <5> release irq for this function */
+	sdio_claim_host(func);
+	mtk_wcn_sdio_irq_flag_set(0);
+	ret2 = sdio_release_irq(func);
+	sdio_release_host(func);
+	if (ret2) {
+	    HIF_SDIO_WARN_FUNC("sdio_release_irq() for wifi fail(%d)\n", ret2);
+	} else {
+	    HIF_SDIO_INFO_FUNC("sdio_release_irq() for wifi ok\n");
+	}
+	return (ret + ret2);
     } else {
-        // TODO: [FixMe][George] check if clt_index is cleared in client's unregister function
-        HIF_SDIO_WARN_FUNC("probed but not registered yet (%d)\n", ret);
-        return HIF_SDIO_ERR_CLT_NOT_REG;
+	/* TODO: [FixMe][George] check if clt_index is cleared in client's unregister function */
+	HIF_SDIO_WARN_FUNC("probed but not registered yet (%d)\n", ret);
+	return HIF_SDIO_ERR_CLT_NOT_REG;
     }
 }
 
@@ -2176,25 +2176,24 @@ INT32 mtk_wcn_hif_sdio_bus_set_power(
     func = g_hif_sdio_probed_func_list[probe_index].func;
 
     if (!func) {
-        HIF_SDIO_WARN_FUNC("Cannot find sdio_func !!!\n");
-        return -1;
+	HIF_SDIO_WARN_FUNC("Cannot find sdio_func !!!\n");
+	return -1;
     }
 
     if (1 == pwrState) {
-        sdio_claim_host(func);
-        mmc_power_up_ext(func->card->host);
-        sdio_release_host(func);
-        HIF_SDIO_WARN_FUNC("SDIO BUS Power UP\n");
+	sdio_claim_host(func);
+	mmc_power_up_ext(func->card->host);
+	sdio_release_host(func);
+	HIF_SDIO_WARN_FUNC("SDIO BUS Power UP\n");
     } else {
-        sdio_claim_host(func);
-        mmc_power_off_ext(func->card->host);
-        sdio_release_host(func);
-        HIF_SDIO_WARN_FUNC("SDIO BUS Power OFF\n");
+	sdio_claim_host(func);
+	mmc_power_off_ext(func->card->host);
+	sdio_release_host(func);
+	HIF_SDIO_WARN_FUNC("SDIO BUS Power OFF\n");
     }
 
     return 0;
 }
-
 module_init(hif_sdio_init);
 module_exit(hif_sdio_exit);
 
@@ -2212,4 +2211,3 @@ EXPORT_SYMBOL(mtk_wcn_hif_sdio_get_drvdata);
 EXPORT_SYMBOL(mtk_wcn_hif_sdio_wmt_control);
 EXPORT_SYMBOL(mtk_wcn_hif_sdio_bus_set_power);
 EXPORT_SYMBOL(mtk_wcn_hif_sdio_get_dev);
-

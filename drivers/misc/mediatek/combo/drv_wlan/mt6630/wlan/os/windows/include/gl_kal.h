@@ -530,7 +530,7 @@ typedef UINT_32 KAL_WAKE_LOCK_T, *P_KAL_WAKE_LOCK_T;
 
 #define KAL_KILL_THREAD(pvEvent, pKThread) \
 	NdisSetEvent(pvEvent); \
-        DBGLOG(INIT, TRACE, ("Notify TxServiceThread to terminate it\n")); \
+	DBGLOG(INIT, TRACE, ("Notify TxServiceThread to terminate it\n")); \
 	if (pKThread) { \
 	    KeWaitForSingleObject(pKThread, \
 				Executive, \

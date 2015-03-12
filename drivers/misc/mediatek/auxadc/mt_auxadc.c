@@ -44,7 +44,6 @@
 #include <mach/mt_clkmgr.h>
 #include <mach/sync_write.h>
 #include <cust_adc.h>		/* generate by DCT Tool */
-#include <mach/mt_auxadc_ssb_cust.h>
 
 #include "mt_auxadc.h"
 #include <mt_auxadc_sw.h>
@@ -83,12 +82,12 @@ static DEFINE_MUTEX(auxadc_mutex);
 static dev_t auxadc_cali_devno;
 static int auxadc_cali_major;
 static struct cdev *auxadc_cali_cdev;
-static struct class *auxadc_cali_class = NULL;
+static struct class *auxadc_cali_class;
 
-static struct task_struct *thread = NULL;
-static int g_start_debug_thread =0;
+static struct task_struct *thread;
+static int g_start_debug_thread;
 
-static int g_adc_init_flag =0;
+static int g_adc_init_flag;
 
 /* ///////////////////////////////////////////////////////////////////////////////////////// */
 /* // fop Common API */
@@ -132,8 +131,8 @@ int IMM_GetOneChannelValue_Cali(int Channel, int *voltage)
 static long auxadc_cali_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	int i = 0, ret = 0;
-    long *user_data_addr;
-    long *nvram_data_addr;
+	int *user_data_addr;
+	int *nvram_data_addr;
 
 	mutex_lock(&auxadc_mutex);
 
@@ -143,7 +142,7 @@ static long auxadc_cali_unlocked_ioctl(struct file *file, unsigned int cmd, unsi
 		break;
 
 	case SET_ADC_CALI_Slop:
-            nvram_data_addr = (long *)arg;
+		nvram_data_addr = (int *)arg;
 		ret = copy_from_user(auxadc_cali_slop, nvram_data_addr, 36);
 		g_AUXADC_Cali = KAL_FALSE;
 		/* Protection */
@@ -167,7 +166,7 @@ static long auxadc_cali_unlocked_ioctl(struct file *file, unsigned int cmd, unsi
 		break;
 
 	case SET_ADC_CALI_Cal:
-            nvram_data_addr = (long *)arg;
+		nvram_data_addr = (int *)arg;
 		ret = copy_from_user(auxadc_cali_cal, nvram_data_addr, 4);
 		g_AUXADC_Cali = KAL_TRUE;	/* enable calibration after setting AUXADC_CALI_Cal */
 		if (auxadc_cali_cal[0] == 1) {
@@ -182,7 +181,7 @@ static long auxadc_cali_unlocked_ioctl(struct file *file, unsigned int cmd, unsi
 
 	case ADC_CHANNEL_READ:
 		g_AUXADC_Cali = KAL_FALSE;	/* 20100508 Infinity */
-            user_data_addr = (long *)arg;
+		user_data_addr = (int *)arg;
 		ret = copy_from_user(auxadc_in_data, user_data_addr, 8);	/* 2*int = 2*4 */
 
 		printk("this api is removed !!\n");
@@ -1107,37 +1106,34 @@ static int adc_channel_info_init(void)
 {
 	unsigned int used_channel_counter = 0;
 	used_channel_counter = 0;
-
-    printk("%s: TEMPERATURE_CHANNEL(%d), ADC_FDD_RF_PARAMS_DYNAMIC_CUSTOM_CH_CHANNEL(%d), HF_MIC_CHANNEL(%d)\n"
-        ,__func__
-        ,auxadc_cust_ssb_data.TEMPERATURE_CHANNEL
-        ,auxadc_cust_ssb_data.ADC_FDD_RF_PARAMS_DYNAMIC_CUSTOM_CH_CHANNEL
-        ,auxadc_cust_ssb_data.HF_MIC_CHANNEL);
-
-    if(auxadc_cust_ssb_data.TEMPERATURE_CHANNEL != -1){
+#ifdef AUXADC_TEMPERATURE_CHANNEL
 	/* ap_domain &= ~(1<<CUST_ADC_MD_CHANNEL); */
 	sprintf(g_adc_info[used_channel_counter].channel_name, "ADC_RFTMP");
-    g_adc_info[used_channel_counter].channel_number = auxadc_cust_ssb_data.TEMPERATURE_CHANNEL;
-    printk("[ADC] channel_name = %s channel num=%d\n", g_adc_info[used_channel_counter].channel_name
-        ,g_adc_info[used_channel_counter].channel_number);
+	g_adc_info[used_channel_counter].channel_number = AUXADC_TEMPERATURE_CHANNEL;
+	printk("[ADC] channel_name = %s channel num=%d\n",
+	       g_adc_info[used_channel_counter].channel_name,
+	       g_adc_info[used_channel_counter].channel_number);
 	used_channel_counter++;
-    }
+#endif
 
-    if(auxadc_cust_ssb_data.ADC_FDD_RF_PARAMS_DYNAMIC_CUSTOM_CH_CHANNEL != -1){
+#ifdef AUXADC_ADC_FDD_RF_PARAMS_DYNAMIC_CUSTOM_CH_CHANNEL
 	sprintf(g_adc_info[used_channel_counter].channel_name, "ADC_FDD_Rf_Params_Dynamic_Custom");
-    g_adc_info[used_channel_counter].channel_number = auxadc_cust_ssb_data.ADC_FDD_RF_PARAMS_DYNAMIC_CUSTOM_CH_CHANNEL;
-    printk("[ADC] channel_name = %s channel num=%d\n", g_adc_info[used_channel_counter].channel_name
-        ,g_adc_info[used_channel_counter].channel_number);
+	g_adc_info[used_channel_counter].channel_number =
+	    AUXADC_ADC_FDD_RF_PARAMS_DYNAMIC_CUSTOM_CH_CHANNEL;
+	printk("[ADC] channel_name = %s channel num=%d\n",
+	       g_adc_info[used_channel_counter].channel_name,
+	       g_adc_info[used_channel_counter].channel_number);
 	used_channel_counter++;
-    }
+#endif
 
-    if(auxadc_cust_ssb_data.HF_MIC_CHANNEL != -1){
+#ifdef AUXADC_HF_MIC_CHANNEL
 	sprintf(g_adc_info[used_channel_counter].channel_name, "ADC_MIC");
-    g_adc_info[used_channel_counter].channel_number = auxadc_cust_ssb_data.HF_MIC_CHANNEL;
-    printk("[ADC] channel_name = %s channel num=%d\n", g_adc_info[used_channel_counter].channel_name
-        ,g_adc_info[used_channel_counter].channel_number);
+	g_adc_info[used_channel_counter].channel_number = AUXADC_HF_MIC_CHANNEL;
+	printk("[ADC] channel_name = %s channel num=%d\n",
+	       g_adc_info[used_channel_counter].channel_name,
+	       g_adc_info[used_channel_counter].channel_number);
 	used_channel_counter++;
-    }
+#endif
 
 	return 0;
 
@@ -1222,13 +1218,6 @@ static int mt_auxadc_resume(struct platform_device *dev)
 	return 0;
 }
 
-#ifdef CONFIG_OF
-struct platform_device mt_auxadc_device = {
-    .name   = "mt-auxadc",
-    .id        = -1,
-};
-#endif
-
 static struct platform_driver mt_auxadc_driver = {
 	.probe = mt_auxadc_probe,
 	.remove = mt_auxadc_remove,
@@ -1246,32 +1235,21 @@ static int __init mt_auxadc_init(void)
 {
 	int ret;
 
-#ifdef CONFIG_OF
-		ret = platform_device_register(&mt_auxadc_device);	
-#endif
-
 	ret = platform_driver_register(&mt_auxadc_driver);
 	if (ret) {
 		printk("****[mt_auxadc_driver] Unable to register driver (%d)\n", ret);
 		return ret;
 	}
 	printk("****[mt_auxadc_driver] Initialization : DONE\n");
-
-#ifndef CONFIG_MTK_FPGA	
-    if(enable_clock(MT_PDN_PERI_AUXADC,"AUXADC"))
-    printk("hwEnableClock AUXADC failed.");
-#endif
 	return 0;
 }
 
 static void __exit mt_auxadc_exit(void)
 {
 }
-
 module_init(mt_auxadc_init);
 module_exit(mt_auxadc_exit);
 
 MODULE_AUTHOR("MTK");
 MODULE_DESCRIPTION("MTK AUXADC Device Driver");
 MODULE_LICENSE("GPL");
-

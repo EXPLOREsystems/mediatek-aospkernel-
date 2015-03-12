@@ -86,7 +86,7 @@ extern "C" {
 #ifdef X86_CPU
 /* Please make sure the MCR you wrote will not take any effect.
  * MCR_MIBSDR (0x00C4) has confirm with DE.
- */* / TODO: yarco */
+ */*/ TODO : yarco * /
 #define SDIO_X86_WORKAROUND_WRITE_MCR  0x0000
 #endif
 #if CFG_SDIO_PATHRU_MODE

@@ -15,6 +15,8 @@
 #ifndef _SWCR_H
 #define _SWCR_H
 
+#include "nic_cmd_event.h"
+
 /*******************************************************************************
 *                         C O M P I L E R   F L A G S
 ********************************************************************************
@@ -29,6 +31,7 @@
 *                              C O N S T A N T S
 ********************************************************************************
 */
+#define TEST_PS 1
 
 #define SWCR_VAR(x) ((VOID *)&x)
 #define SWCR_FUNC(x)  ((VOID *)x)
@@ -174,5 +177,32 @@ VOID swCrDebugInit(P_ADAPTER_T prAdapter);
 VOID swCrDebugCheckEnable(P_ADAPTER_T prAdapter, BOOLEAN fgIsEnable, UINT_8 ucType,
 			  UINT_32 u4Timeout);
 VOID swCrDebugUninit(P_ADAPTER_T prAdapter);
+
+
+#if CFG_SUPPORT_SWCR
+VOID swCtrlCmdCategory0(P_ADAPTER_T prAdapter, UINT_8 ucCate, UINT_8 ucAction, UINT_8 ucOpt0,
+			UINT_8 ucOpt1);
+VOID swCtrlCmdCategory1(P_ADAPTER_T prAdapter, UINT_8 ucCate, UINT_8 ucAction, UINT_8 ucOpt0,
+			UINT_8 ucOpt1);
+#if TEST_PS
+VOID testPsCmdCategory0(P_ADAPTER_T prAdapter, UINT_8 ucCate, UINT_8 ucAction, UINT_8 ucOpt0,
+			UINT_8 ucOpt1);
+VOID testPsCmdCategory1(P_ADAPTER_T prAdapter, UINT_8 ucCate, UINT_8 ucAction, UINT_8 ucOpt0,
+			UINT_8 ucOpt1);
+#endif
+#if CFG_SUPPORT_802_11V
+#if (CFG_SUPPORT_802_11V_TIMING_MEASUREMENT == 1) && (WNM_UNIT_TEST == 1)
+void testWNMCmdCategory0(P_ADAPTER_T prAdapter, UINT_8 ucCate, UINT_8 ucAction, UINT_8 ucOpt0,
+			 UINT_8 ucOpt1);
+#endif
+#endif
+VOID swCtrlSwCr(P_ADAPTER_T prAdapter, UINT_8 ucRead, UINT_16 u2Addr, UINT_32 *pu4Data);
+
+/* Support Debug */
+VOID swCrDebugCheck(P_ADAPTER_T prAdapter, P_CMD_SW_DBG_CTRL_T prCmdSwCtrl);
+VOID swCrDebugCheckTimeout(IN P_ADAPTER_T prAdapter, ULONG ulParamPtr);
+VOID swCrDebugQuery(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmdInfo, IN PUINT_8 pucEventBuf);
+VOID swCrDebugQueryTimeout(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmdInfo);
+#endif
 
 #endif

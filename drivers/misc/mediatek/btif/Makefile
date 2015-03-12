@@ -7,7 +7,8 @@ ifneq ($(KERNELRELEASE),)
   obj-y += btif.o
   btif-y	:= mtk_btif.o mtk_btif_exp.o
   #btif-y	+= hal_btif/hal_btif.o hal_btif/hal_btif_dma.o 
-  obj-y += $(subst ",,$(CONFIG_MTK_PLATFORM))/
+  
+obj-y += $(subst ",,$(CONFIG_MTK_PLATFORM))/
 
 # Otherwise we were called directly from the command
 # line; invoke the kernel build system.

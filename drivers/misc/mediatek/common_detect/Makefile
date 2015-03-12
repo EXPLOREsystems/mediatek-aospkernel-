@@ -40,10 +40,7 @@ ifneq ($(KERNELRELEASE),)
 	ifneq ($(filter "CONSYS_6571",$(CONFIG_MTK_COMBO_CHIP)),)
 		SOC_CHIP_SUPPORT := true
 	endif
-	ifneq ($(filter "CONSYS_6752",$(CONFIG_MTK_COMBO_CHIP)),)
-		SOC_CHIP_SUPPORT := true
-	endif
-
+	
 	ifeq ($(SOC_CHIP_SUPPORT), true)
 		subdir-ccflags-y += -D MTK_WCN_SOC_CHIP_SUPPORT
 		CONN_COMMON := ../conn_soc/common
@@ -53,7 +50,6 @@ ifneq ($(KERNELRELEASE),)
 	subdir-ccflags-y += -DWMT_PLAT_ALPS=1
 	
 ifeq ($(CONFIG_MTK_COMBO),y)
-	subdir-ccflags-y += -DWMT_PLAT_ALPS=1
 	ccflags-y += -I$(src)/drv_init/inc 	
 	obj-y += mtk_wcn_stub_alps.o
 	obj-y += wmt_stp_exp.o

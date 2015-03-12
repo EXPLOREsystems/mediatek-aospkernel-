@@ -1,10 +1,10 @@
 /*
 * Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
 * GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 * See the GNU General Public License for more details.
 *
@@ -53,7 +53,7 @@
 #define MTKSTP_MAX_TASK_NUM	(8)
 #endif
 
-#define MTKSTP_BUFFER_SIZE  (16384) //Size of RX Queue
+#define MTKSTP_BUFFER_SIZE  (16384) /* Size of RX Queue */
 
 #define STP_EXP_HID_API_EXPORT 0
 
@@ -84,7 +84,7 @@
 */
 #ifndef MTK_WCN_WMT_STP_EXP_SYMBOL_ABSTRACT
 typedef void (*MTK_WCN_STP_EVENT_CB)(void);
-typedef INT32 (*MTK_WCN_STP_IF_TX)(const UINT8 *data, const UINT32 size, UINT32 *written_size);
+typedef INT32 (*MTK_WCN_STP_IF_TX)(const UINT8 * data, const UINT32 size, UINT32 * written_size);
 /* export for HIF driver */
 typedef void (*MTK_WCN_STP_IF_RX)(const UINT8 *data, INT32 size);
 
@@ -93,7 +93,7 @@ typedef enum {
     STP_SDIO_IF_TX = 1,
     STP_BTIF_IF_TX = 2,
     STP_MAX_IF_TX
-}ENUM_STP_TX_IF_TYPE;
+} ENUM_STP_TX_IF_TYPE;
 #endif
 /*******************************************************************************
 *                            P U B L I C   D A T A
@@ -261,16 +261,3 @@ extern INT32 _mtk_wcn_stp_coredump_start_get(VOID);
 
 
 #endif /* _WMT_EXP_H_ */
-
-
-
-
-
-
-
-
-
-
-
-
-

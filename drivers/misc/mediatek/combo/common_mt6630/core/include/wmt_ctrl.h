@@ -64,8 +64,8 @@ typedef enum _ENUM_WMT_CTRL_T {
     WMT_CTRL_HOST_BAUDRATE_SET = 9,
     WMT_CTRL_SDIO_HW = 10, /* enable/disable SDIO1/2 of combo chip */
     WMT_CTRL_SDIO_FUNC = 11, /* probe/remove STP/Wi-Fi driver in SDIO1/2 of combo chip*/
-    WMT_CTRL_HWIDVER_SET = 12, // TODO: rename this and add chip id information in addition to chip version
-    WMT_CTRL_HWVER_GET = 13, // TODO: [FixMe][GeorgeKuo] remove unused functions
+    WMT_CTRL_HWIDVER_SET = 12, /* TODO: rename this and add chip id information in addition to chip version */
+    WMT_CTRL_HWVER_GET = 13, /* TODO: [FixMe][GeorgeKuo] remove unused functions */
     WMT_CTRL_STP_RST = 14,
     WMT_CTRL_GET_WMT_CONF = 15,
     WMT_CTRL_TX = 16, /* [FixMe][GeorgeKuo]: to be removed by Sean's stp integration */
@@ -110,7 +110,7 @@ wmt_ctrl(
 
 extern INT32
 wmt_ctrl_tx_ex(
-    const UINT8 *pData,
+    const UINT8 * pData,
     const UINT32 size,
     UINT32 *writtenSize,
     const MTK_WCN_BOOL bRawFlag
@@ -125,11 +125,3 @@ wmt_ctrl_tx_ex(
 
 
 #endif /* _WMT_CTRL_H_ */
-
-
-
-
-
-
-
-

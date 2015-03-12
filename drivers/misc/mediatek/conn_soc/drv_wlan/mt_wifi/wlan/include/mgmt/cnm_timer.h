@@ -1,10 +1,24 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/mgmt/cnm_timer.h#1 $
 */
 
 /*! \file   cnm_timer.h
     \brief  Declaration of timer obj and related timer macro for setup time out
-            event.
+	    event.
 
     In this file we declare the timer object and provide several macro for
     Protocol functional blocks to setup their own time out event.
@@ -114,7 +128,7 @@
 *                             D A T A   T Y P E S
 ********************************************************************************
 */
-typedef VOID (*PFN_MGMT_TIMEOUT_FUNC)(P_ADAPTER_T, UINT_32);
+typedef VOID(*PFN_MGMT_TIMEOUT_FUNC)(P_ADAPTER_T, UINT_32);
 
 typedef struct _TIMER_T {
     LINK_ENTRY_T            rLinkEntry;
@@ -143,15 +157,15 @@ typedef struct _TIMER_T {
 /* In 32-bit variable, 0x00000001~0x7fffffff -> positive number,
  *                     0x80000000~0xffffffff -> negative number
  */
-#define TIME_BEFORE_64bit(a,b)       (a < b)
+#define TIME_BEFORE_64bit(a, b)       (a < b)
 
-#define TIME_BEFORE(a,b)        ((UINT_32)((UINT_32)(a) - (UINT_32)(b)) > 0x7fffffff)
+#define TIME_BEFORE(a, b)        ((UINT_32)((UINT_32)(a) - (UINT_32)(b)) > 0x7fffffff)
 
 /* #define TIME_BEFORE(a,b)        ((INT_32)((INT_32)(b) - (INT_32)(a)) > 0)
  * may cause UNexpect result between Free build and Check build for WinCE
  */
 
-#define TIME_AFTER(a,b)         TIME_BEFORE(b,a)
+#define TIME_AFTER(a, b)         TIME_BEFORE(b, a)
 
 #define SYSTIME_TO_SEC(_systime)            ((_systime) / KAL_HZ)
 #define SEC_TO_SYSTIME(_sec)                ((_sec) * KAL_HZ)
@@ -169,11 +183,11 @@ typedef struct _TIMER_T {
 
 /* The macros to convert TU & microsecond, TU & millisecond */
 #define TU_TO_USEC(_tu)                     ((_tu) * USEC_PER_TU)
-#define TU_TO_MSEC(_tu)                     USEC_TO_MSEC( TU_TO_USEC(_tu) )
+#define TU_TO_MSEC(_tu)                     USEC_TO_MSEC(TU_TO_USEC(_tu))
 
 
 /* The macros to convert TU & & OS system time, round up by 0.5 */
-#define TU_TO_SYSTIME(_tu)                  MSEC_TO_SYSTIME( TU_TO_MSEC(_tu) )
+#define TU_TO_SYSTIME(_tu)                  MSEC_TO_SYSTIME(TU_TO_MSEC(_tu))
 #define SYSTIME_TO_TU(_systime)             \
     ((SYSTIME_TO_USEC(_systime) + ((USEC_PER_TU / 2) - 1)) / USEC_PER_TU)
 
@@ -183,18 +197,18 @@ typedef struct _TIMER_T {
 
 
 /* The macro to get the current OS system time */
-#define GET_CURRENT_SYSTIME(_systime_p)     {*(_systime_p) = kalGetTimeTick();}
+#define GET_CURRENT_SYSTIME(_systime_p)     {*(_systime_p) = kalGetTimeTick(); }
 
 /* The macro to copy the system time */
 #define COPY_SYSTIME(_destTime, _srcTime)   (_destTime) = (_srcTime)
 
 /* The macro to get the system time difference between t1 and t2 (t1 - t2) */
 /* #define GET_SYSTIME_DIFFERENCE(_time1, _time2, _diffTime) \
-        (_diffTime) = (_time1) - (_time2) */
+	(_diffTime) = (_time1) - (_time2) */
 
 /* The macro to check for the expiration, if TRUE means _currentTime >= _expirationTime */
 #define CHECK_FOR_EXPIRATION(_currentTime, _expirationTime) \
-        ( ((UINT_32)(_currentTime) - (UINT_32)(_expirationTime)) <= 0x7fffffffUL)
+	(((UINT_32)(_currentTime) - (UINT_32)(_expirationTime)) <= 0x7fffffffUL)
 
 /* The macro to check for the timeout */
 #define CHECK_FOR_TIMEOUT(_currentTime, _timeoutStartingTime, _timeout) \
@@ -202,16 +216,16 @@ typedef struct _TIMER_T {
 
 /* The macro to set the expiration time with a specified timeout *//* Watch out for round up.*/
 #define SET_EXPIRATION_TIME(_expirationTime, _timeout) \
-        { \
-            GET_CURRENT_SYSTIME(&(_expirationTime)); \
-            (_expirationTime) += (OS_SYSTIME)(_timeout); \
-        }
+	{ \
+	    GET_CURRENT_SYSTIME(&(_expirationTime)); \
+	    (_expirationTime) += (OS_SYSTIME)(_timeout); \
+	}
 
-#define timerRenewTimer(adapter,tmr,interval) \
-        timerStartTimer(adapter,tmr,interval,(tmr)->function,(tmr)->data)
+#define timerRenewTimer(adapter, tmr, interval) \
+        timerStartTimer(adapter, tmr, interval, (tmr)->function, (tmr)->data)
 
 #define MGMT_INIT_TIMER(_adapter_p, _timer, _callbackFunc) \
-        timerInitTimer(_adapter_p, &(_timer), (UINT_32)(_callbackFunc))
+	timerInitTimer(_adapter_p, &(_timer), (UINT_32)(_callbackFunc))
 
 
 /*******************************************************************************
@@ -219,17 +233,17 @@ typedef struct _TIMER_T {
 ********************************************************************************
 */
 VOID
-cnmTimerInitialize (
+cnmTimerInitialize(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-cnmTimerDestroy (
+cnmTimerDestroy(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-cnmTimerInitTimer (
+cnmTimerInitTimer(
     IN P_ADAPTER_T              prAdapter,
     IN P_TIMER_T                prTimer,
     IN PFN_MGMT_TIMEOUT_FUNC    pfFunc,
@@ -237,20 +251,20 @@ cnmTimerInitTimer (
     );
 
 VOID
-cnmTimerStopTimer (
+cnmTimerStopTimer(
     IN P_ADAPTER_T              prAdapter,
     IN P_TIMER_T                prTimer
     );
 
 VOID
-cnmTimerStartTimer (
+cnmTimerStartTimer(
     IN P_ADAPTER_T              prAdapter,
     IN P_TIMER_T                prTimer,
     IN UINT_32                  u4TimeoutMs
     );
 
 VOID
-cnmTimerDoTimeOutCheck (
+cnmTimerDoTimeOutCheck(
     IN P_ADAPTER_T              prAdapter
     );
 
@@ -260,7 +274,7 @@ cnmTimerDoTimeOutCheck (
 */
 __KAL_INLINE__
 INT_32
-timerPendingTimer (
+timerPendingTimer(
     IN P_TIMER_T prTimer
     )
 {
@@ -270,5 +284,3 @@ timerPendingTimer (
 }
 
 #endif /* _CNM_TIMER_H */
-
-

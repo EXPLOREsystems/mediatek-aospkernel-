@@ -857,7 +857,7 @@ typedef UINT_32 KAL_WAKE_LOCK_T, *P_KAL_WAKE_LOCK_T;
 /*----------------------------------------------------------------------------*/
 #define kalCopyFrame(prGlueInfo, pvPacket, pucDestBuffer)   \
 	    {struct sk_buff *skb = (struct sk_buff *)pvPacket; \
-             memcpy(pucDestBuffer, skb->data, skb->len); }
+	     memcpy(pucDestBuffer, skb->data, skb->len); }
 
 #define kalGetTimeTick()                            jiffies_to_msecs(jiffies)
 

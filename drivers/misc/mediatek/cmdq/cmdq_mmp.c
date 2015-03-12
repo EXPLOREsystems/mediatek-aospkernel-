@@ -1,16 +1,3 @@
-/*
-* Copyright (C) 2011-2014 MediaTek Inc.
-*
-* This program is free software: you can redistribute it and/or modify it under the terms of the
-* GNU General Public License version 2 as published by the Free Software Foundation.
-*
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with this program.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
 #include "cmdq_mmp.h"
 
 static CMDQ_MMP_Events_t CMDQ_MMP_Events;
@@ -24,7 +11,6 @@ CMDQ_MMP_Events_t *cmdq_mmp_get_event(void)
 
 void cmdq_mmp_init(void)
 {
-#if CMDQ_PROFILE_MMP
 	MMProfileEnable(1);
 	if (CMDQ_MMP_Events.CMDQ == 0) {
 		CMDQ_MMP_Events.CMDQ = MMProfileRegisterEvent(MMP_RootEvent, "CMDQ");
@@ -54,5 +40,4 @@ void cmdq_mmp_init(void)
 		MMProfileEnableEventRecursive(CMDQ_MMP_Events.CMDQ, 1);
 	}
 	MMProfileStart(1);
-#endif
 }

@@ -1539,11 +1539,9 @@ static fm_s32 mt6627_pre_search(void)
 	mt6627_host_write(0x80101054, 0x00000000);
 	/* disable audio output I2S Tx mode */
 	mt6627_write(0x9B, 0x0000);
-	/* L.AOSP.SPROUT.DEV bring up
 	FM_LOG_NTC(FM_NTC | CHIP, "search threshold: RSSI=%d,de-RSSI=%d,smg=%d %d\n",
 		   mt6627_fm_config.rx_cfg.long_ana_rssi_th, mt6627_fm_config.rx_cfg.desene_rssi_th,
 		   mt6627_fm_config.rx_cfg.smg_th);
-	 L.AOSP.SPROUT.DEV bring up */
 	return 0;
 }
 
@@ -1611,7 +1609,7 @@ static fm_s32 mt6627_soft_mute_tune(fm_u16 freq, fm_s32 *rssi, fm_bool *valid)
 		    && (MR >= mt6627_fm_config.rx_cfg.mr_th)
 		    && (PRX >= mt6627_fm_config.rx_cfg.prx_th)
 		    && (ATDEV >= ATDC)	/* sync scan algorithm */
-		    &&(softmuteGainLvl >= mt6627_fm_config.rx_cfg.smg_th)) {
+ && (softmuteGainLvl >= mt6627_fm_config.rx_cfg.smg_th)) {
 			*valid = fm_true;
 		} else {
 			*valid = fm_false;

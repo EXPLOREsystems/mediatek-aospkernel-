@@ -1102,6 +1102,18 @@ typedef struct _PARAM_HS20_SET_BSSID_POOL {
 
 #endif				/* CFG_SUPPORT_PASSPOINT */
 
+#if CFG_SUPPORT_SNIFFER
+typedef struct _PARAM_CUSTOM_MONITOR_SET_STRUC_T {
+    UINT_8      ucEnable;
+    UINT_8      ucBand;
+    UINT_8      ucPriChannel;
+    UINT_8      ucSco;
+    UINT_8      ucChannelWidth;
+    UINT_8      ucChannelS1;
+    UINT_8      ucChannelS2;
+    UINT_8      aucResv[9];
+} PARAM_CUSTOM_MONITOR_SET_STRUC_T, *P_PARAM_CUSTOM_MONITOR_SET_STRUC_T;
+#endif
 
 /*******************************************************************************
 *                            P U B L I C   D A T A
@@ -1825,6 +1837,11 @@ wlanoidSetHS20BssidPool(IN P_ADAPTER_T prAdapter,
 			IN PVOID pvSetBuffer,
 			IN UINT_32 u4SetBufferLen, OUT PUINT_32 pu4SetInfoLen);
 #endif				/* CFG_SUPPORT_PASSPOINT */
+
+#if CFG_SUPPORT_SNIFFER
+WLAN_STATUS wlanoidSetMonitor(IN P_ADAPTER_T prAdapter,
+	    IN PVOID pvSetBuffer, IN UINT_32 u4SetBufferLen, OUT PUINT_32 pu4SetInfoLen);
+#endif
 
 /*******************************************************************************
 *                              F U N C T I O N S

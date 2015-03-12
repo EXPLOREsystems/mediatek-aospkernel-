@@ -7,11 +7,28 @@
 #include "sec_log.h"
 #include "sec_secroimg.h"
 
+#if defined(MTK_GPT_SCHEME_SUPPORT)
+#include <linux/types.h>
+#include <linux/genhd.h>
+#include <linux/proc_fs.h>
+#include <linux/seq_file.h>
+#include <linux/crc32.h>
+#include <asm/uaccess.h>
+#include <linux/mmc/sd_misc.h>
+#include <mach/partition.h>
+
+#endif
 /**************************************************************************
  *  MACRO
  **************************************************************************/
 #define MOD                         "ASF.DEV"
+#if defined(MTK_GPT_SCHEME_SUPPORT)
+#define PARTINFO_TITLE                      "Name"
+#define USER_REGION_PATH                    "/dev/block/mmcblk0"
+#define BOOT_REGION0_PATH                   "/dev/block/mmcblk0boot0"
+#define USER_REGION_PART_PATH_PREFIX        "/dev/block/platform/mtk-msdc.0/by-name/"
 
+#endif
 /**************************************************************************
  *  GLOBAL VARIABLES
  *************************************************************************/
@@ -22,8 +39,10 @@ uint32 secro_img_mtd_num = 0;
 /**************************************************************************
  *  LOCAL VARIABLES
  *************************************************************************/
-static bool dump_search_info = FALSE;
-static bool dump_secro_info = FALSE;
+#if !defined(MTK_GPT_SCHEME_SUPPORT)
+static bool dump_search_info        = FALSE;
+#endif
+static bool dump_secro_info         = FALSE;
 
 /**************************************************************************
  *  EXTERNAL VARIABLES
@@ -48,7 +67,7 @@ int read_info(int part_index, uint32 part_off, uint32 search_region, char *info_
 	      uint32 info_name_len, uint32 info_sz, char *info_buf)
 {
 	int ret = ERR_MTD_INFO_NOT_FOUND;
-	char part_path[32];
+    char part_path[100];
 	uint32 off = 0;
 	uchar *buf;
 
@@ -72,6 +91,27 @@ int read_info(int part_index, uint32 part_off, uint32 search_region, char *info_
 	/* ------------------------ */
 	/* in order to keep key finding process securely,
 	   open file in kernel module */
+#if defined(MTK_GPT_SCHEME_SUPPORT)
+
+    if ((MAX_MTD_PARTITIONS + 1) == part_index)
+    {
+	/* if  part_index == MAX_MTD_PARTITIONS + 1 means read preloader */
+        mcpy(part_path, BOOT_REGION0_PATH, strlen(BOOT_REGION0_PATH));
+	part_path[strlen(BOOT_REGION0_PATH)] = '\0';
+    }
+    else if (part_index < MAX_MTD_PARTITIONS)
+    {
+        mcpy(part_path, USER_REGION_PART_PATH_PREFIX, strlen(USER_REGION_PART_PATH_PREFIX));
+        mcpy(part_path + strlen(USER_REGION_PART_PATH_PREFIX), mtd_part_map[part_index].name, strlen(mtd_part_map[part_index].name));
+	part_path[strlen(USER_REGION_PART_PATH_PREFIX) + strlen(mtd_part_map[part_index].name)] = '\0';
+    }
+    else
+    {
+	ret = ERR_INFO_OVER_MAX_PART_COUNT;
+	goto _end;
+    }
+
+#else
 	if (TRUE == sec_usif_enabled()) {
 		sec_usif_part_path(part_index, part_path, sizeof(part_path));
 		if (FALSE == dump_search_info) {
@@ -86,13 +126,17 @@ int read_info(int part_index, uint32 part_off, uint32 search_region, char *info_
 		}
 	}
 
+#endif
 	ctx->fd = ASF_OPEN(part_path);
 
-	if (ASF_IS_ERR(ctx->fd)) {
+    ret = ASF_IS_ERR(ctx->fd);
+
+	if (ret) {
 		SMSG(true, "[%s] open fail\n", MOD);
 		ret = ERR_INFO_PART_NOT_FOUND;
 		goto _open_fail;
 	}
+
 
 
 	/* ------------------------ */
@@ -158,8 +202,18 @@ void sec_dev_dump_part(void)
 	uint32 i = 0;
 
 	for (i = 0; i < MAX_MTD_PARTITIONS; i++) {
-		SMSG(TRUE, "[%s] #%2d, part %10s, offset 0x%8x, sz 0x%8x\n", MOD, i,
-		     mtd_part_map[i].name, mtd_part_map[i].off, mtd_part_map[i].sz);
+#if defined(MTK_GPT_SCHEME_SUPPORT)
+        SMSG(TRUE, "[%s] #%2d, part %15s, offset 0x%llx, sz 0x%llx\n", MOD, i,
+						mtd_part_map[i].name,
+						mtd_part_map[i].off,
+						mtd_part_map[i].sz);
+
+#else
+        SMSG(TRUE, "[%s] #%2d, part %10s, offset 0x%8x, sz 0x%8x\n", MOD, i,
+							mtd_part_map[i].name,
+							mtd_part_map[i].off,
+							mtd_part_map[i].sz);
+#endif
 	}
 }
 
@@ -184,6 +238,16 @@ void sec_dev_find_parts(void)
 	/* -------------------------- */
 	/* open proc device           */
 	/* -------------------------- */
+#if defined(MTK_GPT_SCHEME_SUPPORT)
+
+    /* -------------------------- */
+    /* open proc/partinfo         */
+    /* -------------------------- */
+    SMSG(TRUE, "[%s] open /proc/partinfo\n", MOD);
+    fd = ASF_OPEN("/proc/partinfo");
+
+
+#else
 	if (TRUE == sec_usif_enabled()) {
 		/* -------------------------- */
 		/* open proc/dumchar_info     */
@@ -197,6 +261,7 @@ void sec_dev_find_parts(void)
 		SMSG(TRUE, "[%s] open /proc/mtd\n", MOD);
 		fd = ASF_OPEN("/proc/mtd");
 	}
+#endif
 
 	if (ASF_IS_ERR(fd)) {
 		goto _end;
@@ -210,6 +275,48 @@ void sec_dev_find_parts(void)
 	/* parsing proc device        */
 	/* -------------------------- */
 	while (pm_sz > 0) {
+#if defined(MTK_GPT_SCHEME_SUPPORT)
+	int m_num;
+	unsigned long long m_sz, m_off;
+	char m_name[16];
+	m_name[0] = '\0';
+	m_num = -1;
+
+        m_num++;
+
+	/* -------------------------- */
+	/* parsing proc/parinfo  */
+	/* -------------------------- */
+        cnt = sscanf(pmtdbufp, "%15s %llx %llx", m_name, &m_off, &m_sz);
+	/* SMSG(TRUE,"[%s] find parts %s, off 0x%llx, size 0x%llx\n",MOD,m_name,m_off,m_sz); */
+
+
+	if (mtd_part_cnt < MAX_MTD_PARTITIONS)
+	{
+            if (0 != mcmp(m_name, PARTINFO_TITLE, strlen(PARTINFO_TITLE)))
+	    {
+		mcpy(mtd_part_map[mtd_part_cnt].name, m_name, strlen(m_name));
+		/* fill partition size */
+		mtd_part_map[mtd_part_cnt].sz = m_sz;
+
+		/* calculate partition off */
+		mtd_part_map[mtd_part_cnt].off = m_off;
+		/* part count */
+
+                if (0 == mcmp(m_name, GPT_SECRO, strlen(GPT_SECRO)))
+		{
+		    secro_img_mtd_num = mtd_part_cnt;
+		}
+
+		mtd_part_cnt++;
+	    }
+	}
+	else
+	{
+            SMSG(TRUE, "too many mtd partitions\n");
+	}
+
+#else
 		int m_num, m_sz, mtd_e_sz;
 		char m_name[16];
 		m_name[0] = '\0';
@@ -404,6 +511,7 @@ void sec_dev_find_parts(void)
 			}
 		}
 
+#endif
 		while (pm_sz > 0 && *pmtdbufp != '\n') {
 			pmtdbufp++;
 			pm_sz--;
@@ -436,8 +544,10 @@ int sec_dev_read_rom_info(void)
 	uint32 search_offset = ROM_INFO_SEARCH_START;
 	uint32 search_len = ROM_INFO_SEARCH_LEN;
 
-	uint32 mtd_num = MTD_PL_NUM;
-	uint32 mtd_off = ROM_INFO_SEARCH_START;
+#if !defined(MTK_GPT_SCHEME_SUPPORT)
+    uint32 mtd_num = MTD_PL_NUM;
+    uint32 mtd_off = ROM_INFO_SEARCH_START;
+#endif
 
 	SMSG(TRUE, "search starts from '0x%x'\n", ROM_INFO_SEARCH_START);
 
@@ -449,7 +559,29 @@ int sec_dev_read_rom_info(void)
 	/* ------------------------ */
 	/* read rom info            */
 	/* ------------------------ */
+#if defined(MTK_GPT_SCHEME_SUPPORT)
 
+    /* in GPT case, preloader is not in /proc/partinfo */
+    for (search_offset = ROM_INFO_SEARCH_START; search_offset < (search_len+ROM_INFO_SEARCH_START); search_offset += ROM_INFO_SEARCH_REGION)
+    {
+
+	ret = read_info((MAX_MTD_PARTITIONS + 1), search_offset, ROM_INFO_SEARCH_REGION, RI_NAME, RI_NAME_LEN, sizeof(AND_ROMINFO_T), (uchar *)&rom_info);
+
+	if (SEC_OK == ret)
+	{
+	    /* ------------------------ */
+	    /* double check rom info    */
+	    /* ------------------------ */
+            if (0 == mcmp(rom_info.m_id, RI_NAME, RI_NAME_LEN))
+	    {
+                SMSG(TRUE, "[%s] ROM INFO ver '0x%x', ID '%s', 0x%x, 0x%x\n", MOD, rom_info.m_rom_info_ver, rom_info.m_id,
+		    rom_info.m_SEC_CTRL.m_sec_usb_dl, rom_info.m_SEC_CTRL.m_sec_boot);
+		goto _end;
+	    }
+	}
+    }
+
+#else
 	if (FALSE == sec_usif_enabled()) {
 		/* Search from Block 1 and len is limited in preloader */
 		mtd_off = mtd_part_map[mtd_num].e_size;
@@ -495,6 +627,7 @@ int sec_dev_read_rom_info(void)
 		}
 	}
 
+#endif
 	SMSG(TRUE, "[%s] ROM INFO not found\n", MOD);
 
 	ret = ERR_ROM_INFO_MTD_NOT_FOUND;

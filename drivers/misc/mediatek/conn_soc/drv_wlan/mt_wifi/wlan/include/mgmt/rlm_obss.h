@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/mgmt/rlm_obss.h#1 $
 */
 
@@ -139,18 +153,18 @@ typedef enum _ENUM_SYS_PCO_PHASE_T {
 ********************************************************************************
 */
 VOID
-rlmObssInit (
+rlmObssInit(
     P_ADAPTER_T     prAdapter
     );
 
 VOID
-rlmObssScanDone (
+rlmObssScanDone(
     P_ADAPTER_T prAdapter,
     P_MSG_HDR_T prMsgHdr
     );
 
 VOID
-rlmObssTriggerScan (
+rlmObssTriggerScan(
     P_ADAPTER_T         prAdapter,
     P_BSS_INFO_T        prBssInfo
     );
@@ -161,4 +175,3 @@ rlmObssTriggerScan (
 */
 
 #endif /* _RLM_OBSS_H */
-

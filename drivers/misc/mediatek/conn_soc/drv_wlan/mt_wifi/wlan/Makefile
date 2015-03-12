@@ -42,21 +42,12 @@ ccflags-y += -D_HIF_SDIO=1
 ccflags-y += -DDBG=0
 ccflags-y += -I$(src)/os -I$(src)/os/linux/include -I$(src)/os/linux/hif/ahb/include
 ccflags-y += -I$(src)/include -I$(src)/include/nic -I$(src)/include/mgmt
-MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
-ARCH_MTK_PROJECT := $(subst ",,$(CONFIG_ARCH_MTK_PROJECT))
-ccflags-y += -I$(srctree)/arch/arm/mach-$(MTK_PLATFORM)/$(ARCH_MTK_PROJECT)/dct/dct
-ccflags-y += -I$(srctree)/arch/arm/mach-$(MTK_PLATFORM)/include/mach
 
+# add public include path
+include $(srctree)/drivers/misc/mediatek/Makefile.custom
 
 obj-$(CONFIG_MTK_COMBO_WIFI) += $(MODULE_NAME).o
 #obj-m += $(MODULE_NAME).o if CONFIG_MTK_COMBO_WIFI=m ==> obj-m means ko module, not build in obj-y
-
-ifeq ($(strip $(TRUSTONIC_TEE_SUPPORT)),yes)
-ifeq ($(strip $(MTK_TEE_CCCI_SECURE_SHARE_MEM_SUPPORT)),yes)
-ccflags-y += -DTRUSTONIC_TEE_SUPPORT
-ccflags-y += -DMTK_TEE_CCCI_SECURE_SHARE_MEM_SUPPORT
-endif
-endif
 
 # ---------------------------------------------------
 # Directory List
@@ -66,8 +57,8 @@ OS_DIR      := os/linux/
 HIF_DIR	    := os/linux/hif/ahb/
 NIC_DIR     := nic/
 MGMT_DIR    := mgmt/
-DMA_DIR     := ../../../../../../platform/$(call lc,$(MTK_PLATFORM))/kernel/drivers/wifi/
-#$(call lc,$(MTK_PLATFORM))
+#DMA_DIR     := ../../../../../../platform/$(call lc,$(CONFIG_MTK_PLATFORM))/kernel/drivers/wifi/
+#$(call lc,$(CONFIG_MTK_PLATFORM))
 
 
 # ---------------------------------------------------
@@ -75,9 +66,9 @@ DMA_DIR     := ../../../../../../platform/$(call lc,$(MTK_PLATFORM))/kernel/driv
 # ---------------------------------------------------
 
 COMMON_OBJS :=	$(COMMON_DIR)dump.o \
-			$(COMMON_DIR)wlan_lib.o \
-			$(COMMON_DIR)wlan_oid.o \
-			$(COMMON_DIR)wlan_bow.o
+	       		$(COMMON_DIR)wlan_lib.o \
+	       		$(COMMON_DIR)wlan_oid.o \
+	       		$(COMMON_DIR)wlan_bow.o
 
 NIC_OBJS := $(NIC_DIR)nic.o \
 			$(NIC_DIR)nic_tx.o \
@@ -116,21 +107,15 @@ MGMT_OBJS := $(MGMT_DIR)ais_fsm.o \
 			 $(MGMT_DIR)saa_fsm.o \
 			 $(MGMT_DIR)scan.o \
 			 $(MGMT_DIR)scan_fsm.o \
-			 $(MGMT_DIR)sec_fsm.o \
+		 	 $(MGMT_DIR)sec_fsm.o \
              $(MGMT_DIR)swcr.o \
-			 $(MGMT_DIR)swcr.o \
+ 			 $(MGMT_DIR)swcr.o \
 			 $(MGMT_DIR)roaming_fsm.o \
 			 $(MGMT_DIR)hs20.o
 
 # ---------------------------------------------------
-# TDLS Objects List /* ++ TDLS */
-# ---------------------------------------------------
-MGMT_OBJS += $(MGMT_DIR)tdls.o \
-			 $(MGMT_DIR)tdls_com.o
-
-# ---------------------------------------------------
 # P2P Objects List
-# ---------------------------------------------------
+# ---------------------------------------------------      
 
 COMMON_OBJS += $(COMMON_DIR)wlan_p2p.o
 
@@ -149,7 +134,8 @@ MGMT_OBJS += $(MGMT_DIR)p2p_assoc.o \
              $(MGMT_DIR)p2p_rlm_obss.o \
              $(MGMT_DIR)p2p_scan.o \
              $(MGMT_DIR)p2p_ie.o \
-             $(MGMT_DIR)p2p_state.o
+             $(MGMT_DIR)p2p_state.o        
+                 
 
 ifeq ($(CONFIG_MTK_WAPI_SUPPORT), y)
 MGMT_OBJS += $(MGMT_DIR)wapi.o

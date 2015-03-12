@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id:
 //Department/DaVinci/TRUNK/MT6620_5931_WiFi_Driver/os/linux/include/gl_p2p_os.h#28 $
 */
@@ -85,7 +99,7 @@ struct _GL_P2P_INFO_T {
 
     /* glue layer variables */
     /*move to glueinfo->adapter*/
-   // BOOLEAN                     fgIsRegistered;
+   /* BOOLEAN                     fgIsRegistered; */
     UINT_32                     u4FreqInKHz;    /* frequency */
     UINT_8                      ucRole;         /* 0: P2P Device, 1: Group Client, 2: Group Owner */
     UINT_8                      ucIntent;       /* range: 0-15 */
@@ -158,7 +172,7 @@ typedef struct _NL80211_DRIVER_P2P_SIGMA_PARAMS {
     NL80211_DRIVER_TEST_PARAMS hdr;
     UINT_32  idx;
     UINT_32  value;
-}NL80211_DRIVER_P2P_SIGMA_PARAMS, *P_NL80211_DRIVER_P2P_SIGMA_PARAMS;
+} NL80211_DRIVER_P2P_SIGMA_PARAMS, *P_NL80211_DRIVER_P2P_SIGMA_PARAMS;
 
 
 /* Hotspot Client Management */
@@ -166,7 +180,7 @@ typedef struct _NL80211_DRIVER_hotspot_block_PARAMS {
     NL80211_DRIVER_TEST_PARAMS hdr;
     UINT_8   ucblocked;
     UINT_8   aucBssid[MAC_ADDR_LEN];
-}NL80211_DRIVER_hotspot_block_PARAMS, *P_NL80211_DRIVER_hotspot_block_PARAMS;
+} NL80211_DRIVER_hotspot_block_PARAMS, *P_NL80211_DRIVER_hotspot_block_PARAMS;
 
 #if CFG_SUPPORT_WFD
 typedef struct _NL80211_DRIVER_WFD_PARAMS {
@@ -189,7 +203,7 @@ typedef struct _NL80211_DRIVER_WFD_PARAMS {
     UINT_32  WfdFlag;
     UINT_32  WfdPolicy;
     UINT_32  WfdState;
-    UINT_8	 WfdSessionInformationIE[24*8]; // Include Subelement ID, length
+    UINT_8	 WfdSessionInformationIE[24*8]; /* Include Subelement ID, length */
     UINT_16  WfdSessionInformationIELen;
     UINT_8   aucReserved1[2];
     UINT_8   aucWfdPrimarySinkMac[MAC_ADDR_LEN];
@@ -205,7 +219,7 @@ typedef struct _NL80211_DRIVER_WFD_PARAMS {
     UINT_8	 aucReserved3[64];
     /* Group 3 64 bytes */
     UINT_8	 aucReserved4[64];
-}NL80211_DRIVER_WFD_PARAMS, *P_NL80211_DRIVER_WFD_PARAMS;
+} NL80211_DRIVER_WFD_PARAMS, *P_NL80211_DRIVER_WFD_PARAMS;
 #endif
 #endif
 
@@ -253,7 +267,7 @@ glRegisterP2P(
     );
 
 void
-p2pEalySuspendReg (
+p2pEalySuspendReg(
 	P_GLUE_INFO_T prGlueInfo,
 	BOOLEAN fgIsEnable
 );

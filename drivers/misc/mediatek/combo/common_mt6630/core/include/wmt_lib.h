@@ -75,17 +75,17 @@ when mtk_wcn_wmt_func_on is called by wifi through rfkill)
 */
 #if 0 /* moved to wmt_exp.h */
 /* FIXME: apply KERN_* definition? */
-extern UINT32 gWmtDbgLvl ;
+extern UINT32 gWmtDbgLvl;
 #ifndef DFT_TAG
 #define DFT_TAG         "[WMT-DFT]"
 #endif
 
-#define WMT_LOUD_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_LOUD) { osal_dbg_print(DFT_TAG "[L]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define WMT_INFO_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_INFO) { osal_info_print(DFT_TAG "[I]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define WMT_WARN_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_WARN) { osal_warn_print(DFT_TAG "[W]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define WMT_ERR_FUNC(fmt, arg...)    if (gWmtDbgLvl >= WMT_LOG_ERR) { osal_err_print(DFT_TAG "[E]%s(%d):"  fmt, __FUNCTION__ , __LINE__, ##arg);}
-#define WMT_DBG_FUNC(fmt, arg...)    if (gWmtDbgLvl >= WMT_LOG_DBG) { osal_dbg_print(DFT_TAG "[D]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define WMT_TRC_FUNC(f)              if (gWmtDbgLvl >= WMT_LOG_DBG) { osal_dbg_print(DFT_TAG "<%s> <%d>\n", __FUNCTION__, __LINE__);}
+#define WMT_LOUD_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_LOUD) { osal_dbg_print(DFT_TAG "[L]%s:"  fmt, __func__ , ##arg); }
+#define WMT_INFO_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_INFO) { osal_info_print(DFT_TAG "[I]%s:"  fmt, __func__ , ##arg); }
+#define WMT_WARN_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_WARN) { osal_warn_print(DFT_TAG "[W]%s:"  fmt, __func__ , ##arg); }
+#define WMT_ERR_FUNC(fmt, arg...)    if (gWmtDbgLvl >= WMT_LOG_ERR) { osal_err_print(DFT_TAG "[E]%s(%d):"  fmt, __func__ , __LINE__, ##arg); }
+#define WMT_DBG_FUNC(fmt, arg...)    if (gWmtDbgLvl >= WMT_LOG_DBG) { osal_dbg_print(DFT_TAG "[D]%s:"  fmt, __func__ , ##arg); }
+#define WMT_TRC_FUNC(f)              if (gWmtDbgLvl >= WMT_LOG_DBG) { osal_dbg_print(DFT_TAG "<%s> <%d>\n", __func__, __LINE__); }
 #endif
 
 /*******************************************************************************
@@ -149,17 +149,17 @@ typedef struct _DEV_WMT_ {
 
     OSAL_SLEEPABLE_LOCK psm_lock;
     /* WMTd thread information */
-//    struct task_struct *pWmtd;   /* main thread (wmtd) handle */
+/* struct task_struct *pWmtd;   /* main thread (wmtd) handle */ */
     OSAL_THREAD thread;
-//    wait_queue_head_t rWmtdWq;  /*WMTd command wait queue */
-    OSAL_EVENT rWmtdWq;    //rename
-    //ULONG state; /* bit field of WMT_STAT */
+/* wait_queue_head_t rWmtdWq;  /*WMTd command wait queue */ */
+    OSAL_EVENT rWmtdWq;    /* rename */
+    /* ULONG state; /* bit field of WMT_STAT */ */
     OSAL_BIT_OP_VAR state;
 
     /* STP context information */
-//    wait_queue_head_t rWmtRxWq;  /* STP Rx wait queue */
-    OSAL_EVENT rWmtRxWq; //rename
-//    WMT_STP_FUNC rStpFunc; /* STP functions */
+/* wait_queue_head_t rWmtRxWq;  /* STP Rx wait queue */ */
+    OSAL_EVENT rWmtRxWq; /* rename */
+/* WMT_STP_FUNC rStpFunc; /* STP functions */ */
     WMT_FDRV_CB  rFdrvCb;
 
     /* WMT Configurations */
@@ -188,19 +188,19 @@ typedef struct _DEV_WMT_ {
     /* cmd str buffer */
     UCHAR cCmd[NAME_MAX + 1];
     INT32 cmdResult;
-//    struct completion cmd_comp;
-//    wait_queue_head_t cmd_wq; /* read command queues */
+/* struct completion cmd_comp; */
+/* wait_queue_head_t cmd_wq; /* read command queues */ */
     OSAL_SIGNAL cmdResp;
     OSAL_EVENT cmdReq;
 
     /* WMT loopback Thread Information */
-//    WMT_CMB_VER combo_ver;
-    //P_WMT_CMB_CHIP_INFO_S pChipInfo;
+/* WMT_CMB_VER combo_ver; */
+    /* P_WMT_CMB_CHIP_INFO_S pChipInfo; */
     UINT32 chip_id;
     UINT32 hw_ver;
     UINT32 fw_ver;
-    // TODO:  [FixMe][GeorgeKuo] remove this translated version code in the
-    // future. Just return the above 3 info to querist
+    /* TODO:  [FixMe][GeorgeKuo] remove this translated version code in the */
+    /* future. Just return the above 3 info to querist */
     ENUM_WMTHWVER_TYPE_T eWmtHwVer;
 
     P_WMT_PATCH_INFO pWmtPatchInfo;
@@ -255,7 +255,7 @@ extern P_OSAL_OP wmt_lib_get_free_op(VOID);
 extern INT32 wmt_lib_put_op_to_free_queue(P_OSAL_OP pOp);
 extern MTK_WCN_BOOL wmt_lib_put_act_op(P_OSAL_OP pOp);
 
-//extern ENUM_WMTHWVER_TYPE_T wmt_lib_get_hwver (VOID);
+/* extern ENUM_WMTHWVER_TYPE_T wmt_lib_get_hwver (VOID); */
 extern UINT32 wmt_lib_get_icinfo(ENUM_WMT_CHIPINFO_TYPE_T type);
 
 extern MTK_WCN_BOOL wmt_lib_is_therm_ctrl_support(VOID);
@@ -326,4 +326,3 @@ extern UINT8 *wmt_lib_get_cpupcr_xml_format(UINT32 *len);
 */
 
 #endif /* _WMT_LIB_H_ */
-

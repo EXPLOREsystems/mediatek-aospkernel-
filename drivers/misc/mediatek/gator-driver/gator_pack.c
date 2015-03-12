@@ -15,7 +15,7 @@ static void gator_buffer_write_packed_int(int cpu, int buftype, int x)
 	int packedBytes = 0;
 	int more = true;
 	while (more) {
-		// low order 7 bits of x
+		/* low order 7 bits of x */
 		char b = x & 0x7f;
 		x >>= 7;
 
@@ -40,7 +40,7 @@ static void gator_buffer_write_packed_int64(int cpu, int buftype, long long x)
 	int packedBytes = 0;
 	int more = true;
 	while (more) {
-		// low order 7 bits of x
+		/* low order 7 bits of x */
 		char b = x & 0x7f;
 		x >>= 7;
 

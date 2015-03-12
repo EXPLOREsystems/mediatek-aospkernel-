@@ -276,7 +276,7 @@
 #define AIS_BG_SCAN_INTERVAL_MIN_SEC        2	/* 30 // exponential to 960 */
 #define AIS_BG_SCAN_INTERVAL_MAX_SEC        2	/* 960 // 16min */
 
-#define AIS_DELAY_TIME_OF_DISCONNECT_SEC    10
+#define AIS_DELAY_TIME_OF_DISCONNECT_SEC    5   /* 10 */
 
 #define AIS_IBSS_ALONE_TIMEOUT_SEC          20	/* seconds */
 
@@ -296,6 +296,7 @@
 
 #define AIS_JOIN_CH_GRANT_THRESHOLD         10
 #define AIS_JOIN_CH_REQUEST_INTERVAL        2000
+#define AIS_SCN_DONE_TIMEOUT_SEC            15 /* 15 for 2.4G + 5G */ /* 5 */
 
 /*******************************************************************************
 *                             D A T A   T Y P E S
@@ -395,6 +396,10 @@ typedef struct _AIS_FSM_INFO_T {
 
 	TIMER_T rChannelTimeoutTimer;
 
+	TIMER_T	rScanDoneTimer;
+
+	TIMER_T rDeauthDoneTimer;
+
 	UINT_8 ucSeqNumOfReqMsg;
 	UINT_8 ucSeqNumOfChReq;
 	UINT_8 ucSeqNumOfScanReq;
@@ -488,6 +493,9 @@ VOID aisFsmRunEventAbort(IN P_ADAPTER_T prAdapter, IN P_MSG_HDR_T prMsgHdr);
 
 VOID aisFsmRunEventJoinComplete(IN P_ADAPTER_T prAdapter, IN P_MSG_HDR_T prMsgHdr);
 
+enum _ENUM_AIS_STATE_T aisFsmJoinCompleteAction(IN struct _ADAPTER_T *prAdapter, IN struct _MSG_HDR_T *prMsgHdr);
+
+
 VOID aisFsmRunEventFoundIBSSPeer(IN P_ADAPTER_T prAdapter, IN P_MSG_HDR_T prMsgHdr);
 
 VOID aisFsmRunEventRemainOnChannel(IN P_ADAPTER_T prAdapter, IN P_MSG_HDR_T prMsgHdr);
@@ -521,7 +529,7 @@ aisIndicationOfMediaStateToHost(IN P_ADAPTER_T prAdapter,
 				ENUM_PARAM_MEDIA_STATE_T eConnectionState,
 				BOOLEAN fgDelayIndication);
 
-VOID aisPostponedEventOfDisconnTimeout(IN P_ADAPTER_T prAdapter, UINT_32 u4Param);
+VOID aisPostponedEventOfDisconnTimeout(IN P_ADAPTER_T prAdapter, ULONG ulParamPtr);
 
 VOID
 aisUpdateBssInfoForJOIN(IN P_ADAPTER_T prAdapter,
@@ -568,13 +576,15 @@ aisUpdateBssInfoForRoamingAP(IN P_ADAPTER_T prAdapter,
 /*----------------------------------------------------------------------------*/
 /* Timeout Handling                                                           */
 /*----------------------------------------------------------------------------*/
-VOID aisFsmRunEventBGSleepTimeOut(IN P_ADAPTER_T prAdapter, UINT_32 u4Param);
+VOID aisFsmRunEventBGSleepTimeOut(IN P_ADAPTER_T prAdapter, ULONG ulParamPtr);
 
-VOID aisFsmRunEventIbssAloneTimeOut(IN P_ADAPTER_T prAdapter, UINT_32 u4Param);
+VOID aisFsmRunEventIbssAloneTimeOut(IN P_ADAPTER_T prAdapter, ULONG ulParamPtr);
 
-VOID aisFsmRunEventJoinTimeout(IN P_ADAPTER_T prAdapter, UINT_32 u4Param);
+VOID aisFsmRunEventJoinTimeout(IN P_ADAPTER_T prAdapter, ULONG ulParamPtr);
 
-VOID aisFsmRunEventChannelTimeout(IN P_ADAPTER_T prAdapter, UINT_32 u4Param);
+VOID aisFsmRunEventChannelTimeout(IN P_ADAPTER_T prAdapter, ULONG ulParamPtr);
+
+VOID aisFsmRunEventDeauthTimeout(IN P_ADAPTER_T prAdapter, ULONG ulParamPtr);
 
 /*----------------------------------------------------------------------------*/
 /* OID/IOCTL Handling                                                         */
@@ -610,6 +620,7 @@ VOID aisFsmRunEventMgmtFrameTx(IN P_ADAPTER_T prAdapter, IN P_MSG_HDR_T prMsgHdr
 
 VOID aisFuncValidateRxActionFrame(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb);
 
+enum _ENUM_AIS_STATE_T aisFsmStateSearchAction(IN struct _ADAPTER_T *prAdapter, UINT_8 ucPhase);
 #if defined(CFG_TEST_MGMT_FSM) && (CFG_TEST_MGMT_FSM != 0)
 VOID aisTest(VOID);
 #endif				/* CFG_TEST_MGMT_FSM */

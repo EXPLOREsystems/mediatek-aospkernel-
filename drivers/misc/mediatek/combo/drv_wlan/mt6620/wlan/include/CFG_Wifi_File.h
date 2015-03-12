@@ -206,7 +206,7 @@ typedef struct _MT6620_CFG_PARAM_STRUCT {
 */
 #ifndef DATA_STRUC_INSPECTING_ASSERT
 #define DATA_STRUC_INSPECTING_ASSERT(expr) \
-        switch (0) {case 0: case (expr): default:; }
+	switch (0) {case 0: case (expr): default:; }
 #endif
 
 #define CFG_FILE_WIFI_REC_SIZE    sizeof(WIFI_CFG_PARAM_STRUCT)

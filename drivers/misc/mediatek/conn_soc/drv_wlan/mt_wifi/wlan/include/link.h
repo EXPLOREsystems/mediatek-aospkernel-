@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/link.h#1 $
 */
 
@@ -19,7 +33,7 @@
  * Modify a MACRO of LINK_FOR_EACH_SAFE for compile error.
  *
  * 07 19 2010 cm.chang
- * 
+ *
  * Set RLM parameters and enable CNM channel manager
  *
  * 07 08 2010 cp.wu
@@ -69,8 +83,8 @@
 *                              C O N S T A N T S
 ********************************************************************************
 */
-#define INVALID_LINK_POISON1    ((VOID *) 0x00100101) // May cause page fault & unalignment issue (data abort)
-#define INVALID_LINK_POISON2    ((VOID *) 0x00100201) // Used to verify that nonbody uses non-initialized link entries.
+#define INVALID_LINK_POISON1    ((VOID *) 0x00100101) /* May cause page fault & unalignment issue (data abort) */
+#define INVALID_LINK_POISON2    ((VOID *) 0x00100201) /* Used to verify that nonbody uses non-initialized link entries. */
 
 
 /*******************************************************************************
@@ -103,7 +117,7 @@ typedef struct _LINK_T {
 *                                 M A C R O S
 ********************************************************************************
 */
-#if 0 // No one use it, temporarily mark it for [Lint - Info 773]
+#if 0 /* No one use it, temporarily mark it for [Lint - Info 773] */
 #define LINK_ADDR(rLink)        { (P_LINK_ENTRY_T)(&(rLink)), (P_LINK_ENTRY_T)(&(rLink)), 0 }
 
 #define LINK_DECLARATION(rLink) \
@@ -112,21 +126,21 @@ typedef struct _LINK_T {
 
 #define LINK_INITIALIZE(prLink) \
     do { \
-        ((P_LINK_T)(prLink))->prNext = (P_LINK_ENTRY_T)(prLink); \
-        ((P_LINK_T)(prLink))->prPrev = (P_LINK_ENTRY_T)(prLink); \
-        ((P_LINK_T)(prLink))->u4NumElem = 0; \
+	((P_LINK_T)(prLink))->prNext = (P_LINK_ENTRY_T)(prLink); \
+	((P_LINK_T)(prLink))->prPrev = (P_LINK_ENTRY_T)(prLink); \
+	((P_LINK_T)(prLink))->u4NumElem = 0; \
     } while (0)
 
 #define LINK_ENTRY_INITIALIZE(prEntry) \
     do { \
-        ((P_LINK_ENTRY_T)(prEntry))->prNext = (P_LINK_ENTRY_T)NULL; \
-        ((P_LINK_ENTRY_T)(prEntry))->prPrev = (P_LINK_ENTRY_T)NULL; \
+	((P_LINK_ENTRY_T)(prEntry))->prNext = (P_LINK_ENTRY_T)NULL; \
+	((P_LINK_ENTRY_T)(prEntry))->prPrev = (P_LINK_ENTRY_T)NULL; \
     } while (0)
 
 #define LINK_ENTRY_INVALID(prEntry) \
     do { \
-        ((P_LINK_ENTRY_T)(prEntry))->prNext = (P_LINK_ENTRY_T)INVALID_LINK_POISON1; \
-        ((P_LINK_ENTRY_T)(prEntry))->prPrev = (P_LINK_ENTRY_T)INVALID_LINK_POISON2; \
+	((P_LINK_ENTRY_T)(prEntry))->prNext = (P_LINK_ENTRY_T)INVALID_LINK_POISON1; \
+	((P_LINK_ENTRY_T)(prEntry))->prPrev = (P_LINK_ENTRY_T)INVALID_LINK_POISON2; \
     } while (0)
 
 #define LINK_IS_EMPTY(prLink)           (((P_LINK_T)(prLink))->prNext == (P_LINK_ENTRY_T)(prLink))
@@ -143,32 +157,32 @@ typedef struct _LINK_T {
 
 /* Insert an entry into a link list's head */
 #define LINK_INSERT_HEAD(prLink, prEntry) \
-        { \
-            linkAdd(prEntry, prLink); \
-            ((prLink)->u4NumElem)++; \
-        }
+	{ \
+	    linkAdd(prEntry, prLink); \
+	    ((prLink)->u4NumElem)++; \
+	}
 
 
 /* Append an entry into a link list's tail */
 #define LINK_INSERT_TAIL(prLink, prEntry) \
-        { \
-            linkAddTail(prEntry, prLink); \
-            ((prLink)->u4NumElem)++; \
-        }
+	{ \
+	    linkAddTail(prEntry, prLink); \
+	    ((prLink)->u4NumElem)++; \
+	}
 
 /* Peek head entry, but keep still in link list */
 #define LINK_PEEK_HEAD(prLink, _type, _member) \
-        ( \
-            LINK_IS_EMPTY(prLink) ? \
-            NULL : LINK_ENTRY((prLink)->prNext, _type, _member) \
-        )
+	( \
+	    LINK_IS_EMPTY(prLink) ? \
+	    NULL : LINK_ENTRY((prLink)->prNext, _type, _member) \
+	)
 
 /* Peek tail entry, but keep still in link list */
 #define LINK_PEEK_TAIL(prLink, _type, _member) \
-        ( \
-            LINK_IS_EMPTY(prLink) ? \
-            NULL : LINK_ENTRY((prLink)->prPrev, _type, _member) \
-        )
+	( \
+	    LINK_IS_EMPTY(prLink) ? \
+	    NULL : LINK_ENTRY((prLink)->prPrev, _type, _member) \
+	)
 
 /* Get first entry from a link list */
 /* NOTE: We assume the link entry located at the beginning of "prEntry Type",
@@ -176,66 +190,66 @@ typedef struct _LINK_T {
  * And this macro also decrease the total entry count at the same time.
  */
 #define LINK_REMOVE_HEAD(prLink, prEntry, _P_TYPE) \
-        { \
-            ASSERT(prLink); \
-            if (LINK_IS_EMPTY(prLink)) { \
-                prEntry = (_P_TYPE)NULL; \
-            } \
-            else { \
-                prEntry = (_P_TYPE)(((P_LINK_T)(prLink))->prNext); \
-                linkDel((P_LINK_ENTRY_T)prEntry); \
-                ((prLink)->u4NumElem)--; \
-            } \
-        }
+	{ \
+	    ASSERT(prLink); \
+	    if (LINK_IS_EMPTY(prLink)) { \
+		prEntry = (_P_TYPE)NULL; \
+	    } \
+	    else { \
+		prEntry = (_P_TYPE)(((P_LINK_T)(prLink))->prNext); \
+		linkDel((P_LINK_ENTRY_T)prEntry); \
+		((prLink)->u4NumElem)--; \
+	    } \
+	}
 
 /* Assume the link entry located at the beginning of prEntry Type.
  * And also decrease the total entry count.
  */
 #define LINK_REMOVE_KNOWN_ENTRY(prLink, prEntry) \
-        { \
-            ASSERT(prLink); \
-            ASSERT(prEntry); \
-            linkDel((P_LINK_ENTRY_T)prEntry); \
-            ((prLink)->u4NumElem)--; \
-        }
+	{ \
+	    ASSERT(prLink); \
+	    ASSERT(prEntry); \
+	    linkDel((P_LINK_ENTRY_T)prEntry); \
+	    ((prLink)->u4NumElem)--; \
+	}
 
 /* Iterate over a link list */
 #define LINK_FOR_EACH(prEntry, prLink) \
     for (prEntry = (prLink)->prNext; \
-         prEntry != (P_LINK_ENTRY_T)(prLink); \
-         prEntry = (P_LINK_ENTRY_T)prEntry->prNext)
+	 prEntry != (P_LINK_ENTRY_T)(prLink); \
+	 prEntry = (P_LINK_ENTRY_T)prEntry->prNext)
 
 /* Iterate over a link list backwards */
 #define LINK_FOR_EACH_PREV(prEntry, prLink) \
     for (prEntry = (prLink)->prPrev; \
-         prEntry != (P_LINK_ENTRY_T)(prLink); \
-         prEntry = (P_LINK_ENTRY_T)prEntry->prPrev)
+	 prEntry != (P_LINK_ENTRY_T)(prLink); \
+	 prEntry = (P_LINK_ENTRY_T)prEntry->prPrev)
 
 /* Iterate over a link list safe against removal of link entry */
 #define LINK_FOR_EACH_SAFE(prEntry, prNextEntry, prLink) \
     for (prEntry = (prLink)->prNext, prNextEntry = prEntry->prNext; \
-         prEntry != (P_LINK_ENTRY_T)(prLink); \
-         prEntry = prNextEntry, prNextEntry = prEntry->prNext)
+	 prEntry != (P_LINK_ENTRY_T)(prLink); \
+	 prEntry = prNextEntry, prNextEntry = prEntry->prNext)
 
 /* Iterate over a link list of given type */
 #define LINK_FOR_EACH_ENTRY(prObj, prLink, rMember, _TYPE) \
     for (prObj = LINK_ENTRY((prLink)->prNext, _TYPE, rMember); \
-         &prObj->rMember != (P_LINK_ENTRY_T)(prLink); \
-         prObj = LINK_ENTRY(prObj->rMember.prNext, _TYPE, rMember))
+	 &prObj->rMember != (P_LINK_ENTRY_T)(prLink); \
+	 prObj = LINK_ENTRY(prObj->rMember.prNext, _TYPE, rMember))
 
 /* Iterate backwards over a link list of given type */
 #define LINK_FOR_EACH_ENTRY_PREV(prObj, prLink, rMember, _TYPE) \
     for (prObj = LINK_ENTRY((prLink)->prPrev, _TYPE, rMember);  \
-         &prObj->rMember != (P_LINK_ENTRY_T)(prLink); \
-         prObj = LINK_ENTRY(prObj->rMember.prPrev, _TYPE, rMember))
+	 &prObj->rMember != (P_LINK_ENTRY_T)(prLink); \
+	 prObj = LINK_ENTRY(prObj->rMember.prPrev, _TYPE, rMember))
 
 /* Iterate over a link list of given type safe against removal of link entry */
 #define LINK_FOR_EACH_ENTRY_SAFE(prObj, prNextObj, prLink, rMember, _TYPE) \
     for (prObj = LINK_ENTRY((prLink)->prNext, _TYPE, rMember),  \
-         prNextObj = LINK_ENTRY(prObj->rMember.prNext, _TYPE, rMember); \
-         &prObj->rMember != (P_LINK_ENTRY_T)(prLink); \
-         prObj = prNextObj, \
-         prNextObj = LINK_ENTRY(prNextObj->rMember.prNext, _TYPE, rMember))
+	 prNextObj = LINK_ENTRY(prObj->rMember.prNext, _TYPE, rMember); \
+	 &prObj->rMember != (P_LINK_ENTRY_T)(prLink); \
+	 prObj = prNextObj, \
+	 prNextObj = LINK_ENTRY(prNextObj->rMember.prNext, _TYPE, rMember))
 
 /*******************************************************************************
 *                  F U N C T I O N   D E C L A R A T I O N S
@@ -258,7 +272,7 @@ typedef struct _LINK_T {
 */
 /*----------------------------------------------------------------------------*/
 __KAL_INLINE__ VOID
-__linkAdd (
+__linkAdd(
     IN P_LINK_ENTRY_T prNew,
     IN P_LINK_ENTRY_T prPrev,
     IN P_LINK_ENTRY_T prNext
@@ -284,7 +298,7 @@ __linkAdd (
 */
 /*----------------------------------------------------------------------------*/
 __KAL_INLINE__ VOID
-linkAdd (
+linkAdd(
     IN P_LINK_ENTRY_T prNew,
     IN P_LINK_T prLink
     )
@@ -306,7 +320,7 @@ linkAdd (
 */
 /*----------------------------------------------------------------------------*/
 __KAL_INLINE__ VOID
-linkAddTail (
+linkAddTail(
     IN P_LINK_ENTRY_T prNew,
     IN P_LINK_T prLink
     )
@@ -328,7 +342,7 @@ linkAddTail (
 */
 /*----------------------------------------------------------------------------*/
 __KAL_INLINE__ VOID
-__linkDel (
+__linkDel(
     IN P_LINK_ENTRY_T prPrev,
     IN P_LINK_ENTRY_T prNext
     )
@@ -351,7 +365,7 @@ __linkDel (
 */
 /*----------------------------------------------------------------------------*/
 __KAL_INLINE__ VOID
-linkDel (
+linkDel(
     IN P_LINK_ENTRY_T prEntry
     )
 {
@@ -375,7 +389,7 @@ linkDel (
 */
 /*----------------------------------------------------------------------------*/
 __KAL_INLINE__ VOID
-linkMove (
+linkMove(
     IN P_LINK_ENTRY_T prEntry,
     IN P_LINK_T prLink
     )
@@ -399,7 +413,7 @@ linkMove (
 */
 /*----------------------------------------------------------------------------*/
 __KAL_INLINE__ VOID
-linkMoveTail (
+linkMoveTail(
     IN P_LINK_ENTRY_T prEntry,
     IN P_LINK_T prLink
     )
@@ -411,4 +425,3 @@ linkMoveTail (
 } /* end of linkMoveTail() */
 
 #endif /* _LINK_H */
-

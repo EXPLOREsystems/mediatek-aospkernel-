@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/mgmt/privacy.c#1 $
 */
 
@@ -277,7 +291,7 @@
 */
 /*----------------------------------------------------------------------------*/
 VOID
-secInit (
+secInit(
     IN P_ADAPTER_T          prAdapter,
     IN UINT_8               ucNetTypeIdx
     )
@@ -316,65 +330,65 @@ secInit (
 #endif
 
     prAdapter->rMib.dot11RSNAConfigPairwiseCiphersTable[0].dot11RSNAConfigPairwiseCipher =
-            WPA_CIPHER_SUITE_WEP40;
+	    WPA_CIPHER_SUITE_WEP40;
     prAdapter->rMib.dot11RSNAConfigPairwiseCiphersTable[1].dot11RSNAConfigPairwiseCipher =
-            WPA_CIPHER_SUITE_TKIP;
+	    WPA_CIPHER_SUITE_TKIP;
     prAdapter->rMib.dot11RSNAConfigPairwiseCiphersTable[2].dot11RSNAConfigPairwiseCipher =
-            WPA_CIPHER_SUITE_CCMP;
+	    WPA_CIPHER_SUITE_CCMP;
     prAdapter->rMib.dot11RSNAConfigPairwiseCiphersTable[3].dot11RSNAConfigPairwiseCipher =
-            WPA_CIPHER_SUITE_WEP104;
+	    WPA_CIPHER_SUITE_WEP104;
 
     prAdapter->rMib.dot11RSNAConfigPairwiseCiphersTable[4].dot11RSNAConfigPairwiseCipher =
-            RSN_CIPHER_SUITE_WEP40;
+	    RSN_CIPHER_SUITE_WEP40;
     prAdapter->rMib.dot11RSNAConfigPairwiseCiphersTable[5].dot11RSNAConfigPairwiseCipher =
-            RSN_CIPHER_SUITE_TKIP;
+	    RSN_CIPHER_SUITE_TKIP;
     prAdapter->rMib.dot11RSNAConfigPairwiseCiphersTable[6].dot11RSNAConfigPairwiseCipher =
-            RSN_CIPHER_SUITE_CCMP;
+	    RSN_CIPHER_SUITE_CCMP;
     prAdapter->rMib.dot11RSNAConfigPairwiseCiphersTable[7].dot11RSNAConfigPairwiseCipher =
-            RSN_CIPHER_SUITE_WEP104;
+	    RSN_CIPHER_SUITE_WEP104;
 
-    for (i = 0; i < MAX_NUM_SUPPORTED_CIPHER_SUITES; i ++) {
-        prAdapter->rMib.dot11RSNAConfigPairwiseCiphersTable[i].dot11RSNAConfigPairwiseCipherEnabled =
-            FALSE;
+    for (i = 0; i < MAX_NUM_SUPPORTED_CIPHER_SUITES; i++) {
+	prAdapter->rMib.dot11RSNAConfigPairwiseCiphersTable[i].dot11RSNAConfigPairwiseCipherEnabled =
+	    FALSE;
     }
 
     prAdapter->rMib.dot11RSNAConfigAuthenticationSuitesTable[0].dot11RSNAConfigAuthenticationSuite =
-            WPA_AKM_SUITE_NONE;
+	    WPA_AKM_SUITE_NONE;
     prAdapter->rMib.dot11RSNAConfigAuthenticationSuitesTable[1].dot11RSNAConfigAuthenticationSuite =
-            WPA_AKM_SUITE_802_1X;
+	    WPA_AKM_SUITE_802_1X;
     prAdapter->rMib.dot11RSNAConfigAuthenticationSuitesTable[2].dot11RSNAConfigAuthenticationSuite =
-            WPA_AKM_SUITE_PSK;
+	    WPA_AKM_SUITE_PSK;
     prAdapter->rMib.dot11RSNAConfigAuthenticationSuitesTable[3].dot11RSNAConfigAuthenticationSuite =
-            RSN_AKM_SUITE_NONE;
+	    RSN_AKM_SUITE_NONE;
     prAdapter->rMib.dot11RSNAConfigAuthenticationSuitesTable[4].dot11RSNAConfigAuthenticationSuite =
-            RSN_AKM_SUITE_802_1X;
+	    RSN_AKM_SUITE_802_1X;
     prAdapter->rMib.dot11RSNAConfigAuthenticationSuitesTable[5].dot11RSNAConfigAuthenticationSuite =
-            RSN_AKM_SUITE_PSK;
+	    RSN_AKM_SUITE_PSK;
 
 #if CFG_SUPPORT_802_11W
     prAdapter->rMib.dot11RSNAConfigAuthenticationSuitesTable[6].dot11RSNAConfigAuthenticationSuite =
-	    	RSN_AKM_SUITE_802_1X_SHA256;
+		RSN_AKM_SUITE_802_1X_SHA256;
     prAdapter->rMib.dot11RSNAConfigAuthenticationSuitesTable[7].dot11RSNAConfigAuthenticationSuite =
-	    	RSN_AKM_SUITE_PSK_SHA256;
+		RSN_AKM_SUITE_PSK_SHA256;
 #endif
 
-    for (i = 0; i < MAX_NUM_SUPPORTED_AKM_SUITES; i ++) {
-        prAdapter->rMib.dot11RSNAConfigAuthenticationSuitesTable[i].dot11RSNAConfigAuthenticationSuiteEnabled =
-            FALSE;
+    for (i = 0; i < MAX_NUM_SUPPORTED_AKM_SUITES; i++) {
+	prAdapter->rMib.dot11RSNAConfigAuthenticationSuitesTable[i].dot11RSNAConfigAuthenticationSuiteEnabled =
+	    FALSE;
     }
 
     secClearPmkid(prAdapter);
 
     cnmTimerInitTimer(prAdapter,
-                   &prAisSpecBssInfo->rPreauthenticationTimer,
-                   (PFN_MGMT_TIMEOUT_FUNC)rsnIndicatePmkidCand,
-                   (UINT_32)NULL);
+		   &prAisSpecBssInfo->rPreauthenticationTimer,
+		   (PFN_MGMT_TIMEOUT_FUNC)rsnIndicatePmkidCand,
+		   (UINT_32)NULL);
 
 #if CFG_SUPPORT_802_11W
     cnmTimerInitTimer(prAdapter,
-                   &prAisSpecBssInfo->rSaQueryTimer,
-                   (PFN_MGMT_TIMEOUT_FUNC)rsnStartSaQueryTimer,
-                   (UINT_32)NULL);
+		   &prAisSpecBssInfo->rSaQueryTimer,
+		   (PFN_MGMT_TIMEOUT_FUNC)rsnStartSaQueryTimer,
+		   (UINT_32)NULL);
 #endif
 
     prAisSpecBssInfo->fgCounterMeasure = FALSE;
@@ -382,10 +396,10 @@ secInit (
 
 
     #if 0
-    for (i=0;i<WTBL_SIZE;i++) {
-        g_prWifiVar->arWtbl[i].fgUsed = FALSE;
-        g_prWifiVar->arWtbl[i].prSta = NULL;
-        g_prWifiVar->arWtbl[i].ucNetTypeIdx =  NETWORK_TYPE_INDEX_NUM;
+    for (i = 0; i < WTBL_SIZE; i++) {
+	g_prWifiVar->arWtbl[i].fgUsed = FALSE;
+	g_prWifiVar->arWtbl[i].prSta = NULL;
+	g_prWifiVar->arWtbl[i].ucNetTypeIdx =  NETWORK_TYPE_INDEX_NUM;
 
     }
     nicPrivacyInitialize((UINT_8)NETWORK_TYPE_INDEX_NUM);
@@ -405,7 +419,7 @@ secInit (
 */
 /*----------------------------------------------------------------------------*/
 BOOL
-secCheckClassError (
+secCheckClassError(
     IN P_ADAPTER_T          prAdapter,
     IN P_SW_RFB_T           prSwRfb,
     IN P_STA_RECORD_T       prStaRec
@@ -413,49 +427,49 @@ secCheckClassError (
 {
     ASSERT(prAdapter);
     ASSERT(prSwRfb);
-    //ASSERT(prStaRec);
+    /* ASSERT(prStaRec); */
 
-    //prStaRec = &(g_arStaRec[prSwRfb->ucStaRecIdx]);
+    /* prStaRec = &(g_arStaRec[prSwRfb->ucStaRecIdx]); */
 
     if ((prStaRec) && 1 /* RXM_IS_DATA_FRAME(prSwRfb) */) {
-        ENUM_NETWORK_TYPE_INDEX_T eNetTypeIndex = prStaRec->ucNetTypeIndex;
+	ENUM_NETWORK_TYPE_INDEX_T eNetTypeIndex = prStaRec->ucNetTypeIndex;
 
-        if (IS_NET_ACTIVE(prAdapter, eNetTypeIndex)) {
-        	  P_BSS_INFO_T prBssInfo;
-        	  prBssInfo = &prAdapter->rWifiVar.arBssInfo[eNetTypeIndex];            
+	if (IS_NET_ACTIVE(prAdapter, eNetTypeIndex)) {
+		  P_BSS_INFO_T prBssInfo;
+		  prBssInfo = &prAdapter->rWifiVar.arBssInfo[eNetTypeIndex];
 
-            if ((STA_STATE_3 != prStaRec->ucStaState) &&
-            	   IS_BSS_ACTIVE(prBssInfo) && 
-            	   prBssInfo->fgIsNetAbsent == FALSE) {
-                /*(IS_AP_STA(prStaRec) || IS_CLIENT_STA(prStaRec))) {*/                
+	    if ((STA_STATE_3 != prStaRec->ucStaState) &&
+		   IS_BSS_ACTIVE(prBssInfo) &&
+		   prBssInfo->fgIsNetAbsent == FALSE) {
+		/*(IS_AP_STA(prStaRec) || IS_CLIENT_STA(prStaRec))) {*/
 
 #if 0 /* by scott's suggestions, do not put work-around in JB2, we need to find the root cause */
 				/* work-around for CR ALPS00816361 */
 				if (eNetTypeIndex == NETWORK_TYPE_P2P_INDEX)
 				{
-                    DBGLOG(RSN, INFO, ("p2p> skip to send Deauth to MAC:["MACSTR"] for Rx Class 3.\n",
-                                      MAC2STR(prStaRec->aucMacAddr)));
+		    DBGLOG(RSN, INFO, ("p2p> skip to send Deauth to MAC:["MACSTR"] for Rx Class 3.\n",
+				      MAC2STR(prStaRec->aucMacAddr)));
 					return TRUE;
 				}
 #endif
-				
-                if (WLAN_STATUS_SUCCESS == authSendDeauthFrame(prAdapter,
-                                                               prStaRec,
-                                                               NULL,
-                                                               REASON_CODE_CLASS_3_ERR,
-                                                               (PFN_TX_DONE_HANDLER)NULL)) {
 
-                    DBGLOG(RSN, INFO, ("Send Deauth to MAC:["MACSTR"] for Rx Class 3 Error.\n",
-                                      MAC2STR(prStaRec->aucMacAddr)));
-                }
+		if (WLAN_STATUS_SUCCESS == authSendDeauthFrame(prAdapter,
+							       prStaRec,
+							       NULL,
+							       REASON_CODE_CLASS_3_ERR,
+							       (PFN_TX_DONE_HANDLER)NULL)) {
+
+		    DBGLOG(RSN, INFO, ("Send Deauth to MAC:["MACSTR"] for Rx Class 3 Error.\n",
+				      MAC2STR(prStaRec->aucMacAddr)));
+		}
 
 				DBGLOG(RSN, INFO, ("Host sends Deauth to MAC:["MACSTR"] for Rx Class 3 OK.\n",
 								  MAC2STR(prStaRec->aucMacAddr)));
-                return FALSE;
-            }
+		return FALSE;
+	    }
 
-            return secRxPortControlCheck(prAdapter, prSwRfb);
-        }
+	    return secRxPortControlCheck(prAdapter, prSwRfb);
+	}
     }
 
     return FALSE;
@@ -475,18 +489,18 @@ secCheckClassError (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-secSetPortBlocked (
+secSetPortBlocked(
     IN P_ADAPTER_T          prAdapter,
     IN P_STA_RECORD_T       prSta,
     IN BOOLEAN              fgPortBlock
    )
 {
     if (prSta == NULL)
-        return ;
+	return;
 
     prSta->fgPortBlock = fgPortBlock;
 
-    DBGLOG(RSN, TRACE, ("The STA "MACSTR" port %s\n", MAC2STR(prSta->aucMacAddr), fgPortBlock == TRUE ? "BLOCK" :" OPEN"));
+    DBGLOG(RSN, TRACE, ("The STA "MACSTR" port %s\n", MAC2STR(prSta->aucMacAddr), fgPortBlock == TRUE ? "BLOCK" : " OPEN"));
 }
 
 
@@ -503,14 +517,14 @@ secSetPortBlocked (
 */
 /*----------------------------------------------------------------------------*/
 BOOLEAN
-secGetPortStatus (
+secGetPortStatus(
     IN P_ADAPTER_T          prAdapter,
     IN P_STA_RECORD_T       prSta,
     OUT PBOOLEAN            pfgPortStatus
    )
 {
     if (prSta == NULL)
-        return FALSE;
+	return FALSE;
 
     *pfgPortStatus = prSta->fgPortBlock;
 
@@ -542,27 +556,27 @@ secTxPortControlCheck(
 
     if (prStaRec) {
 
-        /* Todo:: */
-        if (prMsduInfo->fgIs802_1x)
-            return TRUE;
+	/* Todo:: */
+	if (prMsduInfo->fgIs802_1x)
+	    return TRUE;
 
-        if (prStaRec->fgPortBlock == TRUE) {
-            DBGLOG(INIT, TRACE, ("Drop Tx packet due Port Control!\n"));
-            return FALSE;
-        }
+	if (prStaRec->fgPortBlock == TRUE) {
+	    DBGLOG(INIT, TRACE, ("Drop Tx packet due Port Control!\n"));
+	    return FALSE;
+	}
 
 #if CFG_SUPPORT_WAPI
-        if (prAdapter->rWifiVar.rConnSettings.fgWapiMode) {
-            return TRUE;
-        }
+	if (prAdapter->rWifiVar.rConnSettings.fgWapiMode) {
+	    return TRUE;
+	}
 #endif
-        if (IS_STA_IN_AIS(prStaRec)) {
-            if (!prAdapter->rWifiVar.rAisSpecificBssInfo.fgTransmitKeyExist &&
-                (prAdapter->rWifiVar.rConnSettings.eEncStatus == ENUM_ENCRYPTION1_ENABLED)){
-                DBGLOG(INIT, TRACE, ("Drop Tx packet due the key is removed!!!\n"));
-                return FALSE;
-            }
-        }
+	if (IS_STA_IN_AIS(prStaRec)) {
+	    if (!prAdapter->rWifiVar.rAisSpecificBssInfo.fgTransmitKeyExist &&
+		(prAdapter->rWifiVar.rConnSettings.eEncStatus == ENUM_ENCRYPTION1_ENABLED)) {
+		DBGLOG(INIT, TRACE, ("Drop Tx packet due the key is removed!!!\n"));
+		return FALSE;
+	    }
+	}
     }
 
     return TRUE;
@@ -581,7 +595,7 @@ secTxPortControlCheck(
 */
 /*----------------------------------------------------------------------------*/
 BOOLEAN
-secRxPortControlCheck (
+secRxPortControlCheck(
     IN P_ADAPTER_T          prAdapter,
     IN P_SW_RFB_T           prSWRfb
     )
@@ -591,17 +605,17 @@ secRxPortControlCheck (
 #if 0
     /* whsu:Todo: Process MGMT and DATA */
     if (prSWRfb->prStaRec) {
-        if (prSWRfb->prStaRec->fgPortBlock == TRUE) {
-            if (1 /* prSWRfb->fgIsDataFrame and not 1x*/ &&
-                (g_prWifiVar->rConnSettings.eAuthMode >= AUTH_MODE_WPA)){
-                //DBGLOG(SEC, WARN, ("Drop Rx data due port control !\r\n"));
-                return TRUE; /* Todo: whsu FALSE; */
-            }
-            //if (!RX_STATUS_IS_PROTECT(prSWRfb->prRxStatus)) {
-            //  DBGLOG(RSN, WARN, ("Drop rcv non-encrypted data frame!\n"));
-            //  return FALSE;
-            //}
-        }
+	if (prSWRfb->prStaRec->fgPortBlock == TRUE) {
+	    if (1 /* prSWRfb->fgIsDataFrame and not 1x*/ &&
+		(g_prWifiVar->rConnSettings.eAuthMode >= AUTH_MODE_WPA)) {
+		/* DBGLOG(SEC, WARN, ("Drop Rx data due port control !\r\n")); */
+		return TRUE; /* Todo: whsu FALSE; */
+	    }
+	    /* if (!RX_STATUS_IS_PROTECT(prSWRfb->prRxStatus)) { */
+	    /* DBGLOG(RSN, WARN, ("Drop rcv non-encrypted data frame!\n")); */
+	    /* return FALSE; */
+	    /* } */
+	}
     }
     else {
     }
@@ -620,7 +634,7 @@ secRxPortControlCheck (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-secSetCipherSuite (
+secSetCipherSuite(
     IN P_ADAPTER_T prAdapter,
     IN UINT_32     u4CipherSuitesFlags
     )
@@ -636,81 +650,81 @@ secSetCipherSuite (
     ASSERT(prMib);
 
     if (u4CipherSuitesFlags == CIPHER_FLAG_NONE) {
-        /* Disable all the pairwise cipher suites. */
-        for (i = 0; i < MAX_NUM_SUPPORTED_CIPHER_SUITES; i++) {
-            prMib->dot11RSNAConfigPairwiseCiphersTable[i].dot11RSNAConfigPairwiseCipherEnabled =
-                FALSE;
-        }
+	/* Disable all the pairwise cipher suites. */
+	for (i = 0; i < MAX_NUM_SUPPORTED_CIPHER_SUITES; i++) {
+	    prMib->dot11RSNAConfigPairwiseCiphersTable[i].dot11RSNAConfigPairwiseCipherEnabled =
+		FALSE;
+	}
 
-        /* Update the group cipher suite. */
-        prMib->dot11RSNAConfigGroupCipher = WPA_CIPHER_SUITE_NONE;
+	/* Update the group cipher suite. */
+	prMib->dot11RSNAConfigGroupCipher = WPA_CIPHER_SUITE_NONE;
 
-        return;
+	return;
     }
 
     for (i = 0; i < MAX_NUM_SUPPORTED_CIPHER_SUITES; i++) {
-        prEntry = &prMib->dot11RSNAConfigPairwiseCiphersTable[i];
+	prEntry = &prMib->dot11RSNAConfigPairwiseCiphersTable[i];
 
-        switch (prEntry->dot11RSNAConfigPairwiseCipher) {
-            case WPA_CIPHER_SUITE_WEP40:
-            case RSN_CIPHER_SUITE_WEP40:
-                 if (u4CipherSuitesFlags & CIPHER_FLAG_WEP40) {
-                     prEntry->dot11RSNAConfigPairwiseCipherEnabled = TRUE;
-                 }
-                 else {
-                     prEntry->dot11RSNAConfigPairwiseCipherEnabled = FALSE;
-                 }
-                 break;
+	switch (prEntry->dot11RSNAConfigPairwiseCipher) {
+	    case WPA_CIPHER_SUITE_WEP40:
+	    case RSN_CIPHER_SUITE_WEP40:
+		 if (u4CipherSuitesFlags & CIPHER_FLAG_WEP40) {
+		     prEntry->dot11RSNAConfigPairwiseCipherEnabled = TRUE;
+		 }
+		 else {
+		     prEntry->dot11RSNAConfigPairwiseCipherEnabled = FALSE;
+		 }
+		 break;
 
-            case WPA_CIPHER_SUITE_TKIP:
-            case RSN_CIPHER_SUITE_TKIP:
-                 if (u4CipherSuitesFlags & CIPHER_FLAG_TKIP) {
-                     prEntry->dot11RSNAConfigPairwiseCipherEnabled = TRUE;
-                 }
-                 else {
-                     prEntry->dot11RSNAConfigPairwiseCipherEnabled = FALSE;
-                 }
-                 break;
+	    case WPA_CIPHER_SUITE_TKIP:
+	    case RSN_CIPHER_SUITE_TKIP:
+		 if (u4CipherSuitesFlags & CIPHER_FLAG_TKIP) {
+		     prEntry->dot11RSNAConfigPairwiseCipherEnabled = TRUE;
+		 }
+		 else {
+		     prEntry->dot11RSNAConfigPairwiseCipherEnabled = FALSE;
+		 }
+		 break;
 
-            case WPA_CIPHER_SUITE_CCMP:
-            case RSN_CIPHER_SUITE_CCMP:
-                 if (u4CipherSuitesFlags & CIPHER_FLAG_CCMP) {
-                     prEntry->dot11RSNAConfigPairwiseCipherEnabled = TRUE;
-                 }
-                 else {
-                     prEntry->dot11RSNAConfigPairwiseCipherEnabled = FALSE;
-                 }
-                 break;
+	    case WPA_CIPHER_SUITE_CCMP:
+	    case RSN_CIPHER_SUITE_CCMP:
+		 if (u4CipherSuitesFlags & CIPHER_FLAG_CCMP) {
+		     prEntry->dot11RSNAConfigPairwiseCipherEnabled = TRUE;
+		 }
+		 else {
+		     prEntry->dot11RSNAConfigPairwiseCipherEnabled = FALSE;
+		 }
+		 break;
 
-            case WPA_CIPHER_SUITE_WEP104:
-            case RSN_CIPHER_SUITE_WEP104:
-                 if (u4CipherSuitesFlags & CIPHER_FLAG_WEP104) {
-                     prEntry->dot11RSNAConfigPairwiseCipherEnabled = TRUE;
-                 }
-                 else {
-                     prEntry->dot11RSNAConfigPairwiseCipherEnabled = FALSE;
-                 }
-                 break;
-            default:
-                 break;
-        }
+	    case WPA_CIPHER_SUITE_WEP104:
+	    case RSN_CIPHER_SUITE_WEP104:
+		 if (u4CipherSuitesFlags & CIPHER_FLAG_WEP104) {
+		     prEntry->dot11RSNAConfigPairwiseCipherEnabled = TRUE;
+		 }
+		 else {
+		     prEntry->dot11RSNAConfigPairwiseCipherEnabled = FALSE;
+		 }
+		 break;
+	    default:
+		 break;
+	}
     }
 
     /* Update the group cipher suite. */
     if (rsnSearchSupportedCipher(prAdapter, WPA_CIPHER_SUITE_CCMP, &i)) {
-        prMib->dot11RSNAConfigGroupCipher = WPA_CIPHER_SUITE_CCMP;
+	prMib->dot11RSNAConfigGroupCipher = WPA_CIPHER_SUITE_CCMP;
     }
     else if (rsnSearchSupportedCipher(prAdapter, WPA_CIPHER_SUITE_TKIP, &i)) {
-        prMib->dot11RSNAConfigGroupCipher = WPA_CIPHER_SUITE_TKIP;
+	prMib->dot11RSNAConfigGroupCipher = WPA_CIPHER_SUITE_TKIP;
     }
     else if (rsnSearchSupportedCipher(prAdapter, WPA_CIPHER_SUITE_WEP104, &i)) {
-        prMib->dot11RSNAConfigGroupCipher = WPA_CIPHER_SUITE_WEP104;
+	prMib->dot11RSNAConfigGroupCipher = WPA_CIPHER_SUITE_WEP104;
     }
     else if (rsnSearchSupportedCipher(prAdapter, WPA_CIPHER_SUITE_WEP40, &i)) {
-        prMib->dot11RSNAConfigGroupCipher = WPA_CIPHER_SUITE_WEP40;
+	prMib->dot11RSNAConfigGroupCipher = WPA_CIPHER_SUITE_WEP40;
     }
     else {
-        prMib->dot11RSNAConfigGroupCipher = WPA_CIPHER_SUITE_NONE;
+	prMib->dot11RSNAConfigGroupCipher = WPA_CIPHER_SUITE_NONE;
     }
 
 }   /* secSetCipherSuite */
@@ -731,7 +745,7 @@ secSetCipherSuite (
 */
 /*----------------------------------------------------------------------------*/
 BOOL
-secProcessEAPOL (
+secProcessEAPOL(
     IN P_ADAPTER_T          prAdapter,
     IN P_MSDU_INFO_T        prMsduInfo,
     IN P_STA_RECORD_T       prStaRec,
@@ -746,25 +760,25 @@ secProcessEAPOL (
     ASSERT(prMsduInfo);
     ASSERT(prStaRec);
 
-    //prStaRec = &(g_arStaRec[prMsduInfo->ucStaRecIndex]);
+    /* prStaRec = &(g_arStaRec[prMsduInfo->ucStaRecIndex]); */
     ASSERT(prStaRec);
 
     if (prStaRec && IS_AP_STA(prStaRec)) {
-        pr1xHdr = (P_IEEE_802_1X_HDR)pucPayload;
-        if ((pr1xHdr->ucType == 3) /* EAPoL key */ && ((u2PayloadLen - 4) > sizeof(EAPOL_KEY))) {
-            prEapol = (P_EAPOL_KEY)((PUINT_32)(pucPayload + 4));
-            WLAN_GET_FIELD_BE16(prEapol->aucKeyInfo, &u2KeyInfo);
-            if ((prEapol->ucType == 254) && (u2KeyInfo & MASK_2ND_EAPOL)) {
-                if (u2KeyInfo & WPA_KEY_INFO_SECURE) {
-                    /* 4th EAPoL check at secHandleTxDoneCallback() */
-                    //DBGLOG(RSN, TRACE, ("Tx 4th EAPoL frame\r\n"));
-                }
-                else if (u2PayloadLen == 123 /* Not include LLC */) {
-                    DBGLOG(RSN, INFO, ("Tx 2nd EAPoL frame\r\n"));
-                    secFsmEvent2ndEapolTx(prAdapter, prStaRec);
-                }
-            }
-        }
+	pr1xHdr = (P_IEEE_802_1X_HDR)pucPayload;
+	if ((pr1xHdr->ucType == 3) /* EAPoL key */ && ((u2PayloadLen - 4) > sizeof(EAPOL_KEY))) {
+	    prEapol = (P_EAPOL_KEY)((PUINT_32)(pucPayload + 4));
+	    WLAN_GET_FIELD_BE16(prEapol->aucKeyInfo, &u2KeyInfo);
+	    if ((prEapol->ucType == 254) && (u2KeyInfo & MASK_2ND_EAPOL)) {
+		if (u2KeyInfo & WPA_KEY_INFO_SECURE) {
+		    /* 4th EAPoL check at secHandleTxDoneCallback() */
+		    /* DBGLOG(RSN, TRACE, ("Tx 4th EAPoL frame\r\n")); */
+		}
+		else if (u2PayloadLen == 123 /* Not include LLC */) {
+		    DBGLOG(RSN, INFO, ("Tx 2nd EAPoL frame\r\n"));
+		    secFsmEvent2ndEapolTx(prAdapter, prStaRec);
+		}
+	    }
+	}
     }
 
     return TRUE;
@@ -799,12 +813,12 @@ secHandleTxDoneCallback(
     DEBUGFUNC("secHandleTxDoneCallback");
 
     ASSERT(prMsduInfo);
-    //Todo:: Notice if using the TX free immediate after send to firmware, the payload may not correcttly!!!!
+    /* Todo:: Notice if using the TX free immediate after send to firmware, the payload may not correcttly!!!! */
 
     ASSERT(prStaRec);
 
-    //Todo:: This call back may not need because the order of set key and send 4th 1x can be make sure
-    //Todo:: Notice the LLC offset
+    /* Todo:: This call back may not need because the order of set key and send 4th 1x can be make sure */
+    /* Todo:: Notice the LLC offset */
     #if 1
     pucPayload = (PUINT_8)prMsduInfo->prPacket;
     ASSERT(pucPayload);
@@ -813,23 +827,23 @@ secHandleTxDoneCallback(
 
     if (0 /* prMsduInfo->fgIs1xFrame */) {
 
-        if (prStaRec && IS_AP_STA(prStaRec)) {
-            pr1xHdr = (P_IEEE_802_1X_HDR)(PUINT_32)(pucPayload + 8);
-            if ((pr1xHdr->ucType == 3) /* EAPoL key */ && ((u2PayloadLen - 4) > sizeof(EAPOL_KEY))) {
-                prEapol = (P_EAPOL_KEY)(PUINT_32)(pucPayload + 12);
-                WLAN_GET_FIELD_BE16(prEapol->aucKeyInfo, &u2KeyInfo);
-                if ((prEapol->ucType == 254) && (u2KeyInfo & MASK_2ND_EAPOL)) {
-                    if (prStaRec->rSecInfo.fg2nd1xSend == TRUE && u2PayloadLen == 107 /* include LLC *//* u2KeyInfo & WPA_KEY_INFO_SECURE */) {
-                        DBGLOG(RSN, INFO, ("Tx 4th EAPoL frame\r\n"));
-                        secFsmEvent4ndEapolTxDone(prAdapter, prStaRec);
-                    }
-                    else if (prAdapter->rWifiVar.rAisSpecificBssInfo.fgCheckEAPoLTxDone){
-                        DBGLOG(RSN, INFO, ("Tx EAPoL Error report frame\r\n"));
-                        //secFsmEventEapolTxDone(prAdapter, (UINT_32)prMsduInfo->prStaRec);
-                    }
-                }
-            }
-        }
+	if (prStaRec && IS_AP_STA(prStaRec)) {
+	    pr1xHdr = (P_IEEE_802_1X_HDR)(PUINT_32)(pucPayload + 8);
+	    if ((pr1xHdr->ucType == 3) /* EAPoL key */ && ((u2PayloadLen - 4) > sizeof(EAPOL_KEY))) {
+		prEapol = (P_EAPOL_KEY)(PUINT_32)(pucPayload + 12);
+		WLAN_GET_FIELD_BE16(prEapol->aucKeyInfo, &u2KeyInfo);
+		if ((prEapol->ucType == 254) && (u2KeyInfo & MASK_2ND_EAPOL)) {
+		    if (prStaRec->rSecInfo.fg2nd1xSend == TRUE && u2PayloadLen == 107 /* include LLC *//* u2KeyInfo & WPA_KEY_INFO_SECURE */) {
+			DBGLOG(RSN, INFO, ("Tx 4th EAPoL frame\r\n"));
+			secFsmEvent4ndEapolTxDone(prAdapter, prStaRec);
+		    }
+		    else if (prAdapter->rWifiVar.rAisSpecificBssInfo.fgCheckEAPoLTxDone) {
+			DBGLOG(RSN, INFO, ("Tx EAPoL Error report frame\r\n"));
+			/* secFsmEventEapolTxDone(prAdapter, (UINT_32)prMsduInfo->prStaRec); */
+		    }
+		}
+	    }
+	}
 
     }
     #endif
@@ -845,7 +859,7 @@ secHandleTxDoneCallback(
 */
 /*----------------------------------------------------------------------------*/
 VOID
-secClearPmkid (
+secClearPmkid(
     IN P_ADAPTER_T          prAdapter
     )
 {
@@ -872,7 +886,7 @@ secClearPmkid (
 */
 /*----------------------------------------------------------------------------*/
 BOOLEAN
-secRsnKeyHandshakeEnabled (
+secRsnKeyHandshakeEnabled(
     IN P_ADAPTER_T          prAdapter
     )
 {
@@ -887,13 +901,13 @@ secRsnKeyHandshakeEnabled (
     ASSERT(prConnSettings->eEncStatus < ENUM_ENCRYPTION3_KEY_ABSENT);
 
     if (prConnSettings->eEncStatus == ENUM_ENCRYPTION_DISABLED) {
-        return FALSE;
+	return FALSE;
     }
 
     ASSERT(prConnSettings->eAuthMode < AUTH_MODE_NUM);
     if ((prConnSettings->eAuthMode >= AUTH_MODE_WPA) &&
-        (prConnSettings->eAuthMode != AUTH_MODE_WPA_NONE)) {
-        return TRUE;
+	(prConnSettings->eAuthMode != AUTH_MODE_WPA_NONE)) {
+	return TRUE;
     }
 
     return FALSE;
@@ -914,18 +928,18 @@ secRsnKeyHandshakeEnabled (
 */
 /*----------------------------------------------------------------------------*/
 BOOLEAN
-secTransmitKeyExist (
+secTransmitKeyExist(
     IN P_ADAPTER_T          prAdapter,
     IN P_STA_RECORD_T       prSta
     )
 {
     ASSERT(prSta);
 
-    if (prSta->fgTransmitKeyExist){
-        return TRUE;
+    if (prSta->fgTransmitKeyExist) {
+	return TRUE;
     }
     else {
-        return FALSE;
+	return FALSE;
     }
 } /* secTransmitKeyExist */
 
@@ -940,7 +954,7 @@ secTransmitKeyExist (
 */
 /*----------------------------------------------------------------------------*/
 BOOLEAN
-secEnabledInAis (
+secEnabledInAis(
     IN P_ADAPTER_T          prAdapter
     )
 {
@@ -949,16 +963,16 @@ secEnabledInAis (
     ASSERT(prAdapter->rWifiVar.rConnSettings.eEncStatus < ENUM_ENCRYPTION3_KEY_ABSENT);
 
     switch (prAdapter->rWifiVar.rConnSettings.eEncStatus) {
-        case ENUM_ENCRYPTION_DISABLED:
-            return FALSE;
-        case ENUM_ENCRYPTION1_ENABLED:
-        case ENUM_ENCRYPTION2_ENABLED:
-        case ENUM_ENCRYPTION3_ENABLED:
-            return TRUE;
-        default:
-            DBGLOG(RSN, TRACE, ("Unknown encryption setting %d\n",
-                prAdapter->rWifiVar.rConnSettings.eEncStatus));
-            break;
+	case ENUM_ENCRYPTION_DISABLED:
+	    return FALSE;
+	case ENUM_ENCRYPTION1_ENABLED:
+	case ENUM_ENCRYPTION2_ENABLED:
+	case ENUM_ENCRYPTION3_ENABLED:
+	    return TRUE;
+	default:
+	    DBGLOG(RSN, TRACE, ("Unknown encryption setting %d\n",
+		prAdapter->rWifiVar.rConnSettings.eEncStatus));
+	    break;
     }
     return FALSE;
 } /* secEnabled */
@@ -976,7 +990,7 @@ secEnabledInAis (
 */
 /*----------------------------------------------------------------------------*/
 BOOLEAN
-secIsProtectedFrame (
+secIsProtectedFrame(
     IN P_ADAPTER_T          prAdapter,
     IN P_MSDU_INFO_T        prMsdu,
     IN P_STA_RECORD_T       prStaRec
@@ -987,47 +1001,47 @@ secIsProtectedFrame (
     ASSERT(prMsdu);
 
     ASSERT(prStaRec);
-    //prStaRec = &(g_arStaRec[prMsdu->ucStaRecIndex]);
+    /* prStaRec = &(g_arStaRec[prMsdu->ucStaRecIndex]); */
 
     if (prStaRec == NULL) {
-        if (prAdapter->rWifiVar.rAisSpecificBssInfo.fgTransmitKeyExist)
-            return TRUE;
-        return FALSE; /* No privacy bit */
+	if (prAdapter->rWifiVar.rAisSpecificBssInfo.fgTransmitKeyExist)
+	    return TRUE;
+	return FALSE; /* No privacy bit */
     }
 
     /* Todo:: */
-    if (0 /* prMsdu->fgIs1xFrame */){
-        if (IS_STA_IN_AIS(prStaRec) &&
-            prAdapter->rWifiVar.rConnSettings.eAuthMode < AUTH_MODE_WPA) {
-            DBGLOG(RSN, LOUD, ("For AIS Legacy 1x, always not encryped\n"));
-            return FALSE;
-        }
-        else if (!prStaRec->fgTransmitKeyExist) {
-            DBGLOG(RSN, LOUD, ("1x Not Protected.\n"));
-            return FALSE;
-        }
-        else if (prStaRec->rSecInfo.fgKeyStored) {
-            DBGLOG(RSN, LOUD, ("1x not Protected due key stored!\n"));
-            return FALSE;
-        }
-        else {
-            DBGLOG(RSN, LOUD, ("1x Protected.\n"));
-            return TRUE;
-        }
+    if (0 /* prMsdu->fgIs1xFrame */) {
+	if (IS_STA_IN_AIS(prStaRec) &&
+	    prAdapter->rWifiVar.rConnSettings.eAuthMode < AUTH_MODE_WPA) {
+	    DBGLOG(RSN, LOUD, ("For AIS Legacy 1x, always not encryped\n"));
+	    return FALSE;
+	}
+	else if (!prStaRec->fgTransmitKeyExist) {
+	    DBGLOG(RSN, LOUD, ("1x Not Protected.\n"));
+	    return FALSE;
+	}
+	else if (prStaRec->rSecInfo.fgKeyStored) {
+	    DBGLOG(RSN, LOUD, ("1x not Protected due key stored!\n"));
+	    return FALSE;
+	}
+	else {
+	    DBGLOG(RSN, LOUD, ("1x Protected.\n"));
+	    return TRUE;
+	}
     }
     else {
-        if (!prStaRec->fgTransmitKeyExist) {
-            /* whsu , check for AIS only */
-            if (prAdapter->rWifiVar.rConnSettings.eAuthMode < AUTH_MODE_WPA &&
-                prAdapter->rWifiVar.rAisSpecificBssInfo.fgTransmitKeyExist){
-                DBGLOG(RSN, LOUD, ("Protected\n"));
-                return TRUE;
-            }
-        }
-        else {
-            DBGLOG(RSN, LOUD, ("Protected.\n"));
-            return TRUE;
-        }
+	if (!prStaRec->fgTransmitKeyExist) {
+	    /* whsu , check for AIS only */
+	    if (prAdapter->rWifiVar.rConnSettings.eAuthMode < AUTH_MODE_WPA &&
+		prAdapter->rWifiVar.rAisSpecificBssInfo.fgTransmitKeyExist){
+		DBGLOG(RSN, LOUD, ("Protected\n"));
+		return TRUE;
+	    }
+	}
+	else {
+	    DBGLOG(RSN, LOUD, ("Protected.\n"));
+	    return TRUE;
+	}
     }
 
     /* No sec or key is removed!!! */

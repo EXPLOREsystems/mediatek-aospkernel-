@@ -80,8 +80,8 @@ mtk_wcn_wmt_func_ctrl(
 
     pOp = wmt_lib_get_free_op();
     if (!pOp) {
-        WMT_WARN_FUNC("get_free_lxop fail\n");
-        return MTK_WCN_BOOL_FALSE;
+	WMT_WARN_FUNC("get_free_lxop fail\n");
+	return MTK_WCN_BOOL_FALSE;
     }
 
     pSignal = &pOp->signal;
@@ -91,16 +91,16 @@ mtk_wcn_wmt_func_ctrl(
     pSignal->timeoutValue = (WMT_OPID_FUNC_ON == pOp->op.opId) ? MAX_FUNC_ON_TIME : MAX_FUNC_OFF_TIME;
 
     WMT_INFO_FUNC("OPID(%d) type(%d) start\n",
-                  pOp->op.opId,
-                  pOp->op.au4OpData[0]);
+		  pOp->op.opId,
+		  pOp->op.au4OpData[0]);
 
     /*do not check return value, we will do this either way*/
     wmt_lib_host_awake_get();
     /*wake up chip first*/
     if (DISABLE_PSM_MONITOR()) {
-        WMT_ERR_FUNC("wake up failed\n");
-        wmt_lib_put_op_to_free_queue(pOp);
-        return MTK_WCN_BOOL_FALSE;
+	WMT_ERR_FUNC("wake up failed\n");
+	wmt_lib_put_op_to_free_queue(pOp);
+	return MTK_WCN_BOOL_FALSE;
     }
 
     bRet = wmt_lib_put_act_op(pOp);
@@ -108,13 +108,13 @@ mtk_wcn_wmt_func_ctrl(
     wmt_lib_host_awake_put();
 
     if (MTK_WCN_BOOL_FALSE == bRet) {
-        WMT_WARN_FUNC("OPID(%d) type(%d) fail\n",
-                      pOp->op.opId,
-                      pOp->op.au4OpData[0]);
+	WMT_WARN_FUNC("OPID(%d) type(%d) fail\n",
+		      pOp->op.opId,
+		      pOp->op.au4OpData[0]);
     } else {
-        WMT_INFO_FUNC("OPID(%d) type(%d) ok\n",
-                      pOp->op.opId,
-                      pOp->op.au4OpData[0]);
+	WMT_INFO_FUNC("OPID(%d) type(%d) ok\n",
+		      pOp->op.opId,
+		      pOp->op.au4OpData[0]);
     }
     return bRet;
 }
@@ -127,13 +127,13 @@ mtk_wcn_wmt_func_off(
     MTK_WCN_BOOL ret;
 
     if (type == WMTDRV_TYPE_BT) {
-        osal_printtimeofday("############ BT OFF ====>");
+	osal_printtimeofday("############ BT OFF ====>");
     }
 
     ret = mtk_wcn_wmt_func_ctrl(type, WMT_OPID_FUNC_OFF);
 
     if (type == WMTDRV_TYPE_BT) {
-        osal_printtimeofday("############ BT OFF <====");
+	osal_printtimeofday("############ BT OFF <====");
     }
 
     return ret;
@@ -147,13 +147,13 @@ mtk_wcn_wmt_func_on(
     MTK_WCN_BOOL ret;
 
     if (type == WMTDRV_TYPE_BT) {
-        osal_printtimeofday("############ BT ON ====>");
+	osal_printtimeofday("############ BT ON ====>");
     }
 
     ret = mtk_wcn_wmt_func_ctrl(type, WMT_OPID_FUNC_ON);
 
     if (type == WMTDRV_TYPE_BT) {
-        osal_printtimeofday(" ############BT ON <====");
+	osal_printtimeofday(" ############BT ON <====");
     }
 
     return ret;
@@ -177,21 +177,21 @@ mtk_wcn_wmt_therm_ctrl(
 
     /*parameter validation check*/
     if (WMTTHERM_MAX < eType || WMTTHERM_ENABLE > eType) {
-        WMT_ERR_FUNC("invalid thermal control command (%d)\n", eType);
-        return MTK_WCN_BOOL_FALSE;
+	WMT_ERR_FUNC("invalid thermal control command (%d)\n", eType);
+	return MTK_WCN_BOOL_FALSE;
     }
 
     /*check if chip support thermal control function or not*/
     bRet = wmt_lib_is_therm_ctrl_support();
     if (MTK_WCN_BOOL_FALSE == bRet) {
-        WMT_ERR_FUNC("thermal ctrl function not supported\n");
-        return MTK_WCN_BOOL_FALSE;
+	WMT_ERR_FUNC("thermal ctrl function not supported\n");
+	return MTK_WCN_BOOL_FALSE;
     }
 
     pOp = wmt_lib_get_free_op();
     if (!pOp) {
-        WMT_WARN_FUNC("get_free_lxop fail \n");
-        return MTK_WCN_BOOL_FALSE;
+	WMT_WARN_FUNC("get_free_lxop fail\n");
+	return MTK_WCN_BOOL_FALSE;
     }
 
     pSignal = &pOp->signal;
@@ -202,41 +202,41 @@ mtk_wcn_wmt_therm_ctrl(
     pSignal->timeoutValue = MAX_EACH_WMT_CMD;
 
     WMT_INFO_FUNC("OPID(%d) type(%d) start\n",
-                  pOp->op.opId,
-                  pOp->op.au4OpData[0]);
+		  pOp->op.opId,
+		  pOp->op.au4OpData[0]);
 
     if (DISABLE_PSM_MONITOR()) {
-        WMT_ERR_FUNC("wake up failed\n");
-        wmt_lib_put_op_to_free_queue(pOp);
-        return -1;
+	WMT_ERR_FUNC("wake up failed\n");
+	wmt_lib_put_op_to_free_queue(pOp);
+	return -1;
     }
 
     bRet = wmt_lib_put_act_op(pOp);
     ENABLE_PSM_MONITOR();
 
     if (MTK_WCN_BOOL_FALSE == bRet) {
-        WMT_WARN_FUNC("OPID(%d) type(%d) fail\n\n",
-                      pOpData->opId,
-                      pOpData->au4OpData[0]);
-        /*0xFF means read error occurs*/
-        pOpData->au4OpData[1] = (eType == WMTTHERM_READ) ? 0xFF : MTK_WCN_BOOL_FALSE;   /*will return to function driver*/
+	WMT_WARN_FUNC("OPID(%d) type(%d) fail\n\n",
+		      pOpData->opId,
+		      pOpData->au4OpData[0]);
+	/*0xFF means read error occurs*/
+	pOpData->au4OpData[1] = (eType == WMTTHERM_READ) ? 0xFF : MTK_WCN_BOOL_FALSE;   /*will return to function driver*/
     } else {
-        WMT_INFO_FUNC("OPID(%d) type(%d) return(%d) ok\n\n",
-                      pOpData->opId,
-                      pOpData->au4OpData[0],
-                      pOpData->au4OpData[1]);
+	WMT_INFO_FUNC("OPID(%d) type(%d) return(%d) ok\n\n",
+		      pOpData->opId,
+		      pOpData->au4OpData[0],
+		      pOpData->au4OpData[1]);
     }
     /*return value will be put to lxop->op.au4OpData[1]*/
-    WMT_DBG_FUNC("therm ctrl type(%d), iRet(0x%08x) \n", eType, pOpData->au4OpData[1]);
+    WMT_DBG_FUNC("therm ctrl type(%d), iRet(0x%08x)\n", eType, pOpData->au4OpData[1]);
     return (INT8) pOpData->au4OpData[1];
 }
 
 ENUM_WMTHWVER_TYPE_T
 mtk_wcn_wmt_hwver_get(VOID)
 {
-    // TODO: [ChangeFeature][GeorgeKuo] Reconsider usage of this type
-    // TODO: how do we extend for new chip and newer revision?
-    // TODO: This way is hard to extend
+    /* TODO: [ChangeFeature][GeorgeKuo] Reconsider usage of this type */
+    /* TODO: how do we extend for new chip and newer revision? */
+    /* TODO: This way is hard to extend */
     return wmt_lib_get_icinfo(WMTCHIN_MAPPINGHWVER);
 }
 
@@ -251,21 +251,21 @@ mtk_wcn_wmt_dsns_ctrl(
     P_OSAL_SIGNAL pSignal;
 
     if (WMTDSNS_MAX <= eType) {
-        WMT_ERR_FUNC("invalid desense control command (%d)\n", eType);
-        return MTK_WCN_BOOL_FALSE;
+	WMT_ERR_FUNC("invalid desense control command (%d)\n", eType);
+	return MTK_WCN_BOOL_FALSE;
     }
 
     /*check if chip support thermal control function or not*/
     bRet = wmt_lib_is_dsns_ctrl_support();
     if (MTK_WCN_BOOL_FALSE == bRet) {
-        WMT_ERR_FUNC("thermal ctrl function not supported\n");
-        return MTK_WCN_BOOL_FALSE;
+	WMT_ERR_FUNC("thermal ctrl function not supported\n");
+	return MTK_WCN_BOOL_FALSE;
     }
 
     pOp = wmt_lib_get_free_op();
     if (!pOp) {
-        WMT_WARN_FUNC("get_free_lxop fail \n");
-        return MTK_WCN_BOOL_FALSE;
+	WMT_WARN_FUNC("get_free_lxop fail\n");
+	return MTK_WCN_BOOL_FALSE;
     }
 
     pSignal = &pOp->signal;
@@ -274,31 +274,31 @@ mtk_wcn_wmt_dsns_ctrl(
     pSignal->timeoutValue = MAX_EACH_WMT_CMD;
     /*parameter fill*/
     if ((WMTDSNS_FM_DISABLE <= eType) && (WMTDSNS_FM_GPS_ENABLE >= eType)) {
-        pOpData->au4OpData[0] = WMTDRV_TYPE_FM;
-        pOpData->au4OpData[1] = eType;
+	pOpData->au4OpData[0] = WMTDRV_TYPE_FM;
+	pOpData->au4OpData[1] = eType;
     }
 
     WMT_INFO_FUNC("OPID(%d) type(%d) start\n",
-                  pOp->op.opId,
-                  pOp->op.au4OpData[0]);
+		  pOp->op.opId,
+		  pOp->op.au4OpData[0]);
 
     if (DISABLE_PSM_MONITOR()) {
-        WMT_ERR_FUNC("wake up failed\n");
-        wmt_lib_put_op_to_free_queue(pOp);
-        return MTK_WCN_BOOL_FALSE;
+	WMT_ERR_FUNC("wake up failed\n");
+	wmt_lib_put_op_to_free_queue(pOp);
+	return MTK_WCN_BOOL_FALSE;
     }
 
     bRet = wmt_lib_put_act_op(pOp);
     ENABLE_PSM_MONITOR();
 
     if (MTK_WCN_BOOL_FALSE == bRet) {
-        WMT_WARN_FUNC("OPID(%d) type(%d) fail\n\n",
-                      pOpData->opId,
-                      pOpData->au4OpData[0]);
+	WMT_WARN_FUNC("OPID(%d) type(%d) fail\n\n",
+		      pOpData->opId,
+		      pOpData->au4OpData[0]);
     } else {
-        WMT_INFO_FUNC("OPID(%d) type(%d) ok\n\n",
-                      pOpData->opId,
-                      pOpData->au4OpData[0]);
+	WMT_INFO_FUNC("OPID(%d) type(%d) ok\n\n",
+		      pOpData->opId,
+		      pOpData->au4OpData[0]);
     }
 
     return bRet;
@@ -350,37 +350,37 @@ MTK_WCN_BOOL mtk_wcn_wmt_assert(
 
     pOp  = wmt_lib_get_free_op();
     if (!pOp) {
-        WMT_WARN_FUNC("get_free_lxop fail\n");
-        return MTK_WCN_BOOL_FALSE;
+	WMT_WARN_FUNC("get_free_lxop fail\n");
+	return MTK_WCN_BOOL_FALSE;
     }
 
-    pSignal = &pOp ->signal;
+    pSignal = &pOp->signal;
 
-    pOp ->op.opId = WMT_OPID_CMD_TEST;
+    pOp->op.opId = WMT_OPID_CMD_TEST;
 
     pSignal->timeoutValue = MAX_EACH_WMT_CMD;
     /*this test command should be run with usb cable connected, so no host awake is needed*/
-    //wmt_lib_host_awake_get();
+    /* wmt_lib_host_awake_get(); */
     pOp->op.au4OpData[0] = 0;
 
     /*wake up chip first*/
     if (DISABLE_PSM_MONITOR()) {
-        WMT_ERR_FUNC("wake up failed\n");
-        wmt_lib_put_op_to_free_queue(pOp);
-        return MTK_WCN_BOOL_FALSE;
+	WMT_ERR_FUNC("wake up failed\n");
+	wmt_lib_put_op_to_free_queue(pOp);
+	return MTK_WCN_BOOL_FALSE;
     }
 
     bRet = wmt_lib_put_act_op(pOp);
     ENABLE_PSM_MONITOR();
 
-    //wmt_lib_host_awake_put();
+    /* wmt_lib_host_awake_put(); */
     WMT_INFO_FUNC("CMD_TEST, opid (%d), par(%d, %d), ret(%d), result(%s)\n", \
-                  pOp->op.opId, \
-                  pOp->op.au4OpData[0], \
-                  pOp->op.au4OpData[1], \
-                  bRet, \
-                  MTK_WCN_BOOL_FALSE == bRet ? "failed" : "succeed"\
-                 );
+		  pOp->op.opId, \
+		  pOp->op.au4OpData[0], \
+		  pOp->op.au4OpData[1], \
+		  bRet, \
+		  MTK_WCN_BOOL_FALSE == bRet ? "failed" : "succeed"\
+		 );
 
     return bRet;
 }
@@ -403,5 +403,3 @@ EXPORT_SYMBOL(mtk_wcn_wmt_therm_ctrl);
 EXPORT_SYMBOL(mtk_wcn_wmt_func_on);
 EXPORT_SYMBOL(mtk_wcn_wmt_func_off);
 EXPORT_SYMBOL(mtk_wcn_wmt_chipid_query);
-
-

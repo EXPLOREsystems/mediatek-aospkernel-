@@ -133,9 +133,9 @@ GATOR_DEFINE_PROBE(mali_timeline_event, TP_PROTO(unsigned int event_id, unsigned
 {
 	unsigned int component, state;
 
-	// do as much work as possible before disabling interrupts
-	component = (event_id >> 16) & 0xFF;	// component is an 8-bit field
-	state = (event_id >> 24) & 0xF;	// state is a 4-bit field
+	/* do as much work as possible before disabling interrupts */
+	component = (event_id >> 16) & 0xFF;	/* component is an 8-bit field */
+	state = (event_id >> 24) & 0xF;	/* state is a 4-bit field */
 
 	switch (state) {
 	case EVENT_TYPE_START:
@@ -177,8 +177,8 @@ GATOR_DEFINE_PROBE(mali_job_slots_event, TP_PROTO(unsigned int event_id, unsigne
 {
 	unsigned int component, state, unit;
 
-	component = (event_id >> 16) & 0xFF;	// component is an 8-bit field
-	state = (event_id >> 24) & 0xF;	// state is a 4-bit field
+	component = (event_id >> 16) & 0xFF;	/* component is an 8-bit field */
+	state = (event_id >> 24) & 0xF;	/* state is a 4-bit field */
 
 	switch (component) {
 	case 0:

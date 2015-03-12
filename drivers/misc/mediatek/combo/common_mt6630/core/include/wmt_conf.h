@@ -1,4 +1,4 @@
-/*! \file   
+/*! \file
     \brief  Declaration of library functions
 
     Any definitions in this file will be shared among GLUE Layer and internal Driver Stack.
@@ -39,7 +39,7 @@
 *                             D A T A   T Y P E S
 ********************************************************************************
 */
- 
+
 
 
 
@@ -72,10 +72,3 @@ INT32  wmt_conf_set_cfg_file(const char *name);
 
 
 #endif /* _WMT_CONF_H_ */
-
-
-
-
-
-
-

@@ -15,6 +15,10 @@
 /*
 ** $Log: nic_tx.h $
 **
+** 09 16 2014 eason.tsai
+** [ALPS01728937] [Need Patch] [Volunteer Patch] MET support
+** MET support
+**
 ** 08 19 2013 terry.wu
 ** [BORA00002207] [MT6630 Wi-Fi] TXM & MQM Implementation
 ** 1. Enable TC resource adjust feature
@@ -415,7 +419,6 @@
 #define NIC_TX_CMD_INFO_RESERVED_COUNT      4
 
 /* Maximum buffer count for individual HIF TCQ */
-#if 1
 #define NIC_TX_PAGE_COUNT_TC0           (NIC_TX_BUFF_COUNT_TC0 * NIC_TX_MAX_PAGE_PER_FRAME)
 #define NIC_TX_PAGE_COUNT_TC1           (NIC_TX_BUFF_COUNT_TC1 * NIC_TX_MAX_PAGE_PER_FRAME)
 #define NIC_TX_PAGE_COUNT_TC2           (NIC_TX_BUFF_COUNT_TC2 * NIC_TX_MAX_PAGE_PER_FRAME)
@@ -423,81 +426,12 @@
 #define NIC_TX_PAGE_COUNT_TC4           (NIC_TX_BUFF_COUNT_TC4 * NIC_TX_MAX_PAGE_PER_FRAME)
 #define NIC_TX_PAGE_COUNT_TC5           (NIC_TX_BUFF_COUNT_TC5 * NIC_TX_MAX_PAGE_PER_FRAME)
 
-#define NIC_TX_PAGE_SUM                     (NIC_TX_PAGE_COUNT_TC0 + \
-					    NIC_TX_PAGE_COUNT_TC1 + \
-					    NIC_TX_PAGE_COUNT_TC2 + \
-					    NIC_TX_PAGE_COUNT_TC3 + \
-					    NIC_TX_PAGE_COUNT_TC4 + \
-					    NIC_TX_PAGE_COUNT_TC5)
-
 #define NIC_TX_BUFF_COUNT_TC0               1
-#define NIC_TX_BUFF_COUNT_TC1               34
+#define NIC_TX_BUFF_COUNT_TC1               36
 #define NIC_TX_BUFF_COUNT_TC2               1
 #define NIC_TX_BUFF_COUNT_TC3               1
-#define NIC_TX_BUFF_COUNT_TC4               4
+#define NIC_TX_BUFF_COUNT_TC4               2
 #define NIC_TX_BUFF_COUNT_TC5               1
-
-#define NIC_TX_BUFF_SUM                     (NIC_TX_BUFF_COUNT_TC0 + \
-					    NIC_TX_BUFF_COUNT_TC1 + \
-					    NIC_TX_BUFF_COUNT_TC2 + \
-					    NIC_TX_BUFF_COUNT_TC3 + \
-					    NIC_TX_BUFF_COUNT_TC4 + \
-					    NIC_TX_BUFF_COUNT_TC5)
-
-#else
-#define NIC_TX_PAGE_COUNT_TC0           7
-#define NIC_TX_PAGE_COUNT_TC1           140
-#define NIC_TX_PAGE_COUNT_TC2           7
-#define NIC_TX_PAGE_COUNT_TC3           7
-#define NIC_TX_PAGE_COUNT_TC4           28
-#define NIC_TX_PAGE_COUNT_TC5           7
-
-/* Second HW queue */
-#define NIC_TX_PAGE_COUNT_TC6           0
-#define NIC_TX_PAGE_COUNT_TC7           0
-#define NIC_TX_PAGE_COUNT_TC8           0
-#define NIC_TX_PAGE_COUNT_TC9           0
-#define NIC_TX_PAGE_COUNT_TC10          0
-
-
-#define NIC_TX_PAGE_SUM                     (NIC_TX_PAGE_COUNT_TC0 + \
-					    NIC_TX_PAGE_COUNT_TC1 + \
-					    NIC_TX_PAGE_COUNT_TC2 + \
-					    NIC_TX_PAGE_COUNT_TC3 + \
-					    NIC_TX_PAGE_COUNT_TC4 + \
-					    NIC_TX_PAGE_COUNT_TC5 + \
-					    NIC_TX_PAGE_COUNT_TC6 + \
-					    NIC_TX_PAGE_COUNT_TC7 + \
-					    NIC_TX_PAGE_COUNT_TC8 + \
-					    NIC_TX_PAGE_COUNT_TC9 + \
-					    NIC_TX_PAGE_COUNT_TC10)
-
-#define NIC_TX_BUFF_COUNT_TC0       (NIC_TX_PAGE_COUNT_TC0 / NIC_TX_MAX_PAGE_PER_FRAME)
-#define NIC_TX_BUFF_COUNT_TC1       (NIC_TX_PAGE_COUNT_TC1 / NIC_TX_MAX_PAGE_PER_FRAME)
-#define NIC_TX_BUFF_COUNT_TC2       (NIC_TX_PAGE_COUNT_TC2 / NIC_TX_MAX_PAGE_PER_FRAME)
-#define NIC_TX_BUFF_COUNT_TC3       (NIC_TX_PAGE_COUNT_TC3 / NIC_TX_MAX_PAGE_PER_FRAME)
-#define NIC_TX_BUFF_COUNT_TC4       (NIC_TX_PAGE_COUNT_TC4 / NIC_TX_MAX_PAGE_PER_FRAME)
-#define NIC_TX_BUFF_COUNT_TC5       (NIC_TX_PAGE_COUNT_TC5 / NIC_TX_MAX_PAGE_PER_FRAME)
-
-/* Second HW queue */
-#define NIC_TX_BUFF_COUNT_TC6       (NIC_TX_PAGE_COUNT_TC6 / NIC_TX_MAX_PAGE_PER_FRAME)
-#define NIC_TX_BUFF_COUNT_TC7       (NIC_TX_PAGE_COUNT_TC7 / NIC_TX_MAX_PAGE_PER_FRAME)
-#define NIC_TX_BUFF_COUNT_TC8       (NIC_TX_PAGE_COUNT_TC8 / NIC_TX_MAX_PAGE_PER_FRAME)
-#define NIC_TX_BUFF_COUNT_TC9       (NIC_TX_PAGE_COUNT_TC9 / NIC_TX_MAX_PAGE_PER_FRAME)
-#define NIC_TX_BUFF_COUNT_TC10      (NIC_TX_PAGE_COUNT_TC10 / NIC_TX_MAX_PAGE_PER_FRAME)
-
-#define NIC_TX_BUFF_SUM                     (NIC_TX_BUFF_COUNT_TC0 + \
-					    NIC_TX_BUFF_COUNT_TC1 + \
-					    NIC_TX_BUFF_COUNT_TC2 + \
-					    NIC_TX_BUFF_COUNT_TC3 + \
-					    NIC_TX_BUFF_COUNT_TC4 + \
-					    NIC_TX_BUFF_COUNT_TC5 + \
-					    NIC_TX_BUFF_COUNT_TC6 + \
-					    NIC_TX_BUFF_COUNT_TC7 + \
-					    NIC_TX_BUFF_COUNT_TC8 + \
-					    NIC_TX_BUFF_COUNT_TC9 + \
-					    NIC_TX_BUFF_COUNT_TC10)
-#endif
 
 #if CFG_ENABLE_FW_DOWNLOAD
 
@@ -509,11 +443,6 @@
 #define NIC_TX_INIT_BUFF_COUNT_TC5               0
 
 #define NIC_TX_INIT_BUFF_SUM                    (NIC_TX_INIT_BUFF_COUNT_TC0 + \
-						    NIC_TX_INIT_BUFF_COUNT_TC1 + \
-						    NIC_TX_INIT_BUFF_COUNT_TC2 + \
-						    NIC_TX_INIT_BUFF_COUNT_TC3 + \
-						    NIC_TX_INIT_BUFF_COUNT_TC4 + \
-						    NIC_TX_INIT_BUFF_COUNT_TC5)
 
 #define NIC_TX_INIT_PAGE_COUNT_TC0           (NIC_TX_INIT_BUFF_COUNT_TC0 * NIC_TX_MAX_PAGE_PER_FRAME)
 #define NIC_TX_INIT_PAGE_COUNT_TC1           (NIC_TX_INIT_BUFF_COUNT_TC1 * NIC_TX_MAX_PAGE_PER_FRAME)
@@ -524,6 +453,7 @@
 
 #endif
 
+#define NIC_TX_ENABLE_SECOND_HW_QUEUE            0
 
 /* 4 TODO: The following values shall be got from FW by query CMD */
 /*------------------------------------------------------------------------*/
@@ -538,8 +468,6 @@
 #define NIC_TX_MAX_PAGE_PER_FRAME \
     ((NIC_TX_DESC_AND_PADDING_LENGTH + NIC_TX_DESC_HEADER_PADDING_LENGTH + \
 	  NIC_TX_MAX_SIZE_PER_FRAME + NIC_TX_PAGE_SIZE - 1) / NIC_TX_PAGE_SIZE)
-#define NIC_TX_TOTAL_BUFFER_COUNT               NIC_TX_BUFF_SUM
-#define NIC_TX_TOTAL_PAGE_COUNT                 NIC_TX_PAGE_SUM
 
 /*------------------------------------------------------------------------*/
 /* Tx descriptor related information                                      */
@@ -608,9 +536,9 @@
 #define TX_DESC_HEADER_FORMAT_MASK              BITS(5, 6)
 #define TX_DESC_HEADER_FORMAT_OFFSET            5
 
-#define HEADER_FORMAT_NON_802_11                0	/* Non-802.11 */
-#define HEADER_FORMAT_COMMAND                   1	/* Command */
-#define HEADER_FORMAT_802_11_NORMAL_MODE        2	/* 802.11 (normal mode) */
+#define HEADER_FORMAT_NON_802_11                0   /* Non-802.11 */
+#define HEADER_FORMAT_COMMAND                   1   /* Command */
+#define HEADER_FORMAT_802_11_NORMAL_MODE        2   /* 802.11 (normal mode) */
 #define HEADER_FORMAT_802_11_ENHANCE_MODE       3	/* 802.11 (Enhancement mode) */
 #define HEADER_FORMAT_802_11_MASK               BIT(1)
 
@@ -636,7 +564,7 @@
 #define TX_DESC_TID_NUM                         8
 #define TX_DESC_PROTECTED_FRAME                 BIT(7)
 
-#define TX_DESC_PACKET_TYPE_MASK                BITS(0, 1)	/* SW Field */
+#define TX_DESC_PACKET_TYPE_MASK                BITS(0, 1)  /* SW Field */
 #define TX_DESC_PACKET_TYPE_OFFSET              0
 #define TX_DESC_OWN_MAC_MASK                    BITS(2, 7)
 #define TX_DESC_OWN_MAC_OFFSET                  2
@@ -717,14 +645,16 @@
 #define TX_DESC_LDPC                            BIT(14)
 #define TX_DESC_GUARD_INTERVAL                  BIT(15)
 
-
+#if CFG_ENABLE_PKT_LIFETIME_PROFILE
+#define NIC_TX_TIME_THRESHOLD                       100	/* in unit of ms */
+#endif
 
 
 /*******************************************************************************
 *                             D A T A   T Y P E S
 ********************************************************************************
 */
-/* 3  Session for TX QUEUES */
+/* 3 */ /* Session for TX QUEUES */
 /* The definition in this ENUM is used to categorize packet's Traffic Class according
  * to the their TID(User Priority).
  * In order to achieve QoS goal, a particular TC should not block the process of
@@ -733,240 +663,258 @@
  */
 /* HIF Tx interrupt status queue index*/
 typedef enum _ENUM_HIF_TX_INDEX_T {
-	HIF_TX_AC0_INDEX = 0,	/* HIF TX: AC0 packets */
-	HIF_TX_AC1_INDEX,	/* HIF TX: AC1 packets */
-	HIF_TX_AC2_INDEX,	/* HIF TX: AC2 packets */
-	HIF_TX_AC3_INDEX,	/* HIF TX: AC3 packets */
-	HIF_TX_AC4_INDEX,	/* HIF TX: AC4 packets */
-	HIF_TX_AC5_INDEX,	/* HIF TX: AC5 packets */
-	HIF_TX_AC6_INDEX,	/* HIF TX: AC6 packets */
-	HIF_TX_BMC_INDEX,	/* HIF TX: BMC packets */
-	HIF_TX_BCN_INDEX,	/* HIF TX: BCN packets */
-	HIF_TX_AC10_INDEX,	/* HIF TX: AC10 packets */
-	HIF_TX_AC11_INDEX,	/* HIF TX: AC11 packets */
-	HIF_TX_AC12_INDEX,	/* HIF TX: AC12 packets */
-	HIF_TX_AC13_INDEX,	/* HIF TX: AC13 packets */
-	HIF_TX_AC14_INDEX,	/* HIF TX: AC14 packets */
-	HIF_TX_FFA_INDEX,	/* HIF TX: free-for-all */
-	HIF_TX_CPU_INDEX,	/* HIF TX: CPU */
-	HIF_TX_NUM		/* Maximum number of HIF TX port. */
+    HIF_TX_AC0_INDEX = 0,   /* HIF TX: AC0 packets */
+    HIF_TX_AC1_INDEX,       /* HIF TX: AC1 packets */
+    HIF_TX_AC2_INDEX,       /* HIF TX: AC2 packets */
+    HIF_TX_AC3_INDEX,       /* HIF TX: AC3 packets */
+    HIF_TX_AC4_INDEX,       /* HIF TX: AC4 packets */
+    HIF_TX_AC5_INDEX,       /* HIF TX: AC5 packets */
+    HIF_TX_AC6_INDEX,       /* HIF TX: AC6 packets */
+    HIF_TX_BMC_INDEX,       /* HIF TX: BMC packets */
+    HIF_TX_BCN_INDEX,       /* HIF TX: BCN packets */
+    HIF_TX_AC10_INDEX,      /* HIF TX: AC10 packets */
+    HIF_TX_AC11_INDEX,      /* HIF TX: AC11 packets */
+    HIF_TX_AC12_INDEX,      /* HIF TX: AC12 packets */
+    HIF_TX_AC13_INDEX,      /* HIF TX: AC13 packets */
+    HIF_TX_AC14_INDEX,      /* HIF TX: AC14 packets */
+    HIF_TX_FFA_INDEX,       /* HIF TX: free-for-all */
+    HIF_TX_CPU_INDEX,       /* HIF TX: CPU */
+    HIF_TX_NUM       /* Maximum number of HIF TX port. */
 } ENUM_HIF_TX_INDEX_T;
 
 /* LMAC Tx queue index */
 typedef enum _ENUM_MAC_TXQ_INDEX_T {
-	MAC_TXQ_AC0_INDEX = 0,
-	MAC_TXQ_AC1_INDEX,
-	MAC_TXQ_AC2_INDEX,
-	MAC_TXQ_AC3_INDEX,
-	MAC_TXQ_AC4_INDEX,
-	MAC_TXQ_AC5_INDEX,
-	MAC_TXQ_AC6_INDEX,
-	MAC_TXQ_BMC_INDEX,
-	MAC_TXQ_BCN_INDEX,
-	MAC_TXQ_AC10_INDEX,
-	MAC_TXQ_AC11_INDEX,
-	MAC_TXQ_AC12_INDEX,
-	MAC_TXQ_AC13_INDEX,
-	MAC_TXQ_AC14_INDEX,
-	MAC_TXQ_NUM
+    MAC_TXQ_AC0_INDEX = 0,
+    MAC_TXQ_AC1_INDEX,
+    MAC_TXQ_AC2_INDEX,
+    MAC_TXQ_AC3_INDEX,
+    MAC_TXQ_AC4_INDEX,
+    MAC_TXQ_AC5_INDEX,
+    MAC_TXQ_AC6_INDEX,
+    MAC_TXQ_BMC_INDEX,
+    MAC_TXQ_BCN_INDEX,
+    MAC_TXQ_AC10_INDEX,
+    MAC_TXQ_AC11_INDEX,
+    MAC_TXQ_AC12_INDEX,
+    MAC_TXQ_AC13_INDEX,
+    MAC_TXQ_AC14_INDEX,
+    MAC_TXQ_NUM
 } ENUM_MAC_TXQ_INDEX_T;
 
 /* MCU quque index */
 typedef enum _ENUM_MCU_Q_INDEX_T {
-	MCU_Q0_INDEX = 0,
-	MCU_Q1_INDEX,
-	MCU_Q2_INDEX,
-	MCU_Q3_INDEX,
-	MCU_Q_NUM
+    MCU_Q0_INDEX = 0,
+    MCU_Q1_INDEX,
+    MCU_Q2_INDEX,
+    MCU_Q3_INDEX,
+    MCU_Q_NUM
 } ENUM_MCU_Q_INDEX_T;
 
 /* Tc Resource index */
 typedef enum _ENUM_TRAFFIC_CLASS_INDEX_T {
 	/*First HW queue */
-	TC0_INDEX = 0,		/* HIF TX: AC0 packets */
-	TC1_INDEX,		/* HIF TX: AC1 packets */
-	TC2_INDEX,		/* HIF TX: AC2 packets */
-	TC3_INDEX,		/* HIF TX: AC3 packets */
-	TC4_INDEX,		/* HIF TX: CPU packets */
-	TC5_INDEX,		/* HIF TX: AC4 packets */
+    TC0_INDEX = 0,   /* HIF TX: AC0 packets */
+    TC1_INDEX,       /* HIF TX: AC1 packets */
+    TC2_INDEX,       /* HIF TX: AC2 packets */
+    TC3_INDEX,       /* HIF TX: AC3 packets */
+    TC4_INDEX,       /* HIF TX: CPU packets */
+    TC5_INDEX,       /* HIF TX: AC4 packets */
 
-	/* Second HW queue */
-	TC6_INDEX,		/* HIF TX: AC10 packets */
-	TC7_INDEX,		/* HIF TX: AC11 packets */
-	TC8_INDEX,		/* HIF TX: AC12 packets */
-	TC9_INDEX,		/* HIF TX: AC13 packets */
-	TC10_INDEX,		/* HIF TX: AC14 packets */
+    /* Second HW queue */
+#if NIC_TX_ENABLE_SECOND_HW_QUEUE
+    TC6_INDEX,       /* HIF TX: AC10 packets */
+    TC7_INDEX,       /* HIF TX: AC11 packets */
+    TC8_INDEX,       /* HIF TX: AC12 packets */
+    TC9_INDEX,       /* HIF TX: AC13 packets */
+    TC10_INDEX,      /* HIF TX: AC14 packets */
+#endif
 
-	TC_NUM			/* Maximum number of Traffic Classes. */
+    TC_NUM           /* Maximum number of Traffic Classes. */
 } ENUM_TRAFFIC_CLASS_INDEX_T;
 
 /* per-Network Tc Resource index */
 typedef enum _ENUM_NETWORK_TC_RESOURCE_INDEX_T {
-	/* QoS Data frame, WMM AC index */
-	NET_TC_WMM_AC_BE_INDEX = 0,
-	NET_TC_WMM_AC_BK_INDEX,
-	NET_TC_WMM_AC_VI_INDEX,
-	NET_TC_WMM_AC_VO_INDEX,
-	/* Mgmt frame */
-	NET_TC_MGMT_INDEX,
-	/* nonQoS / non StaRec frame (BMC/non-associated frame) */
-	NET_TC_NON_STAREC_NON_QOS_INDEX,
+    /* QoS Data frame, WMM AC index */
+    NET_TC_WMM_AC_BE_INDEX = 0,
+    NET_TC_WMM_AC_BK_INDEX,
+    NET_TC_WMM_AC_VI_INDEX,
+    NET_TC_WMM_AC_VO_INDEX,
+    /* Mgmt frame */
+    NET_TC_MGMT_INDEX,
+    /* nonQoS / non StaRec frame (BMC/non-associated frame) */
+    NET_TC_NON_STAREC_NON_QOS_INDEX,
 
-	NET_TC_NUM
+    NET_TC_NUM
 } ENUM_NETWORK_TC_RESOURCE_INDEX_T;
 
 typedef enum _ENUM_TX_STATISTIC_COUNTER_T {
-	TX_MPDU_TOTAL_COUNT = 0,
-	TX_INACTIVE_BSS_DROP,
-	TX_INACTIVE_STA_DROP,
-	TX_FORWARD_OVERFLOW_DROP,
-	TX_AP_BORADCAST_DROP,
-	TX_STATISTIC_COUNTER_NUM
+    TX_MPDU_TOTAL_COUNT = 0,
+    TX_INACTIVE_BSS_DROP,
+    TX_INACTIVE_STA_DROP,
+    TX_FORWARD_OVERFLOW_DROP,
+    TX_AP_BORADCAST_DROP,
+    TX_STATISTIC_COUNTER_NUM
 } ENUM_TX_STATISTIC_COUNTER_T;
 
 typedef enum _ENUM_FIX_BW_T {
-	FIX_BW_NO_FIXED = 0,
-	FIX_BW_20 = 4,
-	FIX_BW_40,
-	FIX_BW_80,
-	FIX_BW_160,
-	FIX_BW_NUM
+    FIX_BW_NO_FIXED = 0,
+    FIX_BW_20 = 4,
+    FIX_BW_40,
+    FIX_BW_80,
+    FIX_BW_160,
+    FIX_BW_NUM
 } ENUM_FIX_BW_T;
 
 typedef enum _ENUM_MSDU_OPTION_T {
-	MSDU_OPT_NO_ACK = BIT(0),
-	MSDU_OPT_NO_AGGREGATE = BIT(1),
-	MSDU_OPT_TIMING_MEASURE = BIT(2),
-	MSDU_OPT_RCPI_NOISE_STATUS = BIT(3),
+    MSDU_OPT_NO_ACK                     = BIT(0),
+    MSDU_OPT_NO_AGGREGATE               = BIT(1),
+    MSDU_OPT_TIMING_MEASURE             = BIT(2),
+    MSDU_OPT_RCPI_NOISE_STATUS          = BIT(3),
 
-	/* Option by Frame Format */
-	/* Non-80211 */
-	MSDU_OPT_MORE_DATA = BIT(4),
+    /* Option by Frame Format */
+    /* Non-80211 */
+    MSDU_OPT_MORE_DATA                  = BIT(4),
 	MSDU_OPT_REMOVE_VLAN = BIT(5),	/* Remove VLAN tag if exists */
 
-	/* 80211-enhanced */
-	MSDU_OPT_AMSDU = BIT(6),
+    /* 80211-enhanced */
+    MSDU_OPT_AMSDU                      = BIT(6),
 
-	/* 80211-enhanced & Non-80211 */
-	MSDU_OPT_EOSP = BIT(7),
+    /* 80211-enhanced & Non-80211 */
+    MSDU_OPT_EOSP                       = BIT(7),
 
-	/* Beamform */
-	MSDU_OPT_NDP = BIT(8),
-	MSDU_OPT_NDPA = BIT(9),
-	MSDU_OPT_SOUNDING = BIT(10),
+    /* Beamform */
+    MSDU_OPT_NDP                        = BIT(8),
+    MSDU_OPT_NDPA                       = BIT(9),
+    MSDU_OPT_SOUNDING                   = BIT(10),
 
-	/* Protection */
-	MSDU_OPT_FORCE_RTS = BIT(11),
+    /* Protection */
+    MSDU_OPT_FORCE_RTS                  = BIT(11),
 
-	/* Security */
-	MSDU_OPT_BIP = BIT(12),
-	MSDU_OPT_PROTECTED_FRAME = BIT(13),
+    /* Security */
+    MSDU_OPT_BIP                        = BIT(12),
+    MSDU_OPT_PROTECTED_FRAME            = BIT(13),
 
-	/* SW Field */
-	MSDU_OPT_SW_DURATION = BIT(14),
-	MSDU_OPT_SW_PS_BIT = BIT(15),
-	MSDU_OPT_SW_HTC = BIT(16),
-	MSDU_OPT_SW_BAR_SN = BIT(17),
+    /* SW Field */
+    MSDU_OPT_SW_DURATION                = BIT(14),
+    MSDU_OPT_SW_PS_BIT                  = BIT(15),
+    MSDU_OPT_SW_HTC                     = BIT(16),
+    MSDU_OPT_SW_BAR_SN                  = BIT(17),
 
-	/* Manual Mode */
-	MSDU_OPT_MANUAL_FIRST_BIT = BIT(18),
+    /* Manual Mode */
+    MSDU_OPT_MANUAL_FIRST_BIT           = BIT(18),
 
-	MSDU_OPT_MANUAL_LIFE_TIME = MSDU_OPT_MANUAL_FIRST_BIT,
-	MSDU_OPT_MANUAL_RETRY_LIMIT = BIT(19),
-	MSDU_OPT_MANUAL_POWER_OFFSET = BIT(20),
-	MSDU_OPT_MANUAL_TX_QUE = BIT(21),
-	MSDU_OPT_MANUAL_SN = BIT(22),
+    MSDU_OPT_MANUAL_LIFE_TIME           = MSDU_OPT_MANUAL_FIRST_BIT,
+    MSDU_OPT_MANUAL_RETRY_LIMIT         = BIT(19),
+    MSDU_OPT_MANUAL_POWER_OFFSET        = BIT(20),
+    MSDU_OPT_MANUAL_TX_QUE              = BIT(21),
+    MSDU_OPT_MANUAL_SN                  = BIT(22),
 
-	MSDU_OPT_MANUAL_LAST_BIT = MSDU_OPT_MANUAL_SN
+    MSDU_OPT_MANUAL_LAST_BIT            = MSDU_OPT_MANUAL_SN
 } ENUM_MSDU_OPTION_T;
 
 typedef enum _ENUM_MSDU_CONTROL_FLAG_T {
-	MSDU_CONTROL_FLAG_FORCE_TX = BIT(0)
+    MSDU_CONTROL_FLAG_FORCE_TX          = BIT(0)
 } ENUM_MSDU_CONTROL_FLAG_T;
 
 typedef enum _ENUM_MSDU_RATE_MODE_T {
-	MSDU_RATE_MODE_AUTO = 0,
-	MSDU_RATE_MODE_MANUAL_DESC,
-	/* The following rate mode is not implemented yet */
-	/* DON'T use!!! */
-	MSDU_RATE_MODE_MANUAL_CR
+    MSDU_RATE_MODE_AUTO = 0,
+    MSDU_RATE_MODE_MANUAL_DESC,
+    /* The following rate mode is not implemented yet */
+    /* DON'T use!!! */
+    MSDU_RATE_MODE_MANUAL_CR
 } ENUM_MSDU_RATE_MODE_T;
 
 typedef struct _TX_TCQ_STATUS_T {
-	/* HIF reported page count delta */
-	UINT_16 au2TxDonePageCount[TC_NUM];	/* other TC */
-	UINT_16 u2AvaliablePageCount;	/* FFA */
-	UINT_8 ucNextTcIdx;	/* For round-robin distribute free page count */
+    /* HIF reported page count delta */
+    UINT_16                 au2TxDonePageCount[TC_NUM];     /* other TC */
+    UINT_16                 au2PreUsedPageCount[TC_NUM];
+    UINT_16                 u2AvaliablePageCount;           /* FFA */
+    UINT_8                  ucNextTcIdx;                    /* For round-robin distribute free page count */
 
-	/* distributed page count */
-	UINT_16 au2FreePageCount[TC_NUM];
-	UINT_16 au2MaxNumOfPage[TC_NUM];
+    /* distributed page count */
+    UINT_16                 au2FreePageCount[TC_NUM];
+    UINT_16                 au2MaxNumOfPage[TC_NUM];
 
-	/* buffer count */
-	UINT_16 au2FreeBufferCount[TC_NUM];
-	UINT_16 au2MaxNumOfBuffer[TC_NUM];
+    /* buffer count */
+    UINT_16                 au2FreeBufferCount[TC_NUM];
+    UINT_16                 au2MaxNumOfBuffer[TC_NUM];
 } TX_TCQ_STATUS_T, *P_TX_TCQ_STATUS_T;
 
 typedef struct _TX_TCQ_ADJUST_T {
-	INT_8 acVariation[TC_NUM];
+    INT_8                   acVariation[TC_NUM];
 } TX_TCQ_ADJUST_T, *P_TX_TCQ_ADJUST_T;
 
 typedef struct _TX_CTRL_T {
-	UINT_32 u4TxCachedSize;
-	PUINT_8 pucTxCached;
+    UINT_32                 u4TxCachedSize;
+    PUINT_8                 pucTxCached;
 
-	UINT_32 u4PageSize;
+    UINT_32                 u4PageSize;
 
-	UINT_32 u4TotalPageNum;
+    UINT_32                 u4TotalPageNum;
 
-	UINT_32 u4TotalTxRsvPageNum;
+    UINT_32                 u4TotalTxRsvPageNum;
 
 /* Elements below is classified according to TC (Traffic Class) value. */
 
-	TX_TCQ_STATUS_T rTc;
+    TX_TCQ_STATUS_T         rTc;
 
-	PUINT_8 pucTxCoalescingBufPtr;
+    PUINT_8                 pucTxCoalescingBufPtr;
 
-	QUE_T rFreeMsduInfoList;
+    QUE_T                   rFreeMsduInfoList;
 
-	/* Management Frame Tracking */
-	/* number of management frames to be sent */
-	INT_32 i4TxMgmtPendingNum;
+    /* Management Frame Tracking */
+    /* number of management frames to be sent */
+    INT_32                  i4TxMgmtPendingNum;
 
-	/* to tracking management frames need TX done callback */
-	QUE_T rTxMgmtTxingQueue;
+    /* to tracking management frames need TX done callback */
+    QUE_T                   rTxMgmtTxingQueue;
 
 #if CFG_HIF_STATISTICS
-	UINT_32 u4TotalTxAccessNum;
-	UINT_32 u4TotalTxPacketNum;
+    UINT_32                 u4TotalTxAccessNum;
+    UINT_32                 u4TotalTxPacketNum;
 #endif
-	UINT_32 au4Statistics[TX_STATISTIC_COUNTER_NUM];
+    UINT_32                 au4Statistics[TX_STATISTIC_COUNTER_NUM];
 
-	/* Number to track forwarding frames */
-	INT_32 i4PendingFwdFrameCount;
+    /* Number to track forwarding frames */
+    INT_32                  i4PendingFwdFrameCount;
 
 } TX_CTRL_T, *P_TX_CTRL_T;
 
 typedef enum _ENUM_TX_PACKET_TYPE_T {
-	TX_PACKET_TYPE_DATA = 0,
-	TX_PACKET_TYPE_MGMT,
+    TX_PACKET_TYPE_DATA = 0,
+    TX_PACKET_TYPE_MGMT,
 	/* TX_PACKET_TYPE_1X, */
-	X_PACKET_TYPE_NUM
+    X_PACKET_TYPE_NUM
 } ENUM_TX_PACKET_TYPE_T, *P_ENUM_TX_PACKET_TYPE_T;
 
 typedef enum _ENUM_TX_PACKET_SRC_T {
-	TX_PACKET_OS,
-	TX_PACKET_OS_OID,
-	TX_PACKET_FORWARDING,
-	TX_PACKET_MGMT,
-	TX_PACKET_NUM
+    TX_PACKET_OS,
+    TX_PACKET_OS_OID,
+    TX_PACKET_FORWARDING,
+    TX_PACKET_MGMT,
+    TX_PACKET_NUM
 } ENUM_TX_PACKET_SRC_T;
 
 /* TX Call Back Function  */
 typedef WLAN_STATUS(*PFN_TX_DONE_HANDLER) (IN P_ADAPTER_T prAdapter,
-					   IN P_MSDU_INFO_T prMsduInfo,
+    IN P_MSDU_INFO_T            prMsduInfo,
 					   IN ENUM_TX_RESULT_CODE_T rTxDoneStatus);
 
+#if CFG_ENABLE_PKT_LIFETIME_PROFILE
+typedef struct _PKT_PROFILE_T {
+    BOOLEAN fgIsValid;
+#if CFG_PRINT_PKT_LIFETIME_PROFILE
+    BOOLEAN fgIsPrinted;
+    UINT_16 u2IpSn;
+    UINT_16 u2RtpSn;
+    UINT_8  ucTcxFreeCount;
+#endif
+    OS_SYSTIME rHardXmitArrivalTimestamp;
+    OS_SYSTIME rEnqueueTimestamp;
+    OS_SYSTIME rDequeueTimestamp;
+    OS_SYSTIME rHifTxDoneTimestamp;
+} PKT_PROFILE_T, *P_PKT_PROFILE_T;
+#endif
 /* TX transactions could be divided into 4 kinds:
  *
  * 1) 802.1X / Bluetooth-over-Wi-Fi Security Frames
@@ -988,115 +936,123 @@ typedef WLAN_STATUS(*PFN_TX_DONE_HANDLER) (IN P_ADAPTER_T prAdapter,
 */
 
 struct _MSDU_INFO_T {
-	QUE_ENTRY_T rQueEntry;
-	P_NATIVE_PACKET prPacket;	/* Pointer to packet buffer */
+    QUE_ENTRY_T                 rQueEntry;
+    P_NATIVE_PACKET             prPacket;               /* Pointer to packet buffer */
 
-	ENUM_TX_PACKET_SRC_T eSrc;	/* specify OS/FORWARD packet */
-	UINT_8 ucUserPriority;	/* QoS parameter, convert to TID */
+    ENUM_TX_PACKET_SRC_T        eSrc;                   /* specify OS/FORWARD packet */
+    UINT_8                      ucUserPriority;         /* QoS parameter, convert to TID */
 
-	/* For composing TX descriptor header */
-	UINT_8 ucTC;		/* Traffic Class: 0~4 (HIF TX0), 5 (HIF TX1) */
-	UINT_8 ucPacketType;	/* 0: Data, 1: Management Frame */
-	UINT_8 ucStaRecIndex;	/* STA_REC index */
-	UINT_8 ucBssIndex;	/* BSS_INFO_T index */
-	UINT_8 ucWlanIndex;	/* Wlan entry index */
+    /* For composing TX descriptor header */
+    UINT_8                      ucTC;                   /* Traffic Class: 0~4 (HIF TX0), 5 (HIF TX1) */
+    UINT_8                      ucPacketType;           /* 0: Data, 1: Management Frame */
+    UINT_8                      ucStaRecIndex;          /* STA_REC index */
+    UINT_8                      ucBssIndex;             /* BSS_INFO_T index */
+    UINT_8                      ucWlanIndex;            /* Wlan entry index */
 
-	BOOLEAN fgIs802_1x;	/* TRUE: 802.1x frame */
-	BOOLEAN fgIs802_11;	/* TRUE: 802.11 header is present */
-	BOOLEAN fgIs802_3;	/* TRUE: 802.3 frame */
-	BOOLEAN fgIsVlanExists;	/* TRUE: VLAN tag is exists */
+    BOOLEAN                     fgIs802_1x;             /* TRUE: 802.1x frame */
+    BOOLEAN                     fgIs802_11;             /* TRUE: 802.11 header is present */
+    BOOLEAN                     fgIs802_3;              /* TRUE: 802.3 frame */
+    BOOLEAN                     fgIsVlanExists;         /* TRUE: VLAN tag is exists */
 
-	/* BOOLEAN                     fgIsBIP;               */ /* Management Frame Protection */
-	/* BOOLEAN                     fgIsBasicRate;         */ /* Force Basic Rate Transmission */
-	/* BOOLEAN                     fgIsMoreData;          */ /* More data */
-	/* BOOLEAN                     fgIsEOSP;              */ /* End of service period */
+	/* BOOLEAN                     fgIsBIP;                */ /* Management Frame Protection */
+	/* BOOLEAN                     fgIsBasicRate;      */ /* Force Basic Rate Transmission */
+	/* BOOLEAN                     fgIsMoreData;      */ /* More data */
+	/* BOOLEAN                     fgIsEOSP;            */ /* End of service period */
 
-	/* Special Option */
-	UINT_32 u4Option;	/* Special option in bitmask, no ACK, etc... */
-	INT_8 cPowerOffset;	/* Per-packet power offset, in 2's complement */
-	UINT_16 u2SwSN;		/* SW assigned sequence number */
-	UINT_8 ucRetryLimit;	/* The retry limit */
-	UINT_32 u4RemainingLifetime;	/* Remaining lifetime, unit:ms */
+    /* Special Option */
+    UINT_32                     u4Option;               /* Special option in bitmask, no ACK, etc... */
+    INT_8                       cPowerOffset;           /* Per-packet power offset, in 2's complement */
+    UINT_16                     u2SwSN;                 /* SW assigned sequence number */
+    UINT_8                      ucRetryLimit;           /* The retry limit */
+    UINT_32                     u4RemainingLifetime;    /* Remaining lifetime, unit:ms */
 
-	/* Control flag */
-	UINT_8 ucControlFlag;	/* Control flag in bitmask */
+    /* Control flag */
+    UINT_8                      ucControlFlag;          /* Control flag in bitmask */
 
-	/* Fixed Rate Option */
-	UINT_8 ucRateMode;	/* Rate mode: AUTO, MANUAL_DESC, MANUAL_CR */
-	UINT_32 u4FixedRateOption;	/* The rate option, rate code, GI, etc... */
+    /* Fixed Rate Option */
+    UINT_8                      ucRateMode;             /* Rate mode: AUTO, MANUAL_DESC, MANUAL_CR */
+    UINT_32                     u4FixedRateOption;      /* The rate option, rate code, GI, etc... */
 
-	BOOLEAN fgIsTXDTemplateValid;	/* There is a valid Tx descriptor for this packet */
+    BOOLEAN                     fgIsTXDTemplateValid;   /* There is a valid Tx descriptor for this packet */
 
-	/* flattened from PACKET_INFO_T */
-	UINT_8 ucMacHeaderLength;	/* MAC header legth */
-	UINT_8 ucLlcLength;	/* w/o EtherType */
-	UINT_16 u2FrameLength;	/* Total frame length */
-	UINT_8 aucEthDestAddr[MAC_ADDR_LEN];	/* Ethernet Destination Address */
-	UINT_8 ucPageCount;	/* Required page count for this MSDU */
+    /* flattened from PACKET_INFO_T */
+    UINT_8                      ucMacHeaderLength;      /* MAC header legth */
+    UINT_8                      ucLlcLength;            /* w/o EtherType */
+    UINT_16                     u2FrameLength;          /* Total frame length */
+    UINT_8                      aucEthDestAddr[MAC_ADDR_LEN]; /* Ethernet Destination Address */
+    UINT_8                      ucPageCount;            /* Required page count for this MSDU */
 
-	/* for TX done tracking */
+    /* for TX done tracking */
 	UINT_8 ucTxSeqNum;	/* MGMT frame serial number */
-	UINT_8 ucPID;		/* PID */
-	PFN_TX_DONE_HANDLER pfTxDoneHandler;	/* Tx done handler */
+    UINT_8                      ucPID;                  /* PID */
+    PFN_TX_DONE_HANDLER         pfTxDoneHandler;        /* Tx done handler */
 
-	/* To be removed  */
-	UINT_8 ucFormatID;	/* 0: MAUI, Linux, Windows NDIS 5.1 */
-	/* UINT_16                     u2PalLLH;              */ /* PAL Logical Link Header (for BOW network) */
-	/* UINT_16                     u2AclSN;               */ /* ACL Sequence Number (for BOW network) */
-	UINT_8 ucPsForwardingType;	/* See ENUM_PS_FORWARDING_TYPE_T */
-	/* UINT_8                      ucPsSessionID;         */ /* PS Session ID specified by the FW for the STA */
-	/* BOOLEAN                     fgIsBurstEnd;          */ /* TRUE means this is the last packet of the burst for (STA, TID) */
-#if CFG_M0VE_BA_TO_DRIVER
-	UINT_8 ucTID;
+#if CFG_ENABLE_PKT_LIFETIME_PROFILE
+    PKT_PROFILE_T               rPktProfile;
 #endif
 
+    /* To be removed  */
+    UINT_8                      ucFormatID;             /* 0: MAUI, Linux, Windows NDIS 5.1 */
+	/* UINT_16                     u2PalLLH;              */  /* PAL Logical Link Header (for BOW network) */
+	/* UINT_16                     u2AclSN;                 */ /* ACL Sequence Number (for BOW network) */
+    UINT_8                      ucPsForwardingType;     /* See ENUM_PS_FORWARDING_TYPE_T */
+	/* UINT_8                      ucPsSessionID;        */ /* PS Session ID specified by the FW for the STA */
+	/* BOOLEAN                     fgIsBurstEnd;         */ /* TRUE means this is the last packet of the burst for (STA, TID) */
+#if CFG_M0VE_BA_TO_DRIVER
+	UINT_8						ucTID;
+#endif
+
+#if CFG_SUPPORT_MULTITHREAD
+    /* Compose TxDesc in tx_thread and place here */
+    UINT_8                      ucTxDescBuffer[NIC_TX_DESC_AND_PADDING_LENGTH];
+#endif
 };
 
 /*!A data structure which is identical with HW MAC TX DMA Descriptor */
 typedef struct _HW_MAC_TX_DESC_T {
-	/* DW 0 */
-	UINT_16 u2TxByteCount;
+    /* DW 0 */
+    UINT_16     u2TxByteCount;
 	UINT_8 ucEtherOffset;	/* Ether-Type Offset,  IP checksum offload */
 	UINT_8 ucPortIdx_QueueIdx;	/* UDP/TCP checksum offload,  USB NextVLD/TxBURST, Queue index, Port index */
-	/* DW 1 */
-	UINT_8 ucWlanIdx;
-	UINT_8 ucHeaderFormat;	/* Header format, TX descriptor format */
-	UINT_8 ucHeaderPadding;	/* Header padding, no ACK, TID, Protect frame */
-	UINT_8 ucOwnMAC;
+    /* DW 1 */
+    UINT_8      ucWlanIdx;
+    UINT_8      ucHeaderFormat;         /* Header format, TX descriptor format */
+    UINT_8      ucHeaderPadding;        /* Header padding, no ACK, TID, Protect frame */
+    UINT_8      ucOwnMAC;
 
-	/* Long Format, the following structure is for long format ONLY */
-	/* DW 2 */
-	UINT_8 ucType_SubType;	/* Type, Sub-type, NDP, NDPA */
-	UINT_8 ucFrag;		/* Sounding, force RTS/CTS, BMC, BIP, Duration, HTC exist, Fragment */
-	UINT_8 ucRemainingMaxTxTime;
+    /* Long Format, the following structure is for long format ONLY */
+    /* DW 2 */
+    UINT_8      ucType_SubType;         /* Type, Sub-type, NDP, NDPA */
+    UINT_8      ucFrag;                 /* Sounding, force RTS/CTS, BMC, BIP, Duration, HTC exist, Fragment */
+    UINT_8      ucRemainingMaxTxTime;
 	UINT_8 ucPowerOffset;	/* Power offset, Disable BA, Timing measurement, Fixed rate */
-	/* DW 3 */
-	UINT_16 u2TxCountLimit;	/* TX count limit */
-	UINT_16 u2SN;		/* SN, HW own, PN valid, SN valid */
-	/* DW 4 */
-	UINT_32 u4PN1;
-	/* DW 5 */
-	UINT_8 ucPID;
+    /* DW 3 */
+    UINT_16     u2TxCountLimit;         /* TX count limit */
+    UINT_16     u2SN;                   /* SN, HW own, PN valid, SN valid */
+    /* DW 4 */
+    UINT_32     u4PN1;
+    /* DW 5 */
+    UINT_8      ucPID;
 	UINT_8 ucTxStatus;	/* TXS format, TXS to mcu, TXS to host, DA source, BAR SSN, Power management */
-	UINT_16 u2PN2;
-	/* DW 6 */
-	UINT_8 ucAntID;		/* Fixed rate, Antenna ID */
-	UINT_8 ucBandwidth;	/* Bandwidth,  Spatial Extension, Antenna priority, Dynamic bandwidth */
-	UINT_16 u2FixedRate;	/* Explicit/implicit beamforming, Fixed rate table, LDPC, GI */
+    UINT_16     u2PN2;
+    /* DW 6 */
+    UINT_8      ucAntID;                /* Fixed rate, Antenna ID */
+    UINT_8      ucBandwidth;            /* Bandwidth,  Spatial Extension, Antenna priority, Dynamic bandwidth */
+    UINT_16     u2FixedRate;            /* Explicit/implicit beamforming, Fixed rate table, LDPC, GI */
 } HW_MAC_TX_DESC_T, *P_HW_MAC_TX_DESC_T, **PP_HW_MAC_TX_DESC_T;
 
 typedef struct _TX_RESOURCE_CONTROL_T {
-	/* HW TX queue definition */
-	UINT_8 ucDestPortIndex;
-	UINT_8 ucDestQueueIndex;
+    /* HW TX queue definition */
+    UINT_8      ucDestPortIndex;
+    UINT_8      ucDestQueueIndex;
 	/* HIF Interrupt status index */
-	UINT_8 ucHifTxQIndex;
+    UINT_8      ucHifTxQIndex;
 } TX_RESOURCE_CONTROL_T, *PTX_RESOURCE_CONTROL_T;
 
 typedef struct _TX_TC_TRAFFIC_SETTING_T {
-	UINT_8 ucTxDescLength;
-	UINT_32 u4RemainingTxTime;
-	UINT_8 ucTxCountLimit;
+    UINT_8      ucTxDescLength;
+    UINT_32     u4RemainingTxTime;
+    UINT_8      ucTxCountLimit;
 } TX_TC_TRAFFIC_SETTING_T, P_TX_TC_TRAFFIC_SETTING_T;
 
 
@@ -1126,6 +1082,38 @@ typedef struct _TX_TC_TRAFFIC_SETTING_T {
 
 #define TX_RESET_ALL_CNTS(prTxCtrl)                 \
     {kalMemZero(&prTxCtrl->au4Statistics[0], sizeof(prTxCtrl->au4Statistics)); }
+#if CFG_ENABLE_PKT_LIFETIME_PROFILE
+
+#if CFG_PRINT_PKT_LIFETIME_PROFILE
+#define PRINT_PKT_PROFILE(_pkt_profile, _note) \
+    { \
+	if (!(_pkt_profile)->fgIsPrinted) { \
+	    DBGLOG(TX, TRACE, ("X[%lu] E[%lu] D[%lu] HD[%lu] B[%d] RTP[%d] %s\n", \
+		    (UINT_32)((_pkt_profile)->rHardXmitArrivalTimestamp), \
+		    (UINT_32)((_pkt_profile)->rEnqueueTimestamp), \
+		    (UINT_32)((_pkt_profile)->rDequeueTimestamp), \
+		    (UINT_32)((_pkt_profile)->rHifTxDoneTimestamp), \
+		    (UINT_8)((_pkt_profile)->ucTcxFreeCount), \
+		    (UINT_16)((_pkt_profile)->u2RtpSn), \
+		    (_note))); \
+	    (_pkt_profile)->fgIsPrinted = TRUE; \
+	} \
+    }
+#else
+#define PRINT_PKT_PROFILE(_pkt_profile, _note)
+#endif
+
+#define CHK_PROFILES_DELTA(_pkt1, _pkt2, _delta) \
+	   (CHECK_FOR_TIMEOUT((_pkt1)->rHardXmitArrivalTimestamp, (_pkt2)->rHardXmitArrivalTimestamp, (_delta)) || \
+	    CHECK_FOR_TIMEOUT((_pkt1)->rEnqueueTimestamp, (_pkt2)->rEnqueueTimestamp, (_delta)) || \
+	    CHECK_FOR_TIMEOUT((_pkt1)->rDequeueTimestamp, (_pkt2)->rDequeueTimestamp, (_delta)) || \
+	    CHECK_FOR_TIMEOUT((_pkt1)->rHifTxDoneTimestamp, (_pkt2)->rHifTxDoneTimestamp, (_delta)))
+
+#define CHK_PROFILE_DELTA(_pkt, _delta) \
+	   (CHECK_FOR_TIMEOUT((_pkt)->rEnqueueTimestamp, (_pkt)->rHardXmitArrivalTimestamp, (_delta)) || \
+	    CHECK_FOR_TIMEOUT((_pkt)->rDequeueTimestamp, (_pkt)->rEnqueueTimestamp, (_delta)) || \
+	    CHECK_FOR_TIMEOUT((_pkt)->rHifTxDoneTimestamp, (_pkt)->rDequeueTimestamp, (_delta)))
+#endif
 
 /*------------------------------------------------------------------------------
  * MACRO for MSDU_INFO
@@ -1503,6 +1491,15 @@ UINT_8 nicTxGetFrameResourceType(IN UINT_8 eFrameType, IN P_MSDU_INFO_T prMsduIn
 
 UINT_8 nicTxGetCmdResourceType(IN P_CMD_INFO_T prCmdInfo);
 
+VOID
+nicTxFillDesc(IN P_ADAPTER_T prAdapter,
+	      IN P_MSDU_INFO_T prMsduInfo, OUT PUINT_8 prTxDescBuffer, OUT PUINT_8 pucTxDescLength);
+
+VOID
+nicTxComposeSecurityFrameDesc(IN P_ADAPTER_T prAdapter,
+    IN P_CMD_INFO_T         prCmdInfo,
+			      OUT PUINT_8 prTxDescBuffer, OUT PUINT_8 pucTxDescLength);
+
 WLAN_STATUS nicTxMsduInfoList(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T prMsduInfoListHead);
 
 #if CFG_SUPPORT_MULTITHREAD
@@ -1515,7 +1512,7 @@ WLAN_STATUS nicTxMsduQueue(IN P_ADAPTER_T prAdapter, UINT_8 ucPortIdx, P_QUE_T p
 
 WLAN_STATUS nicTxCmd(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmdInfo, IN UINT_8 ucTC);
 
-VOID nicTxRelease(IN P_ADAPTER_T prAdapter);
+VOID nicTxRelease(IN P_ADAPTER_T prAdapter, IN BOOLEAN fgProcTxDoneHandler);
 
 VOID nicProcessTxInterrupt(IN P_ADAPTER_T prAdapter);
 
@@ -1541,6 +1538,8 @@ WLAN_STATUS nicTxEnqueueMsdu(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T prMsduIn
 
 UINT_8 nicTxGetWlanIdx(IN P_ADAPTER_T prAdapter, IN UINT_8 ucBssIdx, IN UINT_8 ucStaRecIdx);
 
+BOOLEAN nicTxIsMgmtResourceEnough(IN P_ADAPTER_T prAdapter);
+
 UINT_32 nicTxGetFreeCmdCount(IN P_ADAPTER_T prAdapter);
 
 UINT_8 nicTxGetPageCount(IN UINT_32 u4FrameLength, IN BOOLEAN fgIncludeDesc);
@@ -1553,23 +1552,23 @@ VOID nicTxFreeDescTemplate(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T prStaRec)
 
 VOID
 nicTxSetMngPacket(IN P_ADAPTER_T prAdapter,
-		  IN P_MSDU_INFO_T prMsduInfo,
-		  IN UINT_8 ucBssIndex,
-		  IN UINT_8 ucStaRecIndex,
-		  IN UINT_8 ucMacHeaderLength,
-		  IN UINT_16 u2FrameLength,
+    IN P_MSDU_INFO_T           prMsduInfo,
+    IN UINT_8                  ucBssIndex,
+    IN UINT_8                  ucStaRecIndex,
+    IN UINT_8                  ucMacHeaderLength,
+    IN UINT_16                 u2FrameLength,
 		  IN PFN_TX_DONE_HANDLER pfTxDoneHandler, IN UINT_8 ucRateMode);
 
 VOID
 nicTxSetDataPacket(IN P_ADAPTER_T prAdapter,
-		   IN P_MSDU_INFO_T prMsduInfo,
-		   IN UINT_8 ucBssIndex,
-		   IN UINT_8 ucStaRecIndex,
-		   IN UINT_8 ucMacHeaderLength,
-		   IN UINT_16 u2FrameLength,
-		   IN PFN_TX_DONE_HANDLER pfTxDoneHandler,
-		   IN UINT_8 ucRateMode,
-		   IN ENUM_TX_PACKET_SRC_T eSrc,
+    IN P_MSDU_INFO_T           prMsduInfo,
+    IN UINT_8                  ucBssIndex,
+    IN UINT_8                  ucStaRecIndex,
+    IN UINT_8                  ucMacHeaderLength,
+    IN UINT_16                 u2FrameLength,
+    IN PFN_TX_DONE_HANDLER     pfTxDoneHandler,
+    IN UINT_8                  ucRateMode,
+    IN ENUM_TX_PACKET_SRC_T    eSrc,
 		   IN UINT_8 ucTID, IN BOOLEAN fgIs802_11Frame, IN BOOLEAN fgIs1xFrame);
 
 VOID nicTxFillDescByPktOption(IN P_MSDU_INFO_T prMsduInfo, IN P_HW_MAC_TX_DESC_T prTxDesc);
@@ -1595,19 +1594,19 @@ VOID nicTxSetPktMacTxQue(IN P_MSDU_INFO_T prMsduInfo, IN UINT_8 ucMacTxQue);
 
 VOID
 nicTxSetPktFixedRateOptionFull(IN P_MSDU_INFO_T prMsduInfo,
-			       IN UINT_16 u2RateCode,
-			       IN UINT_8 ucBandwidth,
-			       IN BOOLEAN fgShortGI,
-			       IN BOOLEAN fgLDPC,
-			       IN BOOLEAN fgDynamicBwRts,
-			       IN BOOLEAN fgSpatialExt,
-			       IN BOOLEAN fgEtxBeamforming,
-			       IN BOOLEAN fgItxBeamforming,
+    IN UINT_16         u2RateCode,
+    IN UINT_8          ucBandwidth,
+    IN BOOLEAN         fgShortGI,
+    IN BOOLEAN         fgLDPC,
+    IN BOOLEAN         fgDynamicBwRts,
+    IN BOOLEAN         fgSpatialExt,
+    IN BOOLEAN         fgEtxBeamforming,
+    IN BOOLEAN         fgItxBeamforming,
 			       IN UINT_8 ucAntennaIndex, IN UINT_8 ucAntennaPriority);
 
 VOID
 nicTxSetPktFixedRateOption(IN P_MSDU_INFO_T prMsduInfo,
-			   IN UINT_16 u2RateCode,
+    IN UINT_16         u2RateCode,
 			   IN UINT_8 ucBandwidth, IN BOOLEAN fgShortGI, IN BOOLEAN fgDynamicBwRts);
 
 VOID nicTxSetPktMoreData(IN P_MSDU_INFO_T prCurrentMsduInfo, IN BOOLEAN fgSetMoreDataBit);
@@ -1624,9 +1623,20 @@ VOID nicTxUpdateBssDefaultRate(IN P_BSS_INFO_T prBssInfo);
 
 VOID nicTxUpdateStaRecDefaultRate(IN P_STA_RECORD_T prStaRec);
 
+
+VOID
+nicTxPrintMetRTP(
+    IN P_ADAPTER_T              prAdapter,
+    IN P_MSDU_INFO_T            prMsduInfo,
+    IN P_NATIVE_PACKET prPacket,
+    IN UINT_32         u4PacketLen,
+    IN BOOLEAN         bFreeSkb
+    );
+
+
 /*******************************************************************************
 *                              F U N C T I O N S
 ********************************************************************************
 */
 
-#endif				/* _NIC_TX_H */
+#endif /* _NIC_TX_H */

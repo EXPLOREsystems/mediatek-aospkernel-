@@ -316,14 +316,14 @@ typedef struct {
 
 #define WAIT_BUS_CLEAR(cmdRespBuff)    do { \
 	    unsigned long u4Value; \
-            while ((pVSsp->sssr & BITS(8, 11)) || !(pVSsp->sssr & SSSR_TNF));  \
+	    while ((pVSsp->sssr & BITS(8, 11)) || !(pVSsp->sssr & SSSR_TNF));  \
 	    while (pVSsp->sssr & SSSR_RNE) {    \
 		u4Value = pVSsp->ssdr;   \
 	    }   \
 	} while (0)
 
 #define WAIT_BUS_DONE() do { \
-            while ((pVSsp->sssr & BITS(8, 11)) || !(pVSsp->sssr & SSSR_TNF));  \
+	    while ((pVSsp->sssr & BITS(8, 11)) || !(pVSsp->sssr & SSSR_TNF));  \
 	    while (pVSsp->sssr & SSSR_BSY); \
 	} while (0)
 

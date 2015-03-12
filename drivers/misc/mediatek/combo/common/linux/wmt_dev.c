@@ -354,7 +354,7 @@ INT32 wmt_dev_read_file(UCHAR *pName, const u8 **ppBufPtr, INT32 offset, INT32 p
 }
 
 /* TODO: [ChangeFeature][George] refine this function name for general filesystem read operation, not patch only. */
-INT32 wmt_dev_patch_get(UCHAR * pPatchName, osal_firmware * *ppPatch, INT32 padSzBuf)
+INT32 wmt_dev_patch_get(UCHAR *pPatchName, osal_firmware * *ppPatch, INT32 padSzBuf)
 {
 	INT32 iRet = -1;
 	osal_firmware *pfw;

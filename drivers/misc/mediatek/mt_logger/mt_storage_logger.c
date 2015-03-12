@@ -187,7 +187,7 @@ static struct _loggerFuncName storageLoggerfunc[] = {
 };
 
 /*========USB PART========*/
-#define MSG_ARRAY_INDEX(a, b, c) [USB_LOGGER_MSG_##a - USB_LOGGER_MSG_FIRST_ONE] = \
+#define MSG_ARRAY_INDEX(a, b, c)[USB_LOGGER_MSG_##a - USB_LOGGER_MSG_FIRST_ONE] = \
 								{USB_LOGGER_MSG_##a, b, c}
 
 static struct _loggerMsgFormat usb_logger_format[] = {
@@ -239,7 +239,7 @@ static struct _loggerMsgFormat usb_logger_format[] = {
 	MSG_ARRAY_INDEX(LAST_ONE, "", "")
 };
 
-#define MSG_FUNC_INDEX(a, b) [USB_FUNC_STRING_INDEX_##a] = {USB_FUNC_STRING_INDEX_##a, b}
+#define MSG_FUNC_INDEX(a, b)[USB_FUNC_STRING_INDEX_##a] = {USB_FUNC_STRING_INDEX_##a, b}
 
 static struct _loggerFuncName usb_func_name_string[] = {
 	MSG_FUNC_INDEX(MUSB_INTERRUPT, "musb_interrupt"),
@@ -270,7 +270,7 @@ static struct _loggerFuncName usb_func_name_string[] = {
 };
 
 /*========Thermal PART========*/
-#define MSG_THRML_ARRAY_INDEX(a, b, c) [THRML_LOGGER_MSG_##a - THRML_LOGGER_MSG_FIRST_ONE] = \
+#define MSG_THRML_ARRAY_INDEX(a, b, c)[THRML_LOGGER_MSG_##a - THRML_LOGGER_MSG_FIRST_ONE] = \
 								{THRML_LOGGER_MSG_##a, b, c}
 
 
@@ -296,7 +296,7 @@ static struct _loggerMsgFormat thermalLoggerFmt[] = {
 
 };
 
-#define MSG_THRML_FUNC_INDEX(a, b) [THRML_FID_##a] = {THRML_FID_##a, b}
+#define MSG_THRML_FUNC_INDEX(a, b)[THRML_FID_##a] = {THRML_FID_##a, b}
 
 static struct _loggerFuncName thermalLoggerfunc[] = {
 	MSG_THRML_FUNC_INDEX(bind, "mtk_thermal_wrapper_bind"),
@@ -1382,7 +1382,7 @@ ssize_t storage_logger_proc_read(struct file *file, char __user *buf, size_t siz
 	}
 	/* SLog_MSG("second part: %Lu  %d\n",m->index,m->count); */
 
- Done :
+ Done:
 	if (!copied)
 		copied = err;
 	else {

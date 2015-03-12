@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: @(#)
 */
 
@@ -13,7 +27,7 @@
 ** $Log: scan.h $
  *
  * 01 16 2012 cp.wu
- * [MT6620 Wi-Fi][Driver] API and behavior modification for preferred band configuration with corresponding network configuration 
+ * [MT6620 Wi-Fi][Driver] API and behavior modification for preferred band configuration with corresponding network configuration
  * add wlanSetPreferBandByNetwork() for glue layer to invoke for setting preferred band configuration corresponding to network type.
  *
  * 08 11 2011 cp.wu
@@ -269,32 +283,32 @@
 /*! Maximum buffer size of SCAN list */
 #define SCN_MAX_BUFFER_SIZE                 (CFG_MAX_NUM_BSS_LIST * ALIGN_4(sizeof(BSS_DESC_T)))
 
-#define SCN_RM_POLICY_EXCLUDE_CONNECTED     BIT(0) // Remove SCAN result except the connected one.
-#define SCN_RM_POLICY_TIMEOUT               BIT(1) // Remove the timeout one
-#define SCN_RM_POLICY_OLDEST_HIDDEN         BIT(2) // Remove the oldest one with hidden ssid
+#define SCN_RM_POLICY_EXCLUDE_CONNECTED     BIT(0) /* Remove SCAN result except the connected one. */
+#define SCN_RM_POLICY_TIMEOUT               BIT(1) /* Remove the timeout one */
+#define SCN_RM_POLICY_OLDEST_HIDDEN         BIT(2) /* Remove the oldest one with hidden ssid */
 #define SCN_RM_POLICY_SMART_WEAKEST         BIT(3) /* If there are more than half BSS which has the
-                                                    * same ssid as connection setting, remove the weakest one from them
-                                                    * Else remove the weakest one.
-                                                    */
-#define SCN_RM_POLICY_ENTIRE                BIT(4) // Remove entire SCAN result
+						    * same ssid as connection setting, remove the weakest one from them
+						    * Else remove the weakest one.
+						    */
+#define SCN_RM_POLICY_ENTIRE                BIT(4) /* Remove entire SCAN result */
 
 #define SCN_BSS_DESC_SAME_SSID_THRESHOLD    3 /* This is used by POLICY SMART WEAKEST,
-                                               * If exceed this value, remove weakest BSS_DESC_T
-                                               * with same SSID first in large network.
-                                               */
+					       * If exceed this value, remove weakest BSS_DESC_T
+					       * with same SSID first in large network.
+					       */
 
 /* the scan time in WFD mode + 2.4G/5G is about 9s so we need to enlarge the value */
-#define SCN_BSS_DESC_REMOVE_TIMEOUT_SEC     15 // Second.
-                                              /* This is used by POLICY TIMEOUT,
-                                               * If exceed this value, remove timeout BSS_DESC_T.
-                                               */
+#define SCN_BSS_DESC_REMOVE_TIMEOUT_SEC     15 /* Second. */
+					      /* This is used by POLICY TIMEOUT,
+					       * If exceed this value, remove timeout BSS_DESC_T.
+					       */
 
 
 
 
 #define SCN_PROBE_DELAY_MSEC                0
 
-#define SCN_ADHOC_BSS_DESC_TIMEOUT_SEC      5 // Second.
+#define SCN_ADHOC_BSS_DESC_TIMEOUT_SEC      5 /* Second. */
 
 /*----------------------------------------------------------------------------*/
 /* MSG_SCN_SCAN_REQ                                                           */
@@ -352,16 +366,16 @@ struct _BSS_DESC_T {
     UINT_8                  aucSrcAddr[MAC_ADDR_LEN]; /* For IBSS, the SrcAddr is different from BSSID */
 
     BOOLEAN                 fgIsConnecting; /* If we are going to connect to this BSS
-                                             * (JOIN or ROAMING to another BSS), don't
-                                             * remove this record from BSS List.
-                                             */
+					     * (JOIN or ROAMING to another BSS), don't
+					     * remove this record from BSS List.
+					     */
     BOOLEAN                 fgIsConnected; /* If we have connected to this BSS (NORMAL_TR),
-                                            * don't removed this record from BSS list.
-                                            */
+					    * don't removed this record from BSS list.
+					    */
 
     BOOLEAN                 fgIsHiddenSSID; /* When this flag is TRUE, means the SSID
-                                             * of this BSS is not known yet.
-                                             */
+					     * of this BSS is not known yet.
+					     */
     UINT_8                  ucSSIDLen;
     UINT_8                  aucSSID[ELEM_MAX_LEN_SSID];
 
@@ -386,7 +400,7 @@ struct _BSS_DESC_T {
     UINT_8                  ucChannelNum;
 
     ENUM_CHNL_EXT_T         eSco;                   /* Record bandwidth for association process
-                                                       Some AP will send association resp by 40MHz BW */
+						       Some AP will send association resp by 40MHz BW */
     ENUM_BAND_T             eBand;
 
     UINT_8                  ucDTIMPeriod;
@@ -398,9 +412,9 @@ struct _BSS_DESC_T {
     UINT_8                  ucWmmFlag; /* A flag to indicate this BSS's WMM capability */
 
     /*! \brief The srbiter Search State will matched the scan result,
-               and saved the selected cipher and akm, and report the score,
-               for arbiter join state, join module will carry this target BSS
-               to rsn generate ie function, for gen wpa/rsn ie */
+	       and saved the selected cipher and akm, and report the score,
+	       for arbiter join state, join module will carry this target BSS
+	       to rsn generate ie function, for gen wpa/rsn ie */
     UINT_32                 u4RsnSelectedGroupCipher;
     UINT_32                 u4RsnSelectedPairwiseCipher;
     UINT_32                 u4RsnSelectedAKMSuite;
@@ -409,7 +423,7 @@ struct _BSS_DESC_T {
 
     RSN_INFO_T              rRSNInfo;
     RSN_INFO_T              rWPAInfo;
-#if 1//CFG_SUPPORT_WAPI
+#if 1/* CFG_SUPPORT_WAPI */
     WAPI_INFO_T             rIEWAPI;
     BOOL                    fgIEWAPI;
 #endif
@@ -418,7 +432,7 @@ struct _BSS_DESC_T {
 
     /*! \brief RSN parameters selected for connection */
     /*! \brief The Select score for final AP selection,
-               0, no sec, 1,2,3 group cipher is WEP, TKIP, CCMP */
+	       0, no sec, 1,2,3 group cipher is WEP, TKIP, CCMP */
     UINT_8                  ucEncLevel;
 
 #if CFG_ENABLE_WIFI_DIRECT
@@ -427,12 +441,12 @@ struct _BSS_DESC_T {
     P_P2P_DEVICE_DESC_T  prP2pDesc;
 
     UINT_8                  aucIntendIfAddr[MAC_ADDR_LEN]; /* For IBSS, the SrcAddr is different from BSSID */
-//    UINT_8 ucDevCapabilityBitmap;  /* Device Capability Attribute. (P2P_DEV_CAPABILITY_XXXX) */
-//    UINT_8 ucGroupCapabilityBitmap;  /* Group Capability Attribute. (P2P_GROUP_CAPABILITY_XXXX) */
+/* UINT_8 ucDevCapabilityBitmap;  /* Device Capability Attribute. (P2P_DEV_CAPABILITY_XXXX) */ */
+/* UINT_8 ucGroupCapabilityBitmap;  /* Group Capability Attribute. (P2P_GROUP_CAPABILITY_XXXX) */ */
 
     LINK_T rP2pDeviceList;
 
-//    P_LINK_T prP2pDeviceList;
+/* P_LINK_T prP2pDeviceList; */
 
     /* For
       *    1. P2P Capability.
@@ -486,7 +500,7 @@ typedef struct _SCAN_PARAM_T { /* Used by SCAN FSM */
     P2P_DEVICE_TYPE_T           rDiscoverDevType;
 
     UINT_16                     u2PassiveListenInterval;
-    // TODO: Find Specific Device Type.
+    /* TODO: Find Specific Device Type. */
 #endif /* CFG_SUPPORT_P2P */
 
     BOOLEAN                     fgIsObssScan;
@@ -595,26 +609,6 @@ typedef struct _MSG_SCN_SCAN_DONE_T {
     ENUM_SCAN_STATUS    eScanStatus;
 } MSG_SCN_SCAN_DONE, *P_MSG_SCN_SCAN_DONE;
 
-#if CFG_SUPPORT_AGPS_ASSIST
-typedef enum {
-	AGPS_PHY_A,
-	AGPS_PHY_B,
-	AGPS_PHY_G,
-}AP_PHY_TYPE;
-
-typedef struct _AGPS_AP_INFO_T{
-    UINT_8 aucBSSID[6]; 
-    INT_16 i2ApRssi; //-127..128
-    UINT_16 u2Channel;   //0..256
-    AP_PHY_TYPE ePhyType;
-} AGPS_AP_INFO_T, *P_AGPS_AP_INFO_T;
-
-typedef struct _AGPS_AP_LIST_T {
-	UINT_8 ucNum;
-	AGPS_AP_INFO_T arApInfo[32];
-} AGPS_AP_LIST_T, *P_AGPS_AP_LIST_T;
-#endif
-
 /*******************************************************************************
 *                            P U B L I C   D A T A
 ********************************************************************************
@@ -638,24 +632,24 @@ typedef struct _AGPS_AP_LIST_T {
 /* Routines in scan.c                                                         */
 /*----------------------------------------------------------------------------*/
 VOID
-scnInit (
+scnInit(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-scnUninit (
+scnUninit(
     IN P_ADAPTER_T prAdapter
     );
 
 /* BSS-DESC Search */
 P_BSS_DESC_T
-scanSearchBssDescByBssid (
+scanSearchBssDescByBssid(
     IN P_ADAPTER_T prAdapter,
     IN UINT_8 aucBSSID[]
     );
 
 P_BSS_DESC_T
-scanSearchBssDescByBssidAndSsid (
+scanSearchBssDescByBssidAndSsid(
     IN P_ADAPTER_T prAdapter,
     IN UINT_8 aucBSSID[],
     IN BOOLEAN fgCheckSsid,
@@ -663,13 +657,13 @@ scanSearchBssDescByBssidAndSsid (
     );
 
 P_BSS_DESC_T
-scanSearchBssDescByTA (
+scanSearchBssDescByTA(
     IN P_ADAPTER_T prAdapter,
     IN UINT_8 aucSrcAddr[]
     );
 
 P_BSS_DESC_T
-scanSearchBssDescByTAAndSsid (
+scanSearchBssDescByTAAndSsid(
     IN P_ADAPTER_T prAdapter,
     IN UINT_8 aucSrcAddr[],
     IN BOOLEAN fgCheckSsid,
@@ -678,7 +672,7 @@ scanSearchBssDescByTAAndSsid (
 
 #if CFG_SUPPORT_HOTSPOT_2_0
 P_BSS_DESC_T
-scanSearchBssDescByBssidAndLatestUpdateTime (
+scanSearchBssDescByBssidAndLatestUpdateTime(
     IN P_ADAPTER_T prAdapter,
     IN UINT_8 aucBSSID[]
     );
@@ -687,7 +681,7 @@ scanSearchBssDescByBssidAndLatestUpdateTime (
 
 /* BSS-DESC Search - Alternative */
 P_BSS_DESC_T
-scanSearchExistingBssDesc (
+scanSearchExistingBssDesc(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_BSS_TYPE_T eBSSType,
     IN UINT_8 aucBSSID[],
@@ -695,7 +689,7 @@ scanSearchExistingBssDesc (
     );
 
 P_BSS_DESC_T
-scanSearchExistingBssDescWithSsid (
+scanSearchExistingBssDescWithSsid(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_BSS_TYPE_T eBSSType,
     IN UINT_8 aucBSSID[],
@@ -707,25 +701,25 @@ scanSearchExistingBssDescWithSsid (
 
 /* BSS-DESC Allocation */
 P_BSS_DESC_T
-scanAllocateBssDesc (
+scanAllocateBssDesc(
     IN P_ADAPTER_T prAdapter
     );
 
 /* BSS-DESC Removal */
 VOID
-scanRemoveBssDescsByPolicy (
+scanRemoveBssDescsByPolicy(
     IN P_ADAPTER_T prAdapter,
     IN UINT_32 u4RemovePolicy
     );
 
 VOID
-scanRemoveBssDescByBssid (
+scanRemoveBssDescByBssid(
     IN P_ADAPTER_T prAdapter,
     IN UINT_8 aucBSSID[]
     );
 
 VOID
-scanRemoveBssDescByBandAndNetwork (
+scanRemoveBssDescByBandAndNetwork(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_BAND_T eBand,
     IN ENUM_NETWORK_TYPE_INDEX_T eNetTypeIndex
@@ -733,7 +727,7 @@ scanRemoveBssDescByBandAndNetwork (
 
 /* BSS-DESC State Change */
 VOID
-scanRemoveConnFlagOfBssDescByBssid (
+scanRemoveConnFlagOfBssDescByBssid(
     IN P_ADAPTER_T prAdapter,
     IN UINT_8 aucBSSID[]
     );
@@ -741,7 +735,7 @@ scanRemoveConnFlagOfBssDescByBssid (
 #if 0
 /* BSS-DESC Insertion */
 P_BSS_DESC_T
-scanAddToInternalScanResult (
+scanAddToInternalScanResult(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T prSWRfb,
     IN P_BSS_DESC_T prBssDesc
@@ -750,19 +744,19 @@ scanAddToInternalScanResult (
 
 /* BSS-DESC Insertion - ALTERNATIVE */
 P_BSS_DESC_T
-scanAddToBssDesc (
+scanAddToBssDesc(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T prSwRfb
     );
 
 WLAN_STATUS
-scanProcessBeaconAndProbeResp (
+scanProcessBeaconAndProbeResp(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T prSWRfb
     );
 
 VOID
-scanBuildProbeReqFrameCommonIEs (
+scanBuildProbeReqFrameCommonIEs(
     IN P_MSDU_INFO_T    prMsduInfo,
     IN PUINT_8          pucDesiredSsid,
     IN UINT_32          u4DesiredSsidLen,
@@ -770,32 +764,32 @@ scanBuildProbeReqFrameCommonIEs (
     );
 
 WLAN_STATUS
-scanSendProbeReqFrames (
+scanSendProbeReqFrames(
     IN P_ADAPTER_T prAdapter,
     IN P_SCAN_PARAM_T prScanParam
     );
 
 VOID
-scanUpdateBssDescForSearch (
+scanUpdateBssDescForSearch(
     IN P_ADAPTER_T prAdapter,
     IN P_BSS_DESC_T prBssDesc
     );
 
 P_BSS_DESC_T
-scanSearchBssDescByPolicy (
+scanSearchBssDescByPolicy(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_NETWORK_TYPE_INDEX_T eNetTypeIndex
     );
 
 WLAN_STATUS
-scanAddScanResult (
+scanAddScanResult(
     IN P_ADAPTER_T prAdapter,
     IN P_BSS_DESC_T prBssDesc,
     IN P_SW_RFB_T prSwRfb
     );
 
 VOID
-scanReportBss2Cfg80211 (
+scanReportBss2Cfg80211(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_BSS_TYPE_T         eBSSType,
     IN P_BSS_DESC_T SpecificprBssDesc
@@ -805,7 +799,7 @@ scanReportBss2Cfg80211 (
 /* Routines in scan_fsm.c                                                     */
 /*----------------------------------------------------------------------------*/
 VOID
-scnFsmSteps (
+scnFsmSteps(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_SCAN_STATE_T eNextState
     );
@@ -814,12 +808,12 @@ scnFsmSteps (
 /* Command Routines                                                           */
 /*----------------------------------------------------------------------------*/
 VOID
-scnSendScanReq (
+scnSendScanReq(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-scnSendScanReqV2 (
+scnSendScanReqV2(
     IN P_ADAPTER_T prAdapter
     );
 
@@ -836,31 +830,31 @@ scnEventScanDone(
 /* Mailbox Message Handling                                                   */
 /*----------------------------------------------------------------------------*/
 VOID
-scnFsmMsgStart (
+scnFsmMsgStart(
     IN P_ADAPTER_T prAdapter,
     IN P_MSG_HDR_T prMsgHdr
     );
 
 VOID
-scnFsmMsgAbort (
+scnFsmMsgAbort(
     IN P_ADAPTER_T prAdapter,
     IN P_MSG_HDR_T prMsgHdr
     );
 
 VOID
-scnFsmHandleScanMsg (
+scnFsmHandleScanMsg(
     IN P_ADAPTER_T prAdapter,
     IN P_MSG_SCN_SCAN_REQ prScanReqMsg
     );
 
 VOID
-scnFsmHandleScanMsgV2 (
+scnFsmHandleScanMsgV2(
     IN P_ADAPTER_T prAdapter,
     IN P_MSG_SCN_SCAN_REQ_V2 prScanReqMsg
     );
 
 VOID
-scnFsmRemovePendingMsg (
+scnFsmRemovePendingMsg(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_8       ucSeqNum,
     IN UINT_8       ucNetTypeIndex
@@ -870,7 +864,7 @@ scnFsmRemovePendingMsg (
 /* Mailbox Message Generation                                                 */
 /*----------------------------------------------------------------------------*/
 VOID
-scnFsmGenerateScanDoneMsg (
+scnFsmGenerateScanDoneMsg(
     IN P_ADAPTER_T          prAdapter,
     IN UINT_8               ucSeqNum,
     IN UINT_8               ucNetTypeIndex,
@@ -881,7 +875,7 @@ scnFsmGenerateScanDoneMsg (
 /* Query for sparse channel                                                   */
 /*----------------------------------------------------------------------------*/
 BOOLEAN
-scnQuerySparseChannel (
+scnQuerySparseChannel(
     IN P_ADAPTER_T      prAdapter,
     P_ENUM_BAND_T       prSparseBand,
     PUINT_8             pucSparseChannel
@@ -889,7 +883,3 @@ scnQuerySparseChannel (
 
 
 #endif /* _SCAN_H */
-
-#if CFG_SUPPORT_AGPS_ASSIST
-VOID scanReportScanResultToAgps(P_ADAPTER_T prAdapter);
-#endif

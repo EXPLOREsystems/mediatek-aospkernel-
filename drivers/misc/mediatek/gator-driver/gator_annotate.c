@@ -16,7 +16,7 @@
 #include <linux/spinlock.h>
 
 static DEFINE_SPINLOCK(annotate_lock);
-static bool collect_annotations = false;
+static bool collect_annotations;
 
 static int annotate_copy(struct file *file, char const __user *buf, size_t count)
 {
@@ -24,10 +24,10 @@ static int annotate_copy(struct file *file, char const __user *buf, size_t count
 	int write = per_cpu(gator_buffer_write, cpu)[ANNOTATE_BUF];
 
 	if (file == NULL) {
-		// copy from kernel
+		/* copy from kernel */
 		memcpy(&per_cpu(gator_buffer, cpu)[ANNOTATE_BUF][write], buf, count);
 	} else {
-		// copy from user space
+		/* copy from user space */
 		if (copy_from_user(&per_cpu(gator_buffer, cpu)[ANNOTATE_BUF][write], buf, count) != 0)
 			return -1;
 	}
@@ -44,23 +44,23 @@ static ssize_t annotate_write(struct file *file, char const __user *buf, size_t 
 		return -EINVAL;
 	}
 
-	// Annotations are not supported in interrupt context
+	/* Annotations are not supported in interrupt context */
 	if (in_interrupt()) {
 		pr_debug("gator: Annotations are not supported in interrupt context\n");
 		return -EINVAL;
 	}
 
  retry:
-	// synchronize between cores and with collect_annotations
+	/* synchronize between cores and with collect_annotations */
 	spin_lock(&annotate_lock);
 
 	if (!collect_annotations) {
-		// Not collecting annotations, tell the caller everything was written
+		/* Not collecting annotations, tell the caller everything was written */
 		size = count_orig;
 		goto annotate_write_out;
 	}
 
-	// Annotation only uses a single per-cpu buffer as the data must be in order to the engine
+	/* Annotation only uses a single per-cpu buffer as the data must be in order to the engine */
 	cpu = 0;
 
 	if (current == NULL) {
@@ -69,19 +69,19 @@ static ssize_t annotate_write(struct file *file, char const __user *buf, size_t 
 		pid = current->pid;
 	}
 
-	// determine total size of the payload
+	/* determine total size of the payload */
 	header_size = MAXSIZE_PACK32 * 3 + MAXSIZE_PACK64;
 	available = buffer_bytes_available(cpu, ANNOTATE_BUF) - header_size;
 	size = count < available ? count : available;
 
 	if (size <= 0) {
-		// Buffer is full, wait until space is available
+		/* Buffer is full, wait until space is available */
 		spin_unlock(&annotate_lock);
 		wait_event_interruptible(gator_annotate_wait, buffer_bytes_available(cpu, ANNOTATE_BUF) > header_size || !collect_annotations);
 		goto retry;
 	}
 
-	// synchronize shared variables annotateBuf and annotatePos
+	/* synchronize shared variables annotateBuf and annotatePos */
 	if (per_cpu(gator_buffer, cpu)[ANNOTATE_BUF]) {
 		u64 time = gator_get_time();
 		gator_buffer_write_packed_int(cpu, ANNOTATE_BUF, get_physical_cpu());
@@ -89,7 +89,7 @@ static ssize_t annotate_write(struct file *file, char const __user *buf, size_t 
 		gator_buffer_write_packed_int64(cpu, ANNOTATE_BUF, time);
 		gator_buffer_write_packed_int(cpu, ANNOTATE_BUF, size);
 
-		// determine the sizes to capture, length1 + length2 will equal size
+		/* determine the sizes to capture, length1 + length2 will equal size */
 		contiguous = contiguous_space_available(cpu, ANNOTATE_BUF);
 		if (size < contiguous) {
 			length1 = size;
@@ -109,14 +109,14 @@ static ssize_t annotate_write(struct file *file, char const __user *buf, size_t 
 			goto annotate_write_out;
 		}
 
-		// Check and commit; commit is set to occur once buffer is 3/4 full
+		/* Check and commit; commit is set to occur once buffer is 3/4 full */
 		buffer_check(cpu, ANNOTATE_BUF, time);
 	}
 
 annotate_write_out:
 	spin_unlock(&annotate_lock);
 
-	// return the number of bytes written
+	/* return the number of bytes written */
 	return size;
 }
 
@@ -126,18 +126,18 @@ static int annotate_release(struct inode *inode, struct file *file)
 {
 	int cpu = 0;
 
-	// synchronize between cores
+	/* synchronize between cores */
 	spin_lock(&annotate_lock);
 
 	if (per_cpu(gator_buffer, cpu)[ANNOTATE_BUF] && buffer_check_space(cpu, ANNOTATE_BUF, MAXSIZE_PACK64 + 3 * MAXSIZE_PACK32)) {
 		uint32_t pid = current->pid;
 		gator_buffer_write_packed_int(cpu, ANNOTATE_BUF, get_physical_cpu());
 		gator_buffer_write_packed_int(cpu, ANNOTATE_BUF, pid);
-		gator_buffer_write_packed_int64(cpu, ANNOTATE_BUF, 0);	// time
-		gator_buffer_write_packed_int(cpu, ANNOTATE_BUF, 0);	// size
+		gator_buffer_write_packed_int64(cpu, ANNOTATE_BUF, 0);	/* time */
+		gator_buffer_write_packed_int(cpu, ANNOTATE_BUF, 0);	/* size */
 	}
 
-	// Check and commit; commit is set to occur once buffer is 3/4 full
+	/* Check and commit; commit is set to occur once buffer is 3/4 full */
 	buffer_check(cpu, ANNOTATE_BUF, gator_get_time());
 
 	spin_unlock(&annotate_lock);
@@ -163,7 +163,7 @@ static int gator_annotate_start(void)
 
 static void gator_annotate_stop(void)
 {
-	// the spinlock here will ensure that when this function exits, we are not in the middle of an annotation
+	/* the spinlock here will ensure that when this function exits, we are not in the middle of an annotation */
 	spin_lock(&annotate_lock);
 	collect_annotations = false;
 	wake_up(&gator_annotate_wait);

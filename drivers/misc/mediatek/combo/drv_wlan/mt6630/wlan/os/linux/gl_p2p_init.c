@@ -229,7 +229,7 @@ static int initP2P(void)
 	/*if wlan is not started yet, return FALSE */
 	if (wlanExportGlueInfo(&prGlueInfo)) {
 		wlanSubModInit(prGlueInfo);
-		return (prGlueInfo->prAdapter->fgIsP2PRegistered ? 0 : -EIO);
+		return prGlueInfo->prAdapter->fgIsP2PRegistered ? 0 : -EIO;
 	}
 
 	return 0;

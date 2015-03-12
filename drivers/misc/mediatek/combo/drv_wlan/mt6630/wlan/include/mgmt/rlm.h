@@ -194,6 +194,10 @@
 ********************************************************************************
 */
 
+extern BOOLEAN g_bIcapEnable;
+extern BOOLEAN g_bCaptureDone;
+extern UINT_16 g_u2DumpIndex;
+
 /*******************************************************************************
 *                              C O N S T A N T S
 ********************************************************************************
@@ -365,6 +369,10 @@ VOID rlmRspGenerateHtOpIE(P_ADAPTER_T prAdapter, P_MSDU_INFO_T prMsduInfo);
 
 VOID rlmRspGenerateErpIE(P_ADAPTER_T prAdapter, P_MSDU_INFO_T prMsduInfo);
 
+VOID rlmGenerateMTKOuiIE(P_ADAPTER_T prAdapter, P_MSDU_INFO_T prMsduInfo);
+
+BOOLEAN rlmParseCheckMTKOuiIE(IN P_ADAPTER_T prAdapter, IN PUINT_8 pucBuf, IN PUINT_32 pu4Cap);
+
 VOID rlmProcessBcn(P_ADAPTER_T prAdapter, P_SW_RFB_T prSwRfb, PUINT_8 pucIE, UINT_16 u2IELength);
 
 VOID
@@ -404,14 +412,35 @@ VOID rlmReqGenerateVhtCapIE(P_ADAPTER_T prAdapter, P_MSDU_INFO_T prMsduInfo);
 
 VOID rlmRspGenerateVhtCapIE(P_ADAPTER_T prAdapter, P_MSDU_INFO_T prMsduInfo);
 
+VOID rlmRspGenerateVhtOpIE(P_ADAPTER_T prAdapter, P_MSDU_INFO_T prMsduInfo);
+
+VOID rlmFillVhtOpIE(P_ADAPTER_T prAdapter, P_BSS_INFO_T prBssInfo, P_MSDU_INFO_T prMsduInfo);
 #endif
+
+#if CFG_SUPPORT_DFS
+VOID
+rlmProcessSpecMgtAction(
+	P_ADAPTER_T prAdapter,
+	P_SW_RFB_T  prSwRfb
+	);
+
+VOID
+rlmSendOpModeNotificationFrame(
+    P_ADAPTER_T     prAdapter,
+    P_STA_RECORD_T  prStaRec,
+    UINT_8          ucChannelWidth,
+    UINT_8          ucNss
+    );
+
+#endif
+
 /*******************************************************************************
 *                              F U N C T I O N S
 ********************************************************************************
 */
 
 #ifndef _lint
-__KAL_INLINE__ VOID rlmDataTypeCheck(VOID)
+static __KAL_INLINE__ VOID rlmDataTypeCheck(VOID)
 {
 	return;
 }

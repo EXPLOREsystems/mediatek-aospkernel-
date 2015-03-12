@@ -31,8 +31,8 @@
 #define STP_PSM_LOG_ERR                  0
 
 #define ASSERT(expr)
-#define STP_PSM_FIFO_SIZE  0x2000//8kbytes
-#define STP_PSM_TX_SIZE    0x800 //2kbytes
+#define STP_PSM_FIFO_SIZE  0x2000/* 8kbytes */
+#define STP_PSM_TX_SIZE    0x800 /* 2kbytes */
 
 #define STP_PSM_OPERATION_FAIL    (-1)
 #define STP_PSM_OPERATION_SUCCESS (0)
@@ -42,9 +42,9 @@
 
 #define PSM_HANDLING 127
 
-#define STP_PSM_WMT_PS_TASK_HANDLING_TIME  30   //20 milli-seconds
-#define STP_PSM_IDLE_TIME_SLEEP           5000   //temporary for stress testing
-#define STP_PSM_SDIO_IDLE_TIME_SLEEP           100   //temporary for SDIO stress testing
+#define STP_PSM_WMT_PS_TASK_HANDLING_TIME  30   /* 20 milli-seconds */
+#define STP_PSM_IDLE_TIME_SLEEP           5000   /* temporary for stress testing */
+#define STP_PSM_SDIO_IDLE_TIME_SLEEP           100   /* temporary for SDIO stress testing */
 #define STP_PSM_WAIT_EVENT_TIMEOUT        6000
 
 #define STP_PSM_WMT_EVENT_SLEEP_EN                    (0x1UL << 0)
@@ -115,8 +115,8 @@ typedef struct mtk_stp_psm {
     OSAL_OP_Q               rActiveOpQ; /* active op queue */
     OSAL_OP                 arQue[STP_OP_BUF_SIZE]; /* real op instances */
 
-    //OSAL_OP                 current_active_op;
-    //P_OSAL_OP               current_active_op;
+    /* OSAL_OP                 current_active_op; */
+    /* P_OSAL_OP               current_active_op; */
     UINT32               last_active_opId;
     MTKSTP_PSM_STATE_T      work_state; /*working state*/
     INT32                   flag;
@@ -124,7 +124,7 @@ typedef struct mtk_stp_psm {
     /* in normal cases, sleep op is always enabled; but in error cases, we can't execute sleep cmd, Eg: FW assert, core dump*/
     INT32                   sleep_en;
 
-//    OSAL_UNSLEEPABLE_LOCK   flagSpinlock;
+/* OSAL_UNSLEEPABLE_LOCK   flagSpinlock; */
     INT32                   idle_time_to_sleep;
     OSAL_WAKE_LOCK          wake_lock;
     OSAL_TIMER              psm_timer;  /*monitor if active*/

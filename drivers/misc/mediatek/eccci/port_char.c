@@ -18,7 +18,7 @@
 
 unsigned int md_img_exist[MAX_IMG_NUM];	/* for META */
 
-#ifdef CONFIG_CUSTOM_KERNEL_SSW
+#ifdef CUSTOM_KERNEL_SSW
 extern int switch_sim_mode(int id, char *buf, unsigned int len);
 extern unsigned int get_sim_switch_type(void);
 #else

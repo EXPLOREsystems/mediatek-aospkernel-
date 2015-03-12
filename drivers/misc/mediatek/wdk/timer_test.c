@@ -201,19 +201,19 @@ static int phycical_count_test(void)
 			if (cntpct_lo2 < cntpct_lo1) {
 				if (0xffff == cntpct_lo1) {
 					printk
-					    ("fwq 0 by pass bug cntpct_hi1=%u,cntpct_lo1=%u, cntpct_hi2=%u,cntpct_lo2=%u  \n",
+					    ("fwq 0 by pass bug cntpct_hi1=%u,cntpct_lo1=%u, cntpct_hi2=%u,cntpct_lo2=%u \n",
 					     cntpct_hi1, cntpct_lo1, cntpct_hi2, cntpct_lo2);
 					continue;
 				}
 				printk
-				    ("fwq 1 cntpct_hi1=%d,cntpct_lo1=%d, cntpct_hi2=%d,cntpct_lo2=%d  \n",
+				    ("fwq 1 cntpct_hi1=%d,cntpct_lo1=%d, cntpct_hi2=%d,cntpct_lo2=%d \n",
 				     cntpct_hi1, cntpct_lo1, cntpct_hi2, cntpct_lo2);
 				/* break; */
 			}
 		}
 		if (cntpct_hi2 < cntpct_hi1) {
 			printk
-			    ("fwq 2 cntpct_hi1=%d,cntpct_lo1=%d, cntpct_hi2=%d,cntpct_lo2=%d  \n",
+			    ("fwq 2 cntpct_hi1=%d,cntpct_lo1=%d, cntpct_hi2=%d,cntpct_lo2=%d \n",
 			     cntpct_hi1, cntpct_lo1, cntpct_hi2, cntpct_lo2);
 			/* break; */
 		}
@@ -551,7 +551,7 @@ static enum hrtimer_restart hrtimer_test_func(struct hrtimer *timer)
 	hr_t2 = sched_clock();
 	printk("[hrtimer_test_func] t1=%lld,t2 =%lld\n", hr_t1, hr_t2);
 
-	printk("[hrtimer_test_func] delta=%lld, \n", hr_t2 - hr_t1);
+	printk("[hrtimer_test_func] delta=%lld,\n", hr_t2 - hr_t1);
 	return HRTIMER_NORESTART;
 }
 

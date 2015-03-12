@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: @(#) bss.h
 */
 
@@ -139,9 +153,9 @@
 *                              C O N S T A N T S
 ********************************************************************************
 */
-//NOTE(Kevin): change define for george
-//#define MAX_LEN_TIM_PARTIAL_BMP     (((MAX_ASSOC_ID + 1) + 7) / 8)   /* Required bits = (MAX_ASSOC_ID + 1) */
-#define MAX_LEN_TIM_PARTIAL_BMP                     ((CFG_STA_REC_NUM + 7) / 8)  /* reserve length greater than maximum size of STA_REC */ //obsoleted: Assume we only use AID:1~15
+/* NOTE(Kevin): change define for george */
+/* #define MAX_LEN_TIM_PARTIAL_BMP     (((MAX_ASSOC_ID + 1) + 7) / 8)   /* Required bits = (MAX_ASSOC_ID + 1) */ */
+#define MAX_LEN_TIM_PARTIAL_BMP                     ((CFG_STA_REC_NUM + 7) / 8)  /* reserve length greater than maximum size of STA_REC */ /* obsoleted: Assume we only use AID:1~15 */
 
 /* CTRL FLAGS for Probe Response */
 #define BSS_PROBE_RESP_USE_P2P_DEV_ADDR             BIT(0)
@@ -176,7 +190,7 @@
 /* Routines for all Operation Modes                                           */
 /*----------------------------------------------------------------------------*/
 P_STA_RECORD_T
-bssCreateStaRecFromBssDesc (
+bssCreateStaRecFromBssDesc(
     IN P_ADAPTER_T                  prAdapter,
     IN ENUM_STA_TYPE_T              eStaType,
     IN ENUM_NETWORK_TYPE_INDEX_T    eNetTypeIndex,
@@ -184,14 +198,14 @@ bssCreateStaRecFromBssDesc (
     );
 
 VOID
-bssComposeNullFrame (
+bssComposeNullFrame(
     IN P_ADAPTER_T      prAdapter,
     IN PUINT_8          pucBuffer,
     IN P_STA_RECORD_T   prStaRec
     );
 
 VOID
-bssComposeQoSNullFrame (
+bssComposeQoSNullFrame(
     IN P_ADAPTER_T      prAdapter,
     IN PUINT_8          pucBuffer,
     IN P_STA_RECORD_T   prStaRec,
@@ -200,14 +214,14 @@ bssComposeQoSNullFrame (
     );
 
 WLAN_STATUS
-bssSendNullFrame (
+bssSendNullFrame(
     IN P_ADAPTER_T          prAdapter,
     IN P_STA_RECORD_T       prStaRec,
     IN PFN_TX_DONE_HANDLER  pfTxDoneHandler
     );
 
 WLAN_STATUS
-bssSendQoSNullFrame (
+bssSendQoSNullFrame(
     IN P_ADAPTER_T          prAdapter,
     IN P_STA_RECORD_T       prStaRec,
     IN UINT_8               ucUP,
@@ -219,20 +233,20 @@ bssSendQoSNullFrame (
 /* Routines for both IBSS(AdHoc) and BSS(AP)                                  */
 /*----------------------------------------------------------------------------*/
 VOID
-bssGenerateExtSuppRate_IE (
+bssGenerateExtSuppRate_IE(
     IN P_ADAPTER_T      prAdapter,
     IN P_MSDU_INFO_T    prMsduInfo
     );
 
 VOID
-bssBuildBeaconProbeRespFrameCommonIEs (
+bssBuildBeaconProbeRespFrameCommonIEs(
     IN P_MSDU_INFO_T    prMsduInfo,
     IN P_BSS_INFO_T     prBssInfo,
     IN PUINT_8          pucDestAddr
     );
 
 VOID
-bssComposeBeaconProbeRespFrameHeaderAndFF (
+bssComposeBeaconProbeRespFrameHeaderAndFF(
     IN PUINT_8      pucBuffer,
     IN PUINT_8      pucDestAddr,
     IN PUINT_8      pucOwnMACAddress,
@@ -242,7 +256,7 @@ bssComposeBeaconProbeRespFrameHeaderAndFF (
     );
 
 WLAN_STATUS
-bssSendBeaconProbeResponse (
+bssSendBeaconProbeResponse(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_NETWORK_TYPE_INDEX_T eNetTypeIndex,
     IN PUINT_8 pucDestAddr,
@@ -250,26 +264,26 @@ bssSendBeaconProbeResponse (
     );
 
 WLAN_STATUS
-bssProcessProbeRequest (
+bssProcessProbeRequest(
     IN P_ADAPTER_T  prAdapter,
     IN P_SW_RFB_T   prSwRfb
     );
 
 VOID
-bssClearClientList (
+bssClearClientList(
     IN P_ADAPTER_T  prAdapter,
     IN P_BSS_INFO_T prBssInfo
     );
 
 VOID
-bssAddStaRecToClientList (
+bssAddStaRecToClientList(
     IN P_ADAPTER_T  prAdapter,
     IN P_BSS_INFO_T prBssInfo,
     IN P_STA_RECORD_T prStaRec
     );
 
 VOID
-bssRemoveStaRecFromClientList (
+bssRemoveStaRecFromClientList(
     IN P_ADAPTER_T  prAdapter,
     IN P_BSS_INFO_T prBssInfo,
     IN P_STA_RECORD_T prStaRec
@@ -280,7 +294,7 @@ bssRemoveStaRecFromClientList (
 /* Routines for IBSS(AdHoc) only                                              */
 /*----------------------------------------------------------------------------*/
 VOID
-ibssProcessMatchedBeacon (
+ibssProcessMatchedBeacon(
     IN P_ADAPTER_T  prAdapter,
     IN P_BSS_INFO_T prBssInfo,
     IN P_BSS_DESC_T prBssDesc,
@@ -288,19 +302,19 @@ ibssProcessMatchedBeacon (
     );
 
 WLAN_STATUS
-ibssCheckCapabilityForAdHocMode (
+ibssCheckCapabilityForAdHocMode(
     IN P_ADAPTER_T  prAdapter,
     IN P_BSS_DESC_T prBssDesc
     );
 
 VOID
-ibssInitForAdHoc (
+ibssInitForAdHoc(
     IN P_ADAPTER_T  prAdapter,
     IN P_BSS_INFO_T prBssInfo
     );
 
 WLAN_STATUS
-bssUpdateBeaconContent (
+bssUpdateBeaconContent(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_NETWORK_TYPE_INDEX_T eNetTypeIndex
     );
@@ -310,20 +324,20 @@ bssUpdateBeaconContent (
 /* Routines for BSS(AP) only                                                  */
 /*----------------------------------------------------------------------------*/
 VOID
-bssInitForAP (
+bssInitForAP(
     IN P_ADAPTER_T  prAdapter,
     IN P_BSS_INFO_T prBssInfo,
     IN BOOLEAN fgIsRateUpdate
     );
 
 VOID
-bssUpdateDTIMCount (
+bssUpdateDTIMCount(
     IN P_ADAPTER_T  prAdapter,
     IN ENUM_NETWORK_TYPE_INDEX_T eNetTypeIndex
     );
 
 VOID
-bssSetTIMBitmap (
+bssSetTIMBitmap(
     IN P_ADAPTER_T  prAdapter,
     IN P_BSS_INFO_T prBssInfo,
     IN UINT_16 u2AssocId
@@ -350,4 +364,3 @@ typedef enum _ENUM_AC_PRIORITY_T {
 
 
 #endif /* _BSS_H */
-

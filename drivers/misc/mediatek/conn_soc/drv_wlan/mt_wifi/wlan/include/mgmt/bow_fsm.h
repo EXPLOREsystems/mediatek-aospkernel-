@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/mgmt/bow_fsm.h#1 $
 */
 
@@ -56,8 +70,8 @@
 ********************************************************************************
 */
 
-#define BOW_BG_SCAN_INTERVAL_MIN_SEC        2 //30 // exponential to 960
-#define BOW_BG_SCAN_INTERVAL_MAX_SEC        2 //960 // 16min
+#define BOW_BG_SCAN_INTERVAL_MIN_SEC        2 /* 30 // exponential to 960 */
+#define BOW_BG_SCAN_INTERVAL_MAX_SEC        2 /* 960 // 16min */
 
 #define BOW_DELAY_TIME_OF_DISCONNECT_SEC    10
 
@@ -173,7 +187,7 @@ typedef struct _BOW_FSM_INFO_T {
 */
 
 #define bowChangeMediaState(_prAdapter, _eNewMediaState) \
-            (_prAdapter->rWifiVar.arBssInfo[NETWORK_TYPE_BOW_INDEX].eConnectionState = (_eNewMediaState));
+	    (_prAdapter->rWifiVar.arBssInfo[NETWORK_TYPE_BOW_INDEX].eConnectionState = (_eNewMediaState));
 
 /*******************************************************************************
 *                  F U N C T I O N   D E C L A R A T I O N S

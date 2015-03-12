@@ -912,7 +912,7 @@ INT32 wmt_plat_uart_ctrl(ENUM_PIN_STATE state)
 INT32 wmt_plat_pcm_ctrl(ENUM_PIN_STATE state)
 {
 	UINT32 normalPCMFlag = 0;
-
+#ifdef GPIO_PCM_DAICLK_PIN
 	/*check if combo chip support merge if or not */
 	if (0 != wmt_plat_merge_if_flag_get()) {
 #if (MTK_WCN_CMB_MERGE_INTERFACE_SUPPORT)
@@ -1006,7 +1006,9 @@ INT32 wmt_plat_pcm_ctrl(ENUM_PIN_STATE state)
 			break;
 		}
 	}
-
+#else
+	WMT_WARN_FUNC("!!!!!!!!!!!GPIO_PCM_DAICLK_PIN is not defined.!!!!!!!!!!!!!!!!\n");
+#endif
 	return 0;
 }
 
@@ -1274,6 +1276,13 @@ static INT32 wmt_plat_uart_rx_ctrl(ENUM_PIN_STATE state)
 		mt_set_gpio_pull_enable(GPIO_COMBO_URXD_PIN, GPIO_PULL_DISABLE);
 		WMT_DBG_FUNC("WMT-PLAT:UART Rx input pull none\n");
 		break;
+    case PIN_STA_IN_H:
+	mt_set_gpio_mode(GPIO_COMBO_URXD_PIN, GPIO_COMBO_URXD_PIN_M_GPIO);
+		mt_set_gpio_dir(GPIO_COMBO_URXD_PIN, GPIO_DIR_OUT);
+		mt_set_gpio_out(GPIO_COMBO_URXD_PIN, GPIO_OUT_ONE);
+	mt_set_gpio_dir(GPIO_COMBO_URXD_PIN, GPIO_DIR_IN);
+	WMT_DBG_FUNC("WMT-PLAT:UART Rx input pull high\n");
+	break;
 	case PIN_STA_OUT_H:
 		mt_set_gpio_mode(GPIO_COMBO_URXD_PIN, GPIO_COMBO_URXD_PIN_M_GPIO);
 		mt_set_gpio_dir(GPIO_COMBO_URXD_PIN, GPIO_DIR_OUT);

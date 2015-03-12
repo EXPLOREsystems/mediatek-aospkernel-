@@ -1,17 +1,3 @@
-/*
-* Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
-* GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with this program.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/fs.h>
@@ -39,7 +25,7 @@ typedef struct _ccci_log
 	int		droped;
 } ccci_log_t;
 
-typedef struct _logic_ch_record 
+typedef struct _logic_ch_record
 {
 	ccci_log_t		log[CCCI_LOG_MAX_LEN];
 	unsigned long	msg_num;
@@ -47,12 +33,12 @@ typedef struct _logic_ch_record
 	int		log_idx;
 	int		dir;
 	char   *name;
-}logic_ch_record_t;
+} logic_ch_record_t;
 
-typedef struct _ch_history{
+typedef struct _ch_history {
 	logic_ch_record_t	all_ch[CCCI_MAX_CH_NUM];
 	int			md_id;
-}ch_history_t;
+} ch_history_t;
 
 static ch_history_t		*history_ctlb[MAX_MD_NUM];
 
@@ -67,7 +53,7 @@ void add_logic_layer_record(int md_id, ccci_msg_t *data, int drop)
 		return;
 
 	ctlb = &(history_ctlb[md_id]->all_ch[ch]);
-	if(ctlb == NULL)
+	if (ctlb == NULL)
 		return;
 
 	record = &(ctlb->log[ctlb->log_idx]);
@@ -76,14 +62,14 @@ void add_logic_layer_record(int md_id, ccci_msg_t *data, int drop)
 	do_gettimeofday(&(record->tv));
 	record->msg = *data;
 	record->droped = drop;
-	if(drop)
+	if (drop)
 		ctlb->drop_num++;
 	else
 		ctlb->msg_num++;
 }
 
 
-static int s_to_date(	long seconds, long usec, int *us, int *sec, int *min, int *hour,
+static int s_to_date(long seconds, long usec, int *us, int *sec, int *min, int *hour,
 						int *day, int *month, int *year)
 {
 #define  DAY_PER_LEAP_YEAR		366
@@ -93,9 +79,9 @@ static int s_to_date(	long seconds, long usec, int *us, int *sec, int *min, int 
 	unsigned long mins, hours, days, month_t, year_t;
 	unsigned char m[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
-	if(!sec || !min || !hour || !day || !month || !year)
+	if (!sec || !min || !hour || !day || !month || !year)
 	{
-		CCCI_MSG("<ctl>%s invalid param!\n", __FUNCTION__);
+		CCCI_MSG("<ctl>%s invalid param!\n", __func__);
 		return (-1);
 	}
 
@@ -106,42 +92,42 @@ static int s_to_date(	long seconds, long usec, int *us, int *sec, int *min, int 
 	hours = mins / 60;
 	*hour = hours % 24;
 	days = hours / 24;
-	
+
 	year_t = 1970;
 
-	while(1)
+	while (1)
 	{
-		if(!(year_t % 4) && (year_t % 100))
+		if (!(year_t % 4) && (year_t % 100))
 		{
-			if(days >= DAY_PER_LEAP_YEAR)
+			if (days >= DAY_PER_LEAP_YEAR)
 			{
 				days -= DAY_PER_LEAP_YEAR;
-				year_t ++;  
+				year_t++;
 			}
 			else
 				break;
 		}
 		else
 		{
-			if(days >= DAY_PER_NON_LEAP_YEAR)
+			if (days >= DAY_PER_NON_LEAP_YEAR)
 			{
 				days -= DAY_PER_NON_LEAP_YEAR;
-				year_t ++;  
+				year_t++;
 			}
 			else
 				break;
 		}
 	}
 
-	if(!(year_t % 4) && year_t % 100)
+	if (!(year_t % 4) && year_t % 100)
 	{
 		m[1] = 29;
 	}
 
 	month_t = 1;
-	for(i=0; i < 12; i++)
+	for (i = 0; i < 12; i++)
 	{
-		if(days > m[i])
+		if (days > m[i])
 		{
 			days -= m[i];
 			month_t++;
@@ -168,18 +154,18 @@ static int ccci_record_dump(ccci_log_t *log)
 	tv_sec = (long)log->tv.tv_sec;
 	tv_usec = (long)log->tv.tv_usec;
 
-	if ( (tv_sec==0)&&(tv_usec==0) )
+	if ((tv_sec == 0) && (tv_usec == 0))
 		return -1;
 
 	s_to_date(tv_sec, tv_usec, &ms, &sec, &min, &hour, &day, &month, &year);
 
-	if(!log->droped) {
+	if (!log->droped) {
 		CCCI_DBG_COM_MSG("%08X %08X %02d %08X   %d-%02d-%02d %02d:%02d:%02d.%06d\n",
-			log->msg.data0,log->msg.data1,log->msg.channel,log->msg.reserved,
+			log->msg.data0, log->msg.data1, log->msg.channel, log->msg.reserved,
 			year, month, day, hour, min, sec, ms);
 	} else {
 		CCCI_DBG_COM_MSG("%08X %08X %02d %08X   %d-%02d-%02d %02d:%02d:%02d.%06d -\n",
-			log->msg.data0,log->msg.data1,log->msg.channel,log->msg.reserved,
+			log->msg.data0, log->msg.data1, log->msg.channel, log->msg.reserved,
 			year, month, day, hour, min, sec, ms);
 	}
 	return 0;
@@ -191,20 +177,20 @@ void logic_layer_ch_record_dump(int md_id, int ch)
 	int					i, j;
 	logic_ch_record_t	*record;
 
-	if ((ctlb != NULL)&&(ch < CCCI_MAX_CH_NUM)) {
+	if ((ctlb != NULL) && (ch < CCCI_MAX_CH_NUM)) {
 		record = &(ctlb->all_ch[ch]);
 		CCCI_DBG_COM_MSG("\n");
-		if(record->dir == CCCI_LOG_TX) {
+		if (record->dir == CCCI_LOG_TX) {
 			CCCI_DBG_COM_MSG("ch%02d  tx:%ld\t tx_drop:%ld  name: %s\t\n", ch, record->msg_num, record->drop_num, record->name);
 		} else {
 			CCCI_DBG_COM_MSG("ch%02d  rx:%ld\t rx_drop:%ld  name: %s\t\n", ch, record->msg_num, record->drop_num, record->name);
 		}
 
-		// dump last ten message
+		/* dump last ten message */
 		j = record->log_idx - 1;
 		j &= (CCCI_LOG_MAX_LEN-1);
-		for (i=0; i<10; i++) {
-			if (ccci_record_dump(&(record->log[j]))<0)
+		for (i = 0; i < 10; i++) {
+			if (ccci_record_dump(&(record->log[j])) < 0)
 				break;
 			j--;
 			j &= (CCCI_LOG_MAX_LEN-1);
@@ -214,11 +200,11 @@ void logic_layer_ch_record_dump(int md_id, int ch)
 
 void dump_logical_layer_tx_rx_histroy(int md_id)
 {
-	int				i=0;
+	int				i = 0;
 	ch_history_t	*ctlb = history_ctlb[md_id];
 
 	if (ctlb != NULL) {
-		for(i=0; i<CCCI_MAX_CH_NUM; i++)
+		for (i = 0; i < CCCI_MAX_CH_NUM; i++)
 			logic_layer_ch_record_dump(md_id, i);
 	}
 }
@@ -229,7 +215,7 @@ int statistics_init_ch_dir(int md_id, int ch, int dir, char *name)
 	logic_ch_record_t	*record;
 	int					ret = 0;
 
-	if ((ctlb != NULL)&&(ch < CCCI_MAX_CH_NUM)) {
+	if ((ctlb != NULL) && (ch < CCCI_MAX_CH_NUM)) {
 		record = &(ctlb->all_ch[ch]);
 		record->dir = dir;
 		record->name = name;
@@ -244,20 +230,18 @@ int statistics_init_ch_dir(int md_id, int ch, int dir, char *name)
 int statistics_init(int md_id)
 {
 	history_ctlb[md_id] = kmalloc(sizeof(ch_history_t), GFP_KERNEL);
-	if(history_ctlb[md_id] != NULL)
+	if (history_ctlb[md_id] != NULL)
 		memset(history_ctlb[md_id], 0, sizeof(ch_history_t));
-	
+
 	return 0;
 }
 
 void statistics_exit(int md_id)
 {
-	if(history_ctlb[md_id] != NULL){
+	if (history_ctlb[md_id] != NULL) {
 		kfree(history_ctlb[md_id]);
 		history_ctlb[md_id] = NULL;
 	}
 
 	return;
 }
-
-

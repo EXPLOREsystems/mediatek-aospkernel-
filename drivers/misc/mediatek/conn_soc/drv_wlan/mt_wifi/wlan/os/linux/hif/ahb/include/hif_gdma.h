@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/os/linux/hif/sdio/include/hif.h#1 $
 */
 
@@ -111,11 +125,11 @@ typedef enum _MTK_WCN_HIF_GDMA_CONNECT {
 
 /* AP_P_DMA_G_DMA_2_CON */
 #define ADH_CR_FLAG_FINISH          BIT(30)
-#define ADH_CR_RSIZE                BITS(28,29)
+#define ADH_CR_RSIZE                BITS(28, 29)
 #define ADH_CR_RSIZE_OFFSET         28
-#define ADH_CR_WSIZE                BITS(24,25)
+#define ADH_CR_WSIZE                BITS(24, 25)
 #define ADH_CR_WSIZE_OFFSET         24
-#define ADH_CR_BURST_LEN            BITS(16,18)
+#define ADH_CR_BURST_LEN            BITS(16, 18)
 #define ADH_CR_BURST_LEN_OFFSET     16
 #define ADH_CR_WADDR_FIX_EN         BIT(3)
 #define ADH_CR_WADDR_FIX_EN_OFFSET  3
@@ -127,10 +141,10 @@ typedef enum _MTK_WCN_HIF_GDMA_CONNECT {
 #define ADH_CR_RATIO_OFFSET         3
 #define ADH_CR_DIR                  BIT(2)
 #define ADH_CR_DIR_OFFSET           2
-#define ADH_CR_CONNECT              BITS(0,1)
+#define ADH_CR_CONNECT              BITS(0, 1)
 
 /* AP_DMA_HIF_0_LEN */
-#define ADH_CR_LEN                  BITS(0,19)
+#define ADH_CR_LEN                  BITS(0, 19)
 
 
 

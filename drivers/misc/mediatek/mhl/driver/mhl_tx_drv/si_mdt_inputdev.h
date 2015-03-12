@@ -453,7 +453,7 @@ struct si_mdt_inputdevs_t {
 	uint8_t keycodes_new[HID_INPUT_REPORT];	/* Current HID input report */
 
 	/* note: Unsuccesfully tried to use an array of pointers for si_input_dev. This didn't work. */
-	si_input_dev * dev_touchscreen;
+	si_input_dev *dev_touchscreen;
 	si_input_dev *dev_keyboard;	/* Input devices are event generating interfaces in */
 	si_input_dev *dev_mouse;	/* the Linux input subsystem. Such devices */
 	/* are typically located under /dev/input/<xyz> */

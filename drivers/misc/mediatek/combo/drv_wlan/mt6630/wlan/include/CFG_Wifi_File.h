@@ -1,5 +1,5 @@
 /*
-** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/CFG_Wifi_File.h#1 $
+** Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/CFG_Wifi_File.h#1
 */
 
 /*! \file   CFG_Wifi_File.h
@@ -9,97 +9,6 @@
     enable/disable such switch or adjust numeric parameters.
 */
 
-
-
-/*
-** $Log: CFG_Wifi_File.h $
-**
-** 01 15 2014 eason.tsai
-** [ALPS01070904] [Need Patch] [Volunteer Patch][MT6630][Driver]MT6630 Wi-Fi Patch
-** Merging
-**
-**	//ALPS_SW/DEV/ALPS.JB2.MT6630.DEV/alps/mediatek/kernel/drivers/combo/drv_wlan/mt6630/wlan/...@2327720
-**
-**	to //ALPS_SW/TRUNK/KK/alps/mediatek/kernel/drivers/combo/drv_wlan/mt6630/wlan/...
-**
-** 01 09 2014 eason.tsai
-** [ALPS01070904] [Need Patch] [Volunteer Patch][MT6630][Driver]MT6630 Wi-Fi Patch
-** fix turn off AC definition build error
-**
-** 01 15 2014 eason.tsai
-** [ALPS01070904] [Need Patch] [Volunteer Patch][MT6630][Driver]MT6630 Wi-Fi Patch
-** Merging
-**
-**	//ALPS_SW/DEV/ALPS.JB2.MT6630.DEV/alps/mediatek/kernel/drivers/combo/drv_wlan/mt6630/wlan/...
-**
-**	to //ALPS_SW/TRUNK/KK/alps/mediatek/kernel/drivers/combo/drv_wlan/mt6630/wlan/...
-**
-** 12 27 2013 eason.tsai
-** [ALPS01070904] [Need Patch] [Volunteer Patch][MT6630][Driver]MT6630 Wi-Fi Patch
-** update code for ICAP & nvram
-**
-** 02 01 2013 cp.wu
-** [BORA00002227] [MT6630 Wi-Fi][Driver] Update for Makefile and HIFSYS modifications
-** 1. eliminate MT5931/MT6620/MT6628 logic
-** 2. add firmware download control sequence
-**
-** 01 22 2013 cp.wu
-** [BORA00002253] [MT6630 Wi-Fi][Driver][Firmware] Add NLO and timeout mechanism to SCN module
-** modification for ucBssIndex migration
-**
-** 09 17 2012 cm.chang
-** [BORA00002149] [MT6630 Wi-Fi] Initial software development
-** Duplicate source from MT6620 v2.3 driver branch
-** (Davinci label: MT6620_WIFI_Driver_V2_3_120913_1942_As_MT6630_Base)
- *
- * 09 08 2011 cm.chang
- * [WCXRP00000969] [MT6620 Wi-Fi][Driver][FW] Channel list for 5G band based on country code
- * Use new fields ucChannelListMap and ucChannelListIndex in NVRAM
- *
- * 08 31 2011 cm.chang
- * [WCXRP00000969] [MT6620 Wi-Fi][Driver][FW] Channel list for 5G band based on country code
- * .
- *
- * 08 15 2011 cp.wu
- * [WCXRP00000851] [MT6628 Wi-Fi][Driver] Add HIFSYS related definition to driver source tree
- * add MT6628-specific definitions.
- *
- * 08 09 2011 cp.wu
- * [WCXRP00000702] [MT5931][Driver] Modify initialization sequence for E1 ASIC[WCXRP00000913] [MT6620 Wi-Fi] create repository of source code dedicated for MT6620 E6 ASIC
- * add CCK-DSSS TX-PWR control field in NVRAM and CMD definition for MT5931-MP
- *
- * 05 27 2011 cp.wu
- * [WCXRP00000749] [MT6620 Wi-Fi][Driver] Add band edge tx power control to Wi-Fi NVRAM
- * update NVRAM data structure definition.
- *
- * 03 10 2011 cp.wu
- * [WCXRP00000532] [MT6620 Wi-Fi][Driver] Migrate NVRAM configuration procedures from MT6620 E2 to MT6620 E3
- * deprecate configuration used by MT6620 E2
- *
- * 10 26 2010 cp.wu
- * [WCXRP00000056] [MT6620 Wi-Fi][Driver] NVRAM implementation with Version Check[WCXRP00000137] [MT6620 Wi-Fi] [FW] Support NIC capability query command
- * 1) update NVRAM content template to ver 1.02
- * 2) add compile option for querying NIC capability (default: off)
- * 3) modify AIS 5GHz support to run-time option, which could be turned on by registry or NVRAM setting
- * 4) correct auto-rate compiler error under linux (treat warning as error)
- * 5) simplify usage of NVRAM and REG_INFO_T
- * 6) add version checking between driver and firmware
- *
- * 10 25 2010 cp.wu
- * [WCXRP00000133] [MT6620 Wi-Fi] [FW][Driver] Change TX power offset band definition
- * follow-up for CMD_5G_PWR_OFFSET_T definition change
- *
- * 10 05 2010 cp.wu
- * [WCXRP00000056] [MT6620 Wi-Fi][Driver] NVRAM implementation with Version Check
- * 1) add NVRAM access API
- * 2) fake scanning result when NVRAM doesn't exist and/or version mismatch. (off by compiler option)
- * 3) add OID implementation for NVRAM read/write service
- *
- * 09 23 2010 cp.wu
- * [WCXRP00000056] [MT6620 Wi-Fi][Driver] NVRAM implementation with Version Check
- * add skeleton for NVRAM integration
- *
-*/
 
 #ifndef _CFG_WIFI_FILE_H
 #define _CFG_WIFI_FILE_H
@@ -245,7 +154,7 @@ typedef struct _MT6620_CFG_PARAM_STRUCT {
 	UINT_8 aucPreTailReserved;
 	UINT_8 aucTailReserved[256 - 8];
 } MT6620_CFG_PARAM_STRUCT, *P_MT6620_CFG_PARAM_STRUCT,
-    WIFI_CFG_PARAM_STRUCT, *P_WIFI_CFG_PARAM_STRUCT;
+	WIFI_CFG_PARAM_STRUCT, *P_WIFI_CFG_PARAM_STRUCT;
 #else
 
 
@@ -292,7 +201,13 @@ typedef struct _NEW_EFUSE_MAPPING2NVRAM_T {
 	AC_PWR_SETTING_STRUCT r11AcTxPwr;
 	UINT_8 uc11AcTxPwrValid;
 
-	UINT_8 ucReverse5[71];
+	UINT_8 ucReverse4[20];
+
+	/* 0x90 */
+	AC_PWR_SETTING_STRUCT r11AcTxPwr2G;
+	UINT_8 uc11AcTxPwrValid2G;
+
+	UINT_8 ucReverse5[40];
 } NEW_EFUSE_MAPPING2NVRAM_T, *P_NEW_EFUSE_MAPPING2NVRAM_T;
 
 
@@ -330,10 +245,15 @@ typedef struct _MT6620_CFG_PARAM_STRUCT {
 	UINT_8 uc2G4BwFixed20M;
 	UINT_8 uc5GBwFixed20M;
 	UINT_8 ucEnable5GBand;
+	UINT_8 ucRxDiversity;
+	RSSI_PATH_COMPASATION_T rRssiPathCompensation;
+	UINT_8 fgRssiCompensationVaildbit;
+	UINT_8 ucGpsDesense;
+	UINT_16 u2FeatureReserved;
 	UINT_8 aucPreTailReserved;
-	UINT_8 aucTailReserved[256 - 8];
+	UINT_8 aucTailReserved[256 - 15];
 } MT6620_CFG_PARAM_STRUCT, *P_MT6620_CFG_PARAM_STRUCT,
-    WIFI_CFG_PARAM_STRUCT, *P_WIFI_CFG_PARAM_STRUCT;
+	WIFI_CFG_PARAM_STRUCT, *P_WIFI_CFG_PARAM_STRUCT;
 
 #endif
 /*******************************************************************************
@@ -347,7 +267,7 @@ typedef struct _MT6620_CFG_PARAM_STRUCT {
 */
 #ifndef DATA_STRUC_INSPECTING_ASSERT
 #define DATA_STRUC_INSPECTING_ASSERT(expr) \
-        switch (0) {case 0: case (expr): default:; }
+		{switch (0) {case 0: case (expr): default:; } }
 #endif
 
 #define CFG_FILE_WIFI_REC_SIZE    sizeof(WIFI_CFG_PARAM_STRUCT)
@@ -368,7 +288,7 @@ typedef struct _MT6620_CFG_PARAM_STRUCT {
  * We'll need this to guarantee the same member order in different structures
  * to simply handling effort in some functions.
  */
-__KAL_INLINE__ VOID nvramOffsetCheck(VOID)
+static __KAL_INLINE__ VOID nvramOffsetCheck(VOID)
 {
 	DATA_STRUC_INSPECTING_ASSERT(OFFSET_OF(WIFI_CFG_PARAM_STRUCT, u2Part2OwnVersion) == 256);
 

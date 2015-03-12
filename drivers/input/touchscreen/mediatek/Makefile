@@ -1,5 +1,7 @@
 include $(srctree)/drivers/misc/mediatek/Makefile.custom
 
+obj-$(CONFIG_TOUCHSCREEN_MTK_FT5206)+= FT5206/
+obj-$(CONFIG_TOUCHSCREEN_MTK_GT9XX_HOTKNOT)	+= GT9XX_hotknot/
 
 # In case the platform does NOT support this type of sensors
 obj-y   +=  mtk_tpd.o

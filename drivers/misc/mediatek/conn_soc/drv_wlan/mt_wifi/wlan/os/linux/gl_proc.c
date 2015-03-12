@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/os/linux/gl_proc.c#1 $
 */
 
@@ -67,7 +81,7 @@
 #include "gl_kal.h"
 
 #include "wlan_lib.h"
-#include "debug.h"
+#include "os_debug.h"
 
 
 /*******************************************************************************
@@ -101,7 +115,7 @@
 *                           P R I V A T E   D A T A
 ********************************************************************************
 */
-static UINT_32 u4McrOffset = 0;
+static UINT_32 u4McrOffset;
 
 /*******************************************************************************
 *                                 M A C R O S
@@ -133,7 +147,7 @@ static UINT_32 u4McrOffset = 0;
 */
 /*----------------------------------------------------------------------------*/
 static int
-procMCRRead (
+procMCRRead(
     char *page,
     char **start,
     off_t off,
@@ -142,7 +156,7 @@ procMCRRead (
     void *data
     )
 {
-    P_GLUE_INFO_T prGlueInfo; 
+    P_GLUE_INFO_T prGlueInfo;
     PARAM_CUSTOM_MCR_RW_STRUC_T rMcrInfo;
     UINT_32 u4BufLen;
     char *p = page;
@@ -152,9 +166,9 @@ procMCRRead (
 
     ASSERT(data);
 
-    // Kevin: Apply PROC read method 1.
+    /* Kevin: Apply PROC read method 1. */
     if (off != 0) {
-        return 0; // To indicate end of file.
+	return 0; /* To indicate end of file. */
     }
 
     prGlueInfo = *((P_GLUE_INFO_T *) netdev_priv((struct net_device *)data));
@@ -162,18 +176,18 @@ procMCRRead (
     rMcrInfo.u4McrOffset = u4McrOffset;
 
     rStatus = kalIoctl(prGlueInfo,
-                        wlanoidQueryMcrRead,
-                        (PVOID)&rMcrInfo,
-                        sizeof(rMcrInfo),
-                        TRUE,
-                        TRUE,
-                        TRUE,
-                        FALSE,
-                        &u4BufLen);
+			wlanoidQueryMcrRead,
+			(PVOID)&rMcrInfo,
+			sizeof(rMcrInfo),
+			TRUE,
+			TRUE,
+			TRUE,
+			FALSE,
+			&u4BufLen);
 
 
     SPRINTF(p, ("MCR (0x%08lxh): 0x%08lx\n",
-        rMcrInfo.u4McrOffset, rMcrInfo.u4McrData));
+	rMcrInfo.u4McrOffset, rMcrInfo.u4McrData));
 
     u4Count = (UINT_32)(p - page);
 
@@ -198,15 +212,15 @@ procMCRRead (
 */
 /*----------------------------------------------------------------------------*/
 static int
-procMCRWrite (
+procMCRWrite(
     struct file *file,
     const char *buffer,
     unsigned long count,
     void *data
     )
 {
-    P_GLUE_INFO_T prGlueInfo; 
-    char acBuf[PROC_MCR_ACCESS_MAX_USER_INPUT_LEN + 1]; // + 1 for "\0"
+    P_GLUE_INFO_T prGlueInfo;
+    char acBuf[PROC_MCR_ACCESS_MAX_USER_INPUT_LEN + 1]; /* + 1 for "\0" */
     int i4CopySize;
     PARAM_CUSTOM_MCR_RW_STRUC_T rMcrInfo;
     UINT_32 u4BufLen;
@@ -217,47 +231,47 @@ procMCRWrite (
 
     i4CopySize = (count < (sizeof(acBuf) - 1)) ? count : (sizeof(acBuf) - 1);
     if (copy_from_user(acBuf, buffer, i4CopySize)) {
-        return 0;
+	return 0;
     }
     acBuf[i4CopySize] = '\0';
 
     switch (sscanf(acBuf, "0x%lx 0x%lx",
-                   &rMcrInfo.u4McrOffset, &rMcrInfo.u4McrData)) {
+		   &rMcrInfo.u4McrOffset, &rMcrInfo.u4McrData)) {
     case 2:
-        /* NOTE: Sometimes we want to test if bus will still be ok, after accessing
-         * the MCR which is not align to DW boundary.
-         */
-        //if (IS_ALIGN_4(rMcrInfo.u4McrOffset))
-        {
-            prGlueInfo = *((P_GLUE_INFO_T *) netdev_priv((struct net_device *)data));
- 
-            u4McrOffset = rMcrInfo.u4McrOffset;
+	/* NOTE: Sometimes we want to test if bus will still be ok, after accessing
+	 * the MCR which is not align to DW boundary.
+	 */
+	/* if (IS_ALIGN_4(rMcrInfo.u4McrOffset)) */
+	{
+	    prGlueInfo = *((P_GLUE_INFO_T *) netdev_priv((struct net_device *)data));
 
-            //printk("Write 0x%lx to MCR 0x%04lx\n",
-                //rMcrInfo.u4McrOffset, rMcrInfo.u4McrData);
+	    u4McrOffset = rMcrInfo.u4McrOffset;
 
-            rStatus = kalIoctl(prGlueInfo,
-                                wlanoidSetMcrWrite,
-                                (PVOID)&rMcrInfo,
-                                sizeof(rMcrInfo),
-                                FALSE,
-                                FALSE,
-                                TRUE,
-                                FALSE,
-                                &u4BufLen);
+	    /* printk("Write 0x%lx to MCR 0x%04lx\n", */
+		/* rMcrInfo.u4McrOffset, rMcrInfo.u4McrData); */
 
-        }
-        break;
+	    rStatus = kalIoctl(prGlueInfo,
+				wlanoidSetMcrWrite,
+				(PVOID)&rMcrInfo,
+				sizeof(rMcrInfo),
+				FALSE,
+				FALSE,
+				TRUE,
+				FALSE,
+				&u4BufLen);
+
+	}
+	break;
 
     case 1:
-        //if (IS_ALIGN_4(rMcrInfo.u4McrOffset))
-        {
-            u4McrOffset = rMcrInfo.u4McrOffset;
-        }
-        break;
+	/* if (IS_ALIGN_4(rMcrInfo.u4McrOffset)) */
+	{
+	    u4McrOffset = rMcrInfo.u4McrOffset;
+	}
+	break;
 
     default:
-        break;
+	break;
     }
 
     return count;
@@ -280,7 +294,7 @@ procMCRWrite (
 */
 /*----------------------------------------------------------------------------*/
 static int
-procDrvStatusRead (
+procDrvStatusRead(
     char *page,
     char **start,
     off_t off,
@@ -298,9 +312,9 @@ procDrvStatusRead (
 
     ASSERT(data);
 
-    // Kevin: Apply PROC read method 1.
+    /* Kevin: Apply PROC read method 1. */
     if (off != 0) {
-        return 0; // To indicate end of file.
+	return 0; /* To indicate end of file. */
     }
 
 
@@ -308,7 +322,7 @@ procDrvStatusRead (
     SPRINTF(p, ("\n=================="));
 
     SPRINTF(p, ("\n* Number of Pending Frames: %ld\n",
-        prGlueInfo->u4TxPendingFrameNum));
+	prGlueInfo->u4TxPendingFrameNum));
 
     GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_FSM);
 
@@ -340,7 +354,7 @@ procDrvStatusRead (
 */
 /*----------------------------------------------------------------------------*/
 static int
-procRxStatisticsRead (
+procRxStatisticsRead(
     char *page,
     char **start,
     off_t off,
@@ -358,9 +372,9 @@ procRxStatisticsRead (
 
     ASSERT(data);
 
-    // Kevin: Apply PROC read method 1.
+    /* Kevin: Apply PROC read method 1. */
     if (off != 0) {
-        return 0; // To indicate end of file.
+	return 0; /* To indicate end of file. */
     }
 
 
@@ -395,7 +409,7 @@ procRxStatisticsRead (
 */
 /*----------------------------------------------------------------------------*/
 static int
-procRxStatisticsWrite (
+procRxStatisticsWrite(
     struct file *file,
     const char *buffer,
     unsigned long count,
@@ -403,7 +417,7 @@ procRxStatisticsWrite (
     )
 {
     P_GLUE_INFO_T prGlueInfo = ((struct net_device *)data)->priv;
-    char acBuf[PROC_RX_STATISTICS_MAX_USER_INPUT_LEN + 1]; // + 1 for "\0"
+    char acBuf[PROC_RX_STATISTICS_MAX_USER_INPUT_LEN + 1]; /* + 1 for "\0" */
     UINT_32 u4CopySize;
     UINT_32 u4ClearCounter;
 
@@ -417,13 +431,13 @@ procRxStatisticsWrite (
     acBuf[u4CopySize] = '\0';
 
     if (sscanf(acBuf, "%ld", &u4ClearCounter) == 1) {
-        if (u4ClearCounter == 1) {
-            GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_FSM);
+	if (u4ClearCounter == 1) {
+	    GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_FSM);
 
-            wlanoidSetRxStatisticsForLinuxProc(prGlueInfo->prAdapter);
+	    wlanoidSetRxStatisticsForLinuxProc(prGlueInfo->prAdapter);
 
-            GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_FSM);
-        }
+	    GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_FSM);
+	}
     }
 
     return count;
@@ -446,7 +460,7 @@ procRxStatisticsWrite (
 */
 /*----------------------------------------------------------------------------*/
 static int
-procTxStatisticsRead (
+procTxStatisticsRead(
     char *page,
     char **start,
     off_t off,
@@ -464,9 +478,9 @@ procTxStatisticsRead (
 
     ASSERT(data);
 
-    // Kevin: Apply PROC read method 1.
+    /* Kevin: Apply PROC read method 1. */
     if (off != 0) {
-        return 0; // To indicate end of file.
+	return 0; /* To indicate end of file. */
     }
 
 
@@ -501,7 +515,7 @@ procTxStatisticsRead (
 */
 /*----------------------------------------------------------------------------*/
 static int
-procTxStatisticsWrite (
+procTxStatisticsWrite(
     struct file *file,
     const char *buffer,
     unsigned long count,
@@ -509,7 +523,7 @@ procTxStatisticsWrite (
     )
 {
     P_GLUE_INFO_T prGlueInfo = ((struct net_device *)data)->priv;
-    char acBuf[PROC_RX_STATISTICS_MAX_USER_INPUT_LEN + 1]; // + 1 for "\0"
+    char acBuf[PROC_RX_STATISTICS_MAX_USER_INPUT_LEN + 1]; /* + 1 for "\0" */
     UINT_32 u4CopySize;
     UINT_32 u4ClearCounter;
 
@@ -523,13 +537,13 @@ procTxStatisticsWrite (
     acBuf[u4CopySize] = '\0';
 
     if (sscanf(acBuf, "%ld", &u4ClearCounter) == 1) {
-        if (u4ClearCounter == 1) {
-            GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_FSM);
+	if (u4ClearCounter == 1) {
+	    GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_FSM);
 
-            wlanoidSetTxStatisticsForLinuxProc(prGlueInfo->prAdapter);
+	    wlanoidSetTxStatisticsForLinuxProc(prGlueInfo->prAdapter);
 
-            GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_FSM);
-        }
+	    GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_FSM);
+	}
     }
 
     return count;
@@ -543,20 +557,20 @@ static UINT_8 aucDbModuleName[][PROC_DBG_LEVEL_MAX_DISPLAY_STR_LEN] = {
     "DBG_INIT_IDX",
     "DBG_HAL_IDX",
     "DBG_INTR_IDX",
-    "DBG_REQ_IDX",    
+    "DBG_REQ_IDX",
     "DBG_TX_IDX",
     "DBG_RX_IDX",
     "DBG_RFTEST_IDX",
-    "DBG_EMU_IDX",    
+    "DBG_EMU_IDX",
     "DBG_SW1_IDX",
     "DBG_SW2_IDX",
     "DBG_SW3_IDX",
-    "DBG_SW4_IDX",    
+    "DBG_SW4_IDX",
     "DBG_HEM_IDX",
     "DBG_AIS_IDX",
     "DBG_RLM_IDX",
     "DBG_MEM_IDX",
-    "DBG_CNM_IDX",    
+    "DBG_CNM_IDX",
     "DBG_RSN_IDX",
     "DBG_BSS_IDX",
     "DBG_SCN_IDX",
@@ -567,7 +581,7 @@ static UINT_8 aucDbModuleName[][PROC_DBG_LEVEL_MAX_DISPLAY_STR_LEN] = {
     "DBG_SEC_IDX",
     "DBG_BOW_IDX"
     };
-    
+
 extern UINT_8 aucDebugModule[];
 
 
@@ -586,7 +600,7 @@ extern UINT_8 aucDebugModule[];
 */
 /*----------------------------------------------------------------------------*/
 static int
-procDbgLevelRead (
+procDbgLevelRead(
     char *page,
     char **start,
     off_t off,
@@ -600,17 +614,17 @@ procDbgLevelRead (
 
 
 
-    // Kevin: Apply PROC read method 1.
+    /* Kevin: Apply PROC read method 1. */
     if (off != 0) {
-        return 0; // To indicate end of file.
+	return 0; /* To indicate end of file. */
     }
 
     for (i = 0; i < (sizeof(aucDbModuleName)/PROC_DBG_LEVEL_MAX_DISPLAY_STR_LEN); i++) {
-        SPRINTF(p, ("%c %-15s(0x%02x): %02x\n",
-            ((i == u4DebugModule) ? '*' : ' '),
-            &aucDbModuleName[i][0],
-            i,
-            aucDebugModule[i]));
+	SPRINTF(p, ("%c %-15s(0x%02x): %02x\n",
+	    ((i == u4DebugModule) ? '*' : ' '),
+	    &aucDbModuleName[i][0],
+	    i,
+	    aucDebugModule[i]));
     }
 
     *eof = 1;
@@ -631,14 +645,14 @@ procDbgLevelRead (
 */
 /*----------------------------------------------------------------------------*/
 static int
-procDbgLevelWrite (
+procDbgLevelWrite(
     struct file *file,
     const char *buffer,
     unsigned long count,
     void *data
     )
 {
-    char acBuf[PROC_DBG_LEVEL_MAX_USER_INPUT_LEN + 1]; // + 1 for "\0"
+    char acBuf[PROC_DBG_LEVEL_MAX_USER_INPUT_LEN + 1]; /* + 1 for "\0" */
     UINT_32 u4CopySize;
     UINT_32 u4NewDbgModule, u4NewDbgLevel;
 
@@ -648,11 +662,11 @@ procDbgLevelWrite (
     acBuf[u4CopySize] = '\0';
 
     if (sscanf(acBuf, "0x%lx 0x%lx", &u4NewDbgModule, &u4NewDbgLevel) == 2) {
-        if (u4NewDbgModule < DBG_MODULE_NUM) {
-            u4DebugModule = u4NewDbgModule;
-            u4NewDbgLevel &= DBG_CLASS_MASK;
-            aucDebugModule[u4DebugModule] = (UINT_8)u4NewDbgLevel;
-        }
+	if (u4NewDbgModule < DBG_MODULE_NUM) {
+	    u4DebugModule = u4NewDbgModule;
+	    u4NewDbgLevel &= DBG_CLASS_MASK;
+	    aucDebugModule[u4DebugModule] = (UINT_8)u4NewDbgLevel;
+	}
     }
 
     return count;
@@ -671,7 +685,7 @@ procDbgLevelWrite (
 */
 /*----------------------------------------------------------------------------*/
 INT_32
-procInitProcfs (
+procInitProcfs(
     struct net_device *prDev,
     char *pucDevName
     )
@@ -683,26 +697,26 @@ procInitProcfs (
     ASSERT(prDev);
 
     if (init_net.proc_net == (struct proc_dir_entry *)NULL) {
-        DBGLOG(INIT, INFO, ("init proc fs fail: proc_net == NULL\n"));
-        return -ENOENT;
+	DBGLOG(INIT, INFO, ("init proc fs fail: proc_net == NULL\n"));
+	return -ENOENT;
     }
 
     prGlueInfo = *((P_GLUE_INFO_T *) netdev_priv(prDev));
 
     if (!prGlueInfo) {
-        DBGLOG(INIT, WARN, ("The OS context is NULL\n"));
-        return -ENOENT;
+	DBGLOG(INIT, WARN, ("The OS context is NULL\n"));
+	return -ENOENT;
     }
 
 
     /*
     /proc/net/wlan0
-               |-- mcr              (PROC_MCR_ACCESS)
-               |-- status           (PROC_DRV_STATUS)
-               |-- rx_statistics    (PROC_RX_STATISTICS)
-               |-- tx_statistics    (PROC_TX_STATISTICS)
-               |-- dbg_level        (PROC_DBG_LEVEL)
-               |-- (end)
+	       |-- mcr              (PROC_MCR_ACCESS)
+	       |-- status           (PROC_DRV_STATUS)
+	       |-- rx_statistics    (PROC_RX_STATISTICS)
+	       |-- tx_statistics    (PROC_TX_STATISTICS)
+	       |-- dbg_level        (PROC_DBG_LEVEL)
+	       |-- (end)
      */
 
     /*
@@ -711,44 +725,44 @@ procInitProcfs (
 
     prGlueInfo->pProcRoot = proc_mkdir(pucDevName, init_net.proc_net);
     if (prGlueInfo->pProcRoot == NULL) {
-        return -ENOENT;
+	return -ENOENT;
     }
 
     /* File Root/mcr (RW) */
     prEntry = create_proc_entry(PROC_MCR_ACCESS, 0, prGlueInfo->pProcRoot);
     if (prEntry) {
-        prEntry->read_proc = procMCRRead;
-        prEntry->write_proc = procMCRWrite;
-        prEntry->data = (void *)prDev;
+	prEntry->read_proc = procMCRRead;
+	prEntry->write_proc = procMCRWrite;
+	prEntry->data = (void *)prDev;
     }
 
 #if 0
     /* File Root/status (RW) */
     prEntry = create_proc_read_entry(PROC_DRV_STATUS, 0, prGlueInfo->pProcRoot,
-                                     procDrvStatusRead, prDev);
+				     procDrvStatusRead, prDev);
 
     /* File Root/rx_statistics (RW) */
     prEntry = create_proc_entry(PROC_RX_STATISTICS, 0, prGlueInfo->pProcRoot);
     if (prEntry) {
-        prEntry->read_proc = procRxStatisticsRead;
-        prEntry->write_proc = procRxStatisticsWrite;
-        prEntry->data = (void *)prDev;
+	prEntry->read_proc = procRxStatisticsRead;
+	prEntry->write_proc = procRxStatisticsWrite;
+	prEntry->data = (void *)prDev;
     }
 
     /* File Root/tx_statistics (RW) */
     prEntry = create_proc_entry(PROC_TX_STATISTICS, 0, prGlueInfo->pProcRoot);
     if (prEntry) {
-        prEntry->read_proc = procTxStatisticsRead;
-        prEntry->write_proc = procTxStatisticsWrite;
-        prEntry->data = (void *)prDev;
+	prEntry->read_proc = procTxStatisticsRead;
+	prEntry->write_proc = procTxStatisticsWrite;
+	prEntry->data = (void *)prDev;
     }
 
 #if DBG
     /* File Root/dbg_level (RW) */
     prEntry = create_proc_entry(PROC_DBG_LEVEL, 0644, prGlueInfo->pProcRoot);
     if (prEntry) {
-        prEntry->read_proc = procDbgLevelRead;
-        prEntry->write_proc = procDbgLevelWrite;
+	prEntry->read_proc = procDbgLevelRead;
+	prEntry->write_proc = procDbgLevelWrite;
     }
 #endif /* DBG */
 #endif
@@ -768,7 +782,7 @@ procInitProcfs (
 */
 /*----------------------------------------------------------------------------*/
 INT_32
-procRemoveProcfs (
+procRemoveProcfs(
     struct net_device *prDev,
     char *pucDevName
     )
@@ -779,18 +793,18 @@ procRemoveProcfs (
     ASSERT(prDev);
 
     if (!prDev) {
-        return -ENOENT;
+	return -ENOENT;
     }
 
     if (init_net.proc_net == (struct proc_dir_entry *)NULL) {
-        DBGLOG(INIT, WARN, ("remove proc fs fail: proc_net == NULL\n"));
-        return -ENOENT;
+	DBGLOG(INIT, WARN, ("remove proc fs fail: proc_net == NULL\n"));
+	return -ENOENT;
     }
 
     prGlueInfo = *((P_GLUE_INFO_T *) netdev_priv(prDev));
     if (!prGlueInfo->pProcRoot) {
-        DBGLOG(INIT, WARN, ("The procfs root is NULL\n"));
-        return -ENOENT;
+	DBGLOG(INIT, WARN, ("The procfs root is NULL\n"));
+	return -ENOENT;
     }
 #if 0
 #if DBG
@@ -808,4 +822,3 @@ procRemoveProcfs (
     return 0;
 
 } /* end of procRemoveProcfs() */
-

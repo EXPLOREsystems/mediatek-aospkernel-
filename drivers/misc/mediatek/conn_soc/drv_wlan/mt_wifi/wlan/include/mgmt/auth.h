@@ -1,10 +1,24 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/mgmt/auth.h#1 $
 */
 
 /*! \file  auth.h
     \brief This file contains the authentication REQ/RESP of
-           IEEE 802.11 family for MediaTek 802.11 Wireless LAN Adapters.
+	   IEEE 802.11 family for MediaTek 802.11 Wireless LAN Adapters.
 */
 
 
@@ -17,21 +31,21 @@
  * Add network type parameter to authSendAuthFrame.
  *
  * 07 08 2010 cp.wu
- * 
+ *
  * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
  *
  * 06 14 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * add management dispatching function table.
  *
  * 06 11 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * auth.c is migrated.
  *
  * 06 10 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * add buildable & linkable ais_fsm.c
- * 
+ *
  * related reference are still waiting to be resolved
  *
 */
@@ -82,21 +96,21 @@
 /* Routines in auth.c                                                         */
 /*----------------------------------------------------------------------------*/
 VOID
-authAddIEChallengeText (
+authAddIEChallengeText(
     IN P_ADAPTER_T prAdapter,
     IN OUT P_MSDU_INFO_T prMsduInfo
     );
 
 #if !CFG_SUPPORT_AAA
 WLAN_STATUS
-authSendAuthFrame (
+authSendAuthFrame(
     IN P_ADAPTER_T prAdapter,
     IN P_STA_RECORD_T prStaRec,
     IN UINT_16 u2TransactionSeqNum
     );
 #else
 WLAN_STATUS
-authSendAuthFrame (
+authSendAuthFrame(
     IN P_ADAPTER_T prAdapter,
     IN P_STA_RECORD_T prStaRec,
     IN ENUM_NETWORK_TYPE_INDEX_T eNetTypeIndex,
@@ -107,20 +121,20 @@ authSendAuthFrame (
 #endif /* CFG_SUPPORT_AAA */
 
 WLAN_STATUS
-authCheckTxAuthFrame (
+authCheckTxAuthFrame(
     IN P_ADAPTER_T prAdapter,
     IN P_MSDU_INFO_T prMsduInfo,
     IN UINT_16 u2TransactionSeqNum
     );
 
 WLAN_STATUS
-authCheckRxAuthFrameTransSeq (
+authCheckRxAuthFrameTransSeq(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T prSwRfb
     );
 
 WLAN_STATUS
-authCheckRxAuthFrameStatus (
+authCheckRxAuthFrameStatus(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T prSwRfb,
     IN UINT_16 u2TransactionSeqNum,
@@ -128,20 +142,20 @@ authCheckRxAuthFrameStatus (
     );
 
 VOID
-authHandleIEChallengeText (
+authHandleIEChallengeText(
     P_ADAPTER_T prAdapter,
     P_SW_RFB_T prSwRfb,
     P_IE_HDR_T prIEHdr
     );
 
 WLAN_STATUS
-authProcessRxAuth2_Auth4Frame (
+authProcessRxAuth2_Auth4Frame(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T prSwRfb
     );
 
 WLAN_STATUS
-authSendDeauthFrame (
+authSendDeauthFrame(
     IN P_ADAPTER_T          prAdapter,
     IN P_STA_RECORD_T       prStaRec,
     IN P_SW_RFB_T           prClassErrSwRfb,
@@ -150,14 +164,14 @@ authSendDeauthFrame (
     );
 
 WLAN_STATUS
-authProcessRxDeauthFrame (
+authProcessRxDeauthFrame(
     IN P_SW_RFB_T prSwRfb,
     IN UINT_8 aucBSSID[],
     OUT PUINT_16 pu2ReasonCode
     );
 
 WLAN_STATUS
-authProcessRxAuth1Frame (
+authProcessRxAuth1Frame(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T prSwRfb,
     IN UINT_8 aucExpectedBSSID[],
@@ -172,4 +186,3 @@ authProcessRxAuth1Frame (
 */
 
 #endif /* _AUTH_H */
-

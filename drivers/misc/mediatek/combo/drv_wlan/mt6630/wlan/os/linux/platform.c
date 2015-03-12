@@ -349,21 +349,20 @@ static int nvram_read(char *filename, char *buf, ssize_t len, int offset)
 	fd = filp_open(filename, O_RDONLY, 0644);
 
 	if (IS_ERR(fd)) {
-		DBGLOG(INIT, INFO, ("[MT6620][nvram_read] : failed to open!!\n"));
+		DBGLOG(INIT, INFO, ("[nvram_read] : failed to open!!\n"));
 		return -1;
 	}
 
 	do {
 		if ((fd->f_op == NULL) || (fd->f_op->read == NULL)) {
-			DBGLOG(INIT, INFO, ("[MT6620][nvram_read] : file can not be read!!\n"));
+			DBGLOG(INIT, INFO, ("[nvram_read] : file can not be read!!\n"));
 			break;
 		}
 
 		if (fd->f_pos != offset) {
 			if (fd->f_op->llseek) {
 				if (fd->f_op->llseek(fd, offset, 0) != offset) {
-					DBGLOG(INIT, INFO,
-					       ("[MT6620][nvram_read] : failed to seek!!\n"));
+					DBGLOG(INIT, INFO, ("[nvram_read] : failed to seek!!\n"));
 					break;
 				}
 			} else {
@@ -414,21 +413,20 @@ static int nvram_write(char *filename, char *buf, ssize_t len, int offset)
 	fd = filp_open(filename, O_WRONLY | O_CREAT, 0644);
 
 	if (IS_ERR(fd)) {
-		DBGLOG(INIT, INFO, ("[MT6620][nvram_write] : failed to open!!\n"));
+		DBGLOG(INIT, INFO, ("[nvram_write] : failed to open!!\n"));
 		return -1;
 	}
 
 	do {
 		if ((fd->f_op == NULL) || (fd->f_op->write == NULL)) {
-			DBGLOG(INIT, INFO, ("[MT6620][nvram_write] : file can not be write!!\n"));
+			DBGLOG(INIT, INFO, ("[nvram_write] : file can not be write!!\n"));
 			break;
 		}
 		/* End of if */
 		if (fd->f_pos != offset) {
 			if (fd->f_op->llseek) {
 				if (fd->f_op->llseek(fd, offset, 0) != offset) {
-					DBGLOG(INIT, INFO,
-					       ("[MT6620][nvram_write] : failed to seek!!\n"));
+					DBGLOG(INIT, INFO, ("[nvram_write] : failed to seek!!\n"));
 					break;
 				}
 			} else {

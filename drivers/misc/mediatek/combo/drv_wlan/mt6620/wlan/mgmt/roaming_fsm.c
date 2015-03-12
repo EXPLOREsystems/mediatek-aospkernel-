@@ -110,7 +110,7 @@ static PUINT_8 apucDebugRoamingState[ROAMING_STATE_NUM] = {
 
 #define ROAMING_ENABLE_CHECK(_roam) \
 	{ \
-            if (!(_roam->fgIsEnableRoaming)) {return; } \
+	    if (!(_roam->fgIsEnableRoaming)) {return; } \
 	}
 
 /*******************************************************************************

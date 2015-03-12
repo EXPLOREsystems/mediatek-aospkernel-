@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/nic/hif_tx.h#1 $
 */
 
@@ -12,38 +26,38 @@
  * add firmware download for MT5931.
  *
  * 07 08 2010 cp.wu
- * 
+ *
  * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
  *
  * 06 14 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * fill extra information for revised HIF_TX_HEADER.
  *
  * 06 10 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * 1) add flag on MSDU_INFO_T for indicating BIP frame and forceBasicRate
  * 2) add  packet type for indicating management frames
  *
  * 06 06 2010 kevin.huang
- * [WPD00003832][MT6620 5931] Create driver base 
+ * [WPD00003832][MT6620 5931] Create driver base
  * [MT6620 5931] Create driver base
  *
  * 03 10 2010 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP 
+ * [WPD00001943]Create WiFi test driver framework on WinXP
  * code clean: removing unused variables and structure definitions
  *
  * 02 09 2010 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP 
+ * [WPD00001943]Create WiFi test driver framework on WinXP
  * 1. Permanent and current MAC address are now retrieved by CMD/EVENT packets instead of hard-coded address
  *  *  * 2. follow MSDN defined behavior when associates to another AP
  *  *  * 3. for firmware download, packet size could be up to 2048 bytes
  *
  * 01 13 2010 tehuang.liu
- * [WPD00001943]Create WiFi test driver framework on WinXP 
+ * [WPD00001943]Create WiFi test driver framework on WinXP
  * Enabled the Burst_End Indication mechanism
  *
  * 01 13 2010 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP 
+ * [WPD00001943]Create WiFi test driver framework on WinXP
  * TX: fill ucWlanHeaderLength/ucPktFormtId_Flags according to info provided by prMsduInfo
 **  \main\maintrunk.MT6620WiFiDriver_Prj\16 2009-12-10 16:43:40 GMT mtk02752
 **  code clean
@@ -51,12 +65,12 @@
 **  adopt HIF_TX_HEADER_T in new data path
 **  \main\maintrunk.MT6620WiFiDriver_Prj\14 2009-11-23 17:54:13 GMT mtk02752
 **  CMD_HDR_SIZE = (sizeof(WIFI_CMD_T)) to follow up CM's CMD/EVENT documentation
-**  
+**
 **  \main\maintrunk.MT6620WiFiDriver_Prj\13 2009-11-17 22:41:10 GMT mtk01084
 **  \main\maintrunk.MT6620WiFiDriver_Prj\12 2009-11-17 17:34:07 GMT mtk02752
 **  remove HIF_TX_BUFF_COUNT_TC0 (move to nic_tx.h)
 **  \main\maintrunk.MT6620WiFiDriver_Prj\11 2009-11-17 12:14:12 GMT mtk02752
-**  add initial value for HIF_TX_BUFF_COUNT_TC5  
+**  add initial value for HIF_TX_BUFF_COUNT_TC5
 **  \main\maintrunk.MT6620WiFiDriver_Prj\10 2009-11-13 13:54:18 GMT mtk01084
 **  \main\maintrunk.MT6620WiFiDriver_Prj\9 2009-11-04 14:11:14 GMT mtk01084
 **  modify SW TX data format
@@ -103,27 +117,27 @@
 
 
 /*! NIC_HIF_TX_HEADER_T */
-// DW 0, Byte 0,1
-#define HIF_TX_HDR_TX_BYTE_COUNT_MASK       BITS(0,11)
+/* DW 0, Byte 0,1 */
+#define HIF_TX_HDR_TX_BYTE_COUNT_MASK       BITS(0, 11)
 #define HIF_TX_HDR_USER_PRIORITY_OFFSET     12
 
-// DW 0, Byte 2
-#define HIF_TX_HDR_ETHER_TYPE_OFFSET_MASK   BITS(0,7)
+/* DW 0, Byte 2 */
+#define HIF_TX_HDR_ETHER_TYPE_OFFSET_MASK   BITS(0, 7)
 
-// DW 0, Byte 3
+/* DW 0, Byte 3 */
 #define HIF_TX_HDR_IP_CSUM                  BIT(0)
 #define HIF_TX_HDR_TCP_CSUM                 BIT(1)
-#define HIF_TX_HDR_RESOURCE_MASK            BITS(2,5)
+#define HIF_TX_HDR_RESOURCE_MASK            BITS(2, 5)
 #define HIF_TX_HDR_RESOURCE_OFFSET     2
-#define HIF_TX_HDR_PACKET_TYPE_MASK         BITS(6,7)
+#define HIF_TX_HDR_PACKET_TYPE_MASK         BITS(6, 7)
 #define HIF_TX_HDR_PACKET_TYPE_OFFSET       6
 
-// DW 1, Byte 0
-#define HIF_TX_HDR_WLAN_HEADER_LEN_MASK     BITS(0,5)
+/* DW 1, Byte 0 */
+#define HIF_TX_HDR_WLAN_HEADER_LEN_MASK     BITS(0, 5)
 
-// DW 1, Byte 1
-#define HIF_TX_HDR_FORMAT_ID_MASK               BITS(0,2)
-#define HIF_TX_HDR_NETWORK_TYPE_MASK            BITS(4,5)
+/* DW 1, Byte 1 */
+#define HIF_TX_HDR_FORMAT_ID_MASK               BITS(0, 2)
+#define HIF_TX_HDR_NETWORK_TYPE_MASK            BITS(4, 5)
 #define HIF_TX_HDR_NETWORK_TYPE_OFFSET          4
 #define HIF_TX_HDR_FLAG_1X_FRAME_MASK           BIT(6)
 #define HIF_TX_HDR_FLAG_1X_FRAME_OFFSET         6
@@ -131,14 +145,14 @@
 #define HIF_TX_HDR_FLAG_802_11_FORMAT_OFFSET    7
 
 
-// DW2, Byte 3
-#define HIF_TX_HDR_PS_FORWARDING_TYPE_MASK  BITS(0,1)
-#define HIF_TX_HDR_PS_SESSION_ID_MASK       BITS(2,4)
+/* DW2, Byte 3 */
+#define HIF_TX_HDR_PS_FORWARDING_TYPE_MASK  BITS(0, 1)
+#define HIF_TX_HDR_PS_SESSION_ID_MASK       BITS(2, 4)
 #define HIF_TX_HDR_PS_SESSION_ID_OFFSET     2
 #define HIF_TX_HDR_BURST_END_MASK           BIT(5)
 #define HIF_TX_HDR_BURST_END_OFFSET         5
 
-// DW3, Byte 1
+/* DW3, Byte 1 */
 #define HIF_TX_HDR_NEED_ACK                 BIT(0)
 #define HIF_TX_HDR_BIP                      BIT(1)
 #define HIF_TX_HDR_BASIC_RATE               BIT(2)
@@ -207,12 +221,12 @@ typedef enum _ENUM_HIF_OOB_CTRL_PKT_TYPE_T {
  * It will check automatically while at compile time.
  */
 __KAL_INLINE__ VOID
-hif_txDataTypeCheck (
+hif_txDataTypeCheck(
     VOID
     );
 
 __KAL_INLINE__ VOID
-hif_txDataTypeCheck (
+hif_txDataTypeCheck(
     VOID
     )
 {
@@ -222,4 +236,3 @@ hif_txDataTypeCheck (
 }
 
 #endif /*_HIF_TX_H */
-

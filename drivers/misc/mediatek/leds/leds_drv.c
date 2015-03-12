@@ -25,9 +25,12 @@
 #include <mach/mt_pwm.h>
 /* #include <mach/mt_pwm_hal.h> */
 /* #include <mach/mt_gpio.h> */
+#include <mach/pmic_mt6329_hw_bank1.h>
+#include <mach/pmic_mt6329_sw_bank1.h>
+#include <mach/pmic_mt6329_hw.h>
+#include <mach/pmic_mt6329_sw.h>
 #include <mach/upmu_common_sw.h>
 #include <mach/upmu_hw.h>
-#include <mach/mt_leds_cust.h>
 /* #include <mach/mt_pmic_feature_api.h> */
 /* #include <mach/mt_boot.h> */
 #include <leds_hal.h>
@@ -273,24 +276,24 @@ int backlight_brightness_set(int level)
 {
 	struct cust_mt65xx_led *cust_led_list = mt_get_cust_led_list();
 
-	if (level > ((1 << MT_LED_INTERNAL_LEVEL_BIT_CNT) - 1) )
+	if (level > ((1 << MT_LED_INTERNAL_LEVEL_BIT_CNT) - 1))
 		level = ((1 << MT_LED_INTERNAL_LEVEL_BIT_CNT) - 1);
 	else if (level < 0)
 		level = 0;
 
-	if(MT65XX_LED_MODE_CUST_BLS_PWM == cust_led_list[MT65XX_LED_TYPE_LCD].mode)
+	if (MT65XX_LED_MODE_CUST_BLS_PWM == cust_led_list[MT65XX_LED_TYPE_LCD].mode)
 	{
 	#ifdef CONTROL_BL_TEMPERATURE
 		mutex_lock(&bl_level_limit_mutex);
-		current_level = (level >> (MT_LED_INTERNAL_LEVEL_BIT_CNT - 8)); // 8 bits
-		if(0 == limit_flag){
+		current_level = (level >> (MT_LED_INTERNAL_LEVEL_BIT_CNT - 8)); /* 8 bits */
+		if (0 == limit_flag) {
 			last_level = current_level;
-		}else {
-			if(limit < current_level){
-				// extend 8-bit limit to 10 bits
+		} else {
+			if (limit < current_level) {
+				/* extend 8-bit limit to 10 bits */
 				level = (limit << (MT_LED_INTERNAL_LEVEL_BIT_CNT - 8)) | (limit >> (16 - MT_LED_INTERNAL_LEVEL_BIT_CNT));
 			}
-		}	
+		}
 		mutex_unlock(&bl_level_limit_mutex);
 	#endif
 
@@ -298,11 +301,10 @@ int backlight_brightness_set(int level)
 	}
 	else
 	{
-		return mt65xx_led_set_cust(&cust_led_list[MT65XX_LED_TYPE_LCD],( level >> (MT_LED_INTERNAL_LEVEL_BIT_CNT - 8)) );
-	}	
+		return mt65xx_led_set_cust(&cust_led_list[MT65XX_LED_TYPE_LCD], (level >> (MT_LED_INTERNAL_LEVEL_BIT_CNT - 8)));
+	}
 
 }
-
 EXPORT_SYMBOL(backlight_brightness_set);
 
 
@@ -470,14 +472,6 @@ static int __init mt65xx_leds_probe(struct platform_device *pdev)
 	int i;
 	int ret, rc;
 	struct cust_mt65xx_led *cust_led_list = mt_get_cust_led_list();
-	if(led_cust_data_fromtag.isInited == true) {
-		cust_led_list[0].mode = led_cust_data_fromtag.led_mode[0];
-		cust_led_list[1].mode = led_cust_data_fromtag.led_mode[1];
-		cust_led_list[2].mode = led_cust_data_fromtag.led_mode[2];
-		cust_led_list[0].data = led_cust_data_fromtag.led_pmic[0];
-		cust_led_list[1].data = led_cust_data_fromtag.led_pmic[1];
-		cust_led_list[2].data = led_cust_data_fromtag.led_pmic[2];
-	}
 	LEDS_DRV_DEBUG("[LED]%s\n", __func__);
 	get_div_array();
 	for (i = 0; i < MT65XX_LED_TYPE_TOTAL; i++) {

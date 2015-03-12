@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id:
 */
 
@@ -65,9 +79,9 @@
 ********************************************************************************
 */
 /* Roaming Discovery interval, SCAN result need to be updated */
-#define ROAMING_DISCOVERY_TIMEOUT_SEC               5 // Seconds.
+#define ROAMING_DISCOVERY_TIMEOUT_SEC               5 /* Seconds. */
 
-//#define ROAMING_NO_SWING_RCPI_STEP                  5 //rcpi
+/* #define ROAMING_NO_SWING_RCPI_STEP                  5 //rcpi */
 /*******************************************************************************
 *                             D A T A   T Y P E S
 ********************************************************************************
@@ -84,7 +98,7 @@ typedef enum _ENUM_ROAMING_EVENT_T {
     ROAMING_EVENT_DISCOVERY,
     ROAMING_EVENT_ROAM,
     ROAMING_EVENT_FAIL,
-    ROAMING_EVENT_ABORT, 
+    ROAMING_EVENT_ABORT,
     ROAMING_EVENT_NUM
 } ENUM_ROAMING_EVENT_T;
 
@@ -102,9 +116,9 @@ typedef enum _ENUM_ROAMING_STATE_T {
     ROAMING_STATE_NUM
 } ENUM_ROAMING_STATE_T;
 
-typedef struct _ROAMING_INFO_T {	  
+typedef struct _ROAMING_INFO_T {
 	  BOOLEAN                 fgIsEnableRoaming;
-	  
+
     ENUM_ROAMING_STATE_T    eCurrentState;
 
     OS_SYSTIME              rRoamingDiscoveryUpdateTime;
@@ -131,7 +145,7 @@ typedef struct _ROAMING_INFO_T {
 
 #if CFG_SUPPORT_ROAMING
 #define IS_ROAMING_ACTIVE(prAdapter) \
-        (prAdapter->rWifiVar.rRoamingInfo.eCurrentState == ROAMING_STATE_ROAM)
+	(prAdapter->rWifiVar.rRoamingInfo.eCurrentState == ROAMING_STATE_ROAM)
 #else
 #define IS_ROAMING_ACTIVE(prAdapter) FALSE
 #endif /* CFG_SUPPORT_ROAMING */
@@ -141,61 +155,61 @@ typedef struct _ROAMING_INFO_T {
 ********************************************************************************
 */
 VOID
-roamingFsmInit (
+roamingFsmInit(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-roamingFsmUninit (
+roamingFsmUninit(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-roamingFsmSendCmd (
+roamingFsmSendCmd(
     IN P_ADAPTER_T prAdapter,
     IN P_ROAMING_PARAM_T prParam
     );
 
 VOID
-roamingFsmScanResultsUpdate (
+roamingFsmScanResultsUpdate(
     IN P_ADAPTER_T prAdapter
     );
-    
+
 VOID
-roamingFsmSteps (
+roamingFsmSteps(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_ROAMING_STATE_T eNextState
     );
 
 VOID
-roamingFsmRunEventStart (
+roamingFsmRunEventStart(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-roamingFsmRunEventDiscovery (
+roamingFsmRunEventDiscovery(
     IN P_ADAPTER_T prAdapter,
     IN UINT_32 u4Param
-    );    
+    );
 
 VOID
-roamingFsmRunEventRoam (
+roamingFsmRunEventRoam(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-roamingFsmRunEventFail (
+roamingFsmRunEventFail(
     IN P_ADAPTER_T prAdapter,
     IN UINT_32 u4Reason
     );
 
 VOID
-roamingFsmRunEventAbort (
+roamingFsmRunEventAbort(
     IN P_ADAPTER_T prAdapter
     );
-        
+
 WLAN_STATUS
-roamingFsmProcessEvent (
+roamingFsmProcessEvent(
     IN P_ADAPTER_T prAdapter,
     IN P_ROAMING_PARAM_T prParam
     );
@@ -206,7 +220,3 @@ roamingFsmProcessEvent (
 */
 
 #endif /* _ROAMING_FSM_H */
-
-
-
-

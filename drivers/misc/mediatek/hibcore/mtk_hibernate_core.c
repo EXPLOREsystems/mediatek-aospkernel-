@@ -63,10 +63,13 @@ extern int pm_wake_unlock(const char *buf);
 #endif				/* !CONFIG_PM_WAKELOCKS */
 
 /* HOTPLUG */
-#if defined(CONFIG_CPU_FREQ_GOV_HOTPLUG) || defined(CONFIG_CPU_FREQ_GOV_BALANCE)
+#if defined(CONFIG_CPU_FREQ_DEFAULT_GOV_HOTPLUG) || \
+	defined(CONFIG_CPU_FREQ_DEFAULT_GOV_BALANCE)
 extern void hp_set_dynamic_cpu_hotplug_enable(int enable);
 extern struct mutex hp_onoff_mutex;
-#endif				/* CONFIG_CPU_FREQ_GOV_HOTPLUG || CONFIG_CPU_FREQ_GOV_BALANCE */
+#endif
+int __weak hps_set_enabled(unsigned int enabled) {};
+
 
 bool system_is_hibernating = false;
 EXPORT_SYMBOL(system_is_hibernating);
@@ -80,10 +83,59 @@ static int hibernation_failed_action = HIB_FAILED_TO_S2RAM;
 #define MAX_HIB_FAILED_CNT 3
 static int hib_failed_cnt;
 
-#if defined(CONFIG_CPU_FREQ_GOV_HOTPLUG) || defined(CONFIG_CPU_FREQ_GOV_BALANCE)
+/* ----------------------------------// */
+/* ------ userspace programs ---------// */
+/* ----------------------------------// */
+static void usr_restore_func(struct work_struct *data)
+{
+	static char *envp[] = {
+		"HOME=/data",
+		"TERM=vt100",
+		"PATH=/sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin",
+		NULL
+	};
+	static char *argv[] = {
+		HIB_USRPROGRAM,
+		"--mode=restore",
+		NULL, NULL, NULL, NULL, NULL, NULL
+	};
+	int retval;
+
+	/* start ipo booting */
+	hib_log("call userspace program '%s %s'\n", argv[0], argv[1]);
+	retval = call_usermodehelper(argv[0], argv, envp, UMH_WAIT_PROC);
+	if (retval && retval != 256)
+		hib_err("Failed to launch userspace program '%s %s': "
+			"Error %d\n", argv[0], argv[1], retval);
+}
+
+/* DECLARE_DELAYED_WORK(usr_restore_work, usr_restore_func); */
+
+/* trigger userspace recover for hibernation failed */
+static void usr_recover_func(struct work_struct *data)
+{
+	static char *envp[] = {
+		"HOME=/data",
+		"TERM=vt100",
+		"PATH=/sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin",
+		NULL
+	};
+	static char *argv[] = {
+		HIB_USRPROGRAM,
+		"--mode=recover",
+		NULL, NULL, NULL, NULL, NULL, NULL
+	};
+	int retval;
+
+	hib_log("call userspace program '%s %s'\n", argv[0], argv[1]);
+	retval = call_usermodehelper(argv[0], argv, envp, UMH_WAIT_PROC);
+	if (retval && retval != 256)
+		hib_err("Failed to launch userspace program '%s %s': "
+			"Error %d\n", argv[0], argv[1], retval);
+}
 
 #define HIB_UNPLUG_CORES	/* force unplug cores before hibernation flow */
-#ifdef HIB_UNPLUG_CORES
+#if defined(HIB_UNPLUG_CORES) && defined(CONFIG_HOTPLUG_CPU)
 #define HIB_MULTIIO_CORES (1)
 static void hib_unplug_cores(void)
 {
@@ -91,7 +143,7 @@ static void hib_unplug_cores(void)
 
 	hib_warn("unplug cores\n");
 
-#ifdef CONFIG_CPU_FREQ_GOV_HOTPLUG
+#ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_HOTPLUG
 	mutex_lock(&hp_onoff_mutex);
 #endif
 	for (i = (num_possible_cpus() - 1); i > 0 && num_online_cpus() > HIB_MULTIIO_CORES; i--) {
@@ -106,43 +158,53 @@ static void hib_unplug_cores(void)
 			}
 		}
 	}
-#ifdef CONFIG_CPU_FREQ_GOV_HOTPLUG
+#ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_HOTPLUG
 	mutex_unlock(&hp_onoff_mutex);
 #endif
 }
 #else
-static inline void hib_unplug_cores(void)
-{
-}
+static inline void hib_unplug_cores(void) {}
 #endif
 
-/* en: 1 enable, en: 0 disable */
 static void hib_hotplug_mode(int en)
 {
 	static int g_hp_disable;
 	if (en) {
 		if (1 == g_hp_disable) {
 			hib_warn("enable hotplug\n");
+#if defined(CONFIG_CPU_FREQ_DEFAULT_GOV_HOTPLUG) || \
+	defined(CONFIG_CPU_FREQ_DEFAULT_GOV_BALANCE)
 			hp_set_dynamic_cpu_hotplug_enable(1);
+#else
+			hps_set_enabled(1);
+#endif
 			g_hp_disable = 0;
 		}
 	} else if (!en) {
 		if (0 == g_hp_disable) {
 			hib_warn("disable hotplug\n");
+#if defined(CONFIG_CPU_FREQ_DEFAULT_GOV_HOTPLUG) || \
+	defined(CONFIG_CPU_FREQ_DEFAULT_GOV_BALANCE)
 			hp_set_dynamic_cpu_hotplug_enable(0);
+#else
+			hps_set_enabled(0);
+#endif
 			hib_unplug_cores();
 			g_hp_disable = 1;
 		}
 	}
 }
-#else				/* !(CONFIG_CPU_FREQ_GOV_HOTPLUG || CONFIG_CPU_FREQ_GOV_BALANCE) */
-static inline void hib_hotplug_mode(int en)
-{
-}
-#endif				/* CONFIG_CPU_FREQ_GOV_HOTPLUG || CONFIG_CPU_FREQ_GOV_BALANCE */
 
 static void hib_ftrace_buffer(int en)
 {
+#if defined(CONFIG_MTK_SCHED_TRACERS)
+	int fterr = 0;
+
+	hib_warn("%s ftrace mode\n", (en ? "enable" : "disable"));
+	fterr = resize_ring_buffer_for_hibernation(en);
+	if (fterr < 0)
+		hib_warn("calling resize_ring_buffer_for_hibernation() failed (%d)\n", fterr);
+#endif
 }
 
 static void hibernate_recover(void)
@@ -150,6 +212,9 @@ static void hibernate_recover(void)
 	hib_ftrace_buffer(1);
 
 	hib_hotplug_mode(1);
+
+	/* userspace recover if hibernation failed */
+	usr_recover_func(NULL);
 }
 
 static void hibernate_restore(void)
@@ -157,6 +222,10 @@ static void hibernate_restore(void)
 	hib_ftrace_buffer(1);
 
 	hib_hotplug_mode(1);
+
+	hib_warn("start trigger ipod\n");
+	/* schedule_delayed_work(&usr_restore_work, HZ*0.05); */
+	usr_restore_func(NULL);
 }
 
 extern int hybrid_sleep_mode(void);

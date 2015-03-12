@@ -1,10 +1,24 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/mgmt/rate.h#1 $
 */
 
 /*! \file  rate.h
-    \brief This file contains the rate utility function of 
-           IEEE 802.11 family for MediaTek 802.11 Wireless LAN Adapters.
+    \brief This file contains the rate utility function of
+	   IEEE 802.11 family for MediaTek 802.11 Wireless LAN Adapters.
 */
 
 
@@ -17,13 +31,13 @@
  * Refine #include sequence and solve recursive/nested #include issue
  *
  * 07 08 2010 cp.wu
- * 
+ *
  * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
  *
  * 06 10 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * add buildable & linkable ais_fsm.c
- * 
+ *
  * related reference are still waiting to be resolved
  *
 */
@@ -74,7 +88,7 @@
 /* Routines in rate.c                                                         */
 /*----------------------------------------------------------------------------*/
 VOID
-rateGetRateSetFromIEs (
+rateGetRateSetFromIEs(
     IN P_IE_SUPPORTED_RATE_T prIeSupportedRate,
     IN P_IE_EXT_SUPPORTED_RATE_T prIeExtSupportedRate,
     OUT PUINT_16 pu2OperationalRateSet,
@@ -83,7 +97,7 @@ rateGetRateSetFromIEs (
     );
 
 VOID
-rateGetDataRatesFromRateSet (
+rateGetDataRatesFromRateSet(
     IN UINT_16 u2OperationalRateSet,
     IN UINT_16 u2BSSBasicRateSet,
     OUT PUINT_8 pucDataRates,
@@ -91,13 +105,13 @@ rateGetDataRatesFromRateSet (
     );
 
 BOOLEAN
-rateGetHighestRateIndexFromRateSet (
+rateGetHighestRateIndexFromRateSet(
     IN UINT_16 u2RateSet,
     OUT PUINT_8 pucHighestRateIndex
     );
 
 BOOLEAN
-rateGetLowestRateIndexFromRateSet (
+rateGetLowestRateIndexFromRateSet(
     IN UINT_16 u2RateSet,
     OUT PUINT_8 pucLowestRateIndex
     );
@@ -108,4 +122,3 @@ rateGetLowestRateIndexFromRateSet (
 */
 
 #endif /* _RATE_H */
-

@@ -20,9 +20,9 @@
 ** [ALPS01070904] [Need Patch] [Volunteer Patch][MT6630][Driver]MT6630 Wi-Fi Patch
 ** Merging
 **
-**	//ALPS_SW/DEV/ALPS.JB2.MT6630.DEV/alps/mediatek/kernel/drivers/combo/drv_wlan/mt6630/wlan/...
+**  //ALPS_SW/DEV/ALPS.JB2.MT6630.DEV/alps/mediatek/kernel/drivers/combo/drv_wlan/mt6630/wlan/...
 **
-**	to //ALPS_SW/TRUNK/KK/alps/mediatek/kernel/drivers/combo/drv_wlan/mt6630/wlan/...
+**  to //ALPS_SW/TRUNK/KK/alps/mediatek/kernel/drivers/combo/drv_wlan/mt6630/wlan/...
 **
 ** 12 27 2013 eason.tsai
 ** [ALPS01070904] [Need Patch] [Volunteer Patch][MT6630][Driver]MT6630 Wi-Fi Patch
@@ -1258,7 +1258,7 @@
 #include "precomp.h"
 #include "mgmt/rsn.h"
 #include "gl_wext.h"
-
+#include "debug.h"
 #include <stddef.h>
 
 /******************************************************************************
@@ -1276,15 +1276,8 @@
 *******************************************************************************
 */
 #if DBG
-extern UINT_8 aucDebugModule[DBG_MODULE_NUM];
-extern UINT_32 u4DebugModule;
 UINT_32 u4DebugModuleTemp;
 #endif				/* DBG */
-
-extern BOOLEAN g_bIcapEnable;
-extern BOOLEAN g_bCaptureDone;
-extern const PUINT_8 apucNetworkType[NETWORK_TYPE_NUM];
-extern UINT_16 g_u2DumpIndex;
 
 /******************************************************************************
 *                           P R I V A T E   D A T A
@@ -1300,6 +1293,13 @@ extern UINT_16 g_u2DumpIndex;
 *                   F U N C T I O N   D E C L A R A T I O N S
 *******************************************************************************
 */
+#if DBG && 0
+static VOID SetRCID(BOOLEAN fgOneTb3, BOOL *fgRCID);
+#endif
+
+#if CFG_SLT_SUPPORT
+static VOID SetTestChannel(UINT_8 *pucPrimaryChannel);
+#endif
 
 /******************************************************************************
 *                              F U N C T I O N S
@@ -1317,6 +1317,27 @@ static BOOLEAN IsBufferedStatisticsUsable(P_ADAPTER_T prAdapter)
 		return FALSE;
 }
 #endif
+
+#if DBG && 0
+static VOID SetRCID(BOOLEAN fgOneTb3, BOOL *fgRCID)
+{
+	if (fgOneTb3)
+		*fgRCID = 0;
+	else
+		*fgRCID = 1;
+}
+#endif
+
+#if CFG_SLT_SUPPORT
+static VOID SetTestChannel(UINT_8 *pucPrimaryChannel)
+{
+    if (*pucPrimaryChannel < 5)
+	*pucPrimaryChannel = 8;
+    else if (*pucPrimaryChannel > 10)
+	*pucPrimaryChannel = 3;
+}
+#endif
+
 
 
 /*----------------------------------------------------------------------------*/
@@ -1826,7 +1847,7 @@ wlanoidSetBssidListScanExt(IN P_ADAPTER_T prAdapter,
 				   prAdapter->rAcpiState, prAdapter->fgIsRadioOff));
 		return WLAN_STATUS_SUCCESS;
 	}
-
+	DBGLOG(AIS, INFO, ("ScanEX\n"));
 	if (pvSetBuffer != NULL && u4SetBufferLen != 0) {
 		prScanRequest = (P_PARAM_SCAN_REQUEST_EXT_T) pvSetBuffer;
 		prSsid = &(prScanRequest->rSsid);
@@ -1967,7 +1988,8 @@ wlanoidSetBssidListScanAdv(IN P_ADAPTER_T prAdapter,
 			return WLAN_STATUS_FAILURE;
 		}
 	}
-
+	cnmTimerStartTimer(prAdapter, &prAdapter->rWifiVar.rAisFsmInfo.rScanDoneTimer,
+						SEC_TO_MSEC(AIS_SCN_DONE_TIMEOUT_SEC));
 	return WLAN_STATUS_SUCCESS;
 }				/* wlanoidSetBssidListScanAdv */
 
@@ -2000,6 +2022,7 @@ wlanoidSetBssid(IN P_ADAPTER_T prAdapter,
 	UINT_32 i;
 	INT_32 i4Idx = -1;
 	P_MSG_AIS_ABORT_T prAisAbortMsg;
+	UINT_8 ucReasonOfDisconnect;
 
 	ASSERT(prAdapter);
 	ASSERT(pu4SetInfoLen);
@@ -2021,11 +2044,16 @@ wlanoidSetBssid(IN P_ADAPTER_T prAdapter,
 	if (kalGetMediaStateIndicated(prGlueInfo) == PARAM_MEDIA_STATE_CONNECTED) {
 		if (EQUAL_MAC_ADDR(prAdapter->rWlanInfo.rCurrBssId.arMacAddress, pAddr)) {
 			kalSetMediaStateIndicated(prGlueInfo, PARAM_MEDIA_STATE_TO_BE_INDICATED);
+			ucReasonOfDisconnect = DISCONNECT_REASON_CODE_REASSOCIATION;
 		} else {
 			kalIndicateStatusAndComplete(prGlueInfo,
 						     WLAN_STATUS_MEDIA_DISCONNECT, NULL, 0);
+			ucReasonOfDisconnect = DISCONNECT_REASON_CODE_NEW_CONNECTION;
 		}
+	} else {
+		ucReasonOfDisconnect = DISCONNECT_REASON_CODE_NEW_CONNECTION;
 	}
+
 	/* check if any scanned result matchs with the BSSID */
 	for (i = 0; i < prAdapter->rWlanInfo.u4ScanResultNum; i++) {
 		if (EQUAL_MAC_ADDR(prAdapter->rWlanInfo.arScanResult[i].arMacAddress, pAddr)) {
@@ -2056,16 +2084,16 @@ wlanoidSetBssid(IN P_ADAPTER_T prAdapter,
 	}
 
 	prAisAbortMsg->rMsgHdr.eMsgId = MID_OID_AIS_FSM_JOIN_REQ;
-	prAisAbortMsg->ucReasonOfDisconnect = DISCONNECT_REASON_CODE_NEW_CONNECTION;
+	prAisAbortMsg->ucReasonOfDisconnect = ucReasonOfDisconnect;
 
-	if (EQUAL_MAC_ADDR(prAdapter->rWifiVar.rConnSettings.aucBSSID, pAddr)) {
+	/* Update the information to CONNECTION_SETTINGS_T */
+	prAdapter->rWifiVar.rConnSettings.ucSSIDLen = 0;
+	prAdapter->rWifiVar.rConnSettings.aucSSID[0] = '\0';
+	COPY_MAC_ADDR(prAdapter->rWifiVar.rConnSettings.aucBSSID, pAddr);
+
+	if (EQUAL_MAC_ADDR(prAdapter->rWlanInfo.rCurrBssId.arMacAddress, pAddr)) {
 		prAisAbortMsg->fgDelayIndication = TRUE;
 	} else {
-		/* Update the information to CONNECTION_SETTINGS_T */
-		prAdapter->rWifiVar.rConnSettings.ucSSIDLen = 0;
-		prAdapter->rWifiVar.rConnSettings.aucSSID[0] = '\0';
-
-		COPY_MAC_ADDR(prAdapter->rWifiVar.rConnSettings.aucBSSID, pAddr);
 		prAisAbortMsg->fgDelayIndication = FALSE;
 	}
 
@@ -2206,17 +2234,16 @@ wlanoidSetSsid(IN P_ADAPTER_T prAdapter,
 
 	prAisAbortMsg->rMsgHdr.eMsgId = MID_OID_AIS_FSM_JOIN_REQ;
 	prAisAbortMsg->ucReasonOfDisconnect = DISCONNECT_REASON_CODE_NEW_CONNECTION;
+	COPY_SSID(prAdapter->rWifiVar.rConnSettings.aucSSID,
+		  prAdapter->rWifiVar.rConnSettings.ucSSIDLen,
+		  pParamSsid->aucSsid, (UINT_8) pParamSsid->u4SsidLen);
 
-	if (EQUAL_SSID(prAdapter->rWifiVar.rConnSettings.aucSSID,
-		       prAdapter->rWifiVar.rConnSettings.ucSSIDLen,
+	if (EQUAL_SSID(prAdapter->rWlanInfo.rCurrBssId.rSsid.aucSsid,
+		       prAdapter->rWlanInfo.rCurrBssId.rSsid.u4SsidLen,
 		       pParamSsid->aucSsid, pParamSsid->u4SsidLen)) {
 		prAisAbortMsg->fgDelayIndication = TRUE;
 	} else {
 		/* Update the information to CONNECTION_SETTINGS_T */
-		COPY_SSID(prAdapter->rWifiVar.rConnSettings.aucSSID,
-			  prAdapter->rWifiVar.rConnSettings.ucSSIDLen,
-			  pParamSsid->aucSsid, (UINT_8) pParamSsid->u4SsidLen);
-
 		prAisAbortMsg->fgDelayIndication = FALSE;
 	}
 	DBGLOG(SCN, INFO, ("SSID %s\n", prAdapter->rWifiVar.rConnSettings.aucSSID));
@@ -3239,8 +3266,13 @@ wlanoidSetAddKey(IN P_ADAPTER_T prAdapter,
 	P_BSS_INFO_T prBssInfo;
 	P_AIS_SPECIFIC_BSS_INFO_T prAisSpecBssInfo;
 	P_WLAN_TABLE_T prWlanTable;
-	P_STA_RECORD_T prStaRec;
+	P_STA_RECORD_T prStaRec = NULL;
 	BOOL fgAddTxBcKey = FALSE;
+
+#if CFG_SUPPORT_TDLS
+	P_STA_RECORD_T prTmpStaRec;
+#endif
+
 
 	DEBUGFUNC("wlanoidSetAddKey");
 	DBGLOG(REQ, LOUD, ("\n"));
@@ -3305,32 +3337,35 @@ wlanoidSetAddKey(IN P_ADAPTER_T prAdapter,
 	*pu4SetInfoLen = u4SetBufferLen;
 
 	/* Dump PARAM_KEY content. */
-	DBGLOG(RSN, TRACE, ("Set: Dump PARAM_KEY content\n"));
-	DBGLOG(RSN, TRACE, ("Length    : 0x%08lx\n", prNewKey->u4Length));
-	DBGLOG(RSN, TRACE, ("Key Index : 0x%08lx\n", prNewKey->u4KeyIndex));
-	DBGLOG(RSN, TRACE, ("Key Length: 0x%08lx\n", prNewKey->u4KeyLength));
-	DBGLOG(RSN, TRACE, ("BSSID:\n"));
-	DBGLOG(RSN, TRACE, (MACSTR "\n", MAC2STR(prNewKey->arBSSID)));
+	DBGLOG(RSN, INFO, ("Set: Dump PARAM_KEY content\n"));
+	DBGLOG(RSN, INFO, ("Length    : 0x%08lx\n", prNewKey->u4Length));
+	DBGLOG(RSN, INFO, ("Key Index : 0x%08lx\n", prNewKey->u4KeyIndex));
+	DBGLOG(RSN, INFO, ("Key Length: 0x%08lx\n", prNewKey->u4KeyLength));
+	DBGLOG(RSN, INFO, ("BSSID:\n"));
+	DBGLOG(RSN, INFO, (MACSTR "\n", MAC2STR(prNewKey->arBSSID)));
 	DBGLOG(RSN, TRACE, ("Key RSC:\n"));
 	DBGLOG_MEM8(RSN, TRACE, &prNewKey->rKeyRSC, sizeof(PARAM_KEY_RSC));
-	DBGLOG(RSN, TRACE, ("Key Material:\n"));
-	DBGLOG_MEM8(RSN, TRACE, prNewKey->aucKeyMaterial, prNewKey->u4KeyLength);
+	DBGLOG(RSN, INFO, ("Key Material:\n"));
+	DBGLOG_MEM8(RSN, INFO, prNewKey->aucKeyMaterial, prNewKey->u4KeyLength);
 
 	prAisSpecBssInfo = &prAdapter->rWifiVar.rAisSpecificBssInfo;
 	prBssInfo = prAdapter->prAisBssInfo;
 
-	if ((prNewKey->arBSSID[0] & prNewKey->arBSSID[1] & prNewKey->arBSSID[2] &
-	     prNewKey->arBSSID[3] & prNewKey->arBSSID[4] & prNewKey->arBSSID[5]) == 0xFF) {
-		if (prAdapter->rWifiVar.rConnSettings.eAuthMode >= AUTH_MODE_WPA &&
-		    prAdapter->rWifiVar.rConnSettings.eAuthMode != AUTH_MODE_WPA_NONE) {
+	if (prAdapter->rWifiVar.rConnSettings.eAuthMode >= AUTH_MODE_WPA &&
+	    prAdapter->rWifiVar.rConnSettings.eAuthMode != AUTH_MODE_WPA_NONE) {
+		if ((prNewKey->arBSSID[0] & prNewKey->arBSSID[1] & prNewKey->arBSSID[2] &
+		     prNewKey->arBSSID[3] & prNewKey->arBSSID[4] & prNewKey->arBSSID[5]) == 0xFF) {
 			prStaRec =
 			    cnmGetStaRecByAddress(prAdapter, prBssInfo->ucBssIndex,
 						  prBssInfo->aucBSSID);
-			if (!prStaRec) {	/* Already disconnected ? */
-				DBGLOG(REQ, INFO,
-				       ("[wlan] Not set the WPA key while disconnect\n"));
-				return WLAN_STATUS_SUCCESS;
-			}
+		} else {
+			prStaRec =
+			    cnmGetStaRecByAddress(prAdapter, prBssInfo->ucBssIndex,
+						  prNewKey->arBSSID);
+		}
+		if (!prStaRec) {	/* Already disconnected ? */
+			DBGLOG(REQ, INFO, ("[wlan] Not set the WPA key while disconnect\n"));
+			return WLAN_STATUS_SUCCESS;
 		}
 	}
 
@@ -3488,6 +3523,20 @@ wlanoidSetAddKey(IN P_ADAPTER_T prAdapter,
 						  prCmdKey->aucPeerAddr);
 		}
 
+#if CFG_SUPPORT_TDLS
+		prTmpStaRec =
+		    cnmGetStaRecByAddress(prAdapter, prBssInfo->ucBssIndex, prNewKey->arBSSID);
+		if (prTmpStaRec) {
+			if (IS_DLS_STA(prTmpStaRec)) {
+				prStaRec = prTmpStaRec;
+				prCmdKey->ucAlgorithmId = CIPHER_SUITE_CCMP;	/*128 ,TODO  GCMP 256 */
+				kalMemCopy(prCmdKey->aucPeerAddr, prStaRec->aucMacAddr,
+					   MAC_ADDR_LEN);
+			}
+		}
+#endif
+
+
 #if CFG_SUPPORT_802_11W
 		if (prCmdKey->ucAlgorithmId == CIPHER_SUITE_BIP) {
 			ASSERT(prStaRec);
@@ -3626,10 +3675,11 @@ wlanoidSetAddKey(IN P_ADAPTER_T prAdapter,
 						prWtblCfg[entry].fgRV = 1;
 						prWtblCfg[entry].fgIKV = 0;
 						prWtblCfg[entry].fgRKV = 1;
-						if (fgOneTb3)
-							prWtblCfg[entry].fgRCID = 0;
-						else
-							prWtblCfg[entry].fgRCID = 1;
+
+						prCmdKey->ucTxKey = ((prNewKey->u4KeyIndex & IS_TRANSMIT_KEY) == IS_TRANSMIT_KEY) ? 1 : 0;
+						prCmdKey->ucKeyType = ((prNewKey->u4KeyIndex & IS_UNICAST_KEY) == IS_UNICAST_KEY) ? 1 : 0;
+
+						SetRCID(fgOneTb3, &prWtblCfg[entry].fgRCID); /*AOSP*/
 						prWtblCfg[entry].ucKeyID = prCmdKey->ucKeyId;
 						prWtblCfg[entry].fgRCA1 = 0;
 						prWtblCfg[entry].fgEvenPN = 1;
@@ -3830,7 +3880,7 @@ wlanoidSetRemoveKey(IN P_ADAPTER_T prAdapter,
 		/* if (prAdapter->prAisBssInfo->ucTxDefaultKeyID == prCmdKey->ucKeyId) */
 		/* secPrivacyFreeForEntry(prAdapter, prCmdKey->ucWlanIndex); */
 		/* else */
-		/* ; */ /* Clear key material only */
+		/* ; Clear key material only */
 	} else {
 		DBGLOG(RSN, TRACE, ("wlanoidSetRemoveKey\n"));
 
@@ -5907,6 +5957,7 @@ wlanoidQuerySwCtrlRead(IN P_ADAPTER_T prAdapter,
 		case 0x00:
 			/* Dump Tx resource and queue status */
 			qmDumpQueueStatus(prAdapter);
+			cnmDumpMemoryStatus(prAdapter);
 			break;
 
 		case 0x01:
@@ -6055,7 +6106,11 @@ wlanoidSetSwCtrlWrite(IN P_ADAPTER_T prAdapter,
 		} else if (u2SubId == 0x5) {
 			prAdapter->rWifiVar.rConnSettings.uc2G4BandwidthMode = (UINT_8) u4Data;
 		} else if (u2SubId == 0x0100) {
-			prAdapter->rWifiVar.ucRxGf = (UINT_8) u4Data;
+			if (u4Data == 2) {
+				prAdapter->rWifiVar.ucRxGf = FEATURE_DISABLED;
+			} else {
+				prAdapter->rWifiVar.ucRxGf = FEATURE_ENABLED;
+			}
 		} else if (u2SubId == 0x0101) {
 			prAdapter->rWifiVar.ucRxShortGI = (UINT_8) u4Data;
 		}
@@ -6099,7 +6154,8 @@ wlanoidSetSwCtrlWrite(IN P_ADAPTER_T prAdapter,
 		}
 		if (u2SubId == 0x3) {
 			P_BSS_INFO_T prBssInfo = prAdapter->prAisBssInfo;
-			authSendDeauthFrame(prAdapter, prBssInfo->prStaRecOfAP, NULL, 7, NULL);
+			authSendDeauthFrame(prAdapter, prBssInfo, prBssInfo->prStaRecOfAP, NULL, 7,
+					    NULL);
 		}
 		/* wext_set_mode */
 		/*
@@ -6119,7 +6175,7 @@ wlanoidSetSwCtrlWrite(IN P_ADAPTER_T prAdapter,
 #endif
 	case 0xFFFF:
 		{
-			CMD_ACCESS_REG rCmdAccessReg;
+			/* CMD_ACCESS_REG rCmdAccessReg; */
 #if 1				/* CFG_MT6573_SMT_TEST */
 			if (u2SubId == 0x0123) {
 
@@ -6163,157 +6219,20 @@ wlanoidSetSwCtrlWrite(IN P_ADAPTER_T prAdapter,
 
 			} else if (u2SubId == 0x1234) {
 				/* 1. Disable On-Lin Scan */
-				prAdapter->fgEnOnlineScan = FALSE;
-
 				/* 3. Disable FIFO FULL no ack */
-				rCmdAccessReg.u4Address = 0x60140028;
-				rCmdAccessReg.u4Data = 0x904;
-				wlanSendSetQueryCmd(prAdapter, CMD_ID_ACCESS_REG, TRUE,	/* FALSE, */
-						    FALSE,	/* TRUE, */
-						    FALSE,
-						    nicCmdEventSetCommon,
-						    nicOidCmdTimeoutCommon,
-						    sizeof(CMD_ACCESS_REG),
-						    (PUINT_8) &rCmdAccessReg, pvSetBuffer, 0);
-
 				/* 4. Disable Roaming */
-				rCmdSwCtrl.u4Id = 0x90000204;
-				rCmdSwCtrl.u4Data = 0x0;
-				wlanSendSetQueryCmd(prAdapter,
-						    CMD_ID_SW_DBG_CTRL,
-						    TRUE,
-						    FALSE,
-						    FALSE,
-						    nicCmdEventSetCommon,
-						    nicOidCmdTimeoutCommon,
-						    sizeof(CMD_SW_DBG_CTRL_T),
-						    (PUINT_8) &rCmdSwCtrl,
-						    pvSetBuffer, u4SetBufferLen);
-
-				rCmdSwCtrl.u4Id = 0x90000200;
-				rCmdSwCtrl.u4Data = 0x820000;
-				wlanSendSetQueryCmd(prAdapter,
-						    CMD_ID_SW_DBG_CTRL,
-						    TRUE,
-						    FALSE,
-						    FALSE,
-						    nicCmdEventSetCommon,
-						    nicOidCmdTimeoutCommon,
-						    sizeof(CMD_SW_DBG_CTRL_T),
-						    (PUINT_8) &rCmdSwCtrl,
-						    pvSetBuffer, u4SetBufferLen);
-
 				/* Disalbe auto tx power */
-				/*  */
-				rCmdSwCtrl.u4Id = 0xa0100003;
-				rCmdSwCtrl.u4Data = 0x0;
-				wlanSendSetQueryCmd(prAdapter,
-						    CMD_ID_SW_DBG_CTRL,
-						    TRUE,
-						    FALSE,
-						    FALSE,
-						    nicCmdEventSetCommon,
-						    nicOidCmdTimeoutCommon,
-						    sizeof(CMD_SW_DBG_CTRL_T),
-						    (PUINT_8) &rCmdSwCtrl,
-						    pvSetBuffer, u4SetBufferLen);
-
-
-
 				/* 2. Keep at CAM mode */
-				{
-					PARAM_POWER_MODE ePowerMode;
-
-					prAdapter->u4CtiaPowerMode = 0;
-					prAdapter->fgEnCtiaPowerMode = TRUE;
-
-					ePowerMode = Param_PowerModeCAM;
-					rWlanStatus = nicConfigPowerSaveProfile(prAdapter,
-										prAdapter->
-										prAisBssInfo->
-										ucBssIndex,
-										ePowerMode, TRUE);
-				}
-
 				/* 5. Disable Beacon Timeout Detection */
-				prAdapter->fgDisBcnLostDetection = TRUE;
+				rWlanStatus = nicEnterCtiaMode(prAdapter, TRUE, TRUE);
 			} else if (u2SubId == 0x1235) {
-
 				/* 1. Enaable On-Lin Scan */
-				prAdapter->fgEnOnlineScan = TRUE;
-
 				/* 3. Enable FIFO FULL no ack */
-				rCmdAccessReg.u4Address = 0x60140028;
-				rCmdAccessReg.u4Data = 0x905;
-				wlanSendSetQueryCmd(prAdapter, CMD_ID_ACCESS_REG, TRUE,	/* FALSE, */
-						    FALSE,	/* TRUE, */
-						    FALSE,
-						    nicCmdEventSetCommon,
-						    nicOidCmdTimeoutCommon,
-						    sizeof(CMD_ACCESS_REG),
-						    (PUINT_8) &rCmdAccessReg, pvSetBuffer, 0);
-
 				/* 4. Enable Roaming */
-				rCmdSwCtrl.u4Id = 0x90000204;
-				rCmdSwCtrl.u4Data = 0x1;
-				wlanSendSetQueryCmd(prAdapter,
-						    CMD_ID_SW_DBG_CTRL,
-						    TRUE,
-						    FALSE,
-						    FALSE,
-						    nicCmdEventSetCommon,
-						    nicOidCmdTimeoutCommon,
-						    sizeof(CMD_SW_DBG_CTRL_T),
-						    (PUINT_8) &rCmdSwCtrl,
-						    pvSetBuffer, u4SetBufferLen);
-
-				rCmdSwCtrl.u4Id = 0x90000200;
-				rCmdSwCtrl.u4Data = 0x820000;
-				wlanSendSetQueryCmd(prAdapter,
-						    CMD_ID_SW_DBG_CTRL,
-						    TRUE,
-						    FALSE,
-						    FALSE,
-						    nicCmdEventSetCommon,
-						    nicOidCmdTimeoutCommon,
-						    sizeof(CMD_SW_DBG_CTRL_T),
-						    (PUINT_8) &rCmdSwCtrl,
-						    pvSetBuffer, u4SetBufferLen);
-
 				/* Enable auto tx power */
-				/*  */
-
-				rCmdSwCtrl.u4Id = 0xa0100003;
-				rCmdSwCtrl.u4Data = 0x1;
-				wlanSendSetQueryCmd(prAdapter,
-						    CMD_ID_SW_DBG_CTRL,
-						    TRUE,
-						    FALSE,
-						    FALSE,
-						    nicCmdEventSetCommon,
-						    nicOidCmdTimeoutCommon,
-						    sizeof(CMD_SW_DBG_CTRL_T),
-						    (PUINT_8) &rCmdSwCtrl,
-						    pvSetBuffer, u4SetBufferLen);
-
-
 				/* 2. Keep at Fast PS */
-				{
-					PARAM_POWER_MODE ePowerMode;
-
-					prAdapter->u4CtiaPowerMode = 2;
-					prAdapter->fgEnCtiaPowerMode = TRUE;
-
-					ePowerMode = Param_PowerModeFast_PSP;
-					rWlanStatus = nicConfigPowerSaveProfile(prAdapter,
-										prAdapter->
-										prAisBssInfo->
-										ucBssIndex,
-										ePowerMode, TRUE);
-				}
-
 				/* 5. Enable Beacon Timeout Detection */
-				prAdapter->fgDisBcnLostDetection = FALSE;
+				rWlanStatus = nicEnterCtiaMode(prAdapter, FALSE, TRUE);
 			}
 #endif
 #if CFG_MTK_STAGE_SCAN
@@ -6322,7 +6241,14 @@ wlanoidSetSwCtrlWrite(IN P_ADAPTER_T prAdapter,
 			} else if (u2SubId == 0x1251) {
 				prAdapter->aePreferBand[KAL_NETWORK_TYPE_AIS_INDEX] = BAND_2G4;
 			} else if (u2SubId == 0x1252) {
-				prAdapter->aePreferBand[KAL_NETWORK_TYPE_AIS_INDEX] = BAND_5G;
+		if (prAdapter->fgEnable5GBand) {
+		    prAdapter->aePreferBand[KAL_NETWORK_TYPE_AIS_INDEX] = BAND_5G;
+		}
+		else {
+		    /* Skip this setting if 5G band is disabled */
+		    DBGLOG(SCN, INFO, ("Skip 5G stage scan request due to "
+			"5G is disabled\n"));
+		}
 			}
 #endif
 		}
@@ -7814,9 +7740,7 @@ wlanoidSet802dot11PowerSaveProfile(IN P_ADAPTER_T prAdapter,
 	prBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, prPowerMode->ucBssIdx);
 
 	if (prAdapter->fgEnCtiaPowerMode) {
-		if (prPowerMode->ePowerMode == Param_PowerModeCAM) {
-
-		} else {
+		if (prPowerMode->ePowerMode != Param_PowerModeCAM) {
 			/* User setting to PS mode (Param_PowerModeMAX_PSP or Param_PowerModeFast_PSP) */
 
 			if (prAdapter->u4CtiaPowerMode == 0) {
@@ -8383,12 +8307,9 @@ wlanoidSetNetworkAddress(IN P_ADAPTER_T prAdapter,
 			u4IPv4AddrCount++;
 		}
 
-		prNetworkAddress = (P_PARAM_NETWORK_ADDRESS) ((UINT_32) prNetworkAddress +
-							      (UINT_32) (prNetworkAddress->
-									 u2AddressLength +
-									 OFFSET_OF
-									 (PARAM_NETWORK_ADDRESS,
-									  aucAddress)));
+		prNetworkAddress = (P_PARAM_NETWORK_ADDRESS) ((ULONG) prNetworkAddress +
+							      (ULONG) (prNetworkAddress->u2AddressLength +
+									 OFFSET_OF(PARAM_NETWORK_ADDRESS, aucAddress)));
 	}
 
 	/* 4 <2> Calculate command buffer size */
@@ -8450,12 +8371,9 @@ wlanoidSetNetworkAddress(IN P_ADAPTER_T prAdapter,
 				u4IPv4AddrIdx++;
 			}
 
-			prNetworkAddress = (P_PARAM_NETWORK_ADDRESS) ((UINT_32) prNetworkAddress +
-								      (UINT_32) (prNetworkAddress->
-										 u2AddressLength +
-										 OFFSET_OF
-										 (PARAM_NETWORK_ADDRESS,
-										  aucAddress)));
+			prNetworkAddress = (P_PARAM_NETWORK_ADDRESS) ((ULONG) prNetworkAddress +
+								      (ULONG) (prNetworkAddress->u2AddressLength +
+										 OFFSET_OF(PARAM_NETWORK_ADDRESS, aucAddress)));
 		}
 
 	} else {
@@ -8815,6 +8733,10 @@ WLAN_STATUS rftestSetATInfo(IN P_ADAPTER_T prAdapter, UINT_32 u4FuncIndex, UINT_
 	if ((u4FuncIndex == RF_AT_FUNCID_COMMAND) && (u4FuncData == RF_AT_COMMAND_ICAP)) {
 		g_bIcapEnable = TRUE;
 		g_bCaptureDone = FALSE;
+	}
+	/* ICAP dump name Reset */
+	if ((u4FuncIndex == RF_AT_FUNCID_COMMAND) && (u4FuncData == RF_AT_COMMAND_RESET_DUMP_NAME)) {
+		g_u2DumpIndex = 0;
 	}
 	/* insert into prCmdQueue */
 	kalEnqueueCommand(prGlueInfo, (P_QUE_ENTRY_T) prCmdInfo);
@@ -9633,7 +9555,7 @@ wlanoidSetEnableWakeup(IN P_ADAPTER_T prAdapter,
 
 	/* FIXME:
 	 * Send Command Event for setting wakeup-pattern / Magic Packet to firmware
-	 * */
+	* */
 
 	return WLAN_STATUS_FAILURE;
 }
@@ -10033,9 +9955,7 @@ wlanoidUpdateSLTMode(IN P_ADAPTER_T prAdapter,
 					if (prTRSetting->rNetworkType == PARAM_NETWORK_TYPE_OFDM5) {
 						prBssInfo->ucPrimaryChannel += 2;
 					} else {
-						if (prBssInfo->ucPrimaryChannel < 5) {
-							prBssInfo->ucPrimaryChannel = 8;	/* For channel 1, testing L20 at channel 8. */
-						}
+						SetTestChannel(&prBssInfo->ucPrimaryChannel);	/* For channel 1, testing L20 at channel 8. AOSP */
 					}
 					break;
 				case FIXED_EXT_CHNL_L20:
@@ -10044,9 +9964,7 @@ wlanoidUpdateSLTMode(IN P_ADAPTER_T prAdapter,
 					if (prTRSetting->rNetworkType == PARAM_NETWORK_TYPE_OFDM5) {
 						prBssInfo->ucPrimaryChannel -= 2;
 					} else {
-						if (prBssInfo->ucPrimaryChannel > 10) {
-							prBssInfo->ucPrimaryChannel = 3;	/* For channel 11 / 14. testing U20 at channel 3. */
-						}
+						SetTestChannel(&prBssInfo->ucPrimaryChannel);   /* For channel 11 / 14. testing U20 at channel 3. AOSP */
 					}
 					break;
 				}
@@ -10884,7 +10802,7 @@ wlanoidSetTxPower(IN P_ADAPTER_T prAdapter,
 				      0	/* u4SetQueryBufferLen */
 	    );
 
-	ASSERT(rStatus == WLAN_STATUS_PENDING);
+	/* ASSERT(rStatus == WLAN_STATUS_PENDING); */
 
 	return rStatus;
 
@@ -11250,7 +11168,7 @@ wlanoidSetGtkRekeyData(IN P_ADAPTER_T prAdapter,
 				      0	/* u4SetQueryBufferLen */
 	    );
 
-	ASSERT(rStatus == WLAN_STATUS_PENDING);
+	/* ASSERT(rStatus == WLAN_STATUS_PENDING); */
 
 	return rStatus;
 }				/* wlanoidSetGtkRekeyData */
@@ -11400,7 +11318,7 @@ wlanoidResetBAScoreboard(IN P_ADAPTER_T prAdapter, IN PVOID pvSetBuffer, IN UINT
 				      0	/* u4SetQueryBufferLen */
 	    );
 
-	ASSERT(rStatus == WLAN_STATUS_PENDING);
+	/* ASSERT(rStatus == WLAN_STATUS_PENDING); */
 
 	return rStatus;
 
@@ -11411,7 +11329,7 @@ wlanoidResetBAScoreboard(IN P_ADAPTER_T prAdapter, IN PVOID pvSetBuffer, IN UINT
 
 #if CFG_SUPPORT_BATCH_SCAN
 
-#define CMD_WLS_BATCHING		"WLS_BATCHING"
+#define CMD_WLS_BATCHING        "WLS_BATCHING"
 
 #define BATCHING_SET            "SET"
 #define BATCHING_GET            "GET"
@@ -11419,7 +11337,7 @@ wlanoidResetBAScoreboard(IN P_ADAPTER_T prAdapter, IN PVOID pvSetBuffer, IN UINT
 
 #define PARAM_SCANFREQ          "SCANFREQ"
 #define PARAM_MSCAN             "MSCAN"
-#define PARAM_BESTN	            "BESTN"
+#define PARAM_BESTN             "BESTN"
 #define PARAM_CHANNEL           "CHANNEL"
 #define PARAM_RTT               "RTT"
 
@@ -11459,7 +11377,7 @@ batchSetCmd(IN P_ADAPTER_T prAdapter,
 		head += kalStrLen(BATCHING_SET) + 1;
 
 		/* SCANFREQ, MSCAN, BESTN */
-		tokens = kalSScanf(head, "SCANFREQ=%ld MSCAN=%ld BESTN=%ld",
+		tokens = sscanf(head, "SCANFREQ=%ld MSCAN=%ld BESTN=%ld",
 				   &scanfreq, &mscan, &bestn);
 		if (tokens != 3) {
 			DBGLOG(SCN, TRACE,
@@ -11473,7 +11391,7 @@ batchSetCmd(IN P_ADAPTER_T prAdapter,
 			DBGLOG(SCN, TRACE, ("[BATCH] Parse RTT fail. head=%s\n", head));
 			return -EINVAL;
 		}
-		tokens = kalSScanf(p, "RTT=%d", &rtt);
+		tokens = sscanf(p, "RTT=%d", &rtt);
 		if (tokens != 1) {
 			DBGLOG(SCN, TRACE, ("[BATCH] Parse fail: tokens=%d, rtt=%d\n",
 					    tokens, rtt));
@@ -11494,7 +11412,7 @@ batchSetCmd(IN P_ADAPTER_T prAdapter,
 		/* else {
 		 *p = '.'; // remove '>' because sscanf can not parse <%s>
 		 }*/
-		/*tokens = kalSScanf(head, "CHANNEL=<%s", c_channel);
+		/*tokens = sscanf(head, "CHANNEL=<%s", c_channel);
 		   if (tokens != 1) {
 		   DBGLOG(SCN, TRACE, ("[BATCH] Parse fail: tokens=%d, CHANNEL=<%s>\n",
 		   tokens, c_channel));
@@ -11611,7 +11529,7 @@ batchSetCmd(IN P_ADAPTER_T prAdapter,
 			    TRUE,
 			    FALSE,
 			    TRUE,
-			    NULL, NULL, sizeof(CMD_BATCH_REQ_T), (PUINT_8) &rCmdBatchReq, NULL, 0);
+			    NULL, NULL, sizeof(CMD_BATCH_REQ_T), (PUINT_8)&rCmdBatchReq, NULL, 0);
 
 	/* kalMemSet(pvSetBuffer, 0, u4SetBufferLen); */
 	/* rStatus = kalSnprintf(pvSetBuffer, 2, "%s", "OK"); */
@@ -11912,3 +11830,56 @@ wlanoidSetHS20BssidPool(IN P_ADAPTER_T prAdapter,
 }				/* end of wlanoidSendHS20GASRequest() */
 
 #endif				/* CFG_SUPPORT_PASSPOINT */
+
+#if CFG_SUPPORT_SNIFFER
+WLAN_STATUS
+wlanoidSetMonitor(
+    IN P_ADAPTER_T  prAdapter,
+    IN  PVOID    pvSetBuffer,
+    IN  UINT_32  u4SetBufferLen,
+    OUT PUINT_32 pu4SetInfoLen
+    )
+{
+	P_PARAM_CUSTOM_MONITOR_SET_STRUC_T prMonitorSetInfo;
+	CMD_MONITOR_SET_INFO_T rCmdMonitorSetInfo;
+	WLAN_STATUS rWlanStatus = WLAN_STATUS_SUCCESS;
+
+	DEBUGFUNC("wlanoidSetMonitor");
+
+	ASSERT(prAdapter);
+    ASSERT(pu4SetInfoLen);
+
+	*pu4SetInfoLen = sizeof(PARAM_CUSTOM_MONITOR_SET_STRUC_T);
+
+	if (u4SetBufferLen < sizeof(PARAM_CUSTOM_MONITOR_SET_STRUC_T)) {
+	return WLAN_STATUS_INVALID_LENGTH;
+    }
+
+    ASSERT(pvSetBuffer);
+
+    prMonitorSetInfo = (P_PARAM_CUSTOM_MONITOR_SET_STRUC_T)pvSetBuffer;
+
+	rCmdMonitorSetInfo.ucEnable = prMonitorSetInfo->ucEnable;
+    rCmdMonitorSetInfo.ucBand = prMonitorSetInfo->ucBand;
+    rCmdMonitorSetInfo.ucPriChannel = prMonitorSetInfo->ucPriChannel;
+    rCmdMonitorSetInfo.ucSco = prMonitorSetInfo->ucSco;
+    rCmdMonitorSetInfo.ucChannelWidth = prMonitorSetInfo->ucChannelWidth;
+    rCmdMonitorSetInfo.ucChannelS1 = prMonitorSetInfo->ucChannelS1;
+    rCmdMonitorSetInfo.ucChannelS2 = prMonitorSetInfo->ucChannelS2;
+
+    rWlanStatus =  wlanSendSetQueryCmd(prAdapter,
+	    CMD_ID_SET_MONITOR,
+	    TRUE,
+	    FALSE,
+	    TRUE,
+	    nicCmdEventSetCommon,
+	    nicOidCmdTimeoutCommon,
+	    sizeof(CMD_MONITOR_SET_INFO_T),
+	    (PUINT_8)&rCmdMonitorSetInfo,
+	    pvSetBuffer,
+	    u4SetBufferLen
+	    );
+
+	return rWlanStatus;
+}
+#endif

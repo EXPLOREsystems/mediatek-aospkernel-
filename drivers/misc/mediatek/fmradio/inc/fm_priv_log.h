@@ -44,56 +44,56 @@ extern fm_u32 g_dbg_level;
 
 #define FM_LOG_DBG(flag, fmt, args...) \
 	    do { \
-                if (pub_cb->log && (FM_DEBUG <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
+		if (pub_cb->log && (FM_DEBUG <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
 		    pub_cb->log("[" #flag "]" fmt, ## args); \
 		} \
 	    } while (0)
 
 #define FM_LOG_INF(flag, fmt, args...) \
 	    do { \
-                if (pub_cb->log && (FM_INFO <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
+		if (pub_cb->log && (FM_INFO <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
 		     pub_cb->log("[" #flag "]" fmt, ## args); \
 		} \
 	    } while (0)
 
 #define FM_LOG_NTC(flag, fmt, args...) \
 	    do { \
-                if (pub_cb->log && (FM_NOTICE <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
+		if (pub_cb->log && (FM_NOTICE <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
 		     pub_cb->log("[" #flag "]" fmt, ## args); \
 		} \
 	    } while (0)
 
 #define FM_LOG_WAR(flag, fmt, args...) \
 	    do { \
-                if (pub_cb->log && (FM_WARNING <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
+		if (pub_cb->log && (FM_WARNING <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
 		     pub_cb->log("[" #flag "]" fmt, ## args); \
 		} \
 	    } while (0)
 
 #define FM_LOG_ERR(flag, fmt, args...) \
 	    do { \
-                if (pub_cb->log && (FM_ERR <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
+		if (pub_cb->log && (FM_ERR <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
 		     pub_cb->log("[" #flag "]" fmt, ## args); \
 		} \
 	    } while (0)
 
 #define FM_LOG_CRT(flag, fmt, args...) \
 	    do { \
-                if (pub_cb->log && (FM_CRIT <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
+		if (pub_cb->log && (FM_CRIT <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
 		     pub_cb->log("[" #flag "]" fmt, ## args); \
 		} \
 	    } while (0)
 
 #define FM_LOG_ALT(flag, fmt, args...) \
 	    do { \
-                if (pub_cb->log && (FM_ALERT <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
+		if (pub_cb->log && (FM_ALERT <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
 		     pub_cb->log("[" #flag "]" fmt, ## args); \
 		} \
 	    } while (0)
 
 #define FM_LOG_EMG(flag, fmt, args...) \
 	    do { \
-                if (pub_cb->log && (FM_EMERG <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
+		if (pub_cb->log && (FM_EMERG <= (g_dbg_level&0x0000000f)) && ((flag)&0xfffffff0) & g_dbg_level) { \
 		     pub_cb->log("[" #flag "]" fmt, ## args); \
 		} \
 	    } while (0)

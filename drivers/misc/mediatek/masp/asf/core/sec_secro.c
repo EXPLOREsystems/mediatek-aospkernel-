@@ -275,7 +275,7 @@ uint32 masp_secro_md_get_data(uchar *md_info, uchar *buf, uint32 offset, uint32 
 	/* check if it only supports secro v3 format */
 	if (0 == secroimg.m_header.world_phone_support) {
 
-		SMSG(TRUE, "[%s]sro v3 \n", MOD);
+		SMSG(TRUE, "[%s]sro v3\n", MOD);
 		/* ------------------------ */
 		/* decrypt secroimg         */
 		/* ------------------------ */
@@ -325,7 +325,7 @@ uint32 masp_secro_md_get_data(uchar *md_info, uchar *buf, uint32 offset, uint32 
 		}
 	} else {
 
-		SMSG(TRUE, "[%s]sro v5 \n", MOD);
+		SMSG(TRUE, "[%s]sro v5\n", MOD);
 		/* ----------------------------- */
 		/* if it supports v5 format      */
 		/* ----------------------------- */

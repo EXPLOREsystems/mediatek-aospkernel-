@@ -198,9 +198,9 @@ GATOR_DEFINE_PROBE(mali_pm_status, TP_PROTO(unsigned int event_id, unsigned long
 #define L2_PRESENT_LO           0x120	/* (RO) Level 2 cache present bitmap, low word */
 #define BIT_AT(value, pos) ((value >> pos) & 1)
 
-	static unsigned long long previous_shader_bitmask = 0;
-	static unsigned long long previous_tiler_bitmask = 0;
-	static unsigned long long previous_l2_bitmask = 0;
+	static unsigned long long previous_shader_bitmask;
+	static unsigned long long previous_tiler_bitmask;
+	static unsigned long long previous_l2_bitmask;
 
 	switch (event_id) {
 	case SHADER_PRESENT_LO:

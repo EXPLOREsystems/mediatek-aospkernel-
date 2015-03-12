@@ -181,7 +181,7 @@ NDIS_STATUS windowsRegisterIsrt(IN P_GLUE_INFO_T prGlueInfo)
 
 		if (!KernelIoControl(IOCTL_HAL_REQUEST_SYSINTR,
 				     &prHifInfo->u4InterruptLevel,
-				     sizeof(UINT32), &g_SysIntr, sizeof(UINT32), NULL)) {
+				     sizeof(UINT_32), &g_SysIntr, sizeof(UINT_32), NULL)) {
 			INITLOG(("ERROR:Failed to request sysintr value for Timer1 inturrupt!/n"));
 		} else {
 			INITLOG(("Request sysintr value %d!/r/n", g_SysIntr));

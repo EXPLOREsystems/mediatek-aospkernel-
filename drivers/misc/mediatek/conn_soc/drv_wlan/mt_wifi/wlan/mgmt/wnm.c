@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/TRUNK/MT6620_5931_WiFi_Driver/mgmt/wnm.c#1 $
 */
 
@@ -15,7 +29,7 @@
  * [WCXRP00001157] [MT6620 Wi-Fi][FW][DRV] add timing measurement support for 802.11v
  * add timing measurement support for 802.11v.
  *
- * 
+ *
 */
 
 /*******************************************************************************
@@ -54,7 +68,7 @@
 ********************************************************************************
 */
 
-static UINT_8 ucTimingMeasToken = 0;
+static UINT_8 ucTimingMeasToken;
 
 /*******************************************************************************
 *                                 M A C R O S
@@ -67,21 +81,21 @@ static UINT_8 ucTimingMeasToken = 0;
 */
 
 WLAN_STATUS
-wnmRunEventTimgingMeasTxDone (
+wnmRunEventTimgingMeasTxDone(
     IN P_ADAPTER_T              prAdapter,
     IN P_MSDU_INFO_T            prMsduInfo,
     IN ENUM_TX_RESULT_CODE_T    rTxDoneStatus
     );
 
 VOID
-wnmComposeTimingMeasFrame (
-    IN P_ADAPTER_T         prAdapter,    
+wnmComposeTimingMeasFrame(
+    IN P_ADAPTER_T         prAdapter,
     IN P_STA_RECORD_T      prStaRec,
     IN PFN_TX_DONE_HANDLER pfTxDoneHandler
     );
 
 VOID
-wnmTimingMeasRequest (
+wnmTimingMeasRequest(
     IN P_ADAPTER_T                  prAdapter,
     IN P_SW_RFB_T                   prSwRfb
     );
@@ -101,7 +115,7 @@ wnmTimingMeasRequest (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-wnmWNMAction (
+wnmWNMAction(
     IN P_ADAPTER_T                  prAdapter,
     IN P_SW_RFB_T                   prSwRfb
     )
@@ -115,8 +129,8 @@ wnmWNMAction (
 
 #if CFG_SUPPORT_802_11V_TIMING_MEASUREMENT
     if (prRxFrame->ucAction == ACTION_WNM_TIMING_MEASUREMENT_REQUEST) {
-        wnmTimingMeasRequest(prAdapter, prSwRfb);
-        return;
+	wnmTimingMeasRequest(prAdapter, prSwRfb);
+	return;
     }
 #endif
 
@@ -132,26 +146,26 @@ wnmWNMAction (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-wnmReportTimingMeas (
+wnmReportTimingMeas(
     IN P_ADAPTER_T         prAdapter,
     IN UINT_8              ucStaRecIndex,
     IN UINT_32             u4ToD,
     IN UINT_32             u4ToA
     )
-{	      
-    P_STA_RECORD_T prStaRec;    
+{
+    P_STA_RECORD_T prStaRec;
 
     prStaRec = cnmGetStaRecByIndex(prAdapter, ucStaRecIndex);
 
     if ((!prStaRec) || (!prStaRec->fgIsInUse)) {
-        return;
-    }    
-    
+	return;
+    }
+
     DBGLOG(WNM, TRACE, ("wnmReportTimingMeas: u4ToD %x u4ToA %x", u4ToD, u4ToA));
-                 
+
     if (!prStaRec->rWNMTimingMsmt.ucTrigger)
-    	  return;
-    
+	  return;
+
     prStaRec->rWNMTimingMsmt.u4ToD = MICRO_TO_10NANO(u4ToD);
     prStaRec->rWNMTimingMsmt.u4ToA = MICRO_TO_10NANO(u4ToA);
 }
@@ -168,13 +182,13 @@ wnmReportTimingMeas (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-wnmRunEventTimgingMeasTxDone (
+wnmRunEventTimgingMeasTxDone(
     IN P_ADAPTER_T              prAdapter,
     IN P_MSDU_INFO_T            prMsduInfo,
     IN ENUM_TX_RESULT_CODE_T    rTxDoneStatus
     )
 {
-    P_STA_RECORD_T prStaRec;    
+    P_STA_RECORD_T prStaRec;
 
     ASSERT(prAdapter);
     ASSERT(prMsduInfo);
@@ -185,18 +199,18 @@ wnmRunEventTimgingMeasTxDone (
     prStaRec = cnmGetStaRecByIndex(prAdapter, prMsduInfo->ucStaRecIndex);
 
     if ((!prStaRec) || (!prStaRec->fgIsInUse)) {
-        return WLAN_STATUS_SUCCESS; /* For the case of replying ERROR STATUS CODE */
+	return WLAN_STATUS_SUCCESS; /* For the case of replying ERROR STATUS CODE */
     }
 
     DBGLOG(WNM, TRACE, ("wnmRunEventTimgingMeasTxDone: ucDialog %d ucFollowUp %d u4ToD %x u4ToA %x",
-                      prStaRec->rWNMTimingMsmt.ucDialogToken,
-                      prStaRec->rWNMTimingMsmt.ucFollowUpDialogToken,
-                      prStaRec->rWNMTimingMsmt.u4ToD,
-                      prStaRec->rWNMTimingMsmt.u4ToA));
+		      prStaRec->rWNMTimingMsmt.ucDialogToken,
+		      prStaRec->rWNMTimingMsmt.ucFollowUpDialogToken,
+		      prStaRec->rWNMTimingMsmt.u4ToD,
+		      prStaRec->rWNMTimingMsmt.u4ToA));
 
     prStaRec->rWNMTimingMsmt.ucFollowUpDialogToken = prStaRec->rWNMTimingMsmt.ucDialogToken;
-    prStaRec->rWNMTimingMsmt.ucDialogToken = ++ucTimingMeasToken;            
-           
+    prStaRec->rWNMTimingMsmt.ucDialogToken = ++ucTimingMeasToken;
+
     wnmComposeTimingMeasFrame(prAdapter, prStaRec, NULL);
 
     return WLAN_STATUS_SUCCESS;
@@ -214,8 +228,8 @@ wnmRunEventTimgingMeasTxDone (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-wnmComposeTimingMeasFrame (
-    IN P_ADAPTER_T         prAdapter,    
+wnmComposeTimingMeasFrame(
+    IN P_ADAPTER_T         prAdapter,
     IN P_STA_RECORD_T      prStaRec,
     IN PFN_TX_DONE_HANDLER pfTxDoneHandler
     )
@@ -229,16 +243,16 @@ wnmComposeTimingMeasFrame (
     ASSERT(prBssInfo);
 
     prMsduInfo = (P_MSDU_INFO_T) cnmMgtPktAlloc(prAdapter,
-                      MAC_TX_RESERVED_FIELD + PUBLIC_ACTION_MAX_LEN);
+		      MAC_TX_RESERVED_FIELD + PUBLIC_ACTION_MAX_LEN);
 
     if (!prMsduInfo)
-        return;
+	return;
 
     prTxFrame = (P_ACTION_UNPROTECTED_WNM_TIMING_MEAS_FRAME)
-        ((UINT_32)(prMsduInfo->prPacket) + MAC_TX_RESERVED_FIELD);
+	((UINT_32)(prMsduInfo->prPacket) + MAC_TX_RESERVED_FIELD);
 
     prTxFrame->u2FrameCtrl = MAC_FRAME_ACTION;
-    
+
     COPY_MAC_ADDR(prTxFrame->aucDestAddr, prStaRec->aucMacAddr);
     COPY_MAC_ADDR(prTxFrame->aucSrcAddr, prBssInfo->aucOwnMacAddr);
     COPY_MAC_ADDR(prTxFrame->aucBSSID, prBssInfo->aucBSSID);
@@ -246,17 +260,17 @@ wnmComposeTimingMeasFrame (
     prTxFrame->ucCategory = CATEGORY_UNPROTECTED_WNM_ACTION;
     prTxFrame->ucAction = ACTION_UNPROTECTED_WNM_TIMING_MEASUREMENT;
 
-    //3 Compose the frame body's frame.
+    /* 3 Compose the frame body's frame. */
     prTxFrame->ucDialogToken = prStaRec->rWNMTimingMsmt.ucDialogToken;
     prTxFrame->ucFollowUpDialogToken = prStaRec->rWNMTimingMsmt.ucFollowUpDialogToken;
     prTxFrame->u4ToD = prStaRec->rWNMTimingMsmt.u4ToD;
     prTxFrame->u4ToA = prStaRec->rWNMTimingMsmt.u4ToA;
     prTxFrame->ucMaxToDErr = WNM_MAX_TOD_ERROR;
     prTxFrame->ucMaxToAErr = WNM_MAX_TOA_ERROR;
-    
+
     u2PayloadLen = 2 + ACTION_UNPROTECTED_WNM_TIMING_MEAS_LEN;
 
-    //4 Update information of MSDU_INFO_T
+    /* 4 Update information of MSDU_INFO_T */
     prMsduInfo->ucPacketType = HIF_TX_PACKET_TYPE_MGMT;   /* Management frame */
     prMsduInfo->ucStaRecIndex = prStaRec->ucIndex;
     prMsduInfo->ucNetworkType = prStaRec->ucNetTypeIndex;
@@ -266,13 +280,13 @@ wnmComposeTimingMeasFrame (
     prMsduInfo->u2FrameLength = WLAN_MAC_MGMT_HEADER_LEN + u2PayloadLen;
     prMsduInfo->ucTxSeqNum = nicIncreaseTxSeqNum(prAdapter);
     prMsduInfo->pfTxDoneHandler = pfTxDoneHandler;
-    prMsduInfo->fgIsBasicRate = FALSE;   
+    prMsduInfo->fgIsBasicRate = FALSE;
 
     DBGLOG(WNM, TRACE, ("wnmComposeTimingMeasFrame: ucDialogToken %d ucFollowUpDialogToken %d u4ToD %x u4ToA %x\n",
-           prTxFrame->ucDialogToken, prTxFrame->ucFollowUpDialogToken,
-           prTxFrame->u4ToD, prTxFrame->u4ToA));
+	   prTxFrame->ucDialogToken, prTxFrame->ucFollowUpDialogToken,
+	   prTxFrame->u4ToD, prTxFrame->u4ToA));
 
-    //4 Enqueue the frame to send this action frame.
+    /* 4 Enqueue the frame to send this action frame. */
     nicTxEnqueueMsdu(prAdapter, prMsduInfo);
 
     return;
@@ -290,35 +304,35 @@ wnmComposeTimingMeasFrame (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-wnmTimingMeasRequest (
+wnmTimingMeasRequest(
     IN P_ADAPTER_T                  prAdapter,
     IN P_SW_RFB_T                   prSwRfb
     )
-{	      
+{
     P_ACTION_WNM_TIMING_MEAS_REQ_FRAME prRxFrame = NULL;
     P_STA_RECORD_T prStaRec;
 
     prRxFrame = (P_ACTION_WNM_TIMING_MEAS_REQ_FRAME)prSwRfb->pvHeader;
     if (!prRxFrame)
-        return;
+	return;
 
     prStaRec = cnmGetStaRecByIndex(prAdapter, prSwRfb->ucStaRecIdx);
     if ((!prStaRec) || (!prStaRec->fgIsInUse)) {
-        return;
+	return;
     }
 
     DBGLOG(WNM, TRACE, ("IEEE 802.11: Received Timing Measuremen Request from "
-           MACSTR"\n", MAC2STR(prStaRec->aucMacAddr)));
+	   MACSTR"\n", MAC2STR(prStaRec->aucMacAddr)));
 
-    // reset timing msmt    
+    /* reset timing msmt */
     prStaRec->rWNMTimingMsmt.fgInitiator = TRUE;
     prStaRec->rWNMTimingMsmt.ucTrigger = prRxFrame->ucTrigger;
     if (!prRxFrame->ucTrigger)
-    	  return;
-    
+	  return;
+
     prStaRec->rWNMTimingMsmt.ucDialogToken = ++ucTimingMeasToken;
     prStaRec->rWNMTimingMsmt.ucFollowUpDialogToken = 0;
-    
+
     wnmComposeTimingMeasFrame(prAdapter, prStaRec, wnmRunEventTimgingMeasTxDone);
 }
 
@@ -326,18 +340,18 @@ wnmTimingMeasRequest (
 VOID wnmTimingMeasUnitTest1(P_ADAPTER_T prAdapter, UINT_8 ucStaRecIndex)
 {
     P_STA_RECORD_T prStaRec;
-    
+
     prStaRec = cnmGetStaRecByIndex(prAdapter, ucStaRecIndex);
     if ((!prStaRec) || (!prStaRec->fgIsInUse)) {
-        return;
+	return;
     }
 
     DBGLOG(WNM, INFO, ("IEEE 802.11v: Test Timing Measuremen Request from "
-           MACSTR"\n", MAC2STR(prStaRec->aucMacAddr)));
+	   MACSTR"\n", MAC2STR(prStaRec->aucMacAddr)));
 
     prStaRec->rWNMTimingMsmt.fgInitiator = TRUE;
     prStaRec->rWNMTimingMsmt.ucTrigger = 1;
-    
+
     prStaRec->rWNMTimingMsmt.ucDialogToken = ++ucTimingMeasToken;
     prStaRec->rWNMTimingMsmt.ucFollowUpDialogToken = 0;
 

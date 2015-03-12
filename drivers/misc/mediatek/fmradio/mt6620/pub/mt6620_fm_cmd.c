@@ -13,7 +13,7 @@
 #include "mt6620_fm_cmd.h"
 #include "mt6620_fm_cust_cfg.h"
 
-static fm_s32 fm_bop_write(fm_u8 addr, fm_u16 value, fm_u8 * buf, fm_s32 size)
+static fm_s32 fm_bop_write(fm_u8 addr, fm_u16 value, fm_u8 *buf, fm_s32 size)
 {
 	if (size < (FM_WRITE_BASIC_OP_SIZE + 2)) {
 		return (-1);

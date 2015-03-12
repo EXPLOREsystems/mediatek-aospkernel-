@@ -283,7 +283,7 @@ UINT_32 dbgPinSTP[] = {
 	    , GPIO_PLATFORM(21)	/* GPS_EINT8, dump_nmea_data [GPS] */
 	    , GPIO_PLATFORM(29)	/* CAM_STROBE, IDX_GPS_TX, J613 low-active */
 	    , GPIO_PLATFORM(20)	/*CMHREF, J613 UNUSED */
-	    /* , GPIO_6516(64) /* EINT5, REMOVED!!! for MT6620-Wi-Fi Int */ */
+	    /* , GPIO_6516(64) /* EINT5, REMOVED!!! for MT6620-Wi-Fi Int */ * /
 /* , GPIO_6516(122) /* BT_PWR_EN, REMOVED!!! for MT6620-PMU_EN */ */
 /* , GPIO_6516(123) /* BT_RESET, REMOVED!!! for MT6620-RST */ */
 };

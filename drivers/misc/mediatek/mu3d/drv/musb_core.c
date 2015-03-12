@@ -137,7 +137,7 @@ MODULE_ALIAS("platform:" MUSB_DRIVER_NAME);
 
 #define U3D_FIFO_START_ADDRESS 0
 
-#ifdef CONFIG_MTK_UART_USB_SWITCH
+#ifdef MTK_UART_USB_SWITCH
 extern bool in_uart_mode;
 #endif
 
@@ -937,7 +937,7 @@ void musb_stop(struct musb *musb)
 	musb_save_context(musb);
 
 	/* Set SSUSB_IP_SW_RST to avoid power leakage */
-#ifdef CONFIG_MTK_UART_USB_SWITCH
+#ifdef MTK_UART_USB_SWITCH
 	if (!in_uart_mode)
 		os_setmsk(U3D_SSUSB_IP_PW_CTRL0, SSUSB_IP_SW_RST);
 #else
@@ -1437,7 +1437,7 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
 	if (os_readl(U3D_CAP_EPNTXFFSZ) && os_readl(U3D_CAP_EPNRXFFSZ))
 		musb->dyn_fifo = true;
 	else
-#ifdef CONFIG_MTK_UART_USB_SWITCH
+#ifdef MTK_UART_USB_SWITCH
 		musb->dyn_fifo = true;
 #else
 		musb->dyn_fifo = false;
@@ -1761,7 +1761,7 @@ extern ssize_t musb_cmode_store(struct device *dev, struct device_attribute *att
 
 DEVICE_ATTR(cmode, 0664, musb_cmode_show, musb_cmode_store);
 
-#ifdef CONFIG_MTK_UART_USB_SWITCH
+#ifdef MTK_UART_USB_SWITCH
 extern ssize_t musb_portmode_show(struct device *dev, struct device_attribute *attr, char *buf);
 extern ssize_t musb_portmode_store(struct device *dev, struct device_attribute *attr,
 				   const char *buf, size_t count);
@@ -1782,7 +1782,7 @@ static struct attribute *musb_attributes[] = {
 	&dev_attr_vbus.attr,
 	&dev_attr_srp.attr,
 	&dev_attr_cmode.attr,
-#ifdef CONFIG_MTK_UART_USB_SWITCH
+#ifdef MTK_UART_USB_SWITCH
 	&dev_attr_portmode.attr,
 	&dev_attr_tx.attr,
 	&dev_attr_rx.attr,
@@ -2501,13 +2501,13 @@ static const struct dev_pm_ops musb_dev_pm_ops = {
 #else				/* NEVER */
 
 /* These suspend/Resume function deal with UART switch related recover only */
-#ifdef CONFIG_MTK_UART_USB_SWITCH
+#ifdef MTK_UART_USB_SWITCH
 #define MUSB_DEV_PM_OPS (&musb_dev_pm_ops)
 extern void usb_phy_switch_to_uart(void);
 
 static int musb_suspend_noirq(struct device *dev)
 {
-	os_printk(K_INFO, "%s: for CONFIG_MTK_UART_USB_SWITCH: in_uart_mode: %d\n", __func__,
+	os_printk(K_INFO, "%s: for MTK_UART_USB_SWITCH: in_uart_mode: %d\n", __func__,
 		  in_uart_mode);
 
 	return 0;
@@ -2515,7 +2515,7 @@ static int musb_suspend_noirq(struct device *dev)
 
 static int musb_resume_noirq(struct device *dev)
 {
-	os_printk(K_INFO, "%s: for CONFIG_MTK_UART_USB_SWITCH: in_uart_mode: %d\n", __func__,
+	os_printk(K_INFO, "%s: for MTK_UART_USB_SWITCH: in_uart_mode: %d\n", __func__,
 		  in_uart_mode);
 
 	if (in_uart_mode == true)
@@ -2530,7 +2530,7 @@ static const struct dev_pm_ops musb_dev_pm_ops = {
 };
 #else
 #define	MUSB_DEV_PM_OPS	NULL
-#endif				/* CONFIG_MTK_UART_USB_SWITCH */
+#endif				/* MTK_UART_USB_SWITCH */
 #endif				/* NEVER */
 
 static struct platform_driver musb_driver = {

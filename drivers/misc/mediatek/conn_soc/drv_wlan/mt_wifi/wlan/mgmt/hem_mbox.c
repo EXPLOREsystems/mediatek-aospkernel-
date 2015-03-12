@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/mgmt/hem_mbox.c#3 $
 */
 
@@ -11,15 +25,15 @@
 
 /*
 ** $Log: hem_mbox.c $
-** 
+**
 ** 08 31 2012 yuche.tsai
 ** [ALPS00349585] [6577JB][WiFi direct][KE]Establish p2p connection while both device have connected to AP previously,one device reboots automatically with KE
 ** Fix possible KE when concurrent & disconnect.
-** 
+**
 ** 07 26 2012 yuche.tsai
 ** [ALPS00324337] [ALPS.JB][Hot-Spot] Driver update for Hot-Spot
 ** Update driver code of ALPS.JB for hot-spot.
-** 
+**
 ** 07 19 2012 yuche.tsai
 ** NULL
 ** Code update for JB.
@@ -431,10 +445,10 @@ static PUINT_8 apucDebugMsg[] = {
  #endif
 
 #if CFG_SUPPORT_ADHOC
-    //(PUINT_8)DISP_STRING("MID_AIS_CNM_CREATE_IBSS_REQ"),
-    //(PUINT_8)DISP_STRING("MID_CNM_AIS_CREATE_IBSS_GRANT"),
-    //(PUINT_8)DISP_STRING("MID_AIS_CNM_MERGE_IBSS_REQ"),
-    //(PUINT_8)DISP_STRING("MID_CNM_AIS_MERGE_IBSS_GRANT"),
+    /* (PUINT_8)DISP_STRING("MID_AIS_CNM_CREATE_IBSS_REQ"), */
+    /* (PUINT_8)DISP_STRING("MID_CNM_AIS_CREATE_IBSS_GRANT"), */
+    /* (PUINT_8)DISP_STRING("MID_AIS_CNM_MERGE_IBSS_REQ"), */
+    /* (PUINT_8)DISP_STRING("MID_CNM_AIS_MERGE_IBSS_GRANT"), */
     (PUINT_8)DISP_STRING("MID_SCN_AIS_FOUND_IBSS"),
 #endif /* CFG_SUPPORT_ADHOC */
 
@@ -515,7 +529,7 @@ static MSG_HNDL_ENTRY_T arMsgMapTable[] = {
 #if CFG_ENABLE_WIFI_DIRECT  /*set in gl_p2p_init.c*/
     { MID_P2P_SAA_FSM_START,        saaFsmRunEventStart                     },
     { MID_P2P_SAA_FSM_ABORT,        saaFsmRunEventAbort                     },
-    { MID_SAA_P2P_JOIN_COMPLETE,    p2pFsmRunEventJoinComplete              },// TODO: p2pFsmRunEventJoinComplete
+    { MID_SAA_P2P_JOIN_COMPLETE,    p2pFsmRunEventJoinComplete              },/* TODO: p2pFsmRunEventJoinComplete */
 
     { MID_MNY_P2P_FUN_SWITCH,       p2pFsmRunEventSwitchOPMode              },
     { MID_MNY_P2P_DEVICE_DISCOVERY, p2pFsmRunEventScanRequest               },
@@ -542,7 +556,7 @@ static MSG_HNDL_ENTRY_T arMsgMapTable[] = {
 #endif /* CFG_SUPPORT_ADHOC */
 
     { MID_SAA_AIS_FSM_ABORT,        aisFsmRunEventAbort                     },
-    { MID_MNY_AIS_REMAIN_ON_CHANNEL,aisFsmRunEventRemainOnChannel           },
+    { MID_MNY_AIS_REMAIN_ON_CHANNEL, aisFsmRunEventRemainOnChannel           },
     { MID_MNY_AIS_CANCEL_REMAIN_ON_CHANNEL, aisFsmRunEventCancelRemainOnChannel },
     { MID_MNY_AIS_MGMT_TX,          aisFsmRunEventMgmtFrameTx               }
 };
@@ -554,27 +568,27 @@ static MSG_HNDL_ENTRY_T arMsgMapTable[] = {
 
 #if DBG
 #define MBOX_HNDL_MSG(prAdapter, prMsg) do { \
-        ASSERT(arMsgMapTable[prMsg->eMsgId].pfMsgHndl); \
-        if (arMsgMapTable[prMsg->eMsgId].pfMsgHndl) { \
-            DBGLOG(CNM, LOUD, ("DO MSG [%d: %s]\n", prMsg->eMsgId, apucDebugMsg[prMsg->eMsgId])); \
-            arMsgMapTable[prMsg->eMsgId].pfMsgHndl(prAdapter, prMsg); \
-        } \
-        else { \
-            DBGLOG(CNM, ERROR, ("NULL fptr for MSG [%d]\n", prMsg->eMsgId)); \
-            cnmMemFree(prAdapter, prMsg); \
-        } \
+	ASSERT(arMsgMapTable[prMsg->eMsgId].pfMsgHndl); \
+	if (arMsgMapTable[prMsg->eMsgId].pfMsgHndl) { \
+	    DBGLOG(CNM, LOUD, ("DO MSG [%d: %s]\n", prMsg->eMsgId, apucDebugMsg[prMsg->eMsgId])); \
+	    arMsgMapTable[prMsg->eMsgId].pfMsgHndl(prAdapter, prMsg); \
+	} \
+	else { \
+	    DBGLOG(CNM, ERROR, ("NULL fptr for MSG [%d]\n", prMsg->eMsgId)); \
+	    cnmMemFree(prAdapter, prMsg); \
+	} \
 } while (0)
 #else
 #define MBOX_HNDL_MSG(prAdapter, prMsg) do { \
-        ASSERT(arMsgMapTable[prMsg->eMsgId].pfMsgHndl); \
-        if (arMsgMapTable[prMsg->eMsgId].pfMsgHndl) { \
-            DBGLOG(CNM, LOUD, ("DO MSG [%d]\n", prMsg->eMsgId)); \
-            arMsgMapTable[prMsg->eMsgId].pfMsgHndl(prAdapter, prMsg); \
-        } \
-        else { \
-            DBGLOG(CNM, ERROR, ("NULL fptr for MSG [%d]\n", prMsg->eMsgId)); \
-            cnmMemFree(prAdapter, prMsg); \
-        } \
+	ASSERT(arMsgMapTable[prMsg->eMsgId].pfMsgHndl); \
+	if (arMsgMapTable[prMsg->eMsgId].pfMsgHndl) { \
+	    DBGLOG(CNM, LOUD, ("DO MSG [%d]\n", prMsg->eMsgId)); \
+	    arMsgMapTable[prMsg->eMsgId].pfMsgHndl(prAdapter, prMsg); \
+	} \
+	else { \
+	    DBGLOG(CNM, ERROR, ("NULL fptr for MSG [%d]\n", prMsg->eMsgId)); \
+	    cnmMemFree(prAdapter, prMsg); \
+	} \
 } while (0)
 #endif
 /*******************************************************************************
@@ -598,7 +612,7 @@ static MSG_HNDL_ENTRY_T arMsgMapTable[] = {
 */
 /*----------------------------------------------------------------------------*/
 VOID
-mboxInitMsgMap (
+mboxInitMsgMap(
     VOID
     )
 {
@@ -608,34 +622,34 @@ mboxInitMsgMap (
     ASSERT((sizeof(arMsgMapTable) / sizeof(MSG_HNDL_ENTRY_T)) == MID_TOTAL_NUM);
 
     for (i = 0; i < MID_TOTAL_NUM; i++) {
-        if (arMsgMapTable[i].eMsgId == (ENUM_MSG_ID_T) i) {
-            continue;
-        }
-        for (idx = i + 1; idx < MID_TOTAL_NUM; idx++) {
-            if (arMsgMapTable[idx].eMsgId == (ENUM_MSG_ID_T) i) {
-                break;
-            }
-        }
-        ASSERT(idx < MID_TOTAL_NUM);
-        if (idx >= MID_TOTAL_NUM) {
-            continue;
-        }
+	if (arMsgMapTable[i].eMsgId == (ENUM_MSG_ID_T) i) {
+	    continue;
+	}
+	for (idx = i + 1; idx < MID_TOTAL_NUM; idx++) {
+	    if (arMsgMapTable[idx].eMsgId == (ENUM_MSG_ID_T) i) {
+		break;
+	    }
+	}
+	ASSERT(idx < MID_TOTAL_NUM);
+	if (idx >= MID_TOTAL_NUM) {
+	    continue;
+	}
 
-        /* Swap target entry and current entry */
-        rTempEntry.eMsgId = arMsgMapTable[idx].eMsgId;
-        rTempEntry.pfMsgHndl= arMsgMapTable[idx].pfMsgHndl;
+	/* Swap target entry and current entry */
+	rTempEntry.eMsgId = arMsgMapTable[idx].eMsgId;
+        rTempEntry.pfMsgHndl = arMsgMapTable[idx].pfMsgHndl;
 
-        arMsgMapTable[idx].eMsgId = arMsgMapTable[i].eMsgId;
-        arMsgMapTable[idx].pfMsgHndl = arMsgMapTable[i].pfMsgHndl;
+	arMsgMapTable[idx].eMsgId = arMsgMapTable[i].eMsgId;
+	arMsgMapTable[idx].pfMsgHndl = arMsgMapTable[i].pfMsgHndl;
 
-        arMsgMapTable[i].eMsgId = rTempEntry.eMsgId;
-        arMsgMapTable[i].pfMsgHndl = rTempEntry.pfMsgHndl;
+	arMsgMapTable[i].eMsgId = rTempEntry.eMsgId;
+	arMsgMapTable[i].pfMsgHndl = rTempEntry.pfMsgHndl;
     }
 
     /* Verify the correctness of final message map */
     for (i = 0; i < MID_TOTAL_NUM; i++) {
-        ASSERT(arMsgMapTable[i].eMsgId == (ENUM_MSG_ID_T) i);
-        while (arMsgMapTable[i].eMsgId != (ENUM_MSG_ID_T) i);
+	ASSERT(arMsgMapTable[i].eMsgId == (ENUM_MSG_ID_T) i);
+	while (arMsgMapTable[i].eMsgId != (ENUM_MSG_ID_T) i);
     }
 
 }
@@ -650,7 +664,7 @@ mboxInitMsgMap (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-mboxSetup (
+mboxSetup(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_MBOX_ID_T eMboxId
     )
@@ -678,7 +692,7 @@ mboxSetup (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-mboxSendMsg (
+mboxSendMsg(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_MBOX_ID_T eMboxId,
     IN P_MSG_HDR_T prMsg,
@@ -696,22 +710,22 @@ mboxSendMsg (
 
     switch (eMethod) {
     case MSG_SEND_METHOD_BUF:
-        KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_MAILBOX);
-        LINK_INSERT_TAIL(&prMbox->rLinkHead, &prMsg->rLinkEntry);
-        KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_MAILBOX);
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_MAILBOX);
+	LINK_INSERT_TAIL(&prMbox->rLinkHead, &prMsg->rLinkEntry);
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_MAILBOX);
 
-        // to wake up main service thread
-        GLUE_SET_EVENT(prAdapter->prGlueInfo);
+	/* to wake up main service thread */
+	GLUE_SET_EVENT(prAdapter->prGlueInfo);
 
-        break;
+	break;
 
     case MSG_SEND_METHOD_UNBUF:
-        MBOX_HNDL_MSG(prAdapter, prMsg);
-        break;
+	MBOX_HNDL_MSG(prAdapter, prMsg);
+	break;
 
     default:
-        ASSERT(0);
-        break;
+	ASSERT(0);
+	break;
     }
 }
 
@@ -725,7 +739,7 @@ mboxSendMsg (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-mboxRcvAllMsg (
+mboxRcvAllMsg(
     IN P_ADAPTER_T prAdapter,
     ENUM_MBOX_ID_T eMboxId
     )
@@ -739,13 +753,13 @@ mboxRcvAllMsg (
 
     prMbox = &(prAdapter->arMbox[eMboxId]);
 
-    while (!LINK_IS_EMPTY(&prMbox->rLinkHead) ) {
-        KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_MAILBOX);
-        LINK_REMOVE_HEAD(&prMbox->rLinkHead, prMsg, P_MSG_HDR_T);
-        KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_MAILBOX);
+    while (!LINK_IS_EMPTY(&prMbox->rLinkHead)) {
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_MAILBOX);
+	LINK_REMOVE_HEAD(&prMbox->rLinkHead, prMsg, P_MSG_HDR_T);
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_MAILBOX);
 
-        ASSERT(prMsg);
-        MBOX_HNDL_MSG(prAdapter, prMsg);
+	ASSERT(prMsg);
+	MBOX_HNDL_MSG(prAdapter, prMsg);
     }
 
 }
@@ -760,7 +774,7 @@ mboxRcvAllMsg (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-mboxInitialize (
+mboxInitialize(
     IN P_ADAPTER_T prAdapter
     )
 {
@@ -773,7 +787,7 @@ mboxInitialize (
 
     /* Setup/initialize each mailbox */
     for (i = 0; i < MBOX_ID_TOTAL_NUM; i++) {
-        mboxSetup(prAdapter, i);
+	mboxSetup(prAdapter, i);
     }
 
 }
@@ -788,7 +802,7 @@ mboxInitialize (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-mboxDestroy (
+mboxDestroy(
     IN P_ADAPTER_T prAdapter
     )
 {
@@ -800,16 +814,16 @@ mboxDestroy (
     ASSERT(prAdapter);
 
     for (i = 0; i < MBOX_ID_TOTAL_NUM; i++) {
-        prMbox = &(prAdapter->arMbox[i]);
+	prMbox = &(prAdapter->arMbox[i]);
 
-        while (!LINK_IS_EMPTY(&prMbox->rLinkHead) ) {
-            KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_MAILBOX);
-            LINK_REMOVE_HEAD(&prMbox->rLinkHead, prMsg, P_MSG_HDR_T);
-            KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_MAILBOX);
+	while (!LINK_IS_EMPTY(&prMbox->rLinkHead)) {
+	    KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_MAILBOX);
+	    LINK_REMOVE_HEAD(&prMbox->rLinkHead, prMsg, P_MSG_HDR_T);
+	    KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_MAILBOX);
 
-            ASSERT(prMsg);
-            cnmMemFree(prAdapter, prMsg);
-        }
+	    ASSERT(prMsg);
+	    cnmMemFree(prAdapter, prMsg);
+	}
     }
 }
 
@@ -823,7 +837,7 @@ mboxDestroy (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-mboxDummy (
+mboxDummy(
     IN P_ADAPTER_T prAdapter,
     IN P_MSG_HDR_T prMsgHdr
     )
@@ -834,4 +848,3 @@ mboxDummy (
 
     return;
 }
-

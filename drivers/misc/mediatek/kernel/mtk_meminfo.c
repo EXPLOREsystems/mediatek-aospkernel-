@@ -16,8 +16,6 @@ EXPORT_SYMBOL(get_memory_size);
 extern phys_addr_t mtk_get_max_DRAM_size(void);
 phys_addr_t get_max_DRAM_size(void)
 {
-// FIX-ME: work around to avoid build error
-//	return mtk_get_max_DRAM_size();
-	return 0x80000000;
+	return mtk_get_max_DRAM_size();
 }
 EXPORT_SYMBOL(get_max_DRAM_size);

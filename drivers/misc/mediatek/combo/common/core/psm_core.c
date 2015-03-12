@@ -924,7 +924,7 @@ static inline INT32 _stp_psm_wait_wmt_event_wq(MTKSTP_PSM_T *stp_psm)
 			_stp_psm_set_state(stp_psm, INACT);
 
 			STP_PSM_DBG_FUNC("mt_combo_plt_enter_deep_idle++\n");
-			mt_combo_plt_enter_deep_idle(COMBO_IF_UART);
+            mt_combo_plt_enter_deep_idle(MTK_WCN_BOOL_TRUE == mtk_wcn_stp_is_sdio_mode() ? COMBO_IF_MSDC : COMBO_IF_UART);
 			STP_PSM_DBG_FUNC("mt_combo_plt_enter_deep_idle--\n");
 
 			STP_PSM_DBG_FUNC("sleep-wake_lock(%d)\n",
@@ -1155,7 +1155,7 @@ static inline INT32 _stp_psm_notify_wmt(MTKSTP_PSM_T *stp_psm, const MTKSTP_PSM_
 						 osal_wake_lock_count(&stp_psm->wake_lock));
 
 				STP_PSM_DBG_FUNC("mt_combo_plt_exit_deep_idle++\n");
-				mt_combo_plt_exit_deep_idle(COMBO_IF_UART);
+                mt_combo_plt_exit_deep_idle (MTK_WCN_BOOL_TRUE == mtk_wcn_stp_is_sdio_mode() ? COMBO_IF_MSDC : COMBO_IF_UART);
 				STP_PSM_DBG_FUNC("mt_combo_plt_exit_deep_idle--\n");
 
 				stp_psm->wmt_notify(WAKEUP);
@@ -1175,7 +1175,7 @@ static inline INT32 _stp_psm_notify_wmt(MTKSTP_PSM_T *stp_psm, const MTKSTP_PSM_
 						 osal_wake_lock_count(&stp_psm->wake_lock));
 
 				STP_PSM_DBG_FUNC("mt_combo_plt_exit_deep_idle++\n");
-				mt_combo_plt_exit_deep_idle(COMBO_IF_UART);
+				mt_combo_plt_exit_deep_idle (MTK_WCN_BOOL_TRUE == mtk_wcn_stp_is_sdio_mode() ? COMBO_IF_MSDC : COMBO_IF_UART);
 				STP_PSM_DBG_FUNC("mt_combo_plt_exit_deep_idle--\n");
 
 				stp_psm->wmt_notify(HOST_AWAKE);

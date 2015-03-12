@@ -190,7 +190,7 @@
 *                   F U N C T I O N   D E C L A R A T I O N S
 ********************************************************************************
 */
-static VOID rlmObssScanTimeout(P_ADAPTER_T prAdapter, UINT_32 u4Data);
+static VOID rlmObssScanTimeout(P_ADAPTER_T prAdapter, ULONG ulParamPtr);
 
 /*******************************************************************************
 *                              F U N C T I O N S
@@ -215,7 +215,7 @@ VOID rlmObssInit(P_ADAPTER_T prAdapter)
 		prBssInfo = prAdapter->aprBssInfo[i];
 
 		cnmTimerInitTimer(prAdapter, &prBssInfo->rObssScanTimer,
-				  rlmObssScanTimeout, (UINT_32) prBssInfo);
+				  (PFN_MGMT_TIMEOUT_FUNC) rlmObssScanTimeout, (ULONG) prBssInfo);
 	}
 }
 
@@ -283,18 +283,18 @@ VOID rlmObssScanDone(P_ADAPTER_T prAdapter, P_MSG_HDR_T prMsgHdr)
 	 * To do: invoke rlmObssChnlLevel() to decide if 20/40 BSS coexistence
 	 *        management frame is needed.
 	 */
+	prMsduInfo = (P_MSDU_INFO_T) cnmMgtPktAlloc(prAdapter,
+							 MAC_TX_RESERVED_FIELD + PUBLIC_ACTION_MAX_LEN);
 	if ((prBssInfo->auc2G_20mReqChnlList[0] > 0 ||
 	     prBssInfo->auc2G_NonHtChnlList[0] > 0) &&
-	    (prMsduInfo = (P_MSDU_INFO_T) cnmMgtPktAlloc(prAdapter,
-							 MAC_TX_RESERVED_FIELD +
-							 PUBLIC_ACTION_MAX_LEN)) != NULL) {
+	    prMsduInfo != NULL) {
 
 		DBGLOG(RLM, INFO, ("Send 20/40 coexistence mgmt(20mReq=%d, NonHt=%d)\n",
 				   prBssInfo->auc2G_20mReqChnlList[0],
 				   prBssInfo->auc2G_NonHtChnlList[0]));
 
 		prTxFrame = (P_ACTION_20_40_COEXIST_FRAME)
-		    ((UINT_32) (prMsduInfo->prPacket) + MAC_TX_RESERVED_FIELD);
+		    ((ULONG) (prMsduInfo->prPacket) + MAC_TX_RESERVED_FIELD);
 
 		prTxFrame->u2FrameCtrl = MAC_FRAME_ACTION;
 		COPY_MAC_ADDR(prTxFrame->aucDestAddr, prBssInfo->aucBSSID);
@@ -364,11 +364,11 @@ VOID rlmObssScanDone(P_ADAPTER_T prAdapter, P_MSG_HDR_T prMsgHdr)
 * \return none
 */
 /*----------------------------------------------------------------------------*/
-static VOID rlmObssScanTimeout(P_ADAPTER_T prAdapter, UINT_32 u4Data)
+static VOID rlmObssScanTimeout(P_ADAPTER_T prAdapter, ULONG ulParamPtr)
 {
 	P_BSS_INFO_T prBssInfo;
 
-	prBssInfo = (P_BSS_INFO_T) u4Data;
+	prBssInfo = (P_BSS_INFO_T) ulParamPtr;
 	ASSERT(prBssInfo);
 
 #if CFG_ENABLE_WIFI_DIRECT

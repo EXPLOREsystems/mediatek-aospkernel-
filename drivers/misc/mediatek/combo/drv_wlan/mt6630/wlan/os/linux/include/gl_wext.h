@@ -89,6 +89,24 @@
 *                    E X T E R N A L   R E F E R E N C E S
 ********************************************************************************
 */
+#if CFG_SUPPORT_WAPI
+extern UINT_8 keyStructBuf[1024];       /* add/remove key shared buffer */
+#else
+extern UINT_8 keyStructBuf[100];        /* add/remove key shared buffer */
+#endif
+
+/* for IE Searching */
+extern BOOLEAN
+wextSrchDesiredWPAIE(IN PUINT_8 pucIEStart,
+		     IN INT_32 i4TotalIeLen,
+		     IN UINT_8 ucDesiredElemId, OUT PUINT_8 * ppucDesiredIE);
+
+#if CFG_SUPPORT_WPS
+extern BOOLEAN
+wextSrchDesiredWPSIE(IN PUINT_8 pucIEStart,
+		     IN INT_32 i4TotalIeLen,
+		     IN UINT_8 ucDesiredElemId, OUT PUINT_8 * ppucDesiredIE);
+#endif
 
 /*******************************************************************************
 *                              C O N S T A N T S

@@ -1334,10 +1334,10 @@ struct _ADAPTER_T {
 #define IS_BOW_ACTIVE(_prAdapter)     IS_NET_ACTIVE(_prAdapter, NETWORK_TYPE_BOW_INDEX)
 
 #define SET_NET_ACTIVE(_prAdapter, _NetTypeIndex) \
-                {_prAdapter->rWifiVar.arBssInfo[(_NetTypeIndex)].fgIsNetActive = TRUE; }
+		{_prAdapter->rWifiVar.arBssInfo[(_NetTypeIndex)].fgIsNetActive = TRUE; }
 
 #define UNSET_NET_ACTIVE(_prAdapter, _NetTypeIndex) \
-                {_prAdapter->rWifiVar.arBssInfo[(_NetTypeIndex)].fgIsNetActive = FALSE; }
+		{_prAdapter->rWifiVar.arBssInfo[(_NetTypeIndex)].fgIsNetActive = FALSE; }
 
 #define BSS_INFO_INIT(_prAdapter, _NetTypeIndex) \
 		{   UINT_8 _aucZeroMacAddr[] = NULL_MAC_ADDR; \
@@ -1377,13 +1377,13 @@ struct _ADAPTER_T {
 /* Macros for Power State                                                     */
 /*----------------------------------------------------------------------------*/
 #define SET_NET_PWR_STATE_IDLE(_prAdapter, _NetTypeIndex) \
-                {_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] = PWR_STATE_IDLE; }
+		{_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] = PWR_STATE_IDLE; }
 
 #define SET_NET_PWR_STATE_ACTIVE(_prAdapter, _NetTypeIndex) \
-                {_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] = PWR_STATE_ACTIVE; }
+		{_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] = PWR_STATE_ACTIVE; }
 
 #define SET_NET_PWR_STATE_PS(_prAdapter, _NetTypeIndex) \
-                {_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] = PWR_STATE_PS; }
+		{_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] = PWR_STATE_PS; }
 
 #define IS_NET_PWR_STATE_ACTIVE(_prAdapter, _NetTypeIndex) \
 		(_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] == PWR_STATE_ACTIVE)

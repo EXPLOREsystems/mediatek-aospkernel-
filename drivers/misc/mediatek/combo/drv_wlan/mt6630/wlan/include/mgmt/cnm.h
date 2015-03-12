@@ -265,12 +265,23 @@ BOOLEAN cnmBowIsPermitted(P_ADAPTER_T prAdapter);
 
 BOOLEAN cnmBss40mBwPermitted(P_ADAPTER_T prAdapter, UINT_8 ucBssIndex);
 
+BOOLEAN cnmBss80mBwPermitted(P_ADAPTER_T prAdapter, UINT_8 ucBssIndex);
+
+UINT_8 cnmGetBssMaxBw(P_ADAPTER_T prAdapter, UINT_8 ucBssIndex);
+
 P_BSS_INFO_T
 cnmGetBssInfoAndInit(P_ADAPTER_T prAdapter,
 		     ENUM_NETWORK_TYPE_T eNetworkType, BOOLEAN fgIsP2pDevice);
 
 VOID cnmFreeBssInfo(P_ADAPTER_T prAdapter, P_BSS_INFO_T prBssInfo);
-
+#if CFG_SUPPORT_CHNL_CONFLICT_REVISE
+BOOLEAN
+cnmAisDetectP2PChannel(
+    P_ADAPTER_T         prAdapter,
+    P_ENUM_BAND_T       prBand,
+    PUINT_8             pucPrimaryChannel
+    );
+#endif
 /*******************************************************************************
 *                              F U N C T I O N S
 ********************************************************************************
@@ -281,7 +292,7 @@ VOID cnmFreeBssInfo(P_ADAPTER_T prAdapter, P_BSS_INFO_T prBssInfo);
  * We'll need this to guarantee the same member order in different structures
  * to simply handling effort in some functions.
  */
-__KAL_INLINE__ VOID cnmMsgDataTypeCheck(VOID)
+static __KAL_INLINE__ VOID cnmMsgDataTypeCheck(VOID)
 {
 	DATA_STRUC_INSPECTING_ASSERT(OFFSET_OF(MSG_CH_GRANT_T, rMsgHdr) == 0);
 

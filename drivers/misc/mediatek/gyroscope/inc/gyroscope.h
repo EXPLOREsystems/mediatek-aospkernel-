@@ -30,10 +30,10 @@
 
 
 #define GYRO_TAG                    "<GYROSCOPE> "
-#define GYRO_FUN(f)                 pr_notice(GYRO_TAG"%s\n", __func__)
-#define GYRO_ERR(fmt, args...)      pr_err(GYRO_TAG"%s %d : "fmt, __func__, __LINE__, ##args)
-#define GYRO_LOG(fmt, args...)      pr_notice(GYRO_TAG fmt, ##args)
-#define GYRO_WARN(fmt, args...)     pr_warn(GYRO_TAG"%s: "fmt, __func__, ##args)
+#define GYRO_FUN(f)                printk(GYRO_TAG"%s\n", __func__)
+#define GYRO_ERR(fmt, args...)    printk(GYRO_TAG"%s %d : "fmt, __func__, __LINE__, ##args)
+#define GYRO_LOG(fmt, args...)    printk(GYRO_TAG fmt, ##args)
+#define GYRO_VER(fmt, args...)  printk(GYRO_TAG"%s: "fmt, __func__, ##args) /* ((void)0) */
 
 #define OP_GYRO_DELAY    0X01
 #define    OP_GYRO_ENABLE    0X02
@@ -59,8 +59,8 @@
 
 struct gyro_control_path
 {
-    int (*open_report_data)(int open);//open data rerport to HAL
-    int (*enable_nodata)(int en);//only enable not report event to HAL
+    int (*open_report_data)(int open);/* open data rerport to HAL */
+    int (*enable_nodata)(int en);/* only enable not report event to HAL */
     int (*set_delay)(u64 delay);
     bool is_report_input_direct;
     bool is_support_batch;
@@ -68,7 +68,7 @@ struct gyro_control_path
 
 struct gyro_data_path
 {
-    int (*get_data)(int *x,int *y, int *z,int *status);
+    int (*get_data)(int *x, int *y, int *z, int *status);
     int vender_div;
 };
 
@@ -77,20 +77,20 @@ struct gyro_init_info
       char *name;
     int (*init)(void);
     int (*uninit)(void);
-    struct platform_driver* platform_diver_addr;
+    struct platform_driver *platform_diver_addr;
 };
 
-struct gyro_data{
-    hwm_sensor_data gyro_data ;
+struct gyro_data {
+    hwm_sensor_data gyro_data;
     int data_updata;
-    //struct mutex lock;
+    /* struct mutex lock; */
 };
 
 struct gyro_drv_obj {
   void *self;
     int polling;
-    int (*gyro_operate)(void* self, uint32_t command, void* buff_in, int size_in,
-        void* buff_out, int size_out, int* actualout);
+    int (*gyro_operate)(void *self, uint32_t command, void *buff_in, int size_in,
+	void *buff_out, int size_out, int *actualout);
 };
 
 struct gyro_context {
@@ -105,25 +105,25 @@ struct gyro_context {
 
     struct early_suspend    early_drv;
     atomic_t                early_suspend;
-    //struct gyro_drv_obj    drv_obj;
+    /* struct gyro_drv_obj    drv_obj; */
     struct gyro_data       drv_data;
     struct gyro_control_path   gyro_ctl;
     struct gyro_data_path   gyro_data;
-    bool            is_active_nodata;        // Active, but HAL don't need data sensor. such as orientation need
-    bool            is_active_data;        // Active and HAL need data .
+    bool            is_active_nodata;        /* Active, but HAL don't need data sensor. such as orientation need */
+    bool            is_active_data;        /* Active and HAL need data . */
     bool is_first_data_after_enable;
     bool is_polling_run;
     bool is_batch_enable;
 };
 
-//driver API for internal
-//extern int gyro_enable_nodata(int enable);
-//extern int gyro_attach(struct gyro_drv_obj *obj);
-//driver API for third party vendor
+/* driver API for internal */
+/* extern int gyro_enable_nodata(int enable); */
+/* extern int gyro_attach(struct gyro_drv_obj *obj); */
+/* driver API for third party vendor */
 
-//for auto detect
-extern int gyro_driver_add(struct gyro_init_info* obj) ;
-extern int gyro_data_report(int x, int y, int z,int status);
+/* for auto detect */
+extern int gyro_driver_add(struct gyro_init_info *obj);
+extern int gyro_data_report(int x, int y, int z, int status);
 extern int gyro_register_control_path(struct gyro_control_path *ctl);
 extern int gyro_register_data_path(struct gyro_data_path *data);
 #endif

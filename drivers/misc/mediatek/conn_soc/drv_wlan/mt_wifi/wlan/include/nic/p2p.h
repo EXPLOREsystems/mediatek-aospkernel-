@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/TRUNK/WiFi_P2P_Driver/include/nic/p2p.h#3 $
 */
 
@@ -90,7 +104,7 @@
 ********************************************************************************
 */
 
-// refer to 'Config Methods' in WPS
+/* refer to 'Config Methods' in WPS */
 #define WPS_CONFIG_USBA                 0x0001
 #define WPS_CONFIG_ETHERNET             0x0002
 #define WPS_CONFIG_LABEL                0x0004
@@ -101,7 +115,7 @@
 #define WPS_CONFIG_PBC                  0x0080
 #define WPS_CONFIG_KEYPAD               0x0100
 
-// refer to 'Device Password ID' in WPS
+/* refer to 'Device Password ID' in WPS */
 #define WPS_DEV_PASSWORD_ID_PIN         0x0000
 #define WPS_DEV_PASSWORD_ID_USER        0x0001
 #define WPS_DEV_PASSWORD_ID_MACHINE     0x0002
@@ -161,8 +175,8 @@ typedef struct _P2P_NETWORK_INFO {
     ENUM_P2P_PEER_TYPE      eNodeType;
 
     union {
-        P2P_GROUP_INFO      rGroupInfo;
-        P2P_DEVICE_INFO     rDeviceInfo;
+	P2P_GROUP_INFO      rGroupInfo;
+	P2P_DEVICE_INFO     rDeviceInfo;
     } node;
 
 } P2P_NETWORK_INFO, *P_P2P_NETWORK_INFO;

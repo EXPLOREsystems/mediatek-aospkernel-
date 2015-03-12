@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/mgmt/privacy.h#1 $
 */
 
@@ -12,7 +26,7 @@
 ** $Log: privacy.h $
  *
  * 07 24 2010 wh.su
- * 
+ *
  * .support the Wi-Fi RSN
  *
  * 07 08 2010 cp.wu
@@ -109,8 +123,8 @@
 #define MIC_TX_KEY_OFFSET                       24
 #define MIC_KEY_LEN                             8
 
-#define WEP_KEY_ID_FIELD      BITS(0,29)
-#define KEY_ID_FIELD          BITS(0,7)
+#define WEP_KEY_ID_FIELD      BITS(0, 29)
+#define KEY_ID_FIELD          BITS(0, 7)
 
 #define IS_TRANSMIT_KEY       BIT(31)
 #define IS_UNICAST_KEY        BIT(30)
@@ -251,7 +265,7 @@ secHandleTxDoneCallback(
     );
 
 BOOLEAN
-secIsProtectedFrame (
+secIsProtectedFrame(
     IN P_ADAPTER_T          prAdapter,
     IN P_MSDU_INFO_T        prMsdu,
     IN P_STA_RECORD_T       prStaRec
@@ -285,4 +299,3 @@ secEnabledInAis(
 */
 
 #endif /* _PRIVACY_H */
-

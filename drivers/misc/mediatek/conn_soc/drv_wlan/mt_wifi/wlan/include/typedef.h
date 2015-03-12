@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/typedef.h#1 $
 */
 
@@ -31,19 +45,19 @@
  * Refine AAA functions
  *
  * 07 19 2010 jeffrey.chang
- * 
+ *
  * Linux port modification
  *
  * 07 08 2010 cp.wu
- * 
+ *
  * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
  *
  * 06 23 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * integrate .
  *
  * 06 18 2010 cm.chang
- * [WPD00003841][LITE Driver] Migrate RLM/CNM to host driver 
+ * [WPD00003841][LITE Driver] Migrate RLM/CNM to host driver
  * Provide cnmMgtPktAlloc() and alloc/free function of msg/buf
  *
  * 06 11 2010 cp.wu
@@ -204,10 +218,10 @@ typedef struct _MSDU_INFO_T     MSDU_INFO_T, *P_MSDU_INFO_T;
 typedef struct _REG_ENTRY_T     REG_ENTRY_T, *P_REG_ENTRY_T;
 
 /* IST handler definition */
-typedef VOID (*IST_EVENT_FUNCTION)(P_ADAPTER_T);
+typedef VOID(*IST_EVENT_FUNCTION)(P_ADAPTER_T);
 
 /* Type definition for function pointer of timer handler */
-typedef VOID (*PFN_TIMER_CALLBACK)(IN P_GLUE_INFO_T);
+typedef VOID(*PFN_TIMER_CALLBACK)(IN P_GLUE_INFO_T);
 
 
 /*******************************************************************************
@@ -235,5 +249,3 @@ typedef VOID (*PFN_TIMER_CALLBACK)(IN P_GLUE_INFO_T);
 ********************************************************************************
 */
 #endif /* _TYPEDEF_H */
-
-

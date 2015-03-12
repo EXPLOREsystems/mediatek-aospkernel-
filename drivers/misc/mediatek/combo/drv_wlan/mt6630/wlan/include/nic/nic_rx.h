@@ -444,16 +444,17 @@
 */
 
 /* RX Vector, 1st Cycle */
+#define RX_VT_RX_RATE_AC_MASK      BITS(0, 3)
 #define RX_VT_RX_RATE_MASK         BITS(0, 6)
 #define RX_VT_RX_RATE_OFFSET       0
 #define RX_VT_STBC_MASK            BITS(7, 8)
 #define RX_VT_STBC_OFFSET          7
-
 #define RX_VT_LDPC                 BIT(9)
+#define RX_VT_NESS_MASK            BITS(10, 11)
+#define RX_VT_NESS_OFFSET          10
 #define RX_VT_RX_MODE_MASK         BITS(12, 14)
 #define RX_VT_RX_MODE_OFFSET       12
 #define RX_VT_RX_MODE_VHT          BIT(14)
-
 #define RX_VT_FR_MODE_MASK         BITS(15, 16)
 #define RX_VT_FR_MODE_OFFSET       15
 #define RX_VT_TXOP_PS_NOT_ALLOWED  BIT(17)
@@ -462,6 +463,13 @@
 #define RX_VT_SMOOTH               BIT(20)
 #define RX_VT_NO_SOUNDING          BIT(21)
 #define RX_VT_SOUNDING             BIT(21)
+#define RX_VT_SHORT_GI_NSYM        BIT(22)
+#define RX_VT_CODING_MASK          BITS(23, 24)
+#define RX_VT_CODING_OFFSET        23
+#define RX_VT_BEAMFORMED           BIT(29)
+#define RX_VT_GROUPID_0_MASK       BITS(30, 31)
+#define RX_VT_GROUPID_0_OFFSET     30
+
 
 
 #define RX_VT_RX_RATE_1M      0x0
@@ -512,19 +520,30 @@
 #define RX_VT_RX_LEN_HT_MASK       BITS(0, 15)
 #define RX_VT_RX_LEN_LEACY_MASK    BITS(0, 11)
 #define RX_VT_RX_LEN_VHT_MASK      BITS(0, 20)
+#define RX_VT_GROUPID_1_MASK       BITS(21, 24)
+#define RX_VT_GROUPID_1_OFFSET     21
+#define RX_VT_NSTS_MASK            BITS(25, 27)
+#define RX_VT_NSTS_OFFSET          25
+#define RX_VT_AID_0_MASK           BITS(28, 31)
+#define RX_VT_AID_0_OFFSET         28
 
 /* RX Vector, 3rd Cycle */
-#define RX_VT_RCPI_MASK       BITS(8, 15)
-#define RX_VT_RCPI_OFFSET     8
-#define RX_VT_OFDM_FREQ_TRANS_DET  BIT(5)
-#define RX_VT_FAGC0_EQ_CAL         BIT(16)
-
+#define RX_VT_AID_1_MASK          BITS(0, 4)
+#define RX_VT_AID_1_OFFSET        0
+#define RX_VT_SEL_ANT             BIT(7)
+#define RX_VT_RCPI_MASK           BITS(8, 15)
+#define RX_VT_RCPI_OFFSET         8
+#define RX_VT_OFDM_FREQ_TRANS_DET BIT(5)
+#define RX_VT_FAGC0_EQ_CAL        BIT(16)
 
 /* RX Vector, 4th Cycle */
 #define RX_VT_IB_RSSI_MASK       BITS(0, 7)
 #define RX_VT_WB_RSSI_MASK       BITS(8, 15)
 #define RX_VT_WB_RSSI_OFFSET    8
 
+/* RX Vector, 6th Cycle */
+#define RX_VT_NF0_MASK          BITS(0, 7)
+#define RX_VT_NF0_OFFSET        0
 
 /* RX Vector Group 2, the 1st cycle */
 #define RX_VT_CCK_LQ            BITS(4, 10)
@@ -607,6 +626,11 @@ typedef enum _ENUM_MAC_RX_GROUP_VLD_T {
 	RX_GROUP_VLD_4,
 	RX_GROUP_VLD_NUM
 } ENUM_MAC_RX_GROUP_VLD_T;
+
+typedef enum _ENUM_MAC_GI_INFO_T {
+	MAC_GI_NORMAL = 0,
+	MAC_GI_SHORT
+} ENUM_MAC_GI_INFO_T, *P_ENUM_MAC_GI_INFO_T;
 
 #define RXM_RXD_PKT_TYPE_SW_BITMAP 0xE00F
 #define RXM_RXD_PKT_TYPE_SW_EVENT  0xE000
@@ -779,6 +803,9 @@ typedef struct _RX_CTRL_T {
 	UINT_32 u4RxPktsDumpTypeMask;
 #endif
 
+#if CFG_SUPPORT_SNIFFER
+    UINT_32 u4AmpduRefNum;
+#endif
 } RX_CTRL_T, *P_RX_CTRL_T;
 
 typedef struct _RX_MAILBOX_T {
@@ -786,6 +813,11 @@ typedef struct _RX_MAILBOX_T {
 } RX_MAILBOX_T, *P_RX_MAILBOX_T;
 
 typedef WLAN_STATUS(*PROCESS_RX_MGT_FUNCTION) (P_ADAPTER_T, P_SW_RFB_T);
+
+typedef struct _EMU_MAC_RATE_INFO_T {
+	UINT_8 ucPhyRateCode;
+	UINT_32 u4PhyRate[4][2];
+} EMU_MAC_RATE_INFO_T, *P_EMU_MAC_RATE_INFO_T;
 
 /*******************************************************************************
 *                           P R I V A T E   D A T A
@@ -796,6 +828,19 @@ typedef WLAN_STATUS(*PROCESS_RX_MGT_FUNCTION) (P_ADAPTER_T, P_SW_RFB_T);
 *                                 M A C R O S
 ********************************************************************************
 */
+#define RATE_INFO(_RateCode, _Bw20, _Bw20SGI, _Bw40, _BW40SGI, _Bw80, _Bw80SGI, _Bw160, _Bw160SGI) \
+	    { \
+		.ucPhyRateCode                                    = (_RateCode), \
+		.u4PhyRate[RX_VT_FR_MODE_20][MAC_GI_NORMAL]       = (_Bw20), \
+		.u4PhyRate[RX_VT_FR_MODE_20][MAC_GI_SHORT]        = (_Bw20SGI), \
+		.u4PhyRate[RX_VT_FR_MODE_40][MAC_GI_NORMAL]       = (_Bw40), \
+		.u4PhyRate[RX_VT_FR_MODE_40][MAC_GI_SHORT]        = (_BW40SGI), \
+		.u4PhyRate[RX_VT_FR_MODE_80][MAC_GI_NORMAL]       = (_Bw80), \
+		.u4PhyRate[RX_VT_FR_MODE_80][MAC_GI_SHORT]        = (_Bw80SGI), \
+		.u4PhyRate[RX_VT_FR_MODE_160][MAC_GI_NORMAL]      = (_Bw160), \
+		.u4PhyRate[RX_VT_FR_MODE_160][MAC_GI_SHORT]       = (_Bw160SGI), \
+	    }
+
 #define RX_INC_CNT(prRxCtrl, eCounter)              \
     {((P_RX_CTRL_T)prRxCtrl)->au8Statistics[eCounter]++; }
 
@@ -911,13 +956,13 @@ typedef WLAN_STATUS(*PROCESS_RX_MGT_FUNCTION) (P_ADAPTER_T, P_SW_RFB_T);
 #define HAL_RX_STATUS_IS_MATCH_PACKET(_prHwMacRxDesc)
 
 #define HAL_RX_STATUS_GET_CHNL_NUM(_prHwMacRxDesc) \
-    (( ((_prHwMacRxDesc)->ucChanFreq) > HW_CHNL_NUM_MAX_4G_5G) ? \
+    ((((_prHwMacRxDesc)->ucChanFreq) > HW_CHNL_NUM_MAX_4G_5G) ? \
       (((_prHwMacRxDesc)->ucChanFreq) - HW_CHNL_NUM_MAX_4G_5G) : \
       ((_prHwMacRxDesc)->ucChanFreq))
 
 /* To do: support more bands other than 2.4G and 5G */
 #define HAL_RX_STATUS_GET_RF_BAND(_prHwMacRxDesc) \
-    (( ((_prHwMacRxDesc)->ucChanFreq) <= HW_CHNL_NUM_MAX_2G4) ? \
+    ((((_prHwMacRxDesc)->ucChanFreq) <= HW_CHNL_NUM_MAX_2G4) ? \
       BAND_2G4 : BAND_5G)
 
 /*------------------------------------------------------------------------------
@@ -985,6 +1030,9 @@ incRxDefragMPDU(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSWRfb, OUT P_QUE_T prR
 
 BOOLEAN nicRxIsDuplicateFrame(IN OUT P_SW_RFB_T prSwRfb);
 
+#if CFG_SUPPORT_SNIFFER
+VOID nicRxProcessMonitorPacket(IN P_ADAPTER_T prAdapter, IN OUT P_SW_RFB_T prSwRfb);
+#endif
 
 VOID nicRxProcessDataPacket(IN P_ADAPTER_T prAdapter, IN OUT P_SW_RFB_T prSwRfb);
 

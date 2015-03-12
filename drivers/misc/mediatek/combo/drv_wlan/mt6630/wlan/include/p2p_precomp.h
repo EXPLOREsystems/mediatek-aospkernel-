@@ -1,5 +1,5 @@
 /*
-** $Id: //Department/DaVinci/TRUNK/WiFi_P2P_Driver/include/p2p_precomp.h#1 $
+** Id: //Department/DaVinci/TRUNK/WiFi_P2P_Driver/include/p2p_precomp.h#1
 */
 
 /*! \file   p2p_precomp.h

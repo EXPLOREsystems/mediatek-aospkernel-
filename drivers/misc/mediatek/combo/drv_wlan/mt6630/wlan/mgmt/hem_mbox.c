@@ -676,7 +676,9 @@ VOID mboxInitMsgMap(VOID)
 	/* Verify the correctness of final message map */
 	for (i = 0; i < MID_TOTAL_NUM; i++) {
 		ASSERT(arMsgMapTable[i].eMsgId == (ENUM_MSG_ID_T) i);
-		while (arMsgMapTable[i].eMsgId != (ENUM_MSG_ID_T) i);
+		while (arMsgMapTable[i].eMsgId != (ENUM_MSG_ID_T) i) {
+			;
+		}
 	}
 
 }

@@ -8,7 +8,7 @@
 
 #include "gator.h"
 
-// gator_events_perf_pmu.c is used if perf is supported
+/* gator_events_perf_pmu.c is used if perf is supported */
 #if GATOR_NO_PERF_SUPPORT
 
 static const char *pmnc_name;
@@ -28,7 +28,7 @@ static const char *pmnc_name;
 #define CCNT 2
 #define CNTMAX	(CCNT+1)
 
-static int pmnc_counters = 0;
+static int pmnc_counters;
 static unsigned long pmnc_enabled[CNTMAX];
 static unsigned long pmnc_event[CNTMAX];
 static unsigned long pmnc_key[CNTMAX];
@@ -75,9 +75,9 @@ int gator_events_armv6_create_files(struct super_block *sb, struct dentry *root)
 	for (i = PMN0; i <= CCNT; i++) {
 		char buf[40];
 		if (i == CCNT) {
-			snprintf(buf, sizeof buf, "ARM_%s_ccnt", pmnc_name);
+			snprintf(buf, sizeof(buf), "ARM_%s_ccnt", pmnc_name);
 		} else {
-			snprintf(buf, sizeof buf, "ARM_%s_cnt%d", pmnc_name, i);
+			snprintf(buf, sizeof(buf), "ARM_%s_cnt%d", pmnc_name, i);
 		}
 		dir = gatorfs_mkdir(sb, root, buf);
 		if (!dir) {
@@ -115,19 +115,19 @@ static int gator_events_armv6_online(int **buffer, bool migrate)
 
 		event = pmnc_event[cnt] & 255;
 
-		// Set event (if destined for PMNx counters)
+		/* Set event (if destined for PMNx counters) */
 		if (cnt == PMN0) {
 			pmnc |= event << 20;
 		} else if (cnt == PMN1) {
 			pmnc |= event << 12;
 		}
 
-		// Reset counter
+		/* Reset counter */
 		armv6_pmnc_reset_counter(cnt);
 	}
 	armv6_pmnc_write(pmnc | PMCR_E);
 
-	// return zero values, no need to read as the counters were just reset
+	/* return zero values, no need to read as the counters were just reset */
 	for (cnt = PMN0; cnt <= CCNT; cnt++) {
 		if (pmnc_enabled[cnt]) {
 			per_cpu(perfCnt, cpu)[len++] = pmnc_key[cnt];
@@ -168,7 +168,7 @@ static int gator_events_armv6_read(int **buffer)
 	int cnt, len = 0;
 	int cpu = smp_processor_id();
 
-	// a context switch may occur before the online hotplug event, thus need to check that the pmu is enabled
+	/* a context switch may occur before the online hotplug event, thus need to check that the pmu is enabled */
 	if (!(armv6_pmnc_read() & PMCR_E)) {
 		return 0;
 	}

@@ -208,7 +208,7 @@ typedef struct _TIMER_T {
 	}
 
 #define timerRenewTimer(adapter, tmr, interval) \
-        timerStartTimer(adapter, tmr, interval, (tmr)->function, (tmr)->data)
+	timerStartTimer(adapter, tmr, interval, (tmr)->function, (tmr)->data)
 
 #define MGMT_INIT_TIMER(_adapter_p, _timer, _callbackFunc) \
 	timerInitTimer(_adapter_p, &(_timer), (UINT_32)(_callbackFunc))

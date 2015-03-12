@@ -7,8 +7,8 @@
  *
  */
 
-// gator_hrtimer_perf.c is used if perf is supported
-//   update, gator_hrtimer_gator.c always used until issues resolved with perf hrtimers
+/* gator_hrtimer_perf.c is used if perf is supported */
+/* update, gator_hrtimer_gator.c always used until issues resolved with perf hrtimers */
 #if 1
 
 void (*callback)(void);
@@ -64,7 +64,7 @@ static int gator_hrtimer_init(int interval, void (*func)(void))
 		per_cpu(hrtimer_is_active, cpu) = 0;
 	}
 
-	// calculate profiling interval
+	/* calculate profiling interval */
 	if (interval > 0) {
 		profiling_interval = ns_to_ktime(1000000000UL / interval);
 	} else {

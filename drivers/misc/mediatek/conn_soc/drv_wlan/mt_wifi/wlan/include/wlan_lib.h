@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/wlan_lib.h#1 $
 */
 
@@ -18,7 +32,7 @@
  * Nvram context covert from 6620 to 6628 for old 6620 meta tool
  *
  * 01 16 2012 cp.wu
- * [MT6620 Wi-Fi][Driver] API and behavior modification for preferred band configuration with corresponding network configuration 
+ * [MT6620 Wi-Fi][Driver] API and behavior modification for preferred band configuration with corresponding network configuration
  * add wlanSetPreferBandByNetwork() for glue layer to invoke for setting preferred band configuration corresponding to network type.
  *
  * 01 05 2012 wh.su
@@ -34,7 +48,7 @@
  * add firmware download path in divided scatters.
  *
  * 10 03 2011 cp.wu
- * [MT6628 Driver][Firmware Download] Add multi section independent download functionality 
+ * [MT6628 Driver][Firmware Download] Add multi section independent download functionality
  * add firmware downloading aggregated path.
  *
  * 09 20 2011 tsaiyuan.hsu
@@ -337,8 +351,8 @@
 #define CSUM_OFFLOAD_EN_RX_UDP      BIT(4)
 #define CSUM_OFFLOAD_EN_RX_IPv4     BIT(5)
 #define CSUM_OFFLOAD_EN_RX_IPv6     BIT(6)
-#define CSUM_OFFLOAD_EN_TX_MASK     BITS(0,2)
-#define CSUM_OFFLOAD_EN_ALL         BITS(0,6)
+#define CSUM_OFFLOAD_EN_TX_MASK     BITS(0, 2)
+#define CSUM_OFFLOAD_EN_ALL         BITS(0, 6)
 
 /* TCP, UDP, IP Checksum */
 #define RX_CS_TYPE_UDP           BIT(7)
@@ -366,7 +380,7 @@
 *                             D A T A   T Y P E S
 ********************************************************************************
 */
-typedef WLAN_STATUS (*PFN_OID_HANDLER_FUNC) (
+typedef WLAN_STATUS(*PFN_OID_HANDLER_FUNC) (
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvBuf,
     IN  UINT_32     u4BufLen,
@@ -462,7 +476,7 @@ typedef enum _ENUM_REG_CH_MAP_T {
     REG_CH_MAP_NUM
 } ENUM_REG_CH_MAP_T, *P_ENUM_REG_CH_MAP_T;
 
-typedef struct _SET_TXPWR_CTRL_T{
+typedef struct _SET_TXPWR_CTRL_T {
     INT_8    c2GLegacyStaPwrOffset;  /* Unit: 0.5dBm, default: 0*/
     INT_8    c2GHotspotPwrOffset;
     INT_8    c2GP2pPwrOffset;
@@ -472,9 +486,9 @@ typedef struct _SET_TXPWR_CTRL_T{
     INT_8    c5GP2pPwrOffset;
     INT_8    c5GBowPwrOffset;
     UINT_8  ucConcurrencePolicy;   /* TX power policy when concurrence
-                                                            in the same channel
-                                                            0: Highest power has priority
-                                                            1: Lowest power has priority */
+							    in the same channel
+							    0: Highest power has priority
+							    1: Lowest power has priority */
     INT_8    acReserved1[3];            /* Must be zero */
 
     /* Power limit by channel for all data rates */
@@ -524,7 +538,7 @@ typedef struct _REG_INFO_T {
     UINT_32     u4ArSysParam3;
     UINT_32     fgDisRoaming;                        /* 0:enable roaming 1:disable */
 
-    // NVRAM - MP Data -START-
+    /* NVRAM - MP Data -START- */
     UINT_8              aucMacAddr[6];
     UINT_16             au2CountryCode[4];          /* Country code (in ISO 3166-1 expression, ex: "US", "TW")  */
     TX_PWR_PARAM_T      rTxPwr;
@@ -538,18 +552,13 @@ typedef struct _REG_INFO_T {
     ENUM_REG_CH_MAP_T   eRegChannelListMap;
     UINT_8              ucRegChannelListIndex;
     DOMAIN_INFO_ENTRY   rDomainInfo;
-    // NVRAM - MP Data -END-
+    /* NVRAM - MP Data -END- */
 
-    // NVRAM - Functional Data -START-
+    /* NVRAM - Functional Data -START- */
     UINT_8              uc2G4BwFixed20M;
     UINT_8              uc5GBwFixed20M;
     UINT_8              ucEnable5GBand;
-    UINT_8              uc2GRssiCompensation;
-    UINT_8              uc5GRssiCompensation;
-    UINT_8              fgRssiCompensationValidbit;
-    UINT_8              ucRxAntennanumber;
-
-    // NVRAM - Functional Data -END-
+    /* NVRAM - Functional Data -END- */
 
 } REG_INFO_T, *P_REG_INFO_T;
 
@@ -581,27 +590,27 @@ typedef struct _PARAM_GET_STA_STATISTICS {
 	UINT_8 aucMacAddr[MAC_ADDR_LEN];
 
     UINT_32 u4Flag;
-    
+
     /* From driver */
 	UINT_32 u4TxTotalCount;
 	UINT_32 u4TxExceedThresholdCount;
-    
+
     UINT_32 u4TxMaxTime;
     UINT_32 u4TxAverageProcessTime;
-    
-	UINT_32 au4TcResourceEmptyCount[NUM_TC_RESOURCE_TO_STATISTICS];  
-	UINT_32 au4TcQueLen[NUM_TC_RESOURCE_TO_STATISTICS]; 
+
+	UINT_32 au4TcResourceEmptyCount[NUM_TC_RESOURCE_TO_STATISTICS];
+	UINT_32 au4TcQueLen[NUM_TC_RESOURCE_TO_STATISTICS];
 
     /* From FW */
     UINT_8 ucPer;                       /* base: 128 */
     UINT_8 ucRcpi;
     UINT_32 u4PhyMode;
     UINT_16 u2LinkSpeed;                /* unit is 0.5 Mbits*/
-    
+
 	UINT_32 u4TxFailCount;
     UINT_32 u4TxLifeTimeoutCount;
-    
-    UINT_32 u4TxAverageAirTime;    
+
+    UINT_32 u4TxAverageAirTime;
 
     /* Global queue management statistic */
 	UINT_32 au4TcAverageQueLen[NUM_TC_RESOURCE_TO_STATISTICS];
@@ -610,64 +619,6 @@ typedef struct _PARAM_GET_STA_STATISTICS {
     /* Reserved fields */
     UINT_8  au4Reserved[32];
 } PARAM_GET_STA_STA_STATISTICS, *P_PARAM_GET_STA_STATISTICS;
-
-#if CFG_AUTO_CHANNEL_SEL_SUPPORT
-
-typedef struct _LTE_SAFE_CH_INFO_T {
-    UINT_8  ucChannelLow;
-    UINT_8  ucChannelHigh;
-} LTE_SAFE_CH_INFO_T, *P_CMD_LTE_SAFE_CH_INFO_T;
-
-	
-
-    /* Record Each CH Load */
-typedef struct _PARAM_CHN_LOAD_INFO {
-    /* Per-CHN Load */
-	UINT_32 u4Flag;
-	
-	UINT_8 	ucChannel;
-	UINT_16 u2ChannelLoad;
-	UINT_8	au4Reserved[1];
-
-	UINT_16	u2APNum;
-    UINT_16	u2APNumTmpCountingBuf;
-	
-    /* Reserved fields */
-    UINT_8  au4Reserved1[8];
-} PARAM_CHN_LOAD_INFO, *P_PARAM_CHN_LOAD_INFO;
-
-typedef struct _PARAM_GET_CHN_LOAD {
-	LTE_SAFE_CH_INFO_T 	rLteSafeChnList;
-	PARAM_CHN_LOAD_INFO rEachChnLoad[MAX_AUTO_CHAL_NUM];
-	BOOLEAN fgDataReadyBit;
-	UINT_8  au4Reserved1[3];
-} PARAM_GET_CHN_LOAD, *P_PARAM_GET_CHN_LOAD;
-
-typedef struct _PARAM_PREFER_CHN_INFO {
-    
-	
-	UINT_8 	ucChannel;
-	UINT_16	u2APNum;
-    UINT_8  au4Reserved1[1];
-} PARAM_PREFER_CHN_INFO, *P_PARAM_PREFER_CHN_INFO;
-
-
-typedef struct _PARAM_GET_LTE_MODE {
-   /* Event Body */
-    UINT_8      			ucVersion;
-    UINT_8					aucReserved1[3];
-    UINT_32     			u4Flags; /* Bit0: valid */
-
-    LTE_SAFE_CH_INFO_T     LTE_MODE;
-    UINT_8					aucReserved4[3];
-
-    
-    UINT_8      			aucReserved[4];
-   
-    
-} PARAM_GET_LTE_MODE, *P_PARAM_GET_LTE_MODE;
-
-#endif
 
 /*******************************************************************************
 *                            P U B L I C   D A T A
@@ -685,7 +636,7 @@ typedef struct _PARAM_GET_LTE_MODE {
 */
 #define BUILD_SIGN(ch0, ch1, ch2, ch3) \
     ((UINT_32)(UINT_8)(ch0) | ((UINT_32)(UINT_8)(ch1) << 8) |   \
-     ((UINT_32)(UINT_8)(ch2) << 16) | ((UINT_32)(UINT_8)(ch3) << 24 ))
+     ((UINT_32)(UINT_8)(ch2) << 16) | ((UINT_32)(UINT_8)(ch3) << 24))
 
 #define MTK_WIFI_SIGNATURE BUILD_SIGN('M', 'T', 'K', 'W')
 
@@ -695,12 +646,12 @@ typedef struct _PARAM_GET_LTE_MODE {
 */
 
 P_ADAPTER_T
-wlanAdapterCreate (
+wlanAdapterCreate(
     IN P_GLUE_INFO_T prGlueInfo
     );
 
 VOID
-wlanAdapterDestroy (
+wlanAdapterDestroy(
     IN P_ADAPTER_T prAdapter
     );
 
@@ -710,36 +661,36 @@ wlanCardEjected(
     );
 
 VOID
-wlanIST (
+wlanIST(
     IN P_ADAPTER_T prAdapter
     );
 
 BOOL
-wlanISR (
+wlanISR(
     IN P_ADAPTER_T prAdapter,
     IN BOOLEAN fgGlobalIntrCtrl
     );
 
 WLAN_STATUS
-wlanProcessCommandQueue (
+wlanProcessCommandQueue(
     IN P_ADAPTER_T  prAdapter,
     IN P_QUE_T      prCmdQue
     );
 
 WLAN_STATUS
-wlanSendCommand (
+wlanSendCommand(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo
     );
 
 VOID
-wlanReleaseCommand (
+wlanReleaseCommand(
     IN P_ADAPTER_T  prAdapter,
     IN P_CMD_INFO_T prCmdInfo
     );
 
 VOID
-wlanReleasePendingOid (
+wlanReleasePendingOid(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_32      u4Data
     );
@@ -751,19 +702,19 @@ wlanReleasePendingCMDbyNetwork(
     );
 
 VOID
-wlanReturnPacket (
+wlanReturnPacket(
     IN P_ADAPTER_T prAdapter,
     IN PVOID pvPacket
     );
 
 VOID
-wlanReturnIndicatedPacketsTimeOut (
+wlanReturnIndicatedPacketsTimeOut(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_32      u4Data
     );
 
 WLAN_STATUS
-wlanQueryInformation (
+wlanQueryInformation(
     IN P_ADAPTER_T          prAdapter,
     IN PFN_OID_HANDLER_FUNC pfOidQryHandler,
     IN PVOID                pvInfoBuf,
@@ -772,7 +723,7 @@ wlanQueryInformation (
     );
 
 WLAN_STATUS
-wlanSetInformation (
+wlanSetInformation(
     IN P_ADAPTER_T          prAdapter,
     IN PFN_OID_HANDLER_FUNC pfOidSetHandler,
     IN PVOID                pvInfoBuf,
@@ -782,7 +733,7 @@ wlanSetInformation (
 
 
 WLAN_STATUS
-wlanAdapterStart (
+wlanAdapterStart(
     IN P_ADAPTER_T  prAdapter,
     IN P_REG_INFO_T prRegInfo,
     IN PVOID        pvFwImageMapFile,
@@ -790,7 +741,7 @@ wlanAdapterStart (
     );
 
 WLAN_STATUS
-wlanAdapterStop (
+wlanAdapterStop(
     IN P_ADAPTER_T prAdapter
     );
 
@@ -802,25 +753,25 @@ wlanQueryWapiMode(
 #endif
 
 VOID
-wlanReturnRxPacket (
+wlanReturnRxPacket(
     IN PVOID pvAdapter,
     IN PVOID pvPacket
     );
 
 VOID
-wlanRxSetBroadcast (
+wlanRxSetBroadcast(
     IN P_ADAPTER_T  prAdapter,
     IN BOOLEAN      fgEnableBroadcast
     );
 
 BOOLEAN
-wlanIsHandlerNeedHwAccess (
+wlanIsHandlerNeedHwAccess(
     IN PFN_OID_HANDLER_FUNC pfnOidHandler,
     IN BOOLEAN              fgSetInfo
     );
 
 VOID
-wlanSetPromiscuousMode (
+wlanSetPromiscuousMode(
     IN P_ADAPTER_T  prAdapter,
     IN BOOLEAN      fgEnablePromiscuousMode
     );
@@ -828,7 +779,7 @@ wlanSetPromiscuousMode (
 #if CFG_ENABLE_FW_DOWNLOAD
     #if CFG_ENABLE_FW_DOWNLOAD_AGGREGATION
 WLAN_STATUS
-wlanImageSectionDownloadAggregated (
+wlanImageSectionDownloadAggregated(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_32      u4DestAddr,
     IN UINT_32      u4ImgSecSize,
@@ -837,7 +788,7 @@ wlanImageSectionDownloadAggregated (
     #endif
 
 WLAN_STATUS
-wlanImageSectionDownload (
+wlanImageSectionDownload(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_32      u4DestAddr,
     IN UINT_32      u4ImgSecSize,
@@ -851,14 +802,14 @@ wlanImageQueryStatus(
     );
 #else
 WLAN_STATUS
-wlanImageSectionDownloadStatus (
+wlanImageSectionDownloadStatus(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_8       ucCmdSeqNum
     );
 #endif
 
 WLAN_STATUS
-wlanConfigWifiFunc (
+wlanConfigWifiFunc(
     IN P_ADAPTER_T  prAdapter,
     IN BOOLEAN      fgEnable,
     IN UINT_32      u4StartAddress
@@ -872,42 +823,42 @@ UINT_32 wlanCRC32(
 #endif
 
 WLAN_STATUS
-wlanSendNicPowerCtrlCmd (
+wlanSendNicPowerCtrlCmd(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_8       ucPowerMode
     );
 
 BOOLEAN
-wlanIsHandlerAllowedInRFTest (
+wlanIsHandlerAllowedInRFTest(
     IN PFN_OID_HANDLER_FUNC pfnOidHandler,
     IN BOOLEAN              fgSetInfo
     );
 
 WLAN_STATUS
-wlanProcessQueuedSwRfb (
+wlanProcessQueuedSwRfb(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T prSwRfbListHead
     );
 
 WLAN_STATUS
-wlanProcessQueuedMsduInfo (
+wlanProcessQueuedMsduInfo(
     IN P_ADAPTER_T prAdapter,
     IN P_MSDU_INFO_T prMsduInfoListHead
     );
 
 BOOLEAN
-wlanoidTimeoutCheck (
+wlanoidTimeoutCheck(
     IN P_ADAPTER_T prAdapter,
     IN PFN_OID_HANDLER_FUNC pfnOidHandler
     );
 
 VOID
-wlanoidClearTimeoutCheck (
+wlanoidClearTimeoutCheck(
     IN P_ADAPTER_T prAdapter
     );
 
 WLAN_STATUS
-wlanUpdateNetworkAddress (
+wlanUpdateNetworkAddress(
     IN P_ADAPTER_T prAdapter
     );
 
@@ -1008,7 +959,7 @@ wlanQueryPdMcr(
 /* Loading Manufacture Data                                                   */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-wlanLoadManufactureData (
+wlanLoadManufactureData(
     IN P_ADAPTER_T prAdapter,
     IN P_REG_INFO_T prRegInfo
     );
@@ -1045,7 +996,7 @@ wlanProcessMboxMessage(
 /* TX Pending Packets Handling (for Glue Layer)                               */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-wlanEnqueueTxPacket (
+wlanEnqueueTxPacket(
     IN P_ADAPTER_T      prAdapter,
     IN P_NATIVE_PACKET  prNativePacket
     );
@@ -1056,7 +1007,7 @@ wlanFlushTxPendingPackets(
     );
 
 WLAN_STATUS
-wlanTxPendingPackets (
+wlanTxPendingPackets(
     IN      P_ADAPTER_T prAdapter,
     IN OUT  PBOOLEAN    pfgHwAccess
     );
@@ -1080,7 +1031,7 @@ wlanReleasePowerControl(
 /* Pending Packets Number Reporting (for Glue Layer)                          */
 /*----------------------------------------------------------------------------*/
 UINT_32
-wlanGetTxPendingFrameCount (
+wlanGetTxPendingFrameCount(
     IN P_ADAPTER_T prAdapter
     );
 
@@ -1089,26 +1040,26 @@ wlanGetTxPendingFrameCount (
 /* ACPI state inquiry (for Glue Layer)                                        */
 /*----------------------------------------------------------------------------*/
 ENUM_ACPI_STATE_T
-wlanGetAcpiState (
+wlanGetAcpiState(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-wlanSetAcpiState (
+wlanSetAcpiState(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_ACPI_STATE_T ePowerState
     );
 
 #if CFG_SUPPORT_OSC_SETTING && defined(MT5931)
 WLAN_STATUS
-wlanSetMcuOscStableTime (
+wlanSetMcuOscStableTime(
     IN P_ADAPTER_T      prAdapter,
     IN UINT_16          u2OscStableTime
     );
 #endif
 
 VOID
-wlanDefTxPowerCfg (
+wlanDefTxPowerCfg(
     IN P_ADAPTER_T      prAdapter
     );
 
@@ -1124,7 +1075,7 @@ wlanGetEcoVersion(
 /* set preferred band configuration corresponding to network type             */
 /*----------------------------------------------------------------------------*/
 VOID
-wlanSetPreferBandByNetwork (
+wlanSetPreferBandByNetwork(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_BAND_T eBand,
     IN ENUM_NETWORK_TYPE_INDEX_T eNetTypeIndex
@@ -1134,7 +1085,7 @@ wlanSetPreferBandByNetwork (
 /* get currently operating channel information                                */
 /*----------------------------------------------------------------------------*/
 UINT_8
-wlanGetChannelNumberByNetwork (
+wlanGetChannelNumberByNetwork(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_NETWORK_TYPE_INDEX_T eNetTypeIndex
     );
@@ -1143,7 +1094,7 @@ wlanGetChannelNumberByNetwork (
 /* get BSS Descriptor information                                             */
 /*----------------------------------------------------------------------------*/
 P_BSS_DESC_T
-wlanGetTargetBssDescByNetwork (
+wlanGetTargetBssDescByNetwork(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_NETWORK_TYPE_INDEX_T eNetTypeIndex
     );
@@ -1152,14 +1103,14 @@ wlanGetTargetBssDescByNetwork (
 /* check for system configuration to generate message on scan list            */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-wlanCheckSystemConfiguration (
+wlanCheckSystemConfiguration(
     IN P_ADAPTER_T prAdapter
     );
 
 /*----------------------------------------------------------------------------*/
 /* query sta statistics information from driver and firmware                  */
 /*----------------------------------------------------------------------------*/
-WLAN_STATUS 
+WLAN_STATUS
 wlanoidQueryStaStatistics(
 	IN P_ADAPTER_T prAdapter,
 	IN PVOID pvQueryBuffer,
@@ -1169,4 +1120,3 @@ wlanoidQueryStaStatistics(
 
 
 #endif /* _WLAN_LIB_H */
-

@@ -3,13 +3,16 @@
 */
 
 /*! \file   privacy.h
-    \brief This file contains the function declaration for privacy.c.
-*/
+ *  \brief This file contains the function declaration for privacy.c.
+ */
 
 
 
 /*
 ** $Log: privacy.h $
+**
+** 07 25 2014 eason.tsai
+** AOSP
 **
 ** 07 30 2013 wh.su
 ** [BORA00002446] [MT6630] [Wi-Fi] [Driver] Update the security function code
@@ -82,19 +85,19 @@
 #define _PRIVACY_H
 
 /*******************************************************************************
-*                         C O M P I L E R   F L A G S
-********************************************************************************
-*/
+ *                         C O M P I L E R   F L A G S
+ ********************************************************************************
+ */
 
 /*******************************************************************************
-*                    E X T E R N A L   R E F E R E N C E S
-********************************************************************************
-*/
+ *                    E X T E R N A L   R E F E R E N C E S
+ ********************************************************************************
+ */
 
 /*******************************************************************************
-*                              C O N S T A N T S
-********************************************************************************
-*/
+ *                              C O N S T A N T S
+ ********************************************************************************
+ */
 #define MAX_KEY_NUM                             4
 #define WEP_40_LEN                              5
 #define WEP_104_LEN                             13
@@ -131,7 +134,8 @@
 #else
 #define WTBL_RESERVED_ENTRY             255
 #endif
-#define WTBL_SIZE                       32	/* Max wlan table size, the max+1 used for probe request,... mgmt frame sending use basic rate and no security */
+#define WTBL_SIZE                       32	/* Max wlan table size, the max+1 used for probe request,... mgmt frame
+						 *sending use basic rate and no security */
 
 #define WTBL_ALLOC_FAIL                 WTBL_RESERVED_ENTRY
 #define WTBL_DEFAULT_ENTRY              0
@@ -147,71 +151,72 @@
 #define WTBL_BC_IDX_0                   19
 #define WTBL_BC_IDX_MAX                 27
 
-#define WTBL_AIS_DLS_MAX_IDX            WTBL_STA_IDX_MAX - 7	/* Reserved for DLS:end entry, Todo:: Max DLS entry define */
+#define WTBL_AIS_DLS_MAX_IDX            WTBL_STA_IDX_MAX - 7	/* Reserved for DLS:end entry, Todo:: Max DLS entry
+								 *define */
 
-#define WTBL_AIS_IBSS_NO_SEC_BC_IDX     28	/* Reserved for Ad-hoc No sec index */
-#define WTBL_AP_NO_SEC_BC_IDX           28	/* Reserved for AP mode No Sec index */
+#define WTBL_AIS_IBSS_NO_SEC_BC_IDX     28			/* Reserved for Ad-hoc No sec index */
+#define WTBL_AP_NO_SEC_BC_IDX           28			/* Reserved for AP mode No Sec index */
 
 /*******************************************************************************
-*                         D A T A   T Y P E S
-********************************************************************************
-*/
+ *                         D A T A   T Y P E S
+ ********************************************************************************
+ */
 
 typedef struct _IEEE_802_1X_HDR {
-	UINT_8 ucVersion;
-	UINT_8 ucType;
+	UINT_8	ucVersion;
+	UINT_8	ucType;
 	UINT_16 u2Length;
 	/* followed by length octets of data */
 } IEEE_802_1X_HDR, *P_IEEE_802_1X_HDR;
 
 typedef struct _EAPOL_KEY {
-	UINT_8 ucType;
+	UINT_8	ucType;
 	/* Note: key_info, key_length, and key_data_length are unaligned */
-	UINT_8 aucKeyInfo[2];	/* big endian */
-	UINT_8 aucKeyLength[2];	/* big endian */
-	UINT_8 aucReplayCounter[8];
-	UINT_8 aucKeyNonce[16];
-	UINT_8 aucKeyIv[16];
-	UINT_8 aucKeyRsc[8];
-	UINT_8 aucKeyId[8];	/* Reserved in IEEE 802.11i/RSN */
-	UINT_8 aucKeyMic[16];
-	UINT_8 aucKeyDataLength[2];	/* big endian */
+	UINT_8	aucKeyInfo[2];		/* big endian */
+	UINT_8	aucKeyLength[2];	/* big endian */
+	UINT_8	aucReplayCounter[8];
+	UINT_8	aucKeyNonce[16];
+	UINT_8	aucKeyIv[16];
+	UINT_8	aucKeyRsc[8];
+	UINT_8	aucKeyId[8];		/* Reserved in IEEE 802.11i/RSN */
+	UINT_8	aucKeyMic[16];
+	UINT_8	aucKeyDataLength[2];	/* big endian */
 	/* followed by key_data_length bytes of key_data */
 } EAPOL_KEY, *P_EAPOL_KEY;
 
 /* WPA2 PMKID candicate structure */
 typedef struct _PMKID_CANDICATE_T {
-	UINT_8 aucBssid[MAC_ADDR_LEN];
+	UINT_8	aucBssid[MAC_ADDR_LEN];
 	UINT_32 u4PreAuthFlags;
 } PMKID_CANDICATE_T, *P_PMKID_CANDICATE_T;
 
 #if 0
 /* WPA2 PMKID cache structure */
 typedef struct _PMKID_ENTRY_T {
-	PARAM_BSSID_INFO_T rBssidInfo;
-	BOOLEAN fgPmkidExist;
+	PARAM_BSSID_INFO_T	rBssidInfo;
+	BOOLEAN			fgPmkidExist;
 } PMKID_ENTRY_T, *P_PMKID_ENTRY_T;
 #endif
 
 /*******************************************************************************
-*                            P U B L I C   D A T A
-********************************************************************************
-*/
+ *                            P U B L I C   D A T A
+ ********************************************************************************
+ */
 
 /*******************************************************************************
-*                           P R I V A T E   D A T A
-********************************************************************************
-*/
+ *                           P R I V A T E   D A T A
+ ********************************************************************************
+ */
 
 /*******************************************************************************
-*                                 M A C R O S
-********************************************************************************
-*/
+ *                                 M A C R O S
+ ********************************************************************************
+ */
 
 /*******************************************************************************
-*                  F U N C T I O N   D E C L A R A T I O N S
-********************************************************************************
-*/
+ *                  F U N C T I O N   D E C L A R A T I O N S
+ ********************************************************************************
+ */
 
 VOID secInit(IN P_ADAPTER_T prAdapter, IN UINT_8 ucBssIndex);
 
@@ -221,8 +226,7 @@ BOOL
 secCheckClassError(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb, IN P_STA_RECORD_T prStaRec);
 
 BOOL
-secTxPortControlCheck(IN P_ADAPTER_T prAdapter,
-		      IN P_MSDU_INFO_T prMsduInfo, IN P_STA_RECORD_T prStaRec);
+secTxPortControlCheck(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T prMsduInfo, IN P_STA_RECORD_T prStaRec);
 
 BOOLEAN secRxPortControlCheck(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSWRfb);
 
@@ -236,8 +240,7 @@ VOID secClearPmkid(IN P_ADAPTER_T prAdapter);
 BOOLEAN secRsnKeyHandshakeEnabled(IN P_ADAPTER_T prAdapter);
 
 UINT_8
-secGetBmcWlanIndex(IN P_ADAPTER_T prAdapter,
-		   IN ENUM_NETWORK_TYPE_T eNetType, IN P_STA_RECORD_T prStaRec);
+secGetBmcWlanIndex(IN P_ADAPTER_T prAdapter, IN ENUM_NETWORK_TYPE_T eNetType, IN P_STA_RECORD_T prStaRec);
 
 BOOLEAN secTransmitKeyExist(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T prSta);
 
@@ -250,12 +253,8 @@ VOID secPrivacyFreeForEntry(IN P_ADAPTER_T prAdapter, IN UINT_8 ucEntry);
 VOID secPrivacyFreeSta(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T prStaRec);
 
 UINT_8
-secPrivacySeekForBcEntry(IN P_ADAPTER_T prAdapter,
-			 IN UINT_8 ucBssIndex,
-			 IN PUINT_8 pucAddr,
-			 IN UINT_8 ucStaIdx,
-			 IN UINT_8 ucAlg,
-			 IN UINT_8 ucKeyId, IN UINT_8 ucCurrentKeyId, IN UINT_8 ucTxRx);
+secPrivacySeekForBcEntry(IN P_ADAPTER_T prAdapter, IN UINT_8 ucBssIndex, IN PUINT_8 pucAddr, IN UINT_8 ucStaIdx, IN
+			 UINT_8 ucAlg, IN UINT_8 ucKeyId, IN UINT_8 ucCurrentKeyId, IN UINT_8 ucTxRx);
 
 UINT_8 secGetStaIdxByWlanIdx(P_ADAPTER_T prAdapter, UINT_8 ucWlanIdx);
 
@@ -277,8 +276,8 @@ BOOLEAN secIsProtectedBss(IN P_ADAPTER_T prAdapter, IN P_BSS_INFO_T prBssInfo);
 BOOLEAN tkipMicDecapsulate(IN P_SW_RFB_T prSwRfb, IN PUINT_8 pucMicKey);
 
 /*******************************************************************************
-*                              F U N C T I O N S
-********************************************************************************
-*/
+ *                              F U N C T I O N S
+ ********************************************************************************
+ */
 
 #endif				/* _PRIVACY_H */

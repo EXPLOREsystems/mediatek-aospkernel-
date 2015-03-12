@@ -136,6 +136,9 @@
 #include "nic/cmd_buf.h"
 
 #if CFG_ENABLE_BT_OVER_WIFI
+
+extern UINT_32 g_arBowRevPalPacketTime[32];
+
 /*******************************************************************************
 *                              C O N S T A N T S
 ********************************************************************************
@@ -311,7 +314,7 @@ VOID bowAssignSsid(IN PUINT_8 pucSsid, IN PUINT_8 pucSsidLen);
 BOOLEAN
 bowValidateProbeReq(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb, OUT PUINT_32 pu4ControlFlags);
 
-VOID bowSendBeacon(IN P_ADAPTER_T prAdapter, UINT_32 u4Param);
+VOID bowSendBeacon(IN P_ADAPTER_T prAdapter, ULONG ulParamPtr);
 
 VOID bowResponderScan(IN P_ADAPTER_T prAdapter);
 
@@ -352,7 +355,7 @@ VOID bowRequestCh(IN P_ADAPTER_T prAdapter);
 
 VOID bowReleaseCh(IN P_ADAPTER_T prAdapter);
 
-VOID bowChGrantedTimeout(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Param);
+VOID bowChGrantedTimeout(IN P_ADAPTER_T prAdapter, IN ULONG ulParamPtr);
 
 BOOLEAN bowNotifyAllLinkDisconnected(IN P_ADAPTER_T prAdapter);
 

@@ -10,7 +10,7 @@
 #define STP_UART_MAND 0x02
 #define STP_UART_FULL 0x01
 
-#define CFG_WMT_DBG_SUPPORT 1 // support wmt_dbg or not
+#define CFG_WMT_DBG_SUPPORT 1 /* support wmt_dbg or not */
 #define CFG_WMT_PROC_FOR_AEE 1
 
 

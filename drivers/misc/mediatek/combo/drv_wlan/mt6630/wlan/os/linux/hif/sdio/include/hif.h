@@ -175,7 +175,7 @@ WLAN_STATUS glRegisterBus(probe_card pfProbe, remove_card pfRemove);
 
 VOID glUnregisterBus(remove_card pfRemove);
 
-VOID glSetHifInfo(P_GLUE_INFO_T prGlueInfo, UINT_32 u4Cookie);
+VOID glSetHifInfo(P_GLUE_INFO_T prGlueInfo, ULONG ulCookie);
 
 VOID glClearHifInfo(P_GLUE_INFO_T prGlueInfo);
 

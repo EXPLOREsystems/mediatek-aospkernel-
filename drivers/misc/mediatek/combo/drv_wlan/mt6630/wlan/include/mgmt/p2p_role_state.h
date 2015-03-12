@@ -53,4 +53,10 @@ p2pRoleStateAbort_GC_JOIN(IN P_ADAPTER_T prAdapter,
 			  IN P_P2P_ROLE_FSM_INFO_T prP2pRoleFsmInfo,
 			  IN P_P2P_JOIN_INFO_T prJoinInfo, IN ENUM_P2P_ROLE_STATE_T eNextState);
 
+VOID
+p2pRoleStatePrepare_To_REQING_CHANNEL_STATE(IN P_ADAPTER_T prAdapter,
+			IN P_BSS_INFO_T prBssInfo,
+					    IN P_P2P_CONNECTION_REQ_INFO_T prConnReqInfo,
+					    OUT P_P2P_CHNL_REQ_INFO_T prChnlReqInfo);
+
 #endif

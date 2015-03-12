@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/mgmt/wapi.h#1 $
 */
 
@@ -12,7 +26,7 @@
 ** $Log: wapi.h $
  *
  * 07 20 2010 wh.su
- * 
+ *
  * .
  *
  * 01 27 2010 wh.su
@@ -94,7 +108,7 @@ wapiGenerateWAPIIE(
     );
 
 BOOLEAN
-wapiParseWapiIE (
+wapiParseWapiIE(
     IN  P_WAPI_INFO_ELEM_T  prInfoElem,
     OUT P_WAPI_INFO_T       prWapiInfo
     );
@@ -105,11 +119,11 @@ wapiPerformPolicySelection(
     IN P_BSS_DESC_T         prBss
     );
 
-//BOOLEAN
-//wapiUpdateTxKeyIdx (
-//    IN  P_STA_RECORD_T     prStaRec,
-//    IN  UINT_8             ucWlanIdx
-//    );
+/* BOOLEAN */
+/* wapiUpdateTxKeyIdx ( */
+/* IN  P_STA_RECORD_T     prStaRec, */
+/* IN  UINT_8             ucWlanIdx */
+/* ); */
 
 /*******************************************************************************
 *                              F U N C T I O N S
@@ -117,4 +131,3 @@ wapiPerformPolicySelection(
 */
 #endif
 #endif /* _WAPI_H */
-

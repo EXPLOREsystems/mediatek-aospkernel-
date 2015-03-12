@@ -1,5 +1,5 @@
 /*
-** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/pwr_mgt.h#1 $
+** Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/pwr_mgt.h#1
 */
 
 /*! \file   "pwr_mgt.h"
@@ -10,54 +10,6 @@
     description.
 */
 
-
-
-/*
-** $Log: pwr_mgt.h $
-**
-** 09 17 2012 cm.chang
-** [BORA00002149] [MT6630 Wi-Fi] Initial software development
-** Duplicate source from MT6620 v2.3 driver branch
-** (Davinci label: MT6620_WIFI_Driver_V2_3_120913_1942_As_MT6630_Base)
- *
- * 07 09 2010 george.huang
- *
- * [WPD00001556] Migrate PM variables from FW to driver: for composing QoS Info
- *
- * 07 08 2010 cp.wu
- *
- * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
- *
- * 06 06 2010 kevin.huang
- * [WPD00003832][MT6620 5931] Create driver base
- * [MT6620 5931] Create driver base
- *
- * 04 20 2010 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP
- * don't need SPIN_LOCK_PWR_CTRL anymore, it will raise IRQL
- * and cause SdBusSubmitRequest running at DISPATCH_LEVEL as well.
-
- *
- * 03 25 2010 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP
- * firmware download load adress & start address are now configured from config.h
- *  *  * due to the different configurations on FPGA and ASIC
-**  \main\maintrunk.MT6620WiFiDriver_Prj\7 2009-12-10 16:39:10 GMT mtk02752
-**  disable PM macros temporally
-**  \main\maintrunk.MT6620WiFiDriver_Prj\6 2009-10-29 19:48:37 GMT mtk01084
-**  temp remove power management macro
-**  \main\maintrunk.MT6620WiFiDriver_Prj\5 2009-04-08 16:51:11 GMT mtk01084
-**  update for power management control macro
-**  \main\maintrunk.MT6620WiFiDriver_Prj\4 2009-04-03 14:59:58 GMT mtk01426
-**  Add #if CFG_HIF_LOOPBACK_PRETEST
-**  \main\maintrunk.MT6620WiFiDriver_Prj\3 2009-03-23 16:53:10 GMT mtk01084
-**  modify ACQUIRE_POWER_CONTROL_FROM_PM() and RECLAIM_POWER_CONTROL_TO_PM() macro
-**  \main\maintrunk.MT6620WiFiDriver_Prj\2 2009-03-19 18:32:47 GMT mtk01084
-**  update for basic power management functions
-**  \main\maintrunk.MT6620WiFiDriver_Prj\1 2009-03-19 15:05:20 GMT mtk01084
-**  Initial version
-**
-*/
 
 #ifndef _PWR_MGT_H
 #define _PWR_MGT_H
@@ -118,23 +70,23 @@ typedef struct _PM_PROFILE_SETUP_INFO_T {
 #define RECLAIM_POWER_CONTROL_TO_PM(_prAdapter, _fgEnableGINT_in_IST)
 #else
 #define ACQUIRE_POWER_CONTROL_FROM_PM(_prAdapter) \
-    { \
-	if (_prAdapter->fgIsFwOwn) { \
-	    nicpmSetDriverOwn(_prAdapter); \
-	} \
-	/* Increase Block to Enter Low Power Semaphore count */ \
-	GLUE_INC_REF_CNT(_prAdapter->u4PwrCtrlBlockCnt); \
-    }
+	{ \
+		if (_prAdapter->fgIsFwOwn) { \
+			nicpmSetDriverOwn(_prAdapter); \
+		} \
+		/* Increase Block to Enter Low Power Semaphore count */ \
+		GLUE_INC_REF_CNT(_prAdapter->u4PwrCtrlBlockCnt); \
+	}
 
 #define RECLAIM_POWER_CONTROL_TO_PM(_prAdapter, _fgEnableGINT_in_IST) \
-    { \
-	ASSERT(_prAdapter->u4PwrCtrlBlockCnt != 0); \
-	/* Decrease Block to Enter Low Power Semaphore count */ \
-	GLUE_DEC_REF_CNT(_prAdapter->u4PwrCtrlBlockCnt); \
-	if (_prAdapter->fgWiFiInSleepyState && (_prAdapter->u4PwrCtrlBlockCnt == 0)) { \
-	    nicpmSetFWOwn(_prAdapter, _fgEnableGINT_in_IST); \
-	} \
-    }
+	{ \
+		ASSERT(_prAdapter->u4PwrCtrlBlockCnt != 0); \
+		/* Decrease Block to Enter Low Power Semaphore count */ \
+		GLUE_DEC_REF_CNT(_prAdapter->u4PwrCtrlBlockCnt); \
+		if (_prAdapter->fgWiFiInSleepyState && (_prAdapter->u4PwrCtrlBlockCnt == 0)) { \
+			nicpmSetFWOwn(_prAdapter, _fgEnableGINT_in_IST); \
+		} \
+	}
 #endif
 
 

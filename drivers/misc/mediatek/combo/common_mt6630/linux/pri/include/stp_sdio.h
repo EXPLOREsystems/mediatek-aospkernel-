@@ -22,7 +22,7 @@
 
 #define KMALLOC_UPDATE 1
 
-#if 0 // NO support for multiple STP-SDIO instances (multiple MT6620) on a single host
+#if 0 /* NO support for multiple STP-SDIO instances (multiple MT6620) on a single host */
 #define STP_SDIO_HOST_COUNT (1)
 #define STP_SDIO_ONLY_ONE_HOST (0)
 #endif
@@ -188,7 +188,7 @@ typedef struct _MTK_WCN_STP_SDIO_HIF_INFO {
     MTK_WCN_STP_SDIO_FIRMWARE_INFO firmware_info;
     MTK_WCN_STP_SDIO_PRIVATE_INFO private_info;
 #if STP_SDIO_OWN_THREAD
-    //struct tasklet_struct tx_rx_job;
+    /* struct tasklet_struct tx_rx_job; */
     OSAL_THREAD tx_rx_thread;
     INT32 irq_pending;
     INT32 sleep_flag;
@@ -235,18 +235,17 @@ typedef struct _MTK_WCN_STP_SDIO_HIF_INFO {
  */
 extern INT32
 mtk_wcn_hif_sdio_client_reg(
-    const MTK_WCN_HIF_SDIO_CLTINFO *pinfo
+    const MTK_WCN_HIF_SDIO_CLTINFO * pinfo
 );
 
 extern INT32
 mtk_wcn_stp_sdio_do_own_clr(void);
 
-//extern INT32
-//mtk_wcn_stp_sdio_do_own_set (void);
+/* extern INT32 */
+/* mtk_wcn_stp_sdio_do_own_set (void); */
 
 /*******************************************************************************
 *                              F U N C T I O N S
 ********************************************************************************
 */
 #endif /* _STP_SDIO_H */
-

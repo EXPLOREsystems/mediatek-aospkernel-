@@ -86,4 +86,3 @@ extern INT32 mtk_wcn_cmb_hw_state_show(VOID);
 
 
 #endif /* _MTK_WCN_CMB_HW_H_ */
-

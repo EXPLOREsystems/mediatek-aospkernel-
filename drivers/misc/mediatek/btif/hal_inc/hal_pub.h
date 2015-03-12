@@ -2,7 +2,6 @@
 #define __HAL_PUB_H_
 
 #include <linux/kernel.h>
-#include <linux/version.h>
 #include <linux/types.h>
 #include <linux/delay.h>
 #include <linux/irq.h>
@@ -10,20 +9,10 @@
 #include <linux/kfifo.h>
 #include <linux/vmalloc.h>
 #include <linux/slab.h>
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,9,0))
 #include <linux/sched.h>
-#include <linux/sched/rt.h>
-#else
-#include <linux/sched.h>
-#endif
-#ifdef CONFIG_OF
-#include <linux/of_irq.h>
-#include <linux/of_address.h>
-#include <linux/of.h>
-#else
+
 #include <mach/mt_reg_base.h>
 #include <mach/mt_irq.h>
-#endif
 #include <mach/mt_clkmgr.h>
 #include <mach/sync_write.h>
 
@@ -192,16 +181,12 @@ typedef struct _MTK_BTIF_IRQ_STR_ {
 	const char *name;
 	bool is_irq_sup;
 	unsigned int irq_id;
-#ifdef CONFIG_OF
-	unsigned int irq_flags;
-#else
 	ENUM_IRQ_SENS_TYPE sens_type;
+	bool reg_flag;
 	union {
 		ENUM_IRQ_LVL lvl_type;
 		ENUM_IRQ_EDGE edge_type;
 	};
-#endif
-	bool reg_flag;
 	irq_handler_t p_irq_handler;
 } MTK_BTIF_IRQ_STR, *P_MTK_BTIF_IRQ_STR;
 
@@ -225,7 +210,7 @@ typedef unsigned int (*btif_rx_buf_write) (void *p_btif_info,
 
 /*DMA related information*/
 typedef struct _MTK_DMA_INFO_STR_ {
-	unsigned long base;
+	unsigned int base;
 	ENUM_DMA_DIR dir;
 	P_MTK_BTIF_IRQ_STR p_irq;
 	dma_rx_buf_write rx_cb;
@@ -234,7 +219,7 @@ typedef struct _MTK_DMA_INFO_STR_ {
 
 /*DMA related information*/
 typedef struct _MTK_BTIF_INFO_STR_ {
-	unsigned long base;	/*base address */
+	unsigned int base;	/*base address */
 	P_MTK_BTIF_IRQ_STR p_irq;	/*irq related information */
 
 	unsigned int tx_fifo_size;	/*BTIF tx FIFO size */
@@ -258,21 +243,13 @@ typedef struct _MTK_BTIF_INFO_STR_ {
 /**********End of Structure Definition***********/
 
 /***********register operation***********/
-#ifdef __KERNEL__
-/*byte write  <1 byte> */
-#define btif_reg_sync_writeb(v, a)    mt_reg_sync_writeb(v, a)
-/*word write  <2 byte> */
-#define btif_reg_sync_writew(v, a)    mt_reg_sync_writew(v, a)
-/*long write   <4 byte> */
-#define btif_reg_sync_writel(v, a)    mt_reg_sync_writel(v, a)
-#else
 /*byte write  <1 byte> */
 #define btif_reg_sync_writeb(v, a)    mt65xx_reg_sync_writeb(v, a)
 /*word write  <2 byte> */
 #define btif_reg_sync_writew(v, a)    mt65xx_reg_sync_writew(v, a)
 /*long write   <4 byte> */
 #define btif_reg_sync_writel(v, a)    mt65xx_reg_sync_writel(v, a)
-#endif
+
 #define BTIF_READ8(REG)               __raw_readb((unsigned char *)(REG))
 #define BTIF_READ16(REG)              __raw_readw((unsigned short *)(REG))
 #define BTIF_READ32(REG)              __raw_readl((unsigned int *)(REG))

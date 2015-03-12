@@ -8,7 +8,7 @@
  * published by the Free Software Foundation.
  *
  * Similar entries to those below must be present in the events.xml file.
- * To add them to the events.xml, create an events-mmap.xml with the 
+ * To add them to the events.xml, create an events-mmap.xml with the
  * following contents and rebuild gatord:
  *
  * <counter_set name="mmaped_cnt" count="3"/>
@@ -104,7 +104,7 @@ static int mmaped_simulate(int counter, int delta_in_us)
 	switch (counter) {
 	case 0:		/* sort-of-sine */
 		{
-			static int t = 0;
+			static int t;
 			int x;
 
 			t += delta_in_us;
@@ -141,7 +141,7 @@ static int mmaped_simulate(int counter, int delta_in_us)
 		break;
 	case 2:		/* PWM signal */
 		{
-			static int dc, x, t = 0;
+			static int dc, x, t;
 
 			t += delta_in_us;
 			if (t > 1000000)

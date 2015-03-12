@@ -13,6 +13,14 @@
 /*
 ** $Log: mac.h $
 **
+** 03 10 2015 kh.hung
+** [WRAP00001635] Merge SPROUT kernel
+** Fix formating error
+**
+** 09 16 2014 eason.tsai
+** [ALPS01728937] [Need Patch] [Volunteer Patch] MET support
+** support MET
+**
 ** 07 23 2013 wh.su
 ** [BORA00002446] [MT6630] [Wi-Fi] [Driver] Update the security function code
 ** Sync the latest jb2.mp 11w code as draft version
@@ -166,7 +174,7 @@
 *                              C O N S T A N T S
 ********************************************************************************
 */
-/* 3 --------------- Constants for Ethernet/802.11 MAC --------------- */ 
+/* 3 --------------- Constants for Ethernet/802.11 MAC --------------- */
 /* MAC Address */
 #define MAC_ADDR_LEN                            6
 
@@ -200,16 +208,14 @@
 #define IPV4_HDR_TOS_OFFSET                     1
 #define IPV4_HDR_TOS_PREC_MASK                  BITS(5, 7)
 #define IPV4_HDR_TOS_PREC_OFFSET                5
-
-#define IPV4_HDR_PROTOCOL_OFFSET                9
-#define IPV4_HDR_CSUM_OFFSET                    10
-#define IPV4_HDR_LEN                            20
-#define IPV4_ADDR_LEN                           4
 #define IPV4_HDR_IP_IDENTIFICATION_OFFSET       4
 #define IPV4_HDR_IP_PROTOCOL_OFFSET             9
 #define IPV4_HDR_IP_CSUM_OFFSET                 10
 #define IPV4_HDR_IP_SRC_ADDR_OFFSET             12
 #define IPV4_HDR_IP_DST_ADDR_OFFSET             16
+
+#define IPV4_HDR_LEN                            20
+#define IPV4_ADDR_LEN                           4
 
 #define IPV6_HDR_IP_PROTOCOL_OFFSET             6
 #define IPV6_HDR_IP_SRC_ADDR_OFFSET             8
@@ -239,6 +245,9 @@
 #define ICMPV6_TYPE_NEIGHBOR_ADVERTISEMENT      0x88
 
 #define TCP_HDR_TCP_CSUM_OFFSET                 16
+
+#define UDP_HDR_SRC_PORT_OFFSET                 0
+#define UDP_HDR_DST_PORT_OFFSET                 2
 #define UDP_HDR_UDP_CSUM_OFFSET                 6
 
 #define ARP_OPERATION_OFFSET                    6
@@ -253,6 +262,30 @@
 
 #define NULL_MAC_ADDR                           {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 #define BC_MAC_ADDR                             {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
+
+
+#if 1
+
+#define ETH_HLEN                                14
+#define ETH_TYPE_LEN_OFFSET                     12
+
+
+#define IPVERSION                               4
+#define IP_HEADER_LEN                           20
+
+#define IPVH_VERSION_OFFSET                     4 /* For Little-Endian */
+#define IPVH_VERSION_MASK                       0xF0
+#define IPTOS_PREC_OFFSET                       5
+#define IPTOS_PREC_MASK                         0xE0
+
+#define SOURCE_PORT_LEN                         2
+
+#define LOOK_AHEAD_LEN                          (ETH_HLEN + IP_HEADER_LEN + SOURCE_PORT_LEN)
+
+
+
+#endif
+
 
 /* Ethernet Frame Field Size, in byte */
 #define ETHER_HEADER_LEN                        14
@@ -704,7 +737,7 @@
 #define REASON_CODE_PEER_SETUP_REQUIRED             38	/* Frames received but a setup is reqired */
 #define REASON_CODE_PEER_TIME_OUT                   39	/* Time out */
 #define REASON_CODE_PEER_CIPHER_UNSUPPORTED         45	/* Peer does not support the requested cipher suite */
-
+#define REASON_CODE_BEACON_TIMEOUT					100 /* for beacon timeout, defined by mediatek */
 /* 7.3.1.8 AID field */
 #define AID_FIELD_LEN                               2
 #define AID_MASK                                    BITS(0, 13)
@@ -782,9 +815,13 @@
 #define CATEGORY_SA_QUERY_ACTION                    8
 #define CATEGORY_PROTECTED_DUAL_OF_PUBLIC_ACTION    9
 #endif
-#define CATEGORY_WNM_ACTION                         10	/* 802.11v Wireless Network Management */
-#define CATEGORY_UNPROTECTED_WNM_ACTION             11	/* 802.11v Wireless Network Management */
-#define CATEGORY_WME_MGT_NOTIFICATION               17	/* WME management notification */
+#define CATEGORY_WNM_ACTION                         10  /* 802.11v Wireless Network Management */
+#define CATEGORY_UNPROTECTED_WNM_ACTION             11  /* 802.11v Wireless Network Management */
+#define CATEGORY_WME_MGT_NOTIFICATION               17  /* WME management notification */
+
+#define CATEGORY_VHT_ACTION                         21  /* VHT action*/
+
+
 #if CFG_SUPPORT_802_11W
 #define CATEGORY_VENDOR_SPECIFIC_ACTION_PROTECTED   126
 #endif
@@ -845,6 +882,7 @@
 #if CFG_SUPPORT_802_11W
 #define ELEM_ID_TIMEOUT_INTERVAL                    56	/* 802.11w SA Timeout interval */
 #endif
+#define ELEM_ID_SUP_OPERATING_CLASS					59	/* Supported Operating Classes */
 
 
 
@@ -867,9 +905,11 @@
 #define ELEM_ID_P2P                                 ELEM_ID_VENDOR	/* WiFi Direct */
 #define ELEM_ID_WSC                                 ELEM_ID_VENDOR	/* WSC IE */
 
-#define ELEM_ID_VHT_CAP                             191	/* VHT Capabilities subelement */
-#define ELEM_ID_VHT_OP								192	/*VHT Operation information */
-#define ELEM_ID_RESERVED                            255	/* Reserved */
+#define ELEM_ID_VHT_CAP                             191  /* VHT Capabilities subelement */
+#define ELEM_ID_VHT_OP                              192  /* VHT Operation information*/
+#define ELEM_ID_WIDE_BAND_CHANNEL_SWITCH            194  /*Wide Bandwidth Channel Switch*/
+#define ELEM_ID_OP_MODE                             199  /* Operation Mode Notification */
+#define ELEM_ID_RESERVED                            255 /* Reserved */
 
 
 /* 7.3.2.1 SSID element */
@@ -943,9 +983,8 @@
 #define ELEM_RM_TYPE_LCI_REPORT                     8
 #define ELEM_RM_TYPE_TS_REPORT                      9
 
-
 /* 7.3.2.25 RSN information element */
-#define ELEM_MAX_LEN_WPA                            24	/* one pairwise, one AKM suite, one PMKID */
+#define ELEM_MAX_LEN_WPA                            34	/* one pairwise, one AKM suite, one PMKID */
 #define ELEM_MAX_LEN_RSN                            38	/* one pairwise, one AKM suite, one PMKID */
 #define ELEM_MAX_LEN_WAPI                           38	/* one pairwise, one AKM suite, one BKID */
 #define ELEM_MAX_LEN_WSC                            200	/* one pairwise, one AKM suite, one BKID */
@@ -965,12 +1004,9 @@
 #define ELEM_EXT_CAP_UTC_TSF_OFFSET_BIT             27
 #define ELEM_EXT_CAP_INTERWORKING_BIT               31
 #define ELEM_EXT_CAP_WNM_NOTIFICATION_BIT           46
+#define ELEM_EXT_CAP_OP_MODE_NOTIFICATION_BIT       62
 
-#if CFG_SUPPORT_PASSPOINT
-#define ELEM_MAX_LEN_EXT_CAP                        (6)
-#else
-#define ELEM_MAX_LEN_EXT_CAP                        (3 - ELEM_HDR_LEN)
-#endif				/* CFG_SUPPORT_PASSPOINT */
+#define ELEM_MAX_LEN_EXT_CAP                        (8)
 
 /* 7.3.2.30 TSPEC element */
 #define TS_INFO_TRAFFIC_TYPE_MASK                   BIT(0)	/* WMM: 0 (Asynchronous TS of low-duty cycles) */
@@ -1078,6 +1114,16 @@
 #define VHT_OP_CHANNEL_WIDTH_80							1
 #define VHT_OP_CHANNEL_WIDTH_160						2
 #define VHT_OP_CHANNEL_WIDTH_80P80						3
+
+/*8.4.1.50 Operating Mode Field*/
+#define VHT_OP_MODE_CHANNEL_WIDTH                   BITS(0, 1)
+#define VHT_OP_MODE_RX_NSS                          BITS(4, 6)
+#define VHT_OP_MODE_RX_NSS_TYPE                     BIT(7)
+
+#define VHT_OP_MODE_CHANNEL_WIDTH_20                0
+#define VHT_OP_MODE_CHANNEL_WIDTH_40                1
+#define VHT_OP_MODE_CHANNEL_WIDTH_80                2
+#define VHT_OP_MODE_CHANNEL_WIDTH_160_80P80         3
 
 
 /* 7.3.2.56.3 A-MPDU Parameters field */
@@ -1227,6 +1273,15 @@
 #define ELEM_HS_CONFIG_DGAF_DISABLED_MASK           BIT(0)	/* Downstream Group-Addressed Forwarding */
 #endif				/* CFG_SUPPORT_PASSPOINT */
 
+/* MTK Vendor Specific OUI */
+#define ELEM_MIN_LEN_MTK_OUI                        7
+#define VENDOR_OUI_MTK                              { 0x00, 0x0C, 0xE7 }
+#define MTK_SYNERGY_CAP_SUPPORT_24G_MCS89           BIT(3)
+#define MTK_SYNERGY_CAP0                            (MTK_SYNERGY_CAP_SUPPORT_24G_MCS89)
+#define MTK_SYNERGY_CAP1                            0x0
+#define MTK_SYNERGY_CAP2                            0x0
+#define MTK_SYNERGY_CAP3                            0x0
+
 /* 3 Management frame body components (III): 7.4 Action frame format details. */
 /* 7.4.1 Spectrum Measurement Action frame details */
 #define ACTION_MEASUREMENT_REQ                      0	/* Spectrum measurement request */
@@ -1303,6 +1358,12 @@
 #define ACTION_UNPROTECTED_WNM_TIMING_MEASUREMENT   1
 
 #define ACTION_UNPROTECTED_WNM_TIMING_MEAS_LEN      12
+
+/* 8.5.23.1 VHT Action */
+#define ACTION_VHT_COMPRESSED_BFEAMFORMING          0
+#define ACTION_GROUP_ID_MANAGEMENT                  1
+#define ACTION_OPERATING_MODE_NOTIFICATION          2
+
 
 /* 3 --------------- WFA  frame body fields --------------- */
 #define VENDOR_OUI_WFA                              { 0x00, 0x50, 0xF2 }
@@ -1825,6 +1886,16 @@ typedef struct _IE_MEASUREMENT_REQ_T {
 	UINT_8 aucRequestFields[1];
 } __KAL_ATTRIB_PACKED__ IE_MEASUREMENT_REQ_T, *P_IE_MEASUREMENT_REQ_T;
 
+
+/* 7.3.2.60 20/40 BSS Coexistence element */
+typedef struct _IE_SUP_OPERATING_CLASS_T {
+	UINT_8 ucId;
+	UINT_8 ucLength;
+	UINT_8 ucCur;
+	UINT_8 ucSup[255];
+} __KAL_ATTRIB_PACKED__ IE_SUP_OPERATING_CLASS_T, *P_IE_SUP_OPERATING_CLASS_T;
+
+
 typedef struct _SM_BASIC_REQ_T {
 	UINT_8 ucChannel;
 	UINT_32 au4StartTime[2];
@@ -2021,6 +2092,42 @@ typedef struct _IE_VHT_OP_T {
 	UINT_16 u2VhtBasicMcsSet;
 } __KAL_ATTRIB_PACKED__ IE_VHT_OP_T, *P_IE_VHT_OP_T;
 
+/*8.4.2.22 Secondary Channel Offset element*/
+typedef struct _IE_SECONDARY_OFFSET_T {
+	UINT_8              ucId;
+	UINT_8              ucLength;
+	UINT_8              ucSecondaryOffset;
+} __KAL_ATTRIB_PACKED__ IE_SECONDARY_OFFSET_T, *P_IE_SECONDARY_OFFSET_T;
+
+/*8.4.2.105 Mesh Channel Switch Parameters element*/
+typedef struct _IE_MESH_CHANNEL_T {
+	UINT_8              ucId;
+	UINT_8              ucLength;
+	UINT_8              ucTimetoLive;
+	UINT_8              ucFlags;
+	UINT_16             u2ReasonCodes;
+	UINT_16             u2ProcedenceValue;
+} __KAL_ATTRIB_PACKED__ IE_MESH_CHANNEL_T, *P_IE_MESH_CHANNEL_T;
+
+
+/*8.4.2.163 Wide Bandwidth Channel Switch element*/
+typedef struct _IE_WIDE_BAND_CHANNEL_T {
+	UINT_8              ucId;
+	UINT_8              ucLength;
+	UINT_8              ucNewChannelWidth;
+	UINT_8              ucChannelS1;
+	UINT_8              ucChannelS2;
+} __KAL_ATTRIB_PACKED__ IE_WIDE_BAND_CHANNEL_T, *P_IE_WIDE_BAND_CHANNEL_T;
+
+
+/*8.4.2.168 Operating Mode Notification element*/
+typedef struct _IE_OP_MODE_NOTIFICATION_T {
+	UINT_8 ucId;
+	UINT_8 ucLength;
+	UINT_8 ucOpMode;
+} __KAL_ATTRIB_PACKED__ IE_OP_MODE_NOTIFICATION_T, *P_IE_OP_MODE_NOTIFICATION_T;
+
+
 /* 7.3.2.25 RSN Information element format */
 typedef struct _RSN_INFO_ELEM_T {
 	UCHAR ucElemId;
@@ -2106,6 +2213,22 @@ typedef struct _ACTION_SM_REQ_FRAME {
 
 /* 7.4.1.2 Spectrum Measurement Report frame format */
 typedef ACTION_SM_REQ_FRAME ACTION_SM_REPORT_FRAME, *P_ACTION_SM_REPORT_FRAME;
+
+/* 7.4.1.5 Channel Switch Announcement frame format */
+typedef struct _ACTION_CHANNEL_SWITCH_FRAME {
+    /* ADDTS Request MAC header */
+    UINT_16     u2FrameCtrl;                /* Frame Control */
+    UINT_16     u2Duration;                 /* Duration */
+    UINT_8      aucDestAddr[MAC_ADDR_LEN];  /* DA */
+    UINT_8      aucSrcAddr[MAC_ADDR_LEN];   /* SA */
+    UINT_8      aucBSSID[MAC_ADDR_LEN];     /* BSSID */
+    UINT_16     u2SeqCtrl;                  /* Sequence Control */
+    /* ADDTS Request frame body */
+    UINT_8      ucCategory;                 /* Category */
+    UINT_8      ucAction;                   /* Action Value */
+    UINT_8      aucInfoElem[1];             /* Information elements */
+} __KAL_ATTRIB_PACKED__ ACTION_CHANNEL_SWITCH_FRAME, *P_ACTION_CHANNEL_SWITCH_FRAME;
+
 
 /* 7.4.2.1 ADDTS Request frame format */
 typedef struct _ACTION_ADDTS_REQ_FRAME {
@@ -2348,6 +2471,21 @@ typedef struct _ACTION_UNPROTECTED_WNM_TIMING_MEAS_FRAME {
 } __KAL_ATTRIB_PACKED__ ACTION_UNPROTECTED_WNM_TIMING_MEAS_FRAME,
     *P_ACTION_UNPROTECTED_WNM_TIMING_MEAS_FRAME;
 
+/* 8.5.23.4 Operating Mode Notification frame format */
+typedef struct _ACTION_OP_MODE_NOTIFICATION_FRAME {
+    /* MAC header */
+    UINT_16     u2FrameCtrl;                /* Frame Control */
+    UINT_16     u2Duration;                 /* Duration */
+    UINT_8      aucDestAddr[MAC_ADDR_LEN];  /* DA */
+    UINT_8      aucSrcAddr[MAC_ADDR_LEN];   /* SA */
+    UINT_8      aucBSSID[MAC_ADDR_LEN];     /* BSSID */
+    UINT_16     u2SeqCtrl;                  /* Sequence Control */
+    /* Operating Mode Notification frame body */
+    UINT_8      ucCategory;                 /* Category */
+    UINT_8      ucAction;                   /* Action Value */
+    UINT_8      ucOperatingMode;            /* Operating Mode */
+} __KAL_ATTRIB_PACKED__ ACTION_OP_MODE_NOTIFICATION_FRAME, *P_ACTION_OP_MODE_NOTIFICATION_FRAME;
+
 /* 3 Information Elements from WFA. */
 typedef struct _IE_WFA_T {
 	UINT_8 ucId;
@@ -2379,6 +2517,15 @@ typedef struct _WAPI_INFO_ELEM_T {
 	UCHAR aucAuthKeyMgtSuite1[4];
 } __KAL_ATTRIB_PACKED__ WAPI_INFO_ELEM_T, *P_WAPI_INFO_ELEM_T;
 
+/* Information Elements from MTK Synergies.*/
+typedef struct _IE_MTK_OUI_T {
+	UINT_8 ucId;
+	UINT_8 ucLength;
+	UINT_8 aucOui[3];
+	UINT_8 aucCapability[4];
+	UINT_8 aucInfoElem[1];
+} __KAL_ATTRIB_PACKED__ IE_MTK_OUI_T, *P_IE_MTK_OUI_T;
+
 #if defined(WINDOWS_DDK) || defined(WINDOWS_CE)
 #pragma pack()
 #endif
@@ -2406,9 +2553,9 @@ typedef struct _WAPI_INFO_ELEM_T {
 
 /* Convert the dBm to RCPI */
 #define dBm_TO_RCPI(_dbm)                           \
-    (RCPI)(( (((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1) > RCPI_HIGH_BOUND) ? RCPI_HIGH_BOUND : \
+    (RCPI)(((((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1) > RCPI_HIGH_BOUND) ? RCPI_HIGH_BOUND : \
 	    ((((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1) < RCPI_LOW_BOUND ? RCPI_LOW_BOUND : \
-	     (((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1)) )
+	     (((PARAM_RSSI)(_dbm) + NDBM_LOW_BOUND_FOR_RCPI) << 1)))
 
 /* Convert an unsigned char pointer to an information element pointer */
 #define IE_ID(fp)               (((P_IE_HDR_T) fp)->ucId)
@@ -2449,8 +2596,11 @@ typedef struct _WAPI_INFO_ELEM_T {
 
 #define BSS_20_40_COEXIST_IE(fp) ((P_IE_20_40_COEXIST_T) fp)
 
+#define SUP_OPERATING_CLASS_IE(fp) ((P_IE_SUP_OPERATING_CLASS_T) fp)
+
 #define QUIET_IE(fp)            ((P_IE_QUIET_T) fp)
 
+#define MTK_OUI_IE(fp)          ((P_IE_MTK_OUI_T) fp)
 
 #define SUPPORTED_CHANNELS_IE(fp) ((P_IE_SUPPORTED_CHANNELS_T)fp)
 #define TIMEOUT_INTERVAL_IE(fp)	((IE_TIMEOUT_INTERVAL_T *)fp)

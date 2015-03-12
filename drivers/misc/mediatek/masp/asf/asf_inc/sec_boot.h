@@ -52,6 +52,10 @@ typedef struct {
 #define PL_RECOVERY                    "RECOVERY"
 #define PL_SECRO                       "SEC_RO"
 
+
+
+#define GPT_SECRO                      "secro"
+#define GPT_PRELOADER                  "preloader"
 /**************************************************************************
  * EXPORT FUNCTION
  **************************************************************************/

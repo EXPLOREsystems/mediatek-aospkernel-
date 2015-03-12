@@ -149,8 +149,8 @@ static void __iomem *gator_events_l2c310_probe(void)
 		0xa0412000,
 #endif
 #if defined(CONFIG_ARCH_VEXPRESS)
-		0x1e00a000, // A9x4 core tile (HBI-0191)
-		0x2c0f0000, // New memory map tiles
+		0x1e00a000, /* A9x4 core tile (HBI-0191) */
+		0x2c0f0000, /* New memory map tiles */
 #endif
 	};
 	int i;

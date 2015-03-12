@@ -4,14 +4,29 @@
 /**************************************************************************
 *  PARTITION RECORD
 **************************************************************************/
-typedef struct _MtdPart {
-	char name[16];
-	unsigned int sz;
-	unsigned int off;
-	unsigned int e_size;
+#if defined(MTK_GPT_SCHEME_SUPPORT)
+
+typedef struct _MtdPart
+{
+    char name[16];
+    unsigned long long sz;
+    unsigned long long off;
+    unsigned long long e_size;
 
 } MtdPart;
 
+#else
+
+typedef struct _MtdPart
+{
+    char name[16];
+    unsigned int sz;
+    unsigned int off;
+    unsigned int e_size;
+
+} MtdPart;
+
+#endif
 /**************************************************************************
 *  MTD CONFIGURATION
 **************************************************************************/

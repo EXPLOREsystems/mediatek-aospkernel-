@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/nic/adapter.h#3 $
 */
 
@@ -13,11 +27,11 @@
 
 /*
 ** $Log: adapter.h $
-** 
+**
 ** 08 31 2012 yuche.tsai
 ** [ALPS00349585] [6577JB][WiFi direct][KE]Establish p2p connection while both device have connected to AP previously,one device reboots automatically with KE
 ** Fix possible KE when concurrent & disconnect.
-** 
+**
 ** 07 26 2012 yuche.tsai
 ** [ALPS00324337] [ALPS.JB][Hot-Spot] Driver update for Hot-Spot
 ** Update driver code of ALPS.JB for hot-spot.
@@ -44,7 +58,7 @@
  * Sync CFG80211 modification from branch 2,2.
  *
  * 01 16 2012 cp.wu
- * [MT6620 Wi-Fi][Driver] API and behavior modification for preferred band configuration with corresponding network configuration 
+ * [MT6620 Wi-Fi][Driver] API and behavior modification for preferred band configuration with corresponding network configuration
  * add wlanSetPreferBandByNetwork() for glue layer to invoke for setting preferred band configuration corresponding to network type.
  *
  * 12 13 2011 cm.chang
@@ -54,7 +68,7 @@
  * 12 02 2011 yuche.tsai
  * NULL
  * Resolve inorder issue under AP mode.
- * 
+ *
  * data frame may TX before assoc response frame.
  *
  * 11 19 2011 yuche.tsai
@@ -621,40 +635,40 @@ typedef struct _ENHANCE_MODE_DATA_STRUCT_T SDIO_CTRL_T, *P_SDIO_CTRL_T;
 typedef struct _WLAN_INFO_T {
     PARAM_BSSID_EX_T                rCurrBssId;
 
-    // Scan Result
+    /* Scan Result */
     PARAM_BSSID_EX_T                arScanResult[CFG_MAX_NUM_BSS_LIST];
     PUINT_8                         apucScanResultIEs[CFG_MAX_NUM_BSS_LIST];
     UINT_32                         u4ScanResultNum;
 
-    // IE pool for Scanning Result
+    /* IE pool for Scanning Result */
     UINT_8                          aucScanIEBuf[CFG_MAX_COMMON_IE_BUF_LEN];
     UINT_32                         u4ScanIEBufferUsage;
 
     OS_SYSTIME                      u4SysTime;
 
-    // connection parameter (for Ad-Hoc)
+    /* connection parameter (for Ad-Hoc) */
     UINT_16                     u2BeaconPeriod;
     UINT_16                     u2AtimWindow;
 
     PARAM_RATES                 eDesiredRates;
     CMD_LINK_ATTRIB             eLinkAttr;
-//    CMD_PS_PROFILE_T         ePowerSaveMode;
+/* CMD_PS_PROFILE_T         ePowerSaveMode; */
     CMD_PS_PROFILE_T         arPowerSaveMode[NETWORK_TYPE_INDEX_NUM];
 
-    // trigger parameter
+    /* trigger parameter */
     ENUM_RSSI_TRIGGER_TYPE      eRssiTriggerType;
     PARAM_RSSI                  rRssiTriggerValue;
 
-    // Privacy Filter
+    /* Privacy Filter */
     ENUM_PARAM_PRIVACY_FILTER_T ePrivacyFilter;
 
-    // RTS Threshold
+    /* RTS Threshold */
     PARAM_RTS_THRESHOLD         eRtsThreshold;
 
-    // Network Type
+    /* Network Type */
     UINT_8                      ucNetworkType;
 
-    // Network Type In Use
+    /* Network Type In Use */
     UINT_8                      ucNetworkTypeInUse;
 
 } WLAN_INFO_T, *P_WLAN_INFO_T;
@@ -724,7 +738,7 @@ typedef struct _CONNECTION_SETTINGS_T {
 #endif /* CFG_SUPPORT_802_11D*/
 
 
-#if 1 //CFG_SUPPORT_WAPI
+#if 1 /* CFG_SUPPORT_WAPI */
     BOOL                            fgWapiMode;
     UINT_32                         u4WapiSelectedGroupCipher;
     UINT_32                         u4WapiSelectedPairwiseCipher;
@@ -772,8 +786,8 @@ struct _BSS_INFO_T {
     UINT_8                  aucOwnMacAddr[MAC_ADDR_LEN];/* Owned MAC Address used in this BSS */
 
     P_STA_RECORD_T          prStaRecOfAP;               /* For Infra Mode, and valid only if
-                                                         * eConnectionState == MEDIA_STATE_CONNECTED
-                                                         */
+							 * eConnectionState == MEDIA_STATE_CONNECTED
+							 */
     LINK_T                  rStaRecOfClientList;        /* For IBSS/AP Mode, all known STAs in current BSS */
 
     UINT_16                 u2CapInfo;                  /* Change Detection */
@@ -784,25 +798,25 @@ struct _BSS_INFO_T {
     UINT_16                 u2ATIMWindow;               /* For IBSS Mode */
 
     UINT_16                 u2AssocId;                  /* For Infra Mode, it is the Assoc ID assigned by AP.
-                                                         */
+							 */
 
 
     UINT_8                  ucDTIMPeriod;               /* For Infra/AP Mode */
 
     UINT_8                  ucDTIMCount;                /* For AP Mode, it is the DTIM value we should carried in
-                                                         * the Beacon of next TBTT.
-                                                         */
+							 * the Beacon of next TBTT.
+							 */
 
     UINT_8                  ucPhyTypeSet;               /* Available PHY Type Set of this peer
-                                                         * (This is deduced from received BSS_DESC_T)
-                                                         */
+							 * (This is deduced from received BSS_DESC_T)
+							 */
 
     UINT_8                  ucNonHTBasicPhyType;        /* The Basic PHY Type Index, used to setup Phy Capability */
 
     UINT_8                  ucConfigAdHocAPMode;        /* The configuration of AdHoc/AP Mode. e.g. 11g or 11b */
 
     UINT_8                  ucBeaconTimeoutCount;       /* For Infra/AP Mode, it is a threshold of Beacon Lost Count to
-                                                           confirm connection was lost */
+							   confirm connection was lost */
 
     BOOLEAN                 fgHoldSameBssidForIBSS;     /* For IBSS Mode, to keep use same BSSID to extend the life cycle of an IBSS */
 
@@ -811,7 +825,7 @@ struct _BSS_INFO_T {
     P_MSDU_INFO_T           prBeacon;                   /* For AP/IBSS Mode - Beacon Frame */
 
     BOOLEAN                 fgIsIBSSMaster;             /* For IBSS Mode - To indicate that we can reply ProbeResp Frame.
-                                                           In current TBTT interval */
+							   In current TBTT interval */
 
     BOOLEAN                 fgIsShortPreambleAllowed;   /* From Capability Info. of AssocResp Frame AND of Beacon/ProbeResp Frame */
     BOOLEAN                 fgUseShortPreamble;         /* Short Preamble is enabled in current BSS. */
@@ -828,7 +842,7 @@ struct _BSS_INFO_T {
 
     BOOLEAN                 fgIsProtection;
     BOOLEAN                 fgIsQBSS; /* fgIsWmmBSS; */ /* For Infra/AP/IBSS Mode, it is used to indicate if we support WMM in
-                                                         * current BSS. */
+							 * current BSS. */
     BOOLEAN                 fgIsNetAbsent;              /* TRUE: BSS is absent, FALSE: BSS is present */
 
     UINT_32                 u4RsnSelectedGroupCipher;
@@ -884,9 +898,9 @@ struct _BSS_INFO_T {
     BOOLEAN                 fgAssoc40mBwAllowed;
     BOOLEAN                 fg40mBwAllowed;
     ENUM_CHNL_EXT_T         eBssSCO;    /* Real setting for HW
-                                         * 20/40M AP mode will always set 40M,
-                                         * but its OP IE can be changed.
-                                         */
+					 * 20/40M AP mode will always set 40M,
+					 * but its OP IE can be changed.
+					 */
     UINT_8                  auc2G_20mReqChnlList[CHNL_LIST_SZ_2G + 1];
     UINT_8                  auc2G_NonHtChnlList[CHNL_LIST_SZ_2G + 1];
     UINT_8                  auc2G_PriChnlList[CHNL_LIST_SZ_2G + 1];
@@ -914,15 +928,6 @@ struct _BSS_INFO_T {
 #if CFG_ENABLE_GTK_FRAME_FILTER
     P_IPV4_NETWORK_ADDRESS_LIST prIpV4NetAddrList;
 #endif
-
-	/* ++ TDLS */
-	UINT_16					u2DeauthReason;
-	/* -- TDLS */
-
-#if (CFG_SUPPORT_TDLS == 1)
-	BOOLEAN fgTdlsIsProhibited; /* TRUE: AP prohibits TDLS links */
-	BOOLEAN	fgTdlsIsChSwProhibited; /* TRUE: AP prohibits TDLS chan switch */
-#endif /* CFG_SUPPORT_TDLS */
 };
 
 
@@ -942,14 +947,14 @@ struct _AIS_SPECIFIC_BSS_INFO_T {
     UINT_32                 u4RsnaLastMICFailTime;
 
     /* Stored the current bss wpa rsn cap filed, used for roaming policy */
-    //UINT_16                 u2RsnCap;
+    /* UINT_16                 u2RsnCap; */
     TIMER_T                 rPreauthenticationTimer;
 
     /* By the flow chart of 802.11i,
-               wait 60 sec before associating to same AP
-               or roaming to a new AP
-               or sending data in IBSS,
-               keep a timer for handle the 60 sec counterMeasure */
+	       wait 60 sec before associating to same AP
+	       or roaming to a new AP
+	       or sending data in IBSS,
+	       keep a timer for handle the 60 sec counterMeasure */
     TIMER_T                 rRsnaBlockTrafficTimer;
     TIMER_T                 rRsnaEAPoLReportTimeoutTimer;
 
@@ -989,7 +994,7 @@ typedef struct _SLT_INFO_T {
     UINT_8 ucChannel5G;
     BOOLEAN fgIsDUT;
     UINT_32 u4BeaconReceiveCnt;
-    /////////Deprecated/////////
+    /* ///////Deprecated///////// */
     P_STA_RECORD_T prPseudoStaRec;
 } SLT_INFO_T, *P_SLT_INFO_T;
 #endif
@@ -1045,14 +1050,14 @@ typedef struct _WIFI_VAR_T {
     UINT_8                  ucAvailablePhyTypeSet;
 
     ENUM_PHY_TYPE_INDEX_T   eNonHTBasicPhyType2G4; /* Basic Phy Type used by SCN according
-                                                    * to the set of Available PHY Types
-                                                    */
+						    * to the set of Available PHY Types
+						    */
 
     ENUM_PARAM_PREAMBLE_TYPE_T  ePreambleType;
     ENUM_REGISTRY_FIXED_RATE_T  eRateSetting;
 
     BOOLEAN                 fgIsShortSlotTimeOptionEnable;
-                            /* User desired setting, but will honor the capability of AP */
+			    /* User desired setting, but will honor the capability of AP */
 
     BOOLEAN                 fgEnableJoinToHiddenSSID;
     BOOLEAN                 fgSupportWZCDisassociation;
@@ -1066,8 +1071,6 @@ typedef struct _WIFI_VAR_T {
     UINT_8                  u8SupportRxSgi20; /* 0: default 1: enable 2:disble */
     UINT_8                  u8SupportRxSgi40;
     UINT_8                  u8SupportRxGf;
-	UINT_8					u8SupportRxSTBC;
-
 
 #if CFG_SLT_SUPPORT
     SLT_INFO_T      rSltInfo;
@@ -1075,9 +1078,6 @@ typedef struct _WIFI_VAR_T {
 
 #if CFG_SUPPORT_HOTSPOT_2_0
     HS20_INFO_T             rHS20Info;
-#endif
-#if CFG_AUTO_CHANNEL_SEL_SUPPORT
-	PARAM_GET_CHN_LOAD rChnLoadInfo;
 #endif
 
 } WIFI_VAR_T, *P_WIFI_VAR_T;/* end of _WIFI_VAR_T */
@@ -1115,14 +1115,14 @@ typedef struct {
 
 typedef struct _P2P_FUNCTION_LINKER {
     P2P_REMOVE                                  prP2pRemove;
-//    NIC_P2P_MEDIA_STATE_CHANGE                  prNicP2pMediaStateChange;
-//    SCAN_UPDATE_P2P_DEVICE_DESC                 prScanUpdateP2pDeviceDesc;
-//    P2P_FSM_RUN_EVENT_RX_PROBE_RESPONSE_FRAME   prP2pFsmRunEventRxProbeResponseFrame;
+/* NIC_P2P_MEDIA_STATE_CHANGE                  prNicP2pMediaStateChange; */
+/* SCAN_UPDATE_P2P_DEVICE_DESC                 prScanUpdateP2pDeviceDesc; */
+/* P2P_FSM_RUN_EVENT_RX_PROBE_RESPONSE_FRAME   prP2pFsmRunEventRxProbeResponseFrame; */
     P2P_GENERATE_P2P_IE              prP2pGenerateWSC_IEForBeacon;
-//    P2P_CALCULATE_WSC_IE_LEN_FOR_PROBE_RSP      prP2pCalculateWSC_IELenForProbeRsp;
-//    P2P_GENERATE_WSC_IE_FOR_PROBE_RSP           prP2pGenerateWSC_IEForProbeRsp;
-//    SCAN_REMOVE_P2P_BSS_DESC                    prScanRemoveP2pBssDesc;
-//    P2P_HANDLE_SEC_CHECK_RSP                    prP2pHandleSecCheckRsp;
+/* P2P_CALCULATE_WSC_IE_LEN_FOR_PROBE_RSP      prP2pCalculateWSC_IELenForProbeRsp; */
+/* P2P_GENERATE_WSC_IE_FOR_PROBE_RSP           prP2pGenerateWSC_IEForProbeRsp; */
+/* SCAN_REMOVE_P2P_BSS_DESC                    prScanRemoveP2pBssDesc; */
+/* P2P_HANDLE_SEC_CHECK_RSP                    prP2pHandleSecCheckRsp; */
     P2P_NET_REGISTER                 prP2pNetRegister;
     P2P_NET_UNREGISTER               prP2pNetUnregister;
     P2P_CALCULATE_P2P_IE_LEN         prP2pCalculateP2p_IELenForAssocReq;   /* All IEs generated from supplicant. */
@@ -1144,7 +1144,7 @@ struct _ADAPTER_T {
     BOOLEAN                 fgIsEnableWMM;
     BOOLEAN                 fgIsWmmAssoc; /* This flag is used to indicate that WMM is enable in current BSS */
 
-    UINT_32                 u4OsPacketFilter;     // packet filter used by OS
+    UINT_32                 u4OsPacketFilter;     /* packet filter used by OS */
 
 
 #if CFG_TCP_IP_CHKSUM_OFFLOAD
@@ -1202,7 +1202,7 @@ struct _ADAPTER_T {
     /* Buffer for Authentication Event */
     /* <Todo> Move to glue layer and refine the kal function */
     /* Reference to rsnGeneratePmkidIndication function at rsn.c */
-    UINT_8                  aucIndicationEventBuffer[(CFG_MAX_PMKID_CACHE * 20)  + 8 ];
+    UINT_8                  aucIndicationEventBuffer[(CFG_MAX_PMKID_CACHE * 20)  + 8];
 
     UINT_32                 u4IntStatus;
 
@@ -1223,7 +1223,7 @@ struct _ADAPTER_T {
     UINT_8                  ucCmdSeqNum;
     UINT_8                  ucTxSeqNum;
 
-#if 1//CFG_SUPPORT_WAPI
+#if 1/* CFG_SUPPORT_WAPI */
     BOOLEAN                 fgUseWapi;
 #endif
 
@@ -1343,12 +1343,8 @@ struct _ADAPTER_T {
     KAL_WAKE_LOCK_T         rAhbIsrWakeLock;
 
 #if CFG_SUPPORT_ROAMING_ENC
-	BOOLEAN 				fgIsRoamingEncEnabled;
+	BOOLEAN				fgIsRoamingEncEnabled;
 #endif /* CFG_SUPPORT_ROAMING_ENC */
-
-#if (CFG_SUPPORT_TDLS == 1)
-	BOOLEAN					fgTdlsIsSup;
-#endif /* CFG_SUPPORT_TDLS */
 
 };/* end of _ADAPTER_T */
 
@@ -1370,7 +1366,7 @@ struct _ADAPTER_T {
 /* Macros for BSS_INFO_T - Flag of Net Active                                 */
 /*----------------------------------------------------------------------------*/
 #define IS_NET_ACTIVE(_prAdapter, _NetTypeIndex) \
-                (_prAdapter->rWifiVar.arBssInfo[(_NetTypeIndex)].fgIsNetActive)
+		(_prAdapter->rWifiVar.arBssInfo[(_NetTypeIndex)].fgIsNetActive)
 #define IS_BSS_ACTIVE(_prBssInfo)     ((_prBssInfo)->fgIsNetActive)
 
 #define IS_AIS_ACTIVE(_prAdapter)     IS_NET_ACTIVE(_prAdapter, NETWORK_TYPE_AIS_INDEX)
@@ -1378,68 +1374,68 @@ struct _ADAPTER_T {
 #define IS_BOW_ACTIVE(_prAdapter)     IS_NET_ACTIVE(_prAdapter, NETWORK_TYPE_BOW_INDEX)
 
 #define SET_NET_ACTIVE(_prAdapter, _NetTypeIndex) \
-                {_prAdapter->rWifiVar.arBssInfo[(_NetTypeIndex)].fgIsNetActive = TRUE;}
+                {_prAdapter->rWifiVar.arBssInfo[(_NetTypeIndex)].fgIsNetActive = TRUE; }
 
 #define UNSET_NET_ACTIVE(_prAdapter, _NetTypeIndex) \
-                {_prAdapter->rWifiVar.arBssInfo[(_NetTypeIndex)].fgIsNetActive = FALSE;}
+                {_prAdapter->rWifiVar.arBssInfo[(_NetTypeIndex)].fgIsNetActive = FALSE; }
 
 #define BSS_INFO_INIT(_prAdapter, _NetTypeIndex) \
-                {   UINT_8 _aucZeroMacAddr[] = NULL_MAC_ADDR; \
-                    P_BSS_INFO_T _prBssInfo = &(_prAdapter->rWifiVar.arBssInfo[(_NetTypeIndex)]); \
-                    \
-                    _prBssInfo->eConnectionState = PARAM_MEDIA_STATE_DISCONNECTED; \
-                    _prBssInfo->eConnectionStateIndicated = PARAM_MEDIA_STATE_DISCONNECTED; \
-                    _prBssInfo->eCurrentOPMode = OP_MODE_INFRASTRUCTURE; \
-                    _prBssInfo->fgIsNetActive = FALSE; \
-                    _prBssInfo->ucNetTypeIndex = (_NetTypeIndex); \
-                    _prBssInfo->ucReasonOfDisconnect = DISCONNECT_REASON_CODE_RESERVED; \
-                    COPY_MAC_ADDR(_prBssInfo->aucBSSID, _aucZeroMacAddr); \
-                    LINK_INITIALIZE(&_prBssInfo->rStaRecOfClientList); \
-                    _prBssInfo->fgIsBeaconActivated = FALSE; \
-                    _prBssInfo->ucHwDefaultFixedRateCode = RATE_CCK_1M_LONG; \
-                    _prBssInfo->fgIsNetAbsent = FALSE; \
-                }
+		{   UINT_8 _aucZeroMacAddr[] = NULL_MAC_ADDR; \
+		    P_BSS_INFO_T _prBssInfo = &(_prAdapter->rWifiVar.arBssInfo[(_NetTypeIndex)]); \
+		    \
+		    _prBssInfo->eConnectionState = PARAM_MEDIA_STATE_DISCONNECTED; \
+		    _prBssInfo->eConnectionStateIndicated = PARAM_MEDIA_STATE_DISCONNECTED; \
+		    _prBssInfo->eCurrentOPMode = OP_MODE_INFRASTRUCTURE; \
+		    _prBssInfo->fgIsNetActive = FALSE; \
+		    _prBssInfo->ucNetTypeIndex = (_NetTypeIndex); \
+		    _prBssInfo->ucReasonOfDisconnect = DISCONNECT_REASON_CODE_RESERVED; \
+		    COPY_MAC_ADDR(_prBssInfo->aucBSSID, _aucZeroMacAddr); \
+		    LINK_INITIALIZE(&_prBssInfo->rStaRecOfClientList); \
+		    _prBssInfo->fgIsBeaconActivated = FALSE; \
+		    _prBssInfo->ucHwDefaultFixedRateCode = RATE_CCK_1M_LONG; \
+		    _prBssInfo->fgIsNetAbsent = FALSE; \
+		}
 
 #if CFG_ENABLE_BT_OVER_WIFI
 #define BOW_BSS_INFO_INIT(_prAdapter, _NetTypeIndex) \
-                {  \
-                    P_BSS_INFO_T _prBssInfo = &(_prAdapter->rWifiVar.arBssInfo[(_NetTypeIndex)]); \
-                    \
-                    _prBssInfo->eConnectionState = PARAM_MEDIA_STATE_DISCONNECTED; \
-                    _prBssInfo->eConnectionStateIndicated = PARAM_MEDIA_STATE_DISCONNECTED; \
-                    _prBssInfo->eCurrentOPMode = OP_MODE_BOW; \
-                    _prBssInfo->ucNetTypeIndex = (_NetTypeIndex); \
-                    _prBssInfo->ucReasonOfDisconnect = DISCONNECT_REASON_CODE_RESERVED; \
-                    LINK_INITIALIZE(&_prBssInfo->rStaRecOfClientList); \
-                    _prBssInfo->fgIsBeaconActivated = TRUE; \
-                    _prBssInfo->ucHwDefaultFixedRateCode = RATE_CCK_1M_LONG; \
-                    _prBssInfo->fgIsNetAbsent = FALSE; \
-                }
+		{  \
+		    P_BSS_INFO_T _prBssInfo = &(_prAdapter->rWifiVar.arBssInfo[(_NetTypeIndex)]); \
+		    \
+		    _prBssInfo->eConnectionState = PARAM_MEDIA_STATE_DISCONNECTED; \
+		    _prBssInfo->eConnectionStateIndicated = PARAM_MEDIA_STATE_DISCONNECTED; \
+		    _prBssInfo->eCurrentOPMode = OP_MODE_BOW; \
+		    _prBssInfo->ucNetTypeIndex = (_NetTypeIndex); \
+		    _prBssInfo->ucReasonOfDisconnect = DISCONNECT_REASON_CODE_RESERVED; \
+		    LINK_INITIALIZE(&_prBssInfo->rStaRecOfClientList); \
+		    _prBssInfo->fgIsBeaconActivated = TRUE; \
+		    _prBssInfo->ucHwDefaultFixedRateCode = RATE_CCK_1M_LONG; \
+		    _prBssInfo->fgIsNetAbsent = FALSE; \
+		}
 #endif
 
 /*----------------------------------------------------------------------------*/
 /* Macros for Power State                                                     */
 /*----------------------------------------------------------------------------*/
 #define SET_NET_PWR_STATE_IDLE(_prAdapter, _NetTypeIndex) \
-                {_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] = PWR_STATE_IDLE;}
+                {_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] = PWR_STATE_IDLE; }
 
 #define SET_NET_PWR_STATE_ACTIVE(_prAdapter, _NetTypeIndex) \
-                {_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] = PWR_STATE_ACTIVE;}
+                {_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] = PWR_STATE_ACTIVE; }
 
 #define SET_NET_PWR_STATE_PS(_prAdapter, _NetTypeIndex) \
-                {_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] = PWR_STATE_PS;}
+                {_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] = PWR_STATE_PS; }
 
 #define IS_NET_PWR_STATE_ACTIVE(_prAdapter, _NetTypeIndex) \
-                (_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] == PWR_STATE_ACTIVE)
+		(_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] == PWR_STATE_ACTIVE)
 
 #define IS_NET_PWR_STATE_IDLE(_prAdapter, _NetTypeIndex) \
-                (_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] == PWR_STATE_IDLE)
+		(_prAdapter->rWifiVar.aePwrState[(_NetTypeIndex)] == PWR_STATE_IDLE)
 
 #define IS_SCN_PWR_STATE_ACTIVE(_prAdapter) \
-                (_prAdapter->rWifiVar.rScanInfo.eScanPwrState == SCAN_PWR_STATE_ACTIVE)
+		(_prAdapter->rWifiVar.rScanInfo.eScanPwrState == SCAN_PWR_STATE_ACTIVE)
 
 #define IS_SCN_PWR_STATE_IDLE(_prAdapter) \
-                (_prAdapter->rWifiVar.rScanInfo.eScanPwrState == SCAN_PWR_STATE_IDLE)
+		(_prAdapter->rWifiVar.rScanInfo.eScanPwrState == SCAN_PWR_STATE_IDLE)
 
 /*******************************************************************************
 *                  F U N C T I O N   D E C L A R A T I O N S
@@ -1453,5 +1449,3 @@ struct _ADAPTER_T {
 */
 
 #endif /* _ADAPTER_H */
-
-

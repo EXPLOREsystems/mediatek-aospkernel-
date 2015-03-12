@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/nic/que_mgt.h#1 $
 */
 
@@ -54,10 +68,10 @@
  * 02 17 2011 eddie.chen
  * [WCXRP00000458] [MT6620 Wi-Fi][Driver] BOW Concurrent - ProbeResp was exist in other channel
  * 1) Chnage GetFrameAction decision when BSS is absent.
- * 2) Check channel and resource in processing ProbeRequest 
+ * 2) Check channel and resource in processing ProbeRequest
  *
  * 01 12 2011 eddie.chen
- * [WCXRP00000322] Add WMM IE in beacon, 
+ * [WCXRP00000322] Add WMM IE in beacon,
 
 Add per station flow control when STA is in PS
 
@@ -66,13 +80,13 @@ Add per station flow control when STA is in PS
  * 2) Check if support prAdapter->rWifiVar QoS and uapsd in flow control
  *
  * 12 29 2010 eddie.chen
- * [WCXRP00000322] Add WMM IE in beacon, 
+ * [WCXRP00000322] Add WMM IE in beacon,
 
 Add per station flow control when STA is in PS
 
 
  * 1) PS flow control event
- * 
+ *
  * 2) WMM IE in beacon, assoc resp, probe resp
  *
  * 12 23 2010 george.huang
@@ -219,24 +233,7 @@ Add per station flow control when STA is in PS
 #define QM_RX_INIT_FALL_BEHIND_PASS     1  /* 1: Indicate the packets falling behind to OS before the frame with SSN is received */
 #define QM_TC_RESOURCE_EMPTY_COUNTER    1  /* 1: Count times of TC resource empty happened */
 /* Parameters */
-
-/* ++ TDLS */
-/*
-	In TDLS or AP mode, peer maybe enter "sleep mode".
-
-	If QM_INIT_TIME_TO_UPDATE_QUE_LEN = 60 when peer is in sleep mode,
-	we need to wait 60 * u4TimeToAdjustTcResource = 180 packets
-	u4TimeToAdjustTcResource = 3,
-	then we will adjust TC resouce for VI or VO.
-
-	But in TDLS test case, the throughput is very low, only 0.8Mbps in 5.7,
-	we will to wait about 12 seconds to collect 180 packets.
-	but the test time is only 20 seconds.
-*/
-/* -- TDLS */
 #define QM_INIT_TIME_TO_UPDATE_QUE_LEN  60  /* p: Update queue lengths when p TX packets are enqueued */
-#define QM_INIT_TIME_TO_UPDATE_QUE_LEN_MIN 5 /* ++ TDLS */
-
 #define QM_INIT_TIME_TO_ADJUST_TC_RSC   3   /* s: Adjust the TC resource every s updates of queue lengths  */
 #define QM_QUE_LEN_MOVING_AVE_FACTOR    3   /* Factor for Que Len averaging */
 
@@ -256,11 +253,11 @@ Add per station flow control when STA is in PS
 #define QM_GUARANTEED_TC4_RESOURCE      2   /* Resource for TC4 is not adjustable */
 #define QM_GUARANTEED_TC5_RESOURCE      4
 
-#elif defined(MT5931) 
+#elif defined(MT5931)
 
 #define QM_GUARANTEED_TC0_RESOURCE      4
 #define QM_GUARANTEED_TC1_RESOURCE      4
-#define QM_GUARANTEED_TC2_RESOURCE      4 
+#define QM_GUARANTEED_TC2_RESOURCE      4
 #define QM_GUARANTEED_TC3_RESOURCE      4
 #define QM_GUARANTEED_TC4_RESOURCE      2   /* Resource for TC4 is not adjustable */
 #define QM_GUARANTEED_TC5_RESOURCE      2
@@ -283,20 +280,20 @@ Add per station flow control when STA is in PS
 #define QM_EXTRA_RESERVED_RESOURCE_WHEN_BUSY    0
 
 #define QM_TOTAL_TC_RESOURCE            (\
-        NIC_TX_BUFF_COUNT_TC0 + NIC_TX_BUFF_COUNT_TC1 +\
-        NIC_TX_BUFF_COUNT_TC2 + NIC_TX_BUFF_COUNT_TC3 +\
-        NIC_TX_BUFF_COUNT_TC5)
+	NIC_TX_BUFF_COUNT_TC0 + NIC_TX_BUFF_COUNT_TC1 +\
+	NIC_TX_BUFF_COUNT_TC2 + NIC_TX_BUFF_COUNT_TC3 +\
+	NIC_TX_BUFF_COUNT_TC5)
 #define QM_AVERAGE_TC_RESOURCE          6
 
 /* Note: QM_INITIAL_RESIDUAL_TC_RESOURCE shall not be less than 0 */
 /* for 6628: QM_TOTAL_TC_RESOURCE = 28, RESIDUAL = 4 4 6 6 2 4 = 26 */
 #define QM_INITIAL_RESIDUAL_TC_RESOURCE  (QM_TOTAL_TC_RESOURCE - \
-                                         (QM_GUARANTEED_TC0_RESOURCE +\
-                                          QM_GUARANTEED_TC1_RESOURCE +\
-                                          QM_GUARANTEED_TC2_RESOURCE +\
-                                          QM_GUARANTEED_TC3_RESOURCE +\
-                                          QM_GUARANTEED_TC5_RESOURCE \
-                                          ))
+					 (QM_GUARANTEED_TC0_RESOURCE +\
+					  QM_GUARANTEED_TC1_RESOURCE +\
+					  QM_GUARANTEED_TC2_RESOURCE +\
+					  QM_GUARANTEED_TC3_RESOURCE +\
+					  QM_GUARANTEED_TC5_RESOURCE \
+					  ))
 
 /* Hard-coded network type for Phase 3: NETWORK_TYPE_AIS/P2P/BOW */
 #define QM_OPERATING_NETWORK_TYPE   NETWORK_TYPE_AIS
@@ -329,7 +326,7 @@ Add per station flow control when STA is in PS
 #define TX_QUEUE_INDEX_NON_QOS      1
 
 
-//1 WMM-related
+/* 1 WMM-related */
 /* WMM FLAGS */
 #define WMM_FLAG_SUPPORT_WMM                BIT(0)
 #define WMM_FLAG_SUPPORT_WMMSA              BIT(1)
@@ -352,18 +349,18 @@ Add per station flow control when STA is in PS
 #define ELEM_MAX_LEN_WMM_PARAM              24
 
 /* WMM-2.2.1 WMM QoS Info field */
-#define WMM_QOS_INFO_PARAM_SET_CNT          BITS(0,3) /* Sent by AP */
+#define WMM_QOS_INFO_PARAM_SET_CNT          BITS(0, 3) /* Sent by AP */
 #define WMM_QOS_INFO_UAPSD                  BIT(7)
 
 #define WMM_QOS_INFO_VO_UAPSD               BIT(0) /* Sent by non-AP STA */
 #define WMM_QOS_INFO_VI_UAPSD               BIT(1)
 #define WMM_QOS_INFO_BK_UAPSD               BIT(2)
 #define WMM_QOS_INFO_BE_UAPSD               BIT(3)
-#define WMM_QOS_INFO_MAX_SP_LEN_MASK        BITS(5,6)
+#define WMM_QOS_INFO_MAX_SP_LEN_MASK        BITS(5, 6)
 #define WMM_QOS_INFO_MAX_SP_ALL             0
 #define WMM_QOS_INFO_MAX_SP_2               BIT(5)
 #define WMM_QOS_INFO_MAX_SP_4               BIT(6)
-#define WMM_QOS_INFO_MAX_SP_6               BITS(5,6)
+#define WMM_QOS_INFO_MAX_SP_6               BITS(5, 6)
 
 /* -- definitions for Max SP length field */
 #define WMM_MAX_SP_LENGTH_ALL               0
@@ -374,22 +371,22 @@ Add per station flow control when STA is in PS
 
 /* WMM-2.2.2 WMM ACI/AIFSN field */
 /* -- subfields in the ACI/AIFSN field */
-#define WMM_ACIAIFSN_AIFSN                  BITS(0,3)
+#define WMM_ACIAIFSN_AIFSN                  BITS(0, 3)
 #define WMM_ACIAIFSN_ACM                    BIT(4)
-#define WMM_ACIAIFSN_ACI                    BITS(5,6)
+#define WMM_ACIAIFSN_ACI                    BITS(5, 6)
 #define WMM_ACIAIFSN_ACI_OFFSET             5
 
 /* -- definitions for ACI field */
 #define WMM_ACI_AC_BE                       0
 #define WMM_ACI_AC_BK                       BIT(5)
 #define WMM_ACI_AC_VI                       BIT(6)
-#define WMM_ACI_AC_VO                       BITS(5,6)
+#define WMM_ACI_AC_VO                       BITS(5, 6)
 
 #define WMM_ACI(_AC)                        (_AC << WMM_ACIAIFSN_ACI_OFFSET)
 
 /* -- definitions for ECWmin/ECWmax field */
-#define WMM_ECW_WMIN_MASK                   BITS(0,3)
-#define WMM_ECW_WMAX_MASK                   BITS(4,7)
+#define WMM_ECW_WMIN_MASK                   BITS(0, 3)
+#define WMM_ECW_WMAX_MASK                   BITS(4, 7)
 #define WMM_ECW_WMAX_OFFSET                 4
 
 #define TXM_DEFAULT_FLUSH_QUEUE_GUARD_TIME              0   /* Unit: 64 us */
@@ -402,7 +399,7 @@ Add per station flow control when STA is in PS
 */
 
 enum {
-    QM_DBG_CNT_00=0,
+    QM_DBG_CNT_00 = 0,
     QM_DBG_CNT_01,
     QM_DBG_CNT_02,
     QM_DBG_CNT_03,
@@ -467,13 +464,13 @@ typedef struct _RX_BA_ENTRY_T {
 
     BOOLEAN                 fgIsWaitingForPktWithSsn;
 
-    //UINT_8                  ucTxBufferSize;
-    //BOOL                    fgIsAcConstrain;
-    //BOOL                    fgIsBaEnabled;
+    /* UINT_8                  ucTxBufferSize; */
+    /* BOOL                    fgIsAcConstrain; */
+    /* BOOL                    fgIsBaEnabled; */
 } RX_BA_ENTRY_T, *P_RX_BA_ENTRY_T;
 
 /* The mailbox message (could be used for Host-To-Device or Device-To-Host Mailbox) */
-typedef struct _MAILBOX_MSG_T{
+typedef struct _MAILBOX_MSG_T {
     UINT_32 u4Msg[2];   /* [0]: D2HRM0R or H2DRM0R, [1]: D2HRM1R or H2DRM1R */
 } MAILBOX_MSG_T, *P_MAILBOX_MSG_T;
 
@@ -484,7 +481,7 @@ typedef struct _TC_RESOURCE_CTRL_T {
     UINT_32 au4AverageQueLen[TC_NUM - 1];
 } TC_RESOURCE_CTRL_T, *P_TC_RESOURCE_CTRL_T;
 
-typedef struct _QUE_MGT_T{      /* Queue Management Control Info */
+typedef struct _QUE_MGT_T {      /* Queue Management Control Info */
 
     /* Per-Type Queues: [0] BMCAST or UNKNOWN-STA packets */
     QUE_T arTxQueue[NUM_OF_PER_TYPE_TX_QUEUES];
@@ -518,7 +515,7 @@ typedef struct _QUE_MGT_T{      /* Queue Management Control Info */
     UINT_32 au4ForwardCount[NUM_OF_PER_STA_TX_QUEUES];
 
     /* The current serving STA with respect to a TC index */
-    UINT_32 au4HeadStaRecIndex [NUM_OF_PER_STA_TX_QUEUES];
+    UINT_32 au4HeadStaRecIndex[NUM_OF_PER_STA_TX_QUEUES];
 #endif
 
 #if QM_ADAPTIVE_TC_RESOURCE_CTRL
@@ -529,7 +526,6 @@ typedef struct _QUE_MGT_T{      /* Queue Management Control Info */
 
     UINT_32 u4TimeToAdjustTcResource;
     UINT_32 u4TimeToUpdateQueLen;
-	UINT_32 u4TxNumOfVi, u4TxNumOfVo; /* number of VI/VO packets */ /* ++ TDLS */
 
     /* Set to TRUE if the last TC adjustment has not been completely applied (i.e., waiting more TX-Done events
        to align the TC quotas to the TC resource assignment) */
@@ -608,7 +604,7 @@ typedef struct _EVENT_STA_CHANGE_PS_MODE_T {
     UINT_8      ucStaRecIdx;
     BOOLEAN     fgIsInPs;
     UINT_8      ucUpdateMode;
-    UINT_8      ucFreeQuota; 
+    UINT_8      ucFreeQuota;
 } EVENT_STA_CHANGE_PS_MODE_T, *P_EVENT_STA_CHANGE_PS_MODE_T;
 
 /* The free quota is used by PS only now */
@@ -700,7 +696,7 @@ typedef struct _IE_WMM_HDR_T {
 } IE_WMM_HDR_T, *P_IE_WMM_HDR_T;
 
 
-typedef struct _AC_QUE_PARMS_T{
+typedef struct _AC_QUE_PARMS_T {
     UINT_16     u2CWmin;            /*!< CWmin */
     UINT_16     u2CWmax;            /*!< CWmax */
     UINT_16     u2TxopLimit;        /*!< TXOP limit */
@@ -795,26 +791,26 @@ typedef struct _CMD_ADDBA_REJECT {
 
 #if 0
 #define QM_GET_STA_REC_PTR_FROM_INDEX(_prAdapter, _ucIndex) \
-    ((((_ucIndex) != STA_REC_INDEX_BMCAST) && ((_ucIndex)!= STA_REC_INDEX_NOT_FOUND)) ?\
-    &(_prAdapter->arStaRec[_ucIndex]): NULL)
+    ((((_ucIndex) != STA_REC_INDEX_BMCAST) && ((_ucIndex) != STA_REC_INDEX_NOT_FOUND)) ?\
+    &(_prAdapter->arStaRec[_ucIndex]) : NULL)
 #endif
 
 #define QM_GET_STA_REC_PTR_FROM_INDEX(_prAdapter, _ucIndex) \
-    cnmGetStaRecByIndex(_prAdapter,_ucIndex)
+    cnmGetStaRecByIndex(_prAdapter, _ucIndex)
 
 
 #define QM_TX_SET_MSDU_INFO_FOR_DATA_PACKET(\
-                                        _prMsduInfo,\
-                                        _ucTC,\
-                                        _ucPacketType,\
-                                        _ucFormatID,\
-                                        _fgIs802_1x,\
-                                        _fgIs802_11,\
-                                        _u2PalLLH,\
-                                        _u2AclSN,\
-                                        _ucPsForwardingType,\
-                                        _ucPsSessionID\
-                                        ) \
+					_prMsduInfo,\
+					_ucTC,\
+					_ucPacketType,\
+					_ucFormatID,\
+					_fgIs802_1x,\
+					_fgIs802_11,\
+					_u2PalLLH,\
+					_u2AclSN,\
+					_ucPsForwardingType,\
+					_ucPsSessionID\
+					) \
 {\
     ASSERT(_prMsduInfo);\
     (_prMsduInfo)->ucTC                 = (_ucTC);\
@@ -841,7 +837,7 @@ typedef struct _CMD_ADDBA_REJECT {
     (_prStaRec)->fgIsQoS        = (_fgIsQoS);\
     (_prStaRec)->fgIsInPS         = FALSE; \
     (_prStaRec)->ucPsSessionID  = 0xFF;\
-    COPY_MAC_ADDR((_prStaRec)->aucMacAddr,(_pucMacAddr));\
+    COPY_MAC_ADDR((_prStaRec)->aucMacAddr, (_pucMacAddr));\
 }
 
 #if QM_ADAPTIVE_TC_RESOURCE_CTRL
@@ -922,7 +918,7 @@ qmDequeueTxPackets(
     );
 
 VOID
-qmAdjustTcQuotas (
+qmAdjustTcQuotas(
     IN P_ADAPTER_T  prAdapter,
     OUT P_TX_TCQ_ADJUST_T prTcqAdjust,
     IN P_TX_TCQ_STATUS_T prTcqStatus
@@ -1053,7 +1049,7 @@ qmDelRxBaEntry(
 
 
 VOID
-mqmProcessAssocRsp (
+mqmProcessAssocRsp(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T  prSwRfb,
     IN PUINT_8     pucIE,
@@ -1061,7 +1057,7 @@ mqmProcessAssocRsp (
     );
 
 VOID
-mqmParseEdcaParameters (
+mqmParseEdcaParameters(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T  prSwRfb,
     IN PUINT_8     pucIE,
@@ -1092,34 +1088,14 @@ qmGetStaRecIdx(
     IN ENUM_NETWORK_TYPE_INDEX_T    eNetworkType
     );
 
-/* ++ TDLS */
-UINT_32
-mqmGenerateWmmInfoIEByParam (
-	BOOLEAN					fgSupportUAPSD,
-	UINT_8					ucBmpDeliveryAC,
-	UINT_8					ucBmpTriggerAC,
-	UINT_8					ucUapsdSp,
-    UINT_8					*pOutBuf
-    );
-/* -- TDLS */
-
 VOID
-mqmGenerateWmmInfoIE (
+mqmGenerateWmmInfoIE(
     IN P_ADAPTER_T          prAdapter,
     IN P_MSDU_INFO_T        prMsduInfo
     );
 
-/* ++ TDLS */
-UINT_32
-mqmGenerateWmmParamIEByParam (
-	P_ADAPTER_T				prAdapter,
-	P_BSS_INFO_T			prBssInfo,
-    UINT_8					*pOutBuf
-    );
-/* -- TDLS */
-
 VOID
-mqmGenerateWmmParamIE (
+mqmGenerateWmmParamIE(
     IN P_ADAPTER_T          prAdapter,
     IN P_MSDU_INFO_T        prMsduInfo
     );
@@ -1147,7 +1123,7 @@ qmHandleEventStaChangePsMode(
     );
 
 VOID
-mqmProcessAssocReq (
+mqmProcessAssocReq(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T  prSwRfb,
     IN PUINT_8     pucIE,
@@ -1160,19 +1136,18 @@ qmHandleEventStaUpdateFreeQuota(
     IN P_WIFI_EVENT_T prEvent
     );
 
-    
+
 VOID
 qmUpdateFreeQuota(
     IN P_ADAPTER_T prAdapter,
     IN P_STA_RECORD_T prStaRec,
-    IN UINT_8 ucUpdateMode, 
-    IN UINT_8 ucFreeQuota, /* ++ TDLS */
-	IN UINT_8 ucNumOfTxDone /* ++ TDLS */
+    IN UINT_8 ucUpdateMode,
+    IN UINT_8 ucFreeQuota
     );
 
 VOID
 qmFreeAllByNetType(
-    IN P_ADAPTER_T prAdapter, 
+    IN P_ADAPTER_T prAdapter,
     IN ENUM_NETWORK_TYPE_INDEX_T eNetworkTypeIdx
     );
 
@@ -1180,7 +1155,7 @@ UINT_32
 qmGetRxReorderQueuedBufferCount(
 	IN P_ADAPTER_T  prAdapter
 	);
-   
+
 /*******************************************************************************
 *                              F U N C T I O N S
 ********************************************************************************

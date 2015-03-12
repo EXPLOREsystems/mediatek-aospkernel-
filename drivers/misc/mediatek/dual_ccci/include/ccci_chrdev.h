@@ -1,17 +1,3 @@
-/*
-* Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
-* GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with this program.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #ifndef __CCCI_CHRDEV_H__
 #define __CCCI_CHRDEV_H__
 #include <linux/list.h>
@@ -26,40 +12,40 @@
 #define DEFAULT_BUFFER (CCCI_FIFO_MAX_LEN*2)
 
 #define recv_array_is_full(array)	({	\
-	unsigned int __nr=(array)->nr;	\
-	unsigned int __idx=(array)->in_idx; \
-	WARN_ON(__idx>__nr); \
-	__nr==__idx ; 	})
+	unsigned int __nr = (array)->nr;	\
+	unsigned int __idx = (array)->in_idx; \
+	WARN_ON(__idx > __nr); \
+	__nr == __idx;	})
 
 #define recv_array_is_empty(array)	({	\
-	unsigned int __nr=(array)->in_idx;	\
-	unsigned int __idx=(array)->out_idx; \
-	WARN_ON(__idx>__nr); \
-	__nr==__idx ; })
+	unsigned int __nr = (array)->in_idx;	\
+	unsigned int __idx = (array)->out_idx; \
+	WARN_ON(__idx > __nr); \
+	__nr == __idx; })
 
 #define reset_recv_array(array)  ({ \
-	(array)->in_idx=0;	\
-	(array)->out_idx=0; })
+	(array)->in_idx = 0;	\
+	(array)->out_idx = 0; })
 
 
-#define get_first_entry(list,type,mem)	({ \
-		type * __ret;\
-		if (list_empty(list)) __ret=NULL;\
-		else __ret=list_entry((list)->next,type,mem);\
+#define get_first_entry(list, type, mem)	({ \
+		type *__ret;\
+		if (list_empty(list)) __ret = NULL;\
+		else __ret = list_entry((list)->next, type, mem);\
 		__ret; })
 
-#define get_last_entry(list,type,mem) ({ \
-		type * __ret;\
-		if (list_empty(list)) __ret=NULL;\
-		else __ret=list_entry((list)->prev,type,mem);\
+#define get_last_entry(list, type, mem) ({ \
+		type *__ret;\
+		if (list_empty(list)) __ret = NULL;\
+		else __ret = list_entry((list)->prev, type, mem);\
 		__ret; })
 
-#define ccci_get_first(_list)  get_first_entry(_list,struct recv_array,list)
-#define ccci_get_last(_list)   get_last_entry(_list,struct recv_array,list)
-#define ccci_is_last_recv(list) list_is_last((list)->next,list)
+#define ccci_get_first(_list)  get_first_entry(_list, struct recv_array, list)
+#define ccci_get_last(_list)   get_last_entry(_list, struct recv_array, list)
+#define ccci_is_last_recv(list) list_is_last((list)->next, list)
 
 
-struct recv_array{
+struct recv_array {
 	CCCI_BUFF_T *array;
 	unsigned int nr;
 	unsigned int in_idx;
@@ -67,7 +53,7 @@ struct recv_array{
 	struct list_head list;
 };
 
-struct ccci_dev_client{
+struct ccci_dev_client {
 	spinlock_t			lock;
 	atomic_t			user;
 	pid_t				pid;
@@ -88,10 +74,10 @@ typedef struct _chr_ctl_block
 	struct cdev			ccci_chrdev;
 	int					major;
 	int					minor;
-}chr_ctl_block_t;
+} chr_ctl_block_t;
 
 
-typedef struct _ccci_vir_client{
+typedef struct _ccci_vir_client {
 	spinlock_t				lock;
 	atomic_t				user;
 	pid_t					pid;
@@ -104,7 +90,7 @@ typedef struct _ccci_vir_client{
 	volatile unsigned int	wakeup_waitq;
 	struct kfifo			private_fifo;
 	int						fifo_ready;
-}ccci_vir_client_t;
+} ccci_vir_client_t;
 
 typedef struct _vir_chr_ctl_block
 {
@@ -116,11 +102,11 @@ typedef struct _vir_chr_ctl_block
 	int					minor;
 	spinlock_t			bind_lock;
 	ccci_vir_client_t	*system_msg_client;
-}vir_ctl_block_t;
+} vir_ctl_block_t;
 
 
 extern int ccci_chrdev_init(int);
 extern void ccci_chrdev_exit(int);
 
 
-#endif //__CCCI_CHRDEV_H__
+#endif /* __CCCI_CHRDEV_H__ */

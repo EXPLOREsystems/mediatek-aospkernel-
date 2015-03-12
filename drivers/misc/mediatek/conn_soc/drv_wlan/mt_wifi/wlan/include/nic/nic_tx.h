@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/nic/nic_tx.h#1 $
 */
 
@@ -79,41 +93,41 @@
  * API added: nicTxPendingPackets(), for simplifying porting layer
  *
  * 07 26 2010 cp.wu
- * 
+ *
  * change TC4 initial value from 2 to 4.
  *
  * 07 13 2010 cp.wu
- * 
+ *
  * 1) MMPDUs are now sent to MT6620 by CMD queue for keeping strict order of 1X/MMPDU/CMD packets
  * 2) integrate with qmGetFrameAction() for deciding which MMPDU/1X could pass checking for sending
  * 2) enhance CMD_INFO_T descriptor number from 10 to 32 to avoid descriptor underflow under concurrent network operation
  *
  * 07 08 2010 cp.wu
- * 
+ *
  * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
  *
  * 07 06 2010 yarco.yang
- * [WPD00003837][MT6620]Data Path Refine 
+ * [WPD00003837][MT6620]Data Path Refine
  * Add MGMT Packet type for HIF_TX_HEADER
  *
  * 06 23 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * integrate .
  *
  * 06 21 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * refine TX-DONE callback.
  *
  * 06 21 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * TX descriptors are now allocated once for reducing allocation overhead
  *
  * 06 21 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * specify correct value for management frames.
  *
  * 06 11 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * 1) migrate assoc.c.
  * 2) add ucTxSeqNum for tracking frames which needs TX-DONE awareness
  * 3) add configuration options for CNM_MEM and RSN modules
@@ -121,41 +135,41 @@
  * 5) eliminate rPacketInfo of MSDU_INFO_T
  *
  * 06 10 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * 1) add flag on MSDU_INFO_T for indicating BIP frame and forceBasicRate
  * 2) add  packet type for indicating management frames
  *
  * 06 09 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * add necessary changes to driver data paths.
  *
  * 06 09 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * add TX_PACKET_MGMT to indicate the frame is coming from management modules
  *
  * 06 07 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * merge wlan_def.h.
  *
  * 06 06 2010 kevin.huang
- * [WPD00003832][MT6620 5931] Create driver base 
+ * [WPD00003832][MT6620 5931] Create driver base
  * [MT6620 5931] Create driver base
  *
  * 03 30 2010 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP 
+ * [WPD00001943]Create WiFi test driver framework on WinXP
  * remove driver-land statistics.
  *
  * 03 24 2010 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP 
+ * [WPD00001943]Create WiFi test driver framework on WinXP
  * generate information for OID_GEN_RCV_OK & OID_GEN_XMIT_OK
- *  *  * 
+ *  *  *
  *
  * 03 10 2010 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP 
+ * [WPD00001943]Create WiFi test driver framework on WinXP
  * code clean: removing unused variables and structure definitions
  *
  * 03 02 2010 tehuang.liu
- * [WPD00001943]Create WiFi test driver framework on WinXP 
+ * [WPD00001943]Create WiFi test driver framework on WinXP
  * Redistributed the initial TC resources for normal operation
  *
  * 03 02 2010 cp.wu
@@ -271,43 +285,43 @@
 #if defined(MT6620)
 #if CFG_SLT_SUPPORT
     /* 20101215 mtk01725 Redistributed the initial TC resources for SLT operation */
-    #define NIC_TX_BUFF_COUNT_TC0       0   // First connection: 0
-    #define NIC_TX_BUFF_COUNT_TC1       16   // First connection: 32
-    #define NIC_TX_BUFF_COUNT_TC2       0   // First connection: 0
-    #define NIC_TX_BUFF_COUNT_TC3       0   // First connection: 0
-    #define NIC_TX_BUFF_COUNT_TC4       4   // First connection: 2
-    #define NIC_TX_BUFF_COUNT_TC5       0   // First connection: 0
+    #define NIC_TX_BUFF_COUNT_TC0       0   /* First connection: 0 */
+    #define NIC_TX_BUFF_COUNT_TC1       16   /* First connection: 32 */
+    #define NIC_TX_BUFF_COUNT_TC2       0   /* First connection: 0 */
+    #define NIC_TX_BUFF_COUNT_TC3       0   /* First connection: 0 */
+    #define NIC_TX_BUFF_COUNT_TC4       4   /* First connection: 2 */
+    #define NIC_TX_BUFF_COUNT_TC5       0   /* First connection: 0 */
 #else
     /* 20100302 mtk02468 Redistributed the initial TC resources for normal operation */
-    #define NIC_TX_BUFF_COUNT_TC0       6   // First connection: 0
-    #define NIC_TX_BUFF_COUNT_TC1       8   // First connection: 32
-    #define NIC_TX_BUFF_COUNT_TC2       8   // First connection: 0
-    #define NIC_TX_BUFF_COUNT_TC3       8   // First connection: 0
-    #define NIC_TX_BUFF_COUNT_TC4       4   // First connection: 2
-    #define NIC_TX_BUFF_COUNT_TC5       2   // First connection: 0
+    #define NIC_TX_BUFF_COUNT_TC0       6   /* First connection: 0 */
+    #define NIC_TX_BUFF_COUNT_TC1       8   /* First connection: 32 */
+    #define NIC_TX_BUFF_COUNT_TC2       8   /* First connection: 0 */
+    #define NIC_TX_BUFF_COUNT_TC3       8   /* First connection: 0 */
+    #define NIC_TX_BUFF_COUNT_TC4       4   /* First connection: 2 */
+    #define NIC_TX_BUFF_COUNT_TC5       2   /* First connection: 0 */
 #endif
-#elif defined(MT5931) 
-    #define NIC_TX_BUFF_COUNT_TC0       1   // First connection: 0
-    #define NIC_TX_BUFF_COUNT_TC1       14  // First connection: 32
-    #define NIC_TX_BUFF_COUNT_TC2       1   // First connection: 0
-    #define NIC_TX_BUFF_COUNT_TC3       1   // First connection: 0
-    #define NIC_TX_BUFF_COUNT_TC4       4   // First connection: 2
-    #define NIC_TX_BUFF_COUNT_TC5       1   // First connection: 0
+#elif defined(MT5931)
+    #define NIC_TX_BUFF_COUNT_TC0       1   /* First connection: 0 */
+    #define NIC_TX_BUFF_COUNT_TC1       14  /* First connection: 32 */
+    #define NIC_TX_BUFF_COUNT_TC2       1   /* First connection: 0 */
+    #define NIC_TX_BUFF_COUNT_TC3       1   /* First connection: 0 */
+    #define NIC_TX_BUFF_COUNT_TC4       4   /* First connection: 2 */
+    #define NIC_TX_BUFF_COUNT_TC5       1   /* First connection: 0 */
 #elif defined(MT6628)
-    #define NIC_TX_BUFF_COUNT_TC0       1   // First connection: 0
-    #define NIC_TX_BUFF_COUNT_TC1       20  // First connection: 32
-    #define NIC_TX_BUFF_COUNT_TC2       1   // First connection: 0
-    #define NIC_TX_BUFF_COUNT_TC3       1   // First connection: 0
-    #define NIC_TX_BUFF_COUNT_TC4       4   // First connection: 2
-    #define NIC_TX_BUFF_COUNT_TC5       1   // First connection: 0
+    #define NIC_TX_BUFF_COUNT_TC0       1   /* First connection: 0 */
+    #define NIC_TX_BUFF_COUNT_TC1       20  /* First connection: 32 */
+    #define NIC_TX_BUFF_COUNT_TC2       1   /* First connection: 0 */
+    #define NIC_TX_BUFF_COUNT_TC3       1   /* First connection: 0 */
+    #define NIC_TX_BUFF_COUNT_TC4       4   /* First connection: 2 */
+    #define NIC_TX_BUFF_COUNT_TC5       1   /* First connection: 0 */
 #endif
 
 #define NIC_TX_BUFF_SUM                     (NIC_TX_BUFF_COUNT_TC0 + \
-                                            NIC_TX_BUFF_COUNT_TC1 + \
-                                            NIC_TX_BUFF_COUNT_TC2 + \
-                                            NIC_TX_BUFF_COUNT_TC3 + \
-                                            NIC_TX_BUFF_COUNT_TC4 + \
-                                            NIC_TX_BUFF_COUNT_TC5)
+					    NIC_TX_BUFF_COUNT_TC1 + \
+					    NIC_TX_BUFF_COUNT_TC2 + \
+					    NIC_TX_BUFF_COUNT_TC3 + \
+					    NIC_TX_BUFF_COUNT_TC4 + \
+					    NIC_TX_BUFF_COUNT_TC5)
 #if CFG_ENABLE_FW_DOWNLOAD
 
     #define NIC_TX_INIT_BUFF_COUNT_TC0               8
@@ -318,23 +332,23 @@
     #define NIC_TX_INIT_BUFF_COUNT_TC5               0
 
     #define NIC_TX_INIT_BUFF_SUM                    (NIC_TX_INIT_BUFF_COUNT_TC0 + \
-                                                    NIC_TX_INIT_BUFF_COUNT_TC1 + \
-                                                    NIC_TX_INIT_BUFF_COUNT_TC2 + \
-                                                    NIC_TX_INIT_BUFF_COUNT_TC3 + \
-                                                    NIC_TX_INIT_BUFF_COUNT_TC4 + \
-                                                    NIC_TX_INIT_BUFF_COUNT_TC5)
+						    NIC_TX_INIT_BUFF_COUNT_TC1 + \
+						    NIC_TX_INIT_BUFF_COUNT_TC2 + \
+						    NIC_TX_INIT_BUFF_COUNT_TC3 + \
+						    NIC_TX_INIT_BUFF_COUNT_TC4 + \
+						    NIC_TX_INIT_BUFF_COUNT_TC5)
 
 #endif
 
 #if CFG_ENABLE_PKT_LIFETIME_PROFILE
-#define NIC_TX_TIME_THRESHOLD                       100     //in unit of ms
+#define NIC_TX_TIME_THRESHOLD                       100     /* in unit of ms */
 #endif
 
 /*******************************************************************************
 *                             D A T A   T Y P E S
 ********************************************************************************
 */
-//3 /* Session for TX QUEUES */
+/* 3 /* Session for TX QUEUES */ */
 /* The definition in this ENUM is used to categorize packet's Traffic Class according
  * to the their TID(User Priority).
  * In order to achieve QoS goal, a particular TC should not block the process of
@@ -384,7 +398,7 @@ typedef struct _TX_CTRL_T {
 
     /* Management Frame Tracking */
     /* number of management frames to be sent */
-    INT_32                  i4TxMgmtPendingNum; 
+    INT_32                  i4TxMgmtPendingNum;
 
     /* to tracking management frames need TX done callback */
     QUE_T                   rTxMgmtTxingQueue;
@@ -421,13 +435,13 @@ typedef enum _ENUM_TX_RESULT_CODE_T {
     TX_RESULT_RTS_ERROR,
     TX_RESULT_MPDU_ERROR,
     TX_RESULT_AGING_TIMEOUT,
-    TX_RESULT_FLUSHED, 
+    TX_RESULT_FLUSHED,
     TX_RESULT_DROPPED_IN_DRIVER = 32,
     TX_RESULT_NUM
 } ENUM_TX_RESULT_CODE_T, *P_ENUM_TX_RESULT_CODE_T;
 
 /* TX Call Back Function  */
-typedef WLAN_STATUS (*PFN_TX_DONE_HANDLER) (
+typedef WLAN_STATUS(*PFN_TX_DONE_HANDLER) (
     IN P_ADAPTER_T              prAdapter,
     IN P_MSDU_INFO_T            prMsduInfo,
     IN ENUM_TX_RESULT_CODE_T    rTxDoneStatus
@@ -441,16 +455,16 @@ typedef struct _PKT_PROFILE_T {
     UINT_16 u2IpSn;
     UINT_16 u2RtpSn;
     UINT_8  ucTcxFreeCount;
-#endif    
+#endif
     OS_SYSTIME rHardXmitArrivalTimestamp;
     OS_SYSTIME rEnqueueTimestamp;
     OS_SYSTIME rDequeueTimestamp;
     OS_SYSTIME rHifTxDoneTimestamp;
-}PKT_PROFILE_T, *P_PKT_PROFILE_T;
+} PKT_PROFILE_T, *P_PKT_PROFILE_T;
 #endif
 
 /* TX transactions could be divided into 4 kinds:
- * 
+ *
  * 1) 802.1X / Bluetooth-over-Wi-Fi Security Frames
  *    [CMD_INFO_T] - [prPacket] - in skb or NDIS_PACKET form
  *
@@ -526,43 +540,43 @@ struct _MSDU_INFO_T {
 */
 
 #define TX_INC_CNT(prTxCtrl, eCounter)              \
-    {((P_TX_CTRL_T)prTxCtrl)->au4Statistics[eCounter]++;}
+    {((P_TX_CTRL_T)prTxCtrl)->au4Statistics[eCounter]++; }
 
 #define TX_ADD_CNT(prTxCtrl, eCounter, u8Amount)    \
-    {((P_TX_CTRL_T)prTxCtrl)->au4Statistics[eCounter] += (UINT_32)u8Amount;}
+    {((P_TX_CTRL_T)prTxCtrl)->au4Statistics[eCounter] += (UINT_32)u8Amount; }
 
 #define TX_GET_CNT(prTxCtrl, eCounter)              \
     (((P_TX_CTRL_T)prTxCtrl)->au4Statistics[eCounter])
 
 #define TX_RESET_ALL_CNTS(prTxCtrl)                 \
-    {kalMemZero(&prTxCtrl->au4Statistics[0], sizeof(prTxCtrl->au4Statistics));}
+    {kalMemZero(&prTxCtrl->au4Statistics[0], sizeof(prTxCtrl->au4Statistics)); }
 
 #if CFG_ENABLE_PKT_LIFETIME_PROFILE
 #define PRINT_PKT_PROFILE(_pkt_profile, _note) \
     { \
-        if(!(_pkt_profile)->fgIsPrinted) { \
-            DBGLOG(TX, TRACE, ("X[%lu] E[%lu] D[%lu] HD[%lu] B[%d] RTP[%d] %s\n", \
-                    (UINT_32)((_pkt_profile)->rHardXmitArrivalTimestamp), \
-                    (UINT_32)((_pkt_profile)->rEnqueueTimestamp), \
-                    (UINT_32)((_pkt_profile)->rDequeueTimestamp), \
-                    (UINT_32)((_pkt_profile)->rHifTxDoneTimestamp), \
-                    (UINT_8)((_pkt_profile)->ucTcxFreeCount), \
-                    (UINT_16)((_pkt_profile)->u2RtpSn), \
-                    (_note))); \
-            (_pkt_profile)->fgIsPrinted = TRUE; \
-        } \
+	if (!(_pkt_profile)->fgIsPrinted) { \
+	    DBGLOG(TX, TRACE, ("X[%lu] E[%lu] D[%lu] HD[%lu] B[%d] RTP[%d] %s\n", \
+		    (UINT_32)((_pkt_profile)->rHardXmitArrivalTimestamp), \
+		    (UINT_32)((_pkt_profile)->rEnqueueTimestamp), \
+		    (UINT_32)((_pkt_profile)->rDequeueTimestamp), \
+		    (UINT_32)((_pkt_profile)->rHifTxDoneTimestamp), \
+		    (UINT_8)((_pkt_profile)->ucTcxFreeCount), \
+		    (UINT_16)((_pkt_profile)->u2RtpSn), \
+		    (_note))); \
+	    (_pkt_profile)->fgIsPrinted = TRUE; \
+	} \
     }
 
 #define CHK_PROFILES_DELTA(_pkt1, _pkt2, _delta) \
-           (CHECK_FOR_TIMEOUT((_pkt1)->rHardXmitArrivalTimestamp, (_pkt2)->rHardXmitArrivalTimestamp, (_delta)) || \
-            CHECK_FOR_TIMEOUT((_pkt1)->rEnqueueTimestamp, (_pkt2)->rEnqueueTimestamp, (_delta)) || \
-            CHECK_FOR_TIMEOUT((_pkt1)->rDequeueTimestamp, (_pkt2)->rDequeueTimestamp, (_delta)) || \
-            CHECK_FOR_TIMEOUT((_pkt1)->rHifTxDoneTimestamp, (_pkt2)->rHifTxDoneTimestamp, (_delta)))
+	   (CHECK_FOR_TIMEOUT((_pkt1)->rHardXmitArrivalTimestamp, (_pkt2)->rHardXmitArrivalTimestamp, (_delta)) || \
+	    CHECK_FOR_TIMEOUT((_pkt1)->rEnqueueTimestamp, (_pkt2)->rEnqueueTimestamp, (_delta)) || \
+	    CHECK_FOR_TIMEOUT((_pkt1)->rDequeueTimestamp, (_pkt2)->rDequeueTimestamp, (_delta)) || \
+	    CHECK_FOR_TIMEOUT((_pkt1)->rHifTxDoneTimestamp, (_pkt2)->rHifTxDoneTimestamp, (_delta)))
 
 #define CHK_PROFILE_DELTA(_pkt, _delta) \
-           (CHECK_FOR_TIMEOUT((_pkt)->rEnqueueTimestamp, (_pkt)->rHardXmitArrivalTimestamp, (_delta)) || \
-            CHECK_FOR_TIMEOUT((_pkt)->rDequeueTimestamp, (_pkt)->rEnqueueTimestamp, (_delta)) || \
-            CHECK_FOR_TIMEOUT((_pkt)->rHifTxDoneTimestamp, (_pkt)->rDequeueTimestamp, (_delta))) 
+	   (CHECK_FOR_TIMEOUT((_pkt)->rEnqueueTimestamp, (_pkt)->rHardXmitArrivalTimestamp, (_delta)) || \
+	    CHECK_FOR_TIMEOUT((_pkt)->rDequeueTimestamp, (_pkt)->rEnqueueTimestamp, (_delta)) || \
+	    CHECK_FOR_TIMEOUT((_pkt)->rHifTxDoneTimestamp, (_pkt)->rDequeueTimestamp, (_delta)))
 #endif
 
 /*******************************************************************************
@@ -570,120 +584,120 @@ struct _MSDU_INFO_T {
 ********************************************************************************
 */
 VOID
-nicTxInitialize (
+nicTxInitialize(
     IN P_ADAPTER_T  prAdapter
     );
 
 WLAN_STATUS
-nicTxAcquireResource (
+nicTxAcquireResource(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_8       ucTC
     );
 
 WLAN_STATUS
-nicTxPollingResource (
+nicTxPollingResource(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_8       ucTC
     );
 
 BOOLEAN
-nicTxReleaseResource (
+nicTxReleaseResource(
     IN P_ADAPTER_T  prAdapter,
-    IN UINT_8*      aucTxRlsCnt
+    IN UINT_8 *aucTxRlsCnt
     );
 
 WLAN_STATUS
-nicTxResetResource (
+nicTxResetResource(
     IN P_ADAPTER_T  prAdapter
     );
 
 UINT_8
-nicTxGetResource (
+nicTxGetResource(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_8       ucTC
     );
 
 WLAN_STATUS
-nicTxMsduInfoList (
+nicTxMsduInfoList(
     IN P_ADAPTER_T      prAdapter,
     IN P_MSDU_INFO_T    prMsduInfoListHead
     );
 
 WLAN_STATUS
-nicTxMsduQueue (
+nicTxMsduQueue(
     IN P_ADAPTER_T  prAdapter,
     UINT_8          ucPortIdx,
     P_QUE_T         prQue
     );
 
 WLAN_STATUS
-nicTxCmd (
+nicTxCmd(
     IN P_ADAPTER_T      prAdapter,
     IN P_CMD_INFO_T     prCmdInfo,
     IN UINT_8           ucTC
     );
 
 VOID
-nicTxRelease (
+nicTxRelease(
     IN P_ADAPTER_T  prAdapter
     );
 
 VOID
-nicProcessTxInterrupt (
+nicProcessTxInterrupt(
     IN P_ADAPTER_T  prAdapter
     );
 
 VOID
-nicTxFreeMsduInfoPacket (
+nicTxFreeMsduInfoPacket(
     IN P_ADAPTER_T    prAdapter,
     IN P_MSDU_INFO_T  prMsduInfoListHead
     );
 
 VOID
-nicTxReturnMsduInfo (
+nicTxReturnMsduInfo(
     IN P_ADAPTER_T    prAdapter,
     IN P_MSDU_INFO_T  prMsduInfoListHead
     );
 
 BOOLEAN
-nicTxFillMsduInfo (
+nicTxFillMsduInfo(
     IN P_ADAPTER_T    prAdapter,
     IN P_MSDU_INFO_T  prMsduInfo,
     IN P_NATIVE_PACKET   prNdisPacket
     );
 
 WLAN_STATUS
-nicTxAdjustTcq (
+nicTxAdjustTcq(
     IN P_ADAPTER_T  prAdapter
     );
 
 WLAN_STATUS
-nicTxFlush (
+nicTxFlush(
     IN P_ADAPTER_T  prAdapter
     );
 
 #if CFG_ENABLE_FW_DOWNLOAD
 WLAN_STATUS
-nicTxInitCmd (
+nicTxInitCmd(
     IN P_ADAPTER_T      prAdapter,
     IN P_CMD_INFO_T     prCmdInfo,
     IN UINT_8           ucTC
     );
 
 WLAN_STATUS
-nicTxInitResetResource (
+nicTxInitResetResource(
     IN P_ADAPTER_T  prAdapter
     );
 #endif
 
 WLAN_STATUS
-nicTxEnqueueMsdu (
+nicTxEnqueueMsdu(
     IN P_ADAPTER_T      prAdapter,
     IN P_MSDU_INFO_T    prMsduInfo
     );
 
 UINT_32
-nicTxGetFreeCmdCount (
+nicTxGetFreeCmdCount(
     IN P_ADAPTER_T  prAdapter
     );
 
@@ -693,5 +707,3 @@ nicTxGetFreeCmdCount (
 */
 
 #endif /* _NIC_TX_H */
-
-

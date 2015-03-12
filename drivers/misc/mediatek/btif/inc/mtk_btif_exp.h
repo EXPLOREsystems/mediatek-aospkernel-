@@ -73,7 +73,7 @@ typedef int (*MTK_WCN_BTIF_RX_CB) (const unsigned char *p_buf,
 *      including read/write/dpidle_ctrl/rx_cb_retister
 *      this user id is only an identifier used for owner identification
 *****************************************************************************/
-const int mtk_wcn_btif_open(char *p_owner, unsigned long *p_id);
+const int mtk_wcn_btif_open(char *p_owner, unsigned int *p_id);
 
 /*****************************************************************************
 * FUNCTION
@@ -87,7 +87,7 @@ const int mtk_wcn_btif_open(char *p_owner, unsigned long *p_id);
 *  int         0 = succeed;
 *  others = fail, for detailed information, please see ENUM_BTIF_OP_ERROR_CODE
 *****************************************************************************/
-int mtk_wcn_btif_close(unsigned long u_id);
+int mtk_wcn_btif_close(unsigned int u_id);
 
 /*****************************************************************************
 * FUNCTION
@@ -125,7 +125,7 @@ int mtk_wcn_btif_close(unsigned long u_id);
 *        E_BTIF_INVAL_PARAM will be returned if parameter is not valid
 
 *****************************************************************************/
-int mtk_wcn_btif_write(unsigned long u_id,
+int mtk_wcn_btif_write(unsigned int u_id,
 		       const unsigned char *p_buf, unsigned int len);
 
 /*****************************************************************************
@@ -141,7 +141,7 @@ int mtk_wcn_btif_write(unsigned long u_id,
 *  int          positive: data length read from BTIF;
 *  negative: please see ENUM_BTIF_OP_ERROR_CODE
 *****************************************************************************/
-int mtk_wcn_btif_read(unsigned long u_id,
+int mtk_wcn_btif_read(unsigned int u_id,
 		      unsigned char *p_buf, unsigned int max_len);
 
 /*****************************************************************************
@@ -155,7 +155,7 @@ int mtk_wcn_btif_read(unsigned long u_id,
 * RETURNS
 *  int          always return 0
 *****************************************************************************/
-int mtk_wcn_btif_dpidle_ctrl(unsigned long u_id, ENUM_BTIF_DPIDLE_CTRL en_flag);
+int mtk_wcn_btif_dpidle_ctrl(unsigned int u_id, ENUM_BTIF_DPIDLE_CTRL en_flag);
 
 /*****************************************************************************
 * FUNCTION
@@ -170,7 +170,7 @@ int mtk_wcn_btif_dpidle_ctrl(unsigned long u_id, ENUM_BTIF_DPIDLE_CTRL en_flag);
 *  int          0 = succeed;
 *  others = fail, for detailed information, please see ENUM_BTIF_OP_ERROR_CODE
 *****************************************************************************/
-int mtk_wcn_btif_rx_cb_register(unsigned long u_id, MTK_WCN_BTIF_RX_CB rx_cb);
+int mtk_wcn_btif_rx_cb_register(unsigned int u_id, MTK_WCN_BTIF_RX_CB rx_cb);
 
 /*****************************************************************************
 * FUNCTION
@@ -185,7 +185,7 @@ int mtk_wcn_btif_rx_cb_register(unsigned long u_id, MTK_WCN_BTIF_RX_CB rx_cb);
 *  int          0 = succeed;
 *  others = fail, for detailed information, please see ENUM_BTIF_OP_ERROR_CODE
 *****************************************************************************/
-int mtk_wcn_btif_wakeup_consys(unsigned long u_id);
+int mtk_wcn_btif_wakeup_consys(unsigned int u_id);
 
 /*--------------End of Normal Mode API declearation----------------*/
 
@@ -207,7 +207,7 @@ int mtk_wcn_btif_wakeup_consys(unsigned long u_id);
 *  int          0 = succeed;
 *  others = fail, for detailed information, please see ENUM_BTIF_OP_ERROR_CODE
 *****************************************************************************/
-int mtk_wcn_btif_loopback_ctrl(unsigned long u_id, ENUM_BTIF_LPBK_MODE enable);
+int mtk_wcn_btif_loopback_ctrl(unsigned int u_id, ENUM_BTIF_LPBK_MODE enable);
 
 /*****************************************************************************
 * FUNCTION
@@ -228,7 +228,7 @@ int mtk_wcn_btif_loopback_ctrl(unsigned long u_id, ENUM_BTIF_LPBK_MODE enable);
 *        others = fail, for detailed information,
 *        please see ENUM_BTIF_OP_ERROR_CODE
 *****************************************************************************/
-int mtk_wcn_btif_dbg_ctrl(unsigned long u_id, ENUM_BTIF_DBG_ID flag);
+int mtk_wcn_btif_dbg_ctrl(unsigned int u_id, ENUM_BTIF_DBG_ID flag);
 /*-----------End of Debug Purpose API declearation------------*/
 
 int mtk_btif_exp_open_test(void);

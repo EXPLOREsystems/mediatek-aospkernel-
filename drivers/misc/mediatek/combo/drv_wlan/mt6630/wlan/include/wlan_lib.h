@@ -440,7 +440,11 @@
 #define NVRAM_ERROR_INVALID_TXPWR           BIT(2)
 #define NVRAM_ERROR_INVALID_DPD             BIT(3)
 #define NVRAM_ERROR_INVALID_MAC_ADDR        BIT(4)
+#if CFG_SUPPORT_PWR_LIMIT_COUNTRY
+#define NVRAM_POWER_LIMIT_TABLE_INVALID     BIT(5)
+#endif
 
+#define NUM_TC_RESOURCE_TO_STATISTICS       4
 
 #define WLAN_CFG_ARGV_MAX 8
 #define WLAN_CFG_ENTRY_NUM_MAX 128
@@ -449,8 +453,18 @@
 #define WLAN_CFG_FLAG_SKIP_CB BIT(0)
 #define WLAN_CFG_FILE_BUF_SIZE 2048
 
+#define WLAN_CFG_SET_CHIP_LEN_MAX 10
+#define WLAN_CFG_SET_DEBUG_LEVEL_LEN_MAX 10
+#define WLAN_CFG_SET_SW_CTRL_LEN_MAX 10
 
 
+#define WLAN_OID_TIMEOUT_THRESHOLD                  2000	/* OID timeout (in ms) */
+#define WLAN_OID_TIMEOUT_THRESHOLD_IN_RESETING      300	/* OID timeout during chip-reseting  (in ms) */
+
+#define WLAN_OID_NO_ACK_THRESHOLD                   3
+
+#define WLAN_TX_THREAD_TASK_PRIORITY        0	/* If not setting the priority, 0 is the default */
+#define WLAN_TX_THREAD_TASK_NICE            (-10)	/* If not setting the nice, -10 is the default */
 /*******************************************************************************
 *                             D A T A   T Y P E S
 ********************************************************************************
@@ -611,6 +625,11 @@ typedef struct _SET_TXPWR_CTRL_T {
 	INT_8 acReserved2[2];	/* Must be zero */
 } SET_TXPWR_CTRL_T, *P_SET_TXPWR_CTRL_T;
 
+typedef enum _ENUM_NVRAM_MTK_FEATURE_T {
+  MTK_FEATURE_2G_256QAM_DISABLED = 0,
+  MTK_FEATURE_NUM
+} ENUM_NVRAM_MTK_FEATURES_T, *P_ENUM_NVRAM_MTK_FEATURES_T;
+
 /* For storing driver initialization value from glue layer */
 typedef struct _REG_INFO_T {
 	UINT_32 u4SdBlockSize;	/* SDIO block size */
@@ -653,6 +672,10 @@ typedef struct _REG_INFO_T {
 	UINT_32 fgDisRoaming;	/* 0:enable roaming 1:disable */
 
 	/* NVRAM - MP Data -START- */
+#if 1
+	UINT_16 u2Part1OwnVersion;
+	UINT_16 u2Part1PeerVersion;
+#endif
 	UINT_8 aucMacAddr[6];
 	UINT_16 au2CountryCode[4];	/* Country code (in ISO 3166-1 expression, ex: "US", "TW")  */
 	TX_PWR_PARAM_T rTxPwr;
@@ -674,9 +697,14 @@ typedef struct _REG_INFO_T {
 	UINT_8 uc2G4BwFixed20M;
 	UINT_8 uc5GBwFixed20M;
 	UINT_8 ucEnable5GBand;
+	UINT_8 ucGpsDesense;
+	UINT_8 ucRxDiversity;
 	/* NVRAM - Functional Data -END- */
 
 	P_NEW_EFUSE_MAPPING2NVRAM_T prOldEfuseMapping;
+
+	UINT_8 aucNvram[512];
+	P_WIFI_CFG_PARAM_STRUCT prNvramSettings;
 
 } REG_INFO_T, *P_REG_INFO_T;
 
@@ -701,6 +729,48 @@ typedef struct _PARAM_MCR_RW_STRUC_T {
 	UINT_32 u4McrData;
 } PARAM_MCR_RW_STRUC_T, *P_PARAM_MCR_RW_STRUC_T;
 
+typedef struct _PARAM_GET_STA_STATISTICS {
+	/* Per-STA statistic */
+	UINT_8 aucMacAddr[MAC_ADDR_LEN];
+
+	UINT_32 u4Flag;
+
+	UINT_8 ucReadClear;
+
+	/* From driver */
+	UINT_32 u4TxTotalCount;
+	UINT_32 u4TxExceedThresholdCount;
+
+	UINT_32 u4TxMaxTime;
+	UINT_32 u4TxAverageProcessTime;
+
+	UINT_32 u4RxTotalCount;
+
+	UINT_32 au4TcResourceEmptyCount[NUM_TC_RESOURCE_TO_STATISTICS];
+	UINT_32 au4TcQueLen[NUM_TC_RESOURCE_TO_STATISTICS];
+
+	/* From FW */
+	UINT_8 ucPer;		/* base: 128 */
+	UINT_8 ucRcpi;
+	UINT_32 u4PhyMode;
+	UINT_16 u2LinkSpeed;	/* unit is 0.5 Mbits */
+
+	UINT_32 u4TxFailCount;
+	UINT_32 u4TxLifeTimeoutCount;
+
+	UINT_32 u4TxAverageAirTime;
+	UINT_32 u4TransmitCount;	/* Transmit in the air (wtbl) */
+	UINT_32 u4TransmitFailCount;	/* Transmit without ack/ba in the air (wtbl) */
+
+	/* Global queue management statistic */
+	UINT_32 au4TcAverageQueLen[NUM_TC_RESOURCE_TO_STATISTICS];
+	UINT_32 au4TcCurrentQueLen[NUM_TC_RESOURCE_TO_STATISTICS];
+
+	/* Reserved fields */
+	UINT_8 au4Reserved[32];
+} PARAM_GET_STA_STA_STATISTICS, *P_PARAM_GET_STA_STATISTICS;
+
+
 typedef struct _NET_INTERFACE_INFO_T {
 	UINT_8 ucBssIndex;
 	PVOID pvNetInterface;
@@ -708,6 +778,10 @@ typedef struct _NET_INTERFACE_INFO_T {
 
 typedef struct _SEC_FRAME_INFO_T {
 	BOOLEAN fgIsProtected;
+#if CFG_SUPPORT_MULTITHREAD
+	/* Compose TxDesc in tx_thread and place here */
+	UINT_8 ucTxDescBuffer[DWORD_TO_BYTE(7)];
+#endif
 } SEC_FRAME_INFO_T, *P_SEC_FRAME_INFO_T;
 
 typedef enum _ENUM_TX_RESULT_CODE_T {
@@ -740,7 +814,75 @@ struct _WLAN_CFG_T {
 	WLAN_CFG_ENTRY_T arWlanCfgBuf[WLAN_CFG_ENTRY_NUM_MAX];
 };
 
+typedef enum _ENUM_MAX_BANDWIDTH_SETTING_T {
+	MAX_BW_20MHZ = 0,
+	MAX_BW_40MHZ,
+	MAX_BW_80MHZ,
+	MAX_BW_160MHZ,
+	MAX_BW_80_80_MHZ
+} ENUM_MAX_BANDWIDTH_SETTING, *P_ENUM_MAX_BANDWIDTH_SETTING_T;
+#if CFG_AUTO_CHANNEL_SEL_SUPPORT
 
+typedef struct _LTE_SAFE_CH_INFO_T {
+	UINT_32 u4SafeChannelBitmask[4];
+} LTE_SAFE_CH_INFO_T, *P_CMD_LTE_SAFE_CH_INFO_T;
+
+/* Record Each CH Load */
+typedef struct _PARAM_CHN_LOAD_INFO {
+	/* Per-CHN Load */
+	UINT_32 u4Flag;
+	UINT_8 ucChannel;
+	UINT_16 u2ChannelLoad;
+	UINT_8 au4Reserved0[1];
+	UINT_16 u2APNum;
+	UINT_16 u2APNumTmpCountingBuf;
+	/* Reserved fields */
+	UINT_8 au4Reserved1[8];
+} PARAM_CHN_LOAD_INFO, *P_PARAM_CHN_LOAD_INFO;
+
+typedef struct _PARAM_GET_CHN_LOAD {
+	LTE_SAFE_CH_INFO_T rLteSafeChnList;
+	PARAM_CHN_LOAD_INFO rEachChnLoad[MAX_AUTO_CHAL_NUM];
+	BOOLEAN fgDataReadyBit;
+	UINT_8 au4Reserved[3];
+} PARAM_GET_CHN_LOAD, *P_PARAM_GET_CHN_LOAD;
+
+typedef struct _PARAM_PREFER_CHN_INFO {
+	UINT_8 ucChannel;
+	UINT_16 u2APNum;
+	UINT_8 au4Reserved[1];
+} PARAM_PREFER_CHN_INFO, *P_PARAM_PREFER_CHN_INFO;
+
+
+typedef struct _PARAM_GET_LTE_MODE {
+	/* Event Body */
+	UINT_8 ucVersion;
+	UINT_8 aucReserved0[3];
+	UINT_32 u4Flags;	/* Bit0: valid */
+	LTE_SAFE_CH_INFO_T LTE_MODE;
+	UINT_8 aucReserved1[4];
+	UINT_8 aucReserved2[4];
+} PARAM_GET_LTE_MODE, *P_PARAM_GET_LTE_MODE;
+
+#endif
+
+typedef struct _TX_PACKET_INFO {
+    UINT_8 ucPriorityParam;
+    UINT_32 u4PacketLen;
+    UINT_8 aucEthDestAddr[MAC_ADDR_LEN];
+    BOOLEAN fgIs1X;
+    BOOLEAN fgIsPAL;
+    BOOLEAN fgIs802_3;
+    BOOLEAN fgIsVlanExists;
+} TX_PACKET_INFO, *P_TX_PACKET_INFO;
+
+typedef enum _ENUM_TX_PROFILING_TAG_T {
+    TX_PROF_TAG_OS_TO_DRV = 0,
+    TX_PROF_TAG_DRV_ENQUE,
+    TX_PROF_TAG_DRV_DEQUE,
+    TX_PROF_TAG_DRV_TX_DONE,
+    TX_PROF_TAG_MAC_TX_DONE
+} ENUM_TX_PROFILING_TAG_T, *P_ENUM_TX_PROFILING_TAG_T;
 
 /*******************************************************************************
 *                            P U B L I C   D A T A
@@ -801,17 +943,25 @@ WLAN_STATUS wlanSendCommandMthread(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prC
 WLAN_STATUS wlanTxCmdMthread(IN P_ADAPTER_T prAdapter);
 
 WLAN_STATUS wlanTxCmdDoneMthread(IN P_ADAPTER_T prAdapter);
+
+VOID wlanClearTxCommandQueue(IN P_ADAPTER_T prAdapter);
+
+VOID wlanClearTxCommandDoneQueue(IN P_ADAPTER_T prAdapter);
+
+VOID wlanClearDataQueue(IN P_ADAPTER_T prAdapter);
+
+VOID wlanClearRxToOsQueue(IN P_ADAPTER_T prAdapter);
 #endif
 
 VOID
 wlanReleaseCommand(IN P_ADAPTER_T prAdapter,
 		   IN P_CMD_INFO_T prCmdInfo, IN ENUM_TX_RESULT_CODE_T rTxDoneStatus);
 
-VOID wlanReleasePendingOid(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Data);
+VOID wlanReleasePendingOid(IN P_ADAPTER_T prAdapter, IN ULONG ulParamPtr);
 
 VOID wlanReleasePendingCMDbyBssIdx(IN P_ADAPTER_T prAdapter, IN UINT_8 ucBssIndex);
 
-VOID wlanReturnPacketDelaySetupTimeout(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Data);
+VOID wlanReturnPacketDelaySetupTimeout(IN P_ADAPTER_T prAdapter, IN ULONG ulParamPtr);
 
 VOID wlanReturnPacket(IN P_ADAPTER_T prAdapter, IN PVOID pvPacket);
 
@@ -853,6 +1003,16 @@ wlanImageSectionConfig(IN P_ADAPTER_T prAdapter,
 WLAN_STATUS
 wlanImageSectionDownload(IN P_ADAPTER_T prAdapter,
 			 IN UINT_32 u4ImgSecSize, IN PUINT_8 pucImgSecBuf);
+
+VOID
+wlanFwDvdDwnloadHandler(IN P_ADAPTER_T prAdapter,
+		IN P_FIRMWARE_DIVIDED_DOWNLOAD_T prFwHead, IN PVOID pvFwImageMapFile, OUT WLAN_STATUS *u4Status);
+
+VOID
+wlanFwDwnloadHandler(IN P_ADAPTER_T prAdapter,
+	IN UINT_32 u4FwImgLength, IN PVOID pvFwImageMapFile, OUT WLAN_STATUS *u4Status);
+
+
 
 #if !CFG_ENABLE_FW_DOWNLOAD_ACK
 WLAN_STATUS wlanImageQueryStatus(IN P_ADAPTER_T prAdapter);
@@ -999,6 +1159,14 @@ UINT_8 wlanGetChannelNumberByNetwork(IN P_ADAPTER_T prAdapter, IN UINT_8 ucBssIn
 WLAN_STATUS wlanCheckSystemConfiguration(IN P_ADAPTER_T prAdapter);
 
 /*----------------------------------------------------------------------------*/
+/* query sta statistics information from driver and firmware                  */
+/*----------------------------------------------------------------------------*/
+WLAN_STATUS
+wlanoidQueryStaStatistics(IN P_ADAPTER_T prAdapter,
+			  IN PVOID pvQueryBuffer,
+			  IN UINT_32 u4QueryBufferLen, OUT PUINT_32 pu4QueryInfoLen);
+
+/*----------------------------------------------------------------------------*/
 /* query NIC resource information from chip and reset Tx resource for normal operation        */
 /*----------------------------------------------------------------------------*/
 VOID wlanQueryNicResourceInformation(IN P_ADAPTER_T prAdapter);
@@ -1022,6 +1190,14 @@ PVOID wlanGetNetInterfaceByBssIdx(IN P_GLUE_INFO_T prGlueInfo, IN UINT_8 ucBssIn
 UINT_8 wlanGetAisBssIndex(IN P_ADAPTER_T prAdapter);
 
 VOID wlanInitFeatureOption(IN P_ADAPTER_T prAdapter);
+
+VOID wlanCfgSetSwCtrl(IN P_ADAPTER_T prAdapter);
+
+VOID wlanCfgSetChip(IN P_ADAPTER_T prAdapter);
+
+VOID wlanCfgSetDebugLevel(IN P_ADAPTER_T prAdapter);
+
+VOID wlanCfgSetCountryCode(IN P_ADAPTER_T prAdapter);
 
 P_WLAN_CFG_ENTRY_T wlanCfgGetEntry(IN P_ADAPTER_T prAdapter, const PCHAR pucKey);
 
@@ -1055,6 +1231,12 @@ INT_32 wlanHexToByte(PCHAR hex);
 
 INT_32 wlanHwAddrToBin(PCHAR txt, UINT_8 *addr);
 
+BOOLEAN wlanIsChipNoAck(IN P_ADAPTER_T prAdapter);
 
+VOID wlanTxProfilingTagPacket(IN P_ADAPTER_T prAdapter,
+    IN P_NATIVE_PACKET prPacket, IN ENUM_TX_PROFILING_TAG_T eTag);
+
+VOID wlanTxProfilingTagMsdu(IN P_ADAPTER_T prAdapter,
+    IN P_MSDU_INFO_T prMsduInfo, IN ENUM_TX_PROFILING_TAG_T eTag);
 
 #endif				/* _WLAN_LIB_H */

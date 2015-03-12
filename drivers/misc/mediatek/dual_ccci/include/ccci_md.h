@@ -1,17 +1,3 @@
-/*
-* Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
-* GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with this program.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
-
 /*****************************************************************************
  *
  * Filename:
@@ -38,9 +24,9 @@
 #define MD_BOOT_CMD_CHAR '0'
 #define NORMAL_BOOT_ID 0
 #define META_BOOT_ID 1
-//#define MD_RUNTIME_ADDR (CCIF_BASE + 0x0140)
-//#define SLEEP_CON 0xF0001204
-//#define CCCI_CURRENT_VERSION 0x00000923
+/* #define MD_RUNTIME_ADDR (CCIF_BASE + 0x0140) */
+/* #define SLEEP_CON 0xF0001204 */
+/* #define CCCI_CURRENT_VERSION 0x00000923 */
 #define NR_CCCI_RESET_USER 10
 #define NR_CCCI_RESET_USER_NAME 16
 
@@ -57,27 +43,27 @@
 #define MD_IMG_MAX_CNT	0x4
 /*-----------------------------------------------------------*/
 /* Device ID assignment */
-#define CCCI_TTY_DEV_MAJOR		(169)	//(0: Modem; 1: Meta; 2:IPC)
+#define CCCI_TTY_DEV_MAJOR		(169)	/* (0: Modem; 1: Meta; 2:IPC) */
 
 
-enum { 
-	MD_BOOT_STAGE_0 = 0, 
-	MD_BOOT_STAGE_1 = 1, 
+enum {
+	MD_BOOT_STAGE_0 = 0,
+	MD_BOOT_STAGE_1 = 1,
 	MD_BOOT_STAGE_2 = 2,
 	MD_BOOT_STAGE_EXCEPTION = 3
 };
 
-enum { 
-	MD_INIT_START_BOOT = 0x00000000, 
+enum {
+	MD_INIT_START_BOOT = 0x00000000,
 	MD_INIT_CHK_ID = 0x5555FFFF,
-	MD_EX = 0x00000004, 
+	MD_EX = 0x00000004,
 	MD_EX_CHK_ID = 0x45584350,
-	MD_EX_REC_OK = 0x00000006, 
-	MD_EX_REC_OK_CHK_ID = 0x45524543, 
-	MD_EX_RESUME_CHK_ID = 0x7, 
+	MD_EX_REC_OK = 0x00000006,
+	MD_EX_REC_OK_CHK_ID = 0x45524543,
+	MD_EX_RESUME_CHK_ID = 0x7,
 	CCCI_DRV_VER_ERROR = 0x5,
 
-	// System channel, AP->MD || AP<-->MD message start from 0x100
+	/* System channel, AP->MD || AP<-->MD message start from 0x100 */
 /*	MD_DORMANT_NOTIFY = 0x100,
 	MD_SLP_REQUEST = 0x101,
 	MD_TX_POWER = 0x102,
@@ -85,28 +71,28 @@ enum {
 	MD_RF_TEMPERATURE_3G = 0x104,
 	MD_GET_BATTERY_INFO = 0x105,
 */
-	// System channel, MD --> AP message start from 0x1000
+	/* System channel, MD --> AP message start from 0x1000 */
 	MD_WDT_MONITOR = 0x1000,
 	MD_WAKEN_UP = 0x10000,
 };
 
-enum { 
-	ER_MB_START_CMD = -1, 
-	ER_MB_CHK_ID = -2, 
-	ER_MB_BOOT_READY = -3, 
-	ER_MB_UNKNOW_STAGE = -4 
+enum {
+	ER_MB_START_CMD = -1,
+	ER_MB_CHK_ID = -2,
+	ER_MB_BOOT_READY = -3,
+	ER_MB_UNKNOW_STAGE = -4
 };
 
-enum { 
-	MD_EX_TYPE_INVALID = 0, 
-	MD_EX_TYPE_UNDEF = 1, 
+enum {
+	MD_EX_TYPE_INVALID = 0,
+	MD_EX_TYPE_UNDEF = 1,
 	MD_EX_TYPE_SWI = 2,
-	MD_EX_TYPE_PREF_ABT = 3, 
-	MD_EX_TYPE_DATA_ABT = 4, 
+	MD_EX_TYPE_PREF_ABT = 3,
+	MD_EX_TYPE_DATA_ABT = 4,
 	MD_EX_TYPE_ASSERT = 5,
-	MD_EX_TYPE_FATALERR_TASK = 6, 
+	MD_EX_TYPE_FATALERR_TASK = 6,
 	MD_EX_TYPE_FATALERR_BUF = 7,
-	MD_EX_TYPE_LOCKUP = 8, 
+	MD_EX_TYPE_LOCKUP = 8,
 	MD_EX_TYPE_ASSERT_DUMP = 9,
 	MD_EX_TYPE_ASSERT_FAIL = 10,
 	DSP_EX_TYPE_ASSERT = 11,
@@ -126,7 +112,7 @@ enum {
 	MD_EE_FOUND_BY_ISR,
 	MD_EE_FOUND_BY_TX,
 	MD_EE_PENDING_TOO_LONG,
-	
+
 	MD_EE_INFO_OFFSET = 20,
 	MD_EE_EXCP_OCCUR = 20,
 	MD_EE_AP_MASK_I_BIT_TOO_LONG = 21,
@@ -145,16 +131,16 @@ enum {
 
 
 #ifdef AP_MD_EINT_SHARE_DATA
-enum { 
-	CCCI_EXCH_CORE_AWAKEN = 0, 
-	CCCI_EXCH_CORE_SLEEP = 1, 
-	CCCI_EXCH_CORE_SLUMBER = 2 
+enum {
+	CCCI_EXCH_CORE_AWAKEN = 0,
+	CCCI_EXCH_CORE_SLEEP = 1,
+	CCCI_EXCH_CORE_SLUMBER = 2
 };
 #endif
 
 /* CCCI system message */
-enum { 
-	CCCI_SYS_MSG_RESET_MD = 0x20100406 
+enum {
+	CCCI_SYS_MSG_RESET_MD = 0x20100406
 };
 
 /* MD Message, this is for user space deamon use */
@@ -228,7 +214,7 @@ typedef struct _exception_record_header_t
 	unsigned char  ex_type;
 	unsigned char  ex_nvram;
 	unsigned short ex_serial_num;
-}EX_HEADER_T;
+} EX_HEADER_T;
 
 /* MODEM MAUI Environment information (164 bytes) */
 typedef struct _ex_environment_info_t
@@ -237,21 +223,21 @@ typedef struct _ex_environment_info_t
 	unsigned char reserved1[8];
 	unsigned char execution_unit[8];
 	unsigned char reserved2[147];
-}EX_ENVINFO_T;
+} EX_ENVINFO_T;
 
 /* MODEM MAUI Special for fatal error (8 bytes)*/
 typedef struct _ex_fatalerror_code_t
 {
 	unsigned int code1;
 	unsigned int code2;
-}EX_FATALERR_CODE_T;
+} EX_FATALERR_CODE_T;
 
 /* MODEM MAUI fatal error (296 bytes)*/
 typedef struct _ex_fatalerror_t
 {
 	EX_FATALERR_CODE_T error_code;
 	unsigned char reserved1[288];
-}EX_FATALERR_T;
+} EX_FATALERR_T;
 
 /* MODEM MAUI Assert fail (296 bytes)*/
 typedef struct _ex_assert_fail_t
@@ -260,14 +246,14 @@ typedef struct _ex_assert_fail_t
 	unsigned int  linenumber;
 	unsigned int  parameters[3];
 	unsigned char reserved1[256];
-}EX_ASSERTFAIL_T;
+} EX_ASSERTFAIL_T;
 
 /* MODEM MAUI Globally exported data structure (300 bytes) */
 typedef union
 {
 	EX_FATALERR_T fatalerr;
 	EX_ASSERTFAIL_T assert;
-}EX_CONTENT_T;
+} EX_CONTENT_T;
 
 /* MODEM MAUI Standard structure of an exception log ( */
 typedef struct _ex_exception_log_t
@@ -277,11 +263,11 @@ typedef struct _ex_exception_log_t
 	EX_ENVINFO_T	envinfo;
 	unsigned char	reserved2[36];
 	EX_CONTENT_T	content;
-}EX_LOG_T;
+} EX_LOG_T;
 
 struct core_eint_config
 {
-	unsigned char eint_no; 
+	unsigned char eint_no;
 	unsigned char Sensitivity;
 	unsigned char ACT_Polarity;
 	unsigned char Dbounce_En;
@@ -308,22 +294,22 @@ struct ccci_reset_sta
 
 typedef struct _modem_runtime
 {
-	int Prefix;             // "CCIF"
-	
-	int Platform_L;         // Hardware Platform String ex: "MT6589E1"
+	int Prefix;             /* "CCIF" */
+
+	int Platform_L;         /* Hardware Platform String ex: "MT6589E1" */
 	int Platform_H;
-	int DriverVersion;      // 0x20121001 since W12.39
-	int BootChannel;        // Channel to ACK AP with boot ready
-	int BootingStartID;     // MD is booting. NORMAL_BOOT_ID or META_BOOT_ID 
-	int BootAttributes;     // Attributes passing from AP to MD Booting
-	int BootReadyID;        // MD response ID if boot successful and ready
+	int DriverVersion;      /* 0x20121001 since W12.39 */
+	int BootChannel;        /* Channel to ACK AP with boot ready */
+	int BootingStartID;     /* MD is booting. NORMAL_BOOT_ID or META_BOOT_ID */
+	int BootAttributes;     /* Attributes passing from AP to MD Booting */
+	int BootReadyID;        /* MD response ID if boot successful and ready */
 	int MdlogShareMemBase;
-	int MdlogShareMemSize; 
+	int MdlogShareMemSize;
 	int PcmShareMemBase;
 	int PcmShareMemSize;
 	int UartPortNum;
-	int UartShareMemBase[CCCI_UART_PORT_NUM]; // <<< Current UART_MAX_PORT_NUM is 8
-	int UartShareMemSize[CCCI_UART_PORT_NUM];   
+	int UartShareMemBase[CCCI_UART_PORT_NUM]; /* <<< Current UART_MAX_PORT_NUM is 8 */
+	int UartShareMemSize[CCCI_UART_PORT_NUM];
 	int FileShareMemBase;
 	int FileShareMemSize;
 	int RpcShareMemBase;
@@ -331,7 +317,7 @@ typedef struct _modem_runtime
 	int PmicShareMemBase;
 	int PmicShareMemSize;
 	int ExceShareMemBase;
-	int ExceShareMemSize;   // 512 Bytes Required 
+	int ExceShareMemSize;   /* 512 Bytes Required */
 	int SysShareMemBase;
 	int SysShareMemSize;
 	int IPCShareMemBase;
@@ -341,11 +327,11 @@ typedef struct _modem_runtime
 	int MDDLNetShareMemBase;
 	int MDDLNetShareMemSize;
 	int NetPortNum;
-	int NetULCtrlShareMemBase[NET_PORT_NUM]; // <<< Current NET_PORT_NUM is 4
+	int NetULCtrlShareMemBase[NET_PORT_NUM]; /* <<< Current NET_PORT_NUM is 4 */
 	int NetULCtrlShareMemSize[NET_PORT_NUM];
 	int NetDLCtrlShareMemBase[NET_PORT_NUM];
 	int NetDLCtrlShareMemSize[NET_PORT_NUM];
-	int MDExExpInfoBase; //md exception expand info memory
+	int MDExExpInfoBase; /* md exception expand info memory */
 	int MDExExpInfoSize;
 	int IPCMDIlmShareMemBase;
 	int IPCMDIlmShareMemSize;
@@ -353,49 +339,49 @@ typedef struct _modem_runtime
 	int MiscInfoSize;
 
 	int CheckSum;
-	int Postfix;        //"CCIF" 
-}modem_runtime_t; 
+	int Postfix;        /* "CCIF" */
+} modem_runtime_t;
 
 
 #define CCCI_MD_RUNTIME_DATA_SMEM_SIZE (sizeof(modem_runtime_t))
 
 typedef struct _modem_runtime_info_tag
 {
-	int prefix;				//"CCIF"
-	int platform_L;			//Hardware platform string. ex: 'TK6516E0'
+	int prefix;				/* "CCIF" */
+	int platform_L;			/* Hardware platform string. ex: 'TK6516E0' */
 	int platform_H;
-	int driver_version;		//0x00000923 since W09.23
+	int driver_version;		/* 0x00000923 since W09.23 */
 	int runtime_data_base;
 	int runtime_data_size;
-	int postfix;			//"CCIF"
-}modem_runtime_info_tag_t;
+	int postfix;			/* "CCIF" */
+} modem_runtime_info_tag_t;
 
 typedef struct _modem_exception_exp
 {
 	int exception_occur;
 	int send_time;
 	int wait_time;
-}modem_exception_exp_t;
+} modem_exception_exp_t;
 
 
 typedef struct _MD_CALL_BACK_QUEUE {
-	void (*call)(struct _MD_CALL_BACK_QUEUE*,unsigned long data);
+	void (*call)(struct _MD_CALL_BACK_QUEUE*, unsigned long data);
 	struct _MD_CALL_BACK_QUEUE *next;
-}MD_CALL_BACK_QUEUE;
+} MD_CALL_BACK_QUEUE;
 
 typedef struct {
 	spinlock_t				lock;
 	MD_CALL_BACK_QUEUE		*next;
 	int						is_busy;
 	struct tasklet_struct	tasklet;
-}MD_CALL_BACK_HEAD_T;
+} MD_CALL_BACK_HEAD_T;
 
 
 #if 0
-struct IMG_CHECK_INFO{
+struct IMG_CHECK_INFO {
 	char *product_ver;	/* debug/release/invalid */
 	char *image_type;	/*2G/3G/invalid*/
-        char *platform;	    /* MT6573_S00(MT6573E1) or MT6573_S01(MT6573E2) */
+	char *platform;	    /* MT6573_S00(MT6573E1) or MT6573_S01(MT6573E2) */
 	char *build_time;	/* build time string */
 	char *build_ver;	/* project version, ex:11A_MD.W11.28 */
 };
@@ -413,7 +399,7 @@ struct image_info
 	struct IMG_CHECK_INFO ap_info;
 	int (*load_firmware)(struct image_info *info);
 };
-#endif 
+#endif
 
 typedef int (*ccci_cores_sleep_info_base_req)(void *);
 typedef int (*ccci_core_eint_config_setup)(int, void *);
@@ -437,7 +423,7 @@ int ccci_ccmni_v2_ctl_mem_base_req(int md_id, int port, int *addr_virt, int *add
 
 int md_register_call_chain(int md_id, MD_CALL_BACK_QUEUE *queue);
 int md_unregister_call_chain(int md_id, MD_CALL_BACK_QUEUE *queue);
-void md_call_chain(MD_CALL_BACK_HEAD_T *head,unsigned long data);
+void md_call_chain(MD_CALL_BACK_HEAD_T *head, unsigned long data);
 
 int ccci_reset_register(int md_id, char *name);
 int ccci_user_ready_to_reset(int md_id, int handle);
@@ -447,14 +433,13 @@ int get_curr_md_state(int md_id);
 void check_data_connected(int md_id, int channel);
 
 
-//extern int ccci_sys_smem_base_phy;
-extern int ccci_smem_size ;
-extern int *ccci_smem_virt ;
+/* extern int ccci_sys_smem_base_phy; */
+extern int ccci_smem_size;
+extern int *ccci_smem_virt;
 extern dma_addr_t ccci_smem_phy;
 extern int is_first_boot;
 extern  MD_CALL_BACK_HEAD_T md_notifier;
 
 
 
-#endif  // __CCCI_MD_H__
-
+#endif  /* __CCCI_MD_H__ */

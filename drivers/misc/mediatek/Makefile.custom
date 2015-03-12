@@ -37,6 +37,7 @@ ccflags-y += -I$(MTK_CUSTOM_PATH)/accdet/$(MTK_PLATFORM) \
              -I$(MTK_CUSTOM_PATH)/dual_ccci/$(MTK_PLATFORM)/include \
              -I$(MTK_CUSTOM_PATH)/dual_ccci/include \
              -I$(MTK_CUSTOM_PATH)/flashlight/inc \
+             -I$(MTK_CUSTOM_PATH)/gpu/$(MTK_PLATFORM)/mali/mali/platform \
              -I$(MTK_CUSTOM_PATH)/gyroscope/inc \
              -I$(MTK_CUSTOM_PATH)/i2c/$(MTK_PLATFORM) \
              -I$(MTK_CUSTOM_PATH)/imgsensor/inc \

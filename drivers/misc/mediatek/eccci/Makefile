@@ -15,10 +15,10 @@ $(warning ECCCI core compiling for UT mode)
 	endif
 endif
 
-ifeq ($(CONFIG_MTK_SECURITY_SW_SUPPORT), y)
+ifeq ($(MTK_SECURITY_SW_SUPPORT), yes)
 ccflags-y  += -DENABLE_MD_IMG_SECURITY_FEATURE
 endif
-ifeq ($(CONFIG_MTK_SEC_MODEM_NVRAM_ANTI_CLONE), y)
+ifeq ($(MTK_SEC_MODEM_NVRAM_ANTI_CLONE), yes)
 ccflags-y  += -DMTK_SEC_MODEM_NVRAM_ANTI_CLONE
 endif
 

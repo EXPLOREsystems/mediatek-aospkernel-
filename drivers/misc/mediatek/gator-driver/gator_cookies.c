@@ -66,7 +66,7 @@ static uint32_t cookiemap_exists(uint64_t key)
 	uint64_t *keys = &(per_cpu(cookie_keys, cpu)[cookiecode]);
 	uint32_t *values = &(per_cpu(cookie_values, cpu)[cookiecode]);
 
-	// Can be called from interrupt handler or from work queue
+	/* Can be called from interrupt handler or from work queue */
 	local_irq_save(flags);
 	for (x = 0; x < MAX_COLLISIONS; x++) {
 		if (keys[x] == key) {
@@ -143,11 +143,11 @@ static void wq_cookie_handler(struct work_struct *unused)
 
 static void app_process_wake_up_handler(unsigned long unused_data)
 {
-	// had to delay scheduling work as attempting to schedule work during the context switch is illegal in kernel versions 3.5 and greater
+	/* had to delay scheduling work as attempting to schedule work during the context switch is illegal in kernel versions 3.5 and greater */
 	schedule_work(&cookie_work);
 }
 
-// Retrieve full name from proc/pid/cmdline for java processes on Android
+/* Retrieve full name from proc/pid/cmdline for java processes on Android */
 static int translate_app_process(const char **text, int cpu, struct task_struct *task, bool from_wq)
 {
 	void *maddr;
@@ -159,11 +159,11 @@ static int translate_app_process(const char **text, int cpu, struct task_struct 
 	int bytes, offset, retval = 0, ptr;
 	char *buf = per_cpu(translate_text, cpu);
 
-	// Push work into a work queue if in atomic context as the kernel functions below might sleep
-	// Rely on the in_interrupt variable rather than in_irq() or in_interrupt() kernel functions, as the value of these functions seems
-	//   inconsistent during a context switch between android/linux versions
+	/* Push work into a work queue if in atomic context as the kernel functions below might sleep */
+	/* Rely on the in_interrupt variable rather than in_irq() or in_interrupt() kernel functions, as the value of these functions seems */
+	/* inconsistent during a context switch between android/linux versions */
 	if (!from_wq) {
-		// Check if already in buffer
+		/* Check if already in buffer */
 		ptr = per_cpu(translate_buffer_read, cpu);
 		while (ptr != per_cpu(translate_buffer_write, cpu)) {
 			if (per_cpu(translate_buffer, cpu)[ptr] == (void *)task)
@@ -202,7 +202,7 @@ static int translate_app_process(const char **text, int cpu, struct task_struct 
 
 		copy_from_user_page(page_vma, page, addr, buf, maddr + offset, bytes);
 
-		kunmap(page);	// release page allocated by get_user_pages()
+		kunmap(page);	/* release page allocated by get_user_pages() */
 		page_cache_release(page);
 
 		len -= bytes;
@@ -213,7 +213,7 @@ static int translate_app_process(const char **text, int cpu, struct task_struct 
 		retval = 1;
 	}
 
-	// On app_process startup, /proc/pid/cmdline is initially "zygote" then "<pre-initialized>" but changes after an initial startup period
+	/* On app_process startup, /proc/pid/cmdline is initially "zygote" then "<pre-initialized>" but changes after an initial startup period */
 	if (strcmp(*text, "zygote") == 0 || strcmp(*text, "<pre-initialized>") == 0)
 		retval = 0;
 
@@ -243,7 +243,7 @@ static inline uint32_t get_cookie(int cpu, struct task_struct *task, const char 
 			return INVALID_COOKIE;
 	}
 
-	// Can be called from interrupt handler or from work queue or from scheduler trace
+	/* Can be called from interrupt handler or from work queue or from scheduler trace */
 	local_irq_save(flags);
 
 	cookie = INVALID_COOKIE;
@@ -263,7 +263,7 @@ static int get_exec_cookie(int cpu, struct task_struct *task)
 	struct mm_struct *mm = task->mm;
 	const char *text;
 
-	// kernel threads have no address space
+	/* kernel threads have no address space */
 	if (!mm)
 		return NO_COOKIE;
 
@@ -312,7 +312,7 @@ static int cookies_initialize(void)
 	uint32_t crc, poly;
 	int i, j, cpu, size, err = 0;
 
-	int translate_buffer_size = 512;	// must be a power of 2
+	int translate_buffer_size = 512;	/* must be a power of 2 */
 	translate_buffer_mask = translate_buffer_size / sizeof(per_cpu(translate_buffer, 0)[0]) - 1;
 
 	for_each_present_cpu(cpu) {
@@ -350,7 +350,7 @@ static int cookies_initialize(void)
 		}
 	}
 
-	// build CRC32 table
+	/* build CRC32 table */
 	poly = 0x04c11db7;
 	gator_crc32_table = (uint32_t *)kmalloc(256 * sizeof(uint32_t), GFP_KERNEL);
 	for (i = 0; i < 256; i++) {

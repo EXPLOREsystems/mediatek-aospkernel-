@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/os/linux/include/gl_typedef.h#1 $
 */
 
@@ -26,15 +40,15 @@
  * to support early suspend in android
  *
  * 07 08 2010 cp.wu
- * 
+ *
  * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
  *
  * 06 06 2010 kevin.huang
- * [WPD00003832][MT6620 5931] Create driver base 
+ * [WPD00003832][MT6620 5931] Create driver base
  * [MT6620 5931] Create driver base
  *
  * 03 24 2010 jeffrey.chang
- * [WPD00003826]Initial import for Linux port 
+ * [WPD00003826]Initial import for Linux port
  * initial import for Linux port
 **  \main\maintrunk.MT5921\6 2009-08-18 22:57:14 GMT mtk01090
 **  Add Linux SDIO (with mmc core) support.
@@ -86,9 +100,9 @@
 
 #ifndef NULL
     #if defined(__cplusplus)
-        #define NULL            0
+	#define NULL            0
     #else
-        #define NULL            ((void *) 0)
+	#define NULL            ((void *) 0)
     #endif
 #endif
 
@@ -103,18 +117,10 @@ typedef void (*late_resume_callback) (struct early_suspend *h);
 ********************************************************************************
 */
 /* Type definition for void */
-/*mach/mt_typedefs.h define _TYPEDEFS_H, to avoid compile error*/
-#ifndef _TYPEDEFS_H
-typedef void                    VOID;
-#endif
-typedef void                    *PVOID, **PPVOID;
+typedef void                    VOID, *PVOID, **PPVOID;
 
 /* Type definition for Boolean */
-#ifndef _TYPEDEFS_H
-typedef unsigned char           BOOL, *PBOOL;
-#endif
-typedef unsigned char           BOOLEAN, *PBOOLEAN;
-
+typedef unsigned char           BOOL, *PBOOL, BOOLEAN, *PBOOLEAN;
 
 /* Type definition for signed integers */
 typedef signed char             CHAR, *PCHAR, **PPCHAR;
@@ -127,20 +133,12 @@ typedef signed long long        INT_64, *PINT_64, **PPINT_64;
 typedef unsigned char           UCHAR, *PUCHAR, **PPUCHAR;
 typedef unsigned char           UINT_8, *PUINT_8, **PPUINT_8, *P_UINT_8;
 typedef unsigned short          UINT_16, *PUINT_16, **PPUINT_16;
-typedef unsigned int            UINT32, *PUINT32; /* ++ TDLS */
+typedef unsigned int            UINT32, *PUINT32;
 typedef unsigned long           ULONG, UINT_32, *PUINT_32, **PPUINT_32;
 typedef unsigned long long      UINT_64, *PUINT_64, **PPUINT_64;
 
 typedef unsigned long           OS_SYSTIME, *POS_SYSTIME, **PPOS_SYSTIME;
 
-#ifndef _TYPEDEFS_H
-typedef signed char INT8, *PINT8;
-typedef signed short INT16, *PINT16;
-typedef signed int INT32, *PINT32;
-typedef unsigned char UINT8, *PUINT8;
-typedef unsigned short UINT16, *PUINT16;
-typedef unsigned int UINT32, *PUINT32;
-#endif
 
 /* Type definition of large integer (64bits) union to be comptaible with
  * Windows definition, so we won't apply our own coding style to these data types.
@@ -149,23 +147,23 @@ typedef unsigned int UINT32, *PUINT32;
  */
 typedef union _LARGE_INTEGER {
     struct {
-        UINT_32  LowPart;
-        INT_32   HighPart;
+	UINT_32  LowPart;
+	INT_32   HighPart;
     } u;
     INT_64       QuadPart;
 } LARGE_INTEGER, *PLARGE_INTEGER;
 
 typedef union _ULARGE_INTEGER {
     struct {
-        UINT_32  LowPart;
-        UINT_32  HighPart;
+	UINT_32  LowPart;
+	UINT_32  HighPart;
     } u;
     UINT_64      QuadPart;
 } ULARGE_INTEGER, *PULARGE_INTEGER;
 
 
 typedef INT_32 (*probe_card)(PVOID pvData);
-typedef VOID (*remove_card)(VOID);
+typedef VOID(*remove_card)(VOID);
 
 /*******************************************************************************
 *                            P U B L I C   D A T A
@@ -181,12 +179,12 @@ typedef VOID (*remove_card)(VOID);
 *                                 M A C R O S
 ********************************************************************************
 */
-#define IN  //volatile
-#define OUT //volatile
+#define IN  /* volatile */
+#define OUT /* volatile */
 
-#define __KAL_INLINE__                  static __inline__
+#define __KAL_INLINE__                  static inline
 #define __KAL_ATTRIB_PACKED__           __attribute__((__packed__))
-#define __KAL_ATTRIB_ALIGN_4__          __attribute__ ((aligned (4)))
+#define __KAL_ATTRIB_ALIGN_4__          __attribute__ ((aligned(4)))
 
 
 #ifndef BIT
@@ -198,7 +196,7 @@ typedef VOID (*remove_card)(VOID);
  *   ==>  (BIT(m)-1)   = 0x0000FFFF     ~(BIT(m)-1)   => 0xFFFF0000
  *   ==>  (BIT(n+1)-1) = 0x00FFFFFF
  */
-#define BITS(m,n)                       (~(BIT(m)-1) & ((BIT(n) - 1) | BIT(n)))
+#define BITS(m, n)                       (~(BIT(m)-1) & ((BIT(n) - 1) | BIT(n)))
 #endif /* BIT */
 
 
@@ -220,7 +218,7 @@ typedef VOID (*remove_card)(VOID);
  */
 #ifndef ENTRY_OF
     #define ENTRY_OF(_addrOfField, _type, _field) \
-        ((_type *)((PINT_8)(_addrOfField) - (PINT_8)OFFSET_OF(_type, _field)))
+	((_type *)((PINT_8)(_addrOfField) - (PINT_8)OFFSET_OF(_type, _field)))
 #endif /* ENTRY_OF */
 
 
@@ -257,7 +255,7 @@ typedef VOID (*remove_card)(VOID);
     #define DWORD_TO_BYTE(_value)       ((_value) << 2)
 #endif /* DWORD_TO_BYTE */
 
-#if 1 // Little-Endian
+#if 1 /* Little-Endian */
     #define CONST_NTOHS(_x)     __constant_ntohs(_x)
 
     #define CONST_HTONS(_x)     __constant_htons(_x)
@@ -270,7 +268,7 @@ typedef VOID (*remove_card)(VOID);
 
     #define HTONL(_x)           htonl(_x)
 
-#else // Big-Endian
+#else /* Big-Endian */
 
     #define CONST_NTOHS(_x)
 
@@ -293,4 +291,3 @@ typedef VOID (*remove_card)(VOID);
 */
 
 #endif /* _GL_TYPEDEF_H */
-

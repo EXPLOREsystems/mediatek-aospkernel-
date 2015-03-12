@@ -25,7 +25,7 @@ static int netGet[TOTALNET * 4];
 
 static struct timer_list net_wake_up_timer;
 
-// Must be run in process context as the kernel function dev_get_stats() can sleep
+/* Must be run in process context as the kernel function dev_get_stats() can sleep */
 static void get_network_stats(struct work_struct *wsptr)
 {
 	int rx = 0, tx = 0;
@@ -49,7 +49,7 @@ DECLARE_WORK(wq_get_stats, get_network_stats);
 
 static void net_wake_up_handler(unsigned long unused_data)
 {
-	// had to delay scheduling work as attempting to schedule work during the context switch is illegal in kernel versions 3.5 and greater
+	/* had to delay scheduling work as attempting to schedule work during the context switch is illegal in kernel versions 3.5 and greater */
 	schedule_work(&wq_get_stats);
 }
 
@@ -115,7 +115,7 @@ static void gator_events_net_stop(void)
 static int gator_events_net_read(int **buffer)
 {
 	int len, rx_delta, tx_delta;
-	static int last_rx_delta = 0, last_tx_delta = 0;
+	static int last_rx_delta = 0, last_tx_delta;
 
 	if (!on_primary_core())
 		return 0;
@@ -131,7 +131,7 @@ static int gator_events_net_read(int **buffer)
 	if (netrx_enabled && last_rx_delta != rx_delta) {
 		last_rx_delta = rx_delta;
 		netGet[len++] = netrx_key;
-		netGet[len++] = 0;	// indicates to Streamline that rx_delta bytes were transmitted now, not since the last message
+		netGet[len++] = 0;	/* indicates to Streamline that rx_delta bytes were transmitted now, not since the last message */
 		netGet[len++] = netrx_key;
 		netGet[len++] = rx_delta;
 	}
@@ -139,7 +139,7 @@ static int gator_events_net_read(int **buffer)
 	if (nettx_enabled && last_tx_delta != tx_delta) {
 		last_tx_delta = tx_delta;
 		netGet[len++] = nettx_key;
-		netGet[len++] = 0;	// indicates to Streamline that tx_delta bytes were transmitted now, not since the last message
+		netGet[len++] = 0;	/* indicates to Streamline that tx_delta bytes were transmitted now, not since the last message */
 		netGet[len++] = nettx_key;
 		netGet[len++] = tx_delta;
 	}

@@ -448,11 +448,13 @@ static u8 gup_enter_update_judge(st_fw_head *fw_head)
         fw_len += (((u32)fw_head->hw_info[1]) << 16);
         fw_len += (((u32)fw_head->hw_info[0]) << 24);
     }
+#if 0   
     if (update_msg.fw_total_len != fw_len)
     {
         GTP_ERROR("Inconsistent firmware size, Update aborted! Default size: %d(%dK), actual size: %d(%dK)", fw_len, fw_len/1024, update_msg.fw_total_len, update_msg.fw_total_len/1024);
         return FAIL;
     }
+#endif
     if ((update_msg.fw_total_len < 36*1024) || (update_msg.fw_total_len > 128*1024))
     {
         GTP_ERROR("Invalid firmware length(%d), update aborted!", update_msg.fw_total_len);
@@ -2758,6 +2760,7 @@ static s32 gup_prepare_fl_fw(char *path, st_fw_head *fw_head)
     set_fs(KERNEL_DS);
     update_msg.file->f_op->llseek(update_msg.file, 0, SEEK_SET);
     update_msg.fw_total_len = update_msg.file->f_op->llseek(update_msg.file, 0, SEEK_END);
+#if 0    
     if (sizeof(gtp_default_FW_fl) != update_msg.fw_total_len)
     {
         GTP_ERROR("Inconsistent firmware size. File size: %d, default fw size: %d", update_msg.fw_total_len, sizeof(gtp_default_FW_fl));
@@ -2765,7 +2768,7 @@ static s32 gup_prepare_fl_fw(char *path, st_fw_head *fw_head)
         _CLOSE_FILE(update_msg.file);
         return FAIL;
     }
-    
+#endif    
     GTP_DEBUG("Firmware size: %d", update_msg.fw_total_len);
     update_msg.file->f_op->llseek(update_msg.file, 0, SEEK_SET);
     update_msg.file->f_op->read(update_msg.file, (char*)fw_head, FW_HEAD_LENGTH, &update_msg.file->f_pos);

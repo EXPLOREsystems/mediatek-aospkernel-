@@ -1,17 +1,3 @@
-/*
-* Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
-* GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with this program.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
-
 /*****************************************************************************
  *
  * Filename:
@@ -48,8 +34,8 @@
 enum frame_flag_t
 {
     FRAME_START = 0,
-    FRAME_CONTINUOUS,    
-    FRAME_END    
+    FRAME_CONTINUOUS,
+    FRAME_END
 };
 
 enum unframe_state_t
@@ -60,14 +46,14 @@ enum unframe_state_t
     PARSE_PFP_FRAME_GET_DATA_STATE
 };
 
-/* Following implementations are designed for PFP(Packet Frame Protocol) */ 
+/* Following implementations are designed for PFP(Packet Frame Protocol) */
 typedef struct
 {
     int            frame_size;
     unsigned char *frame_data;
 } frame_format_t;
 
-typedef struct 
+typedef struct
 {
     int num_frames;
     int pending_data_flag;
@@ -81,7 +67,7 @@ typedef struct
 
 typedef struct _complete_ippkt_t
 {
-    int            pkt_size;   
+    int            pkt_size;
     unsigned char *pkt_data;
 #ifndef __SUPPORT_DYNAMIC_MULTIPLE_FRAME__
     int            entry_used;
@@ -100,11 +86,11 @@ typedef struct _packet_info_t
 
 typedef struct _ccmni_record_t
 {
-    /* Next expected state to be parsed while entering the pfp_unframe() again */ 
+    /* Next expected state to be parsed while entering the pfp_unframe() again */
     enum unframe_state_t unframe_state;
-    /* Record the latest parsed Packet length for getting the data */ 
+    /* Record the latest parsed Packet length for getting the data */
     int pkt_size;
-    /* For fast to find the last node of pkt_list to insert a new parsed IP Pkt into this pkt_list */ 
+    /* For fast to find the last node of pkt_list to insert a new parsed IP Pkt into this pkt_list */
     complete_ippkt_t *last_pkt_node;
 } ccmni_record_t;
 
@@ -112,23 +98,23 @@ extern ccmni_record_t ccmni_dev[];
 
 /* The following buffers are used for testing purpose */
 /* Store one IP Packet data */
-extern unsigned char frame_cooked_data  [];
+extern unsigned char frame_cooked_data[];
 /* Pack the IP Packet into a Frame sent to Modem */
-extern unsigned char frame_raw_data     [];
-extern unsigned char unframe_raw_data   [];
+extern unsigned char frame_raw_data[];
+extern unsigned char unframe_raw_data[];
 extern unsigned char unframe_cooked_data[];
 
 
-void          pfp_reset  (int ccmni_inx);
-frame_info_t  pfp_frame  (unsigned char* raw_data, unsigned char* cooked_data,
-                          int cooked_size, int frame_flag, int ccmni_inx);
-packet_info_t pfp_unframe(unsigned char* cooked_data, int cooked_data_buf_size,
-                          unsigned char* raw_data, int raw_size, int ccmni_inx);
+void          pfp_reset(int ccmni_inx);
+frame_info_t  pfp_frame(unsigned char *raw_data, unsigned char *cooked_data,
+			  int cooked_size, int frame_flag, int ccmni_inx);
+packet_info_t pfp_unframe(unsigned char *cooked_data, int cooked_data_buf_size,
+			  unsigned char *raw_data, int raw_size, int ccmni_inx);
 void          traverse_pkt_list(complete_ippkt_t *node);
 
 #ifndef __SUPPORT_DYNAMIC_MULTIPLE_FRAME__
-complete_ippkt_t* get_one_available_complete_ippkt_entry(void);
-void          release_one_used_complete_ippkt_entry(complete_ippkt_t* entry);   
+complete_ippkt_t *get_one_available_complete_ippkt_entry(void);
+void          release_one_used_complete_ippkt_entry(complete_ippkt_t *entry);
 #endif
 
-#endif // __CCCI_CCMNI_PFP_H__ 
+#endif /* __CCCI_CCMNI_PFP_H__ */

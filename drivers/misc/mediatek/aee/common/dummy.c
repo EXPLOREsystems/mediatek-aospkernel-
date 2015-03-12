@@ -143,7 +143,7 @@ __weak void aee_kdump_reboot(AEE_REBOOT_MODE reboot_mode, const char *msg, ...)
 	va_list ap;
 
 	va_start(ap, msg);
-	vsnprintf(str, 80, msg, ap);
+	vsnprintf(str, 80, "%s", msg);
 	LOGE("%s", str);
 	va_end(ap);
 

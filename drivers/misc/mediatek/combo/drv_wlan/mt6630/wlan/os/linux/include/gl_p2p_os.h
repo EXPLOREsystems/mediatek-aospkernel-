@@ -19,6 +19,7 @@
 #ifndef _GL_P2P_OS_H
 #define _GL_P2P_OS_H
 
+
 /*******************************************************************************
 *                         C O M P I L E R   F L A G S
 ********************************************************************************
@@ -28,6 +29,18 @@
 *                    E X T E R N A L   R E F E R E N C E S
 ********************************************************************************
 */
+
+/*******************************************************************************
+*                    E X T E R N A L   V A R I A B L E
+********************************************************************************
+*/
+#if CFG_ENABLE_WIFI_DIRECT && CFG_ENABLE_WIFI_DIRECT_CFG_80211
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 32)
+#if  LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 31)
+extern const struct net_device_ops p2p_netdev_ops;
+#endif
+#endif
+#endif
 
 /*******************************************************************************
 *                              C O N S T A N T S
@@ -136,7 +149,7 @@ struct _GL_P2P_INFO_T {
 
 #if CFG_SUPPORT_HOTSPOT_WPS_MANAGER
 	/* Hotspot Client Management */
-	PARAM_MAC_ADDRESS aucblackMACList[8];
+	PARAM_MAC_ADDRESS aucblackMACList[10]; /* dependent with  #define P2P_MAXIMUM_CLIENT_COUNT 10, fix me to PARAM_MAC_ADDRESS aucblackMACList[P2P_MAXIMUM_CLIENT_COUNT]; */
 	UINT_8 ucMaxClients;
 #endif
 

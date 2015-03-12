@@ -200,7 +200,7 @@ rlmObssChnlLevelIn2G4(P_BSS_INFO_T prBssInfo, UINT_8 ucPriChannel, ENUM_CHNL_EXT
 		}
 	}
 
- L_2G4_level_end:
+L_2G4_level_end:
 
 	return ucChannelLevel;
 }
@@ -268,7 +268,7 @@ rlmObssChnlLevelIn5G(P_BSS_INFO_T prBssInfo, UINT_8 ucPriChannel, ENUM_CHNL_EXT_
 		}
 	}
 
- L_5G_level_end:
+L_5G_level_end:
 
 	return ucChannelLevel;
 }

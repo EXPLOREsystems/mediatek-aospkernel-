@@ -140,8 +140,8 @@ VOID wapiGenerateWAPIIE(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T prMsduInfo)
 	if (prMsduInfo->ucBssIndex != prAdapter->prAisBssInfo->ucBssIndex)
 		return;
 
-	pucBuffer = (PUINT_8) ((UINT_32) prMsduInfo->prPacket +
-			       (UINT_32) prMsduInfo->u2FrameLength);
+	pucBuffer = (PUINT_8) ((ULONG) prMsduInfo->prPacket +
+			       (ULONG) prMsduInfo->u2FrameLength);
 
 	/* ASSOC INFO IE ID: 68 :0x44 */
 	if (/* prWlanInfo->fgWapiMode && */ prAdapter->prGlueInfo->u2WapiAssocInfoIESz) {
@@ -313,8 +313,8 @@ BOOLEAN wapiParseWapiIE(IN P_WAPI_INFO_ELEM_T prInfoElem, OUT P_WAPI_INFO_T prWa
 
 	if (pucPairSuite) {
 		/* The information about the pairwise key cipher suites is present. */
-		if (u2PairSuiteCount > MAX_NUM_SUPPORTED_CIPHER_SUITES) {
-			u2PairSuiteCount = MAX_NUM_SUPPORTED_CIPHER_SUITES;
+		if (u2PairSuiteCount > MAX_NUM_SUPPORTED_WAPI_CIPHER_SUITES) {
+			u2PairSuiteCount = MAX_NUM_SUPPORTED_WAPI_CIPHER_SUITES;
 		}
 
 		prWapiInfo->u4PairwiseKeyCipherSuiteCount = (UINT_32) u2PairSuiteCount;
@@ -351,8 +351,8 @@ BOOLEAN wapiParseWapiIE(IN P_WAPI_INFO_ELEM_T prInfoElem, OUT P_WAPI_INFO_T prWa
 	if (pucAuthSuite) {
 		/* The information about the authentication and key management suites
 		   is present. */
-		if (u2AuthSuiteCount > MAX_NUM_SUPPORTED_AKM_SUITES) {
-			u2AuthSuiteCount = MAX_NUM_SUPPORTED_AKM_SUITES;
+		if (u2AuthSuiteCount > MAX_NUM_SUPPORTED_WAPI_AKM_SUITES) {
+			u2AuthSuiteCount = MAX_NUM_SUPPORTED_WAPI_AKM_SUITES;
 		}
 
 		prWapiInfo->u4AuthKeyMgtSuiteCount = (UINT_32) u2AuthSuiteCount;

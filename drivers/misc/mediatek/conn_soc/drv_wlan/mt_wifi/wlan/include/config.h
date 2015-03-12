@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/config.h#2 $
 */
 
@@ -884,15 +898,15 @@
 *                              C O N S T A N T S
 ********************************************************************************
 */
-//2 Flags for OS capability
+/* 2 Flags for OS capability */
 
-#define MTK_WCN_SINGLE_MODULE           	0 /* 1: without WMT */
+#define MTK_WCN_SINGLE_MODULE		0 /* 1: without WMT */
 
 #ifdef LINUX
     #ifdef CONFIG_X86
-        #define MTK_WCN_HIF_SDIO        0
+	#define MTK_WCN_HIF_SDIO        0
     #else
-        #define MTK_WCN_HIF_SDIO        0 //samp
+	#define MTK_WCN_HIF_SDIO        0 /* samp */
     #endif
 #else
     #define MTK_WCN_HIF_SDIO            0
@@ -908,12 +922,12 @@
 #include <linux/aee.h>
 #endif
 
-//2 Flags for Driver Features
+/* 2 Flags for Driver Features */
 #define CFG_TX_FRAGMENT                 1 /*!< 1: Enable TX fragmentation
-                                                       0: Disable */
+						       0: Disable */
 #define CFG_SUPPORT_PERFORMANCE_TEST    0  /*Only for performance Test*/
 
-#define CFG_COUNTRY_CODE                NULL //"US"
+#define CFG_COUNTRY_CODE                NULL /* "US" */
 
 #ifndef LINUX
     #define CFG_FW_FILENAME             L"WIFI_RAM_CODE"
@@ -923,7 +937,7 @@
 #endif
 
 #define CFG_SUPPORT_802_11D             1 /*!< 1(default): Enable 802.11d
-                                                     0: Disable */
+						     0: Disable */
 
 #define CFG_SUPPORT_RRM             0   /* Radio Reasource Measurement (802.11k) */
 #define CFG_SUPPORT_DFS             1   /* DFS (802.11h)*/
@@ -944,28 +958,20 @@
 
 #define CFG_SUPPORT_ROAMING_ENC		0	/* enahnced roaming */
 
-/* ++ TDLS */
-#define CFG_SUPPORT_TDLS			1   /* IEEE802.11z TDLS */
-#define CFG_SUPPORT_TDLS_DBG		0	/* TDLS debug */
-/* -- TDLS */
 
 /*------------------------------------------------------------------------------
  * SLT Option
  *------------------------------------------------------------------------------
  */
 #define CFG_SLT_SUPPORT                             0
-#define CFG_AUTO_CHANNEL_SEL_SUPPORT				0
 
-#ifdef CONFIG_MTK_LTE_SUPPORT
-	#define CFG_AUTO_CHANNEL_SEL_SUPPORT				1
-#endif
 
 #ifdef NDIS60_MINIPORT
     #define CFG_NATIVE_802_11                       1
 
     #define CFG_TX_MAX_PKT_SIZE                     2304
     #define CFG_TCP_IP_CHKSUM_OFFLOAD_NDIS_60       0 /* !< 1: Enable TCP/IP header checksum offload
-                                                            0: Disable */
+							    0: Disable */
     #define CFG_TCP_IP_CHKSUM_OFFLOAD               0
     #define CFG_WHQL_DOT11_STATISTICS               1
     #define CFG_WHQL_ADD_REMOVE_KEY                 1
@@ -974,38 +980,38 @@
 
 #else
     #define CFG_TCP_IP_CHKSUM_OFFLOAD               1 /* !< 1: Enable TCP/IP header checksum offload
-                                                            0: Disable */
+							    0: Disable */
     #define CFG_TCP_IP_CHKSUM_OFFLOAD_NDIS_60       0
     #define CFG_TX_MAX_PKT_SIZE                     1600
     #define CFG_NATIVE_802_11                       0
 #endif
 
 
-//2 Flags for Driver Parameters
+/* 2 Flags for Driver Parameters */
 /*------------------------------------------------------------------------------
  * Flags for EHPI Interface in Colibri Platform
  *------------------------------------------------------------------------------
  */
 #define CFG_EHPI_FASTER_BUS_TIMING                  0 /*!< 1: Do workaround for faster bus timing
-                                                           0(default): Disable */
+							   0(default): Disable */
 
 /*------------------------------------------------------------------------------
  * Flags for HIFSYS Interface
  *------------------------------------------------------------------------------
  */
 #ifdef _lint
-    #define _HIF_SDIO   0 //samp
+    #define _HIF_SDIO   0 /* samp */
 #endif
 
 #define CFG_SDIO_INTR_ENHANCE                        1 /*!< 1(default): Enable SDIO ISR & TX/RX status enhance mode
-                                                            0: Disable */
+							    0: Disable */
 #define CFG_SDIO_RX_ENHANCE                          0 /*!< 1(default): Enable SDIO ISR & TX/RX status enhance mode
-                                                            0: Disable */
+							    0: Disable */
 #define CFG_SDIO_TX_AGG                              1 /*!< 1: Enable SDIO TX enhance mode(Multiple frames in single BLOCK CMD)
-                                                            0(default): Disable */
+							    0(default): Disable */
 
 #define CFG_SDIO_RX_AGG                              1 /*!< 1: Enable SDIO RX enhance mode(Multiple frames in single BLOCK CMD)
-                                                            0(default): Disable */
+							    0(default): Disable */
 
 #if (CFG_SDIO_RX_AGG == 1) && (CFG_SDIO_INTR_ENHANCE == 0)
     #error "CFG_SDIO_INTR_ENHANCE should be 1 once CFG_SDIO_RX_AGG equals to 1"
@@ -1014,11 +1020,11 @@
 #endif
 
 #define CFG_SDIO_MAX_RX_AGG_NUM                     0 /*!< 1: Setting the maximum RX aggregation number
-                                                           0(default): no limited */
+							   0(default): no limited */
 
 #ifdef WINDOWS_CE
     #define CFG_SDIO_PATHRU_MODE                    1 /*!< 1: Suport pass through (PATHRU) mode
-                                                           0: Disable */
+							   0: Disable */
 #else
     #define CFG_SDIO_PATHRU_MODE                    0 /*!< 0: Always disable if WINDOWS_CE is not defined */
 #endif
@@ -1035,15 +1041,15 @@
     #define MT6620_FPGA_V5      0
 
     #if (MT6620_FPGA_BWCS == 1) && (MT6620_FPGA_V5 == 1)
-        #error
+	#error
     #endif
 
     #if (MTK_WCN_HIF_SDIO == 1)
-        #define CFG_MULTI_ECOVER_SUPPORT    1
+	#define CFG_MULTI_ECOVER_SUPPORT    1
     #elif !defined(LINUX)
-        #define CFG_MULTI_ECOVER_SUPPORT    1
+	#define CFG_MULTI_ECOVER_SUPPORT    1
     #else
-        #define CFG_MULTI_ECOVER_SUPPORT    0
+	#define CFG_MULTI_ECOVER_SUPPORT    0
     #endif
 
     #define CFG_ENABLE_CAL_LOG      0
@@ -1080,7 +1086,7 @@
     #define MT6620_E1_ASIC_HIFSYS_WORKAROUND            0
 #endif
 
-// SPM issue: suspend current is higher than deep idle
+/* SPM issue: suspend current is higher than deep idle */
 #define CFG_SPM_WORKAROUND_FOR_HOTSPOT                  1
 
 /*------------------------------------------------------------------------------
@@ -1103,8 +1109,8 @@
  */
 #if defined(LINUX)
     #define CFG_TX_BUFFER_IS_SCATTER_LIST       1 /*!< 1: Do frame copy before write to TX FIFO.
-                                                        Used when Network buffer is scatter-gather.
-                                                     0(default): Do not copy frame */
+							Used when Network buffer is scatter-gather.
+						     0(default): Do not copy frame */
 #else /* WINDOWS/WINCE */
     #define CFG_TX_BUFFER_IS_SCATTER_LIST       1
 #endif /* LINUX */
@@ -1122,7 +1128,7 @@
  */
 
 /*! Maximum number of SW TX packet queue */
-#define CFG_TX_MAX_PKT_NUM                      512 //256 must >= CFG_TX_STOP_NETIF_PER_QUEUE_THRESHOLD * 2; or wmm will fail when queue is full
+#define CFG_TX_MAX_PKT_NUM                      512 /* 256 must >= CFG_TX_STOP_NETIF_PER_QUEUE_THRESHOLD * 2; or wmm will fail when queue is full */
 
 /*! Maximum number of SW TX CMD packet buffer */
 #define CFG_TX_MAX_CMD_PKT_NUM                  32
@@ -1148,7 +1154,7 @@
 
 /*! Maximum number of SW RX packet buffer */
 #define CFG_RX_MAX_PKT_NUM                      ((CFG_NUM_OF_RX0_HIF_DESC + CFG_NUM_OF_RX1_HIF_DESC) * 3 \
-                                                + CFG_NUM_OF_QM_RX_PKT_NUM)
+						+ CFG_NUM_OF_QM_RX_PKT_NUM)
 
 #define CFG_RX_REORDER_Q_THRESHOLD              8
 
@@ -1160,7 +1166,7 @@
 
 /*! Maximum RX packet size, if exceed this value, drop incoming packet */
 /* 7.2.3 Maganement frames */
-#define CFG_RX_MAX_PKT_SIZE   ( 28 + 2312 + 12 /*HIF_RX_HEADER_T*/ )  //TODO: it should be 4096 under emulation mode
+#define CFG_RX_MAX_PKT_SIZE   (28 + 2312 + 12 /*HIF_RX_HEADER_T*/)  /* TODO: it should be 4096 under emulation mode */
 
 /*! Minimum RX packet size, if lower than this value, drop incoming packet */
 #define CFG_RX_MIN_PKT_SIZE                     10 /*!< 802.11 Control Frame is 10 bytes */
@@ -1168,7 +1174,7 @@
 #if CFG_SDIO_RX_AGG
     /* extra size for CS_STATUS and enhanced response */
     #define CFG_RX_COALESCING_BUFFER_SIZE       ((CFG_NUM_OF_RX0_HIF_DESC  + 1) \
-                                                * CFG_RX_MAX_PKT_SIZE)
+						* CFG_RX_MAX_PKT_SIZE)
 #else
     #define CFG_RX_COALESCING_BUFFER_SIZE       (CFG_RX_MAX_PKT_SIZE)
 #endif
@@ -1200,7 +1206,7 @@
 /*! Maximum size of Header buffer of each SCAN record */
 #define CFG_RAW_BUFFER_SIZE                      1024
 
- 
+
 /*! Maximum size of IE buffer of each SCAN record */
 #define CFG_IE_BUFFER_SIZE                      512
 
@@ -1220,9 +1226,9 @@
 
 #define CFG_INIT_ENABLE_PATTERN_FILTER_ARP                    0
 
-#define CFG_INIT_UAPSD_AC_BMP                    0//(BIT(3) | BIT(2) | BIT(1) | BIT(0))
+#define CFG_INIT_UAPSD_AC_BMP                    0/* (BIT(3) | BIT(2) | BIT(1) | BIT(0)) */
 
-//#define CFG_SUPPORT_WAPI                        0
+/* #define CFG_SUPPORT_WAPI                        0 */
 #define CFG_SUPPORT_WPS                          1
 #define CFG_SUPPORT_WPS2                         1
 
@@ -1231,13 +1237,8 @@
  *------------------------------------------------------------------------------
  */
 #define CFG_MAX_PMKID_CACHE                     16      /*!< max number of PMKID cache
-                                                           16(default) : The Max PMKID cache */
-/*------------------------------------------------------------------------------
- * Auto Channel Selection Maximun Channel Number
- *------------------------------------------------------------------------------
- */
+							   16(default) : The Max PMKID cache */
 
-#define MAX_AUTO_CHAL_NUM						18                                                          
 /*------------------------------------------------------------------------------
  * Flags and Parameters for Ad-Hoc
  *------------------------------------------------------------------------------
@@ -1274,13 +1275,13 @@
 #define CFG_DBG_GPIO_PINS                       0 /* if 1, use MT6516 GPIO pin to log TX behavior */
 #endif
 
-//2 Flags for Driver Debug Options
+/* 2 Flags for Driver Debug Options */
 /*------------------------------------------------------------------------------
  * Flags of TX Debug Option. NOTE(Kevin): Confirm with SA before modifying following flags.
  *------------------------------------------------------------------------------
  */
 #define CFG_DBG_MGT_BUF                         1 /*!< 1: Debug statistics usage of MGMT Buffer
-                                                       0: Disable */
+						       0: Disable */
 
 #define CFG_HIF_STATISTICS                      0
 
@@ -1311,17 +1312,17 @@
 
 #if defined(MT6620)
     #if MT6620_FPGA_BWCS
-        #define CFG_FW_LOAD_ADDRESS                     0x10014000
-        #define CFG_OVERRIDE_FW_START_ADDRESS           0
-        #define CFG_FW_START_ADDRESS                    0x10014001
+	#define CFG_FW_LOAD_ADDRESS                     0x10014000
+	#define CFG_OVERRIDE_FW_START_ADDRESS           0
+	#define CFG_FW_START_ADDRESS                    0x10014001
     #elif MT6620_FPGA_V5
-        #define CFG_FW_LOAD_ADDRESS                     0x10008000
-        #define CFG_OVERRIDE_FW_START_ADDRESS           0
-        #define CFG_FW_START_ADDRESS                    0x10008001
+	#define CFG_FW_LOAD_ADDRESS                     0x10008000
+	#define CFG_OVERRIDE_FW_START_ADDRESS           0
+	#define CFG_FW_START_ADDRESS                    0x10008001
     #else
-        #define CFG_FW_LOAD_ADDRESS                     0x10008000
-        #define CFG_OVERRIDE_FW_START_ADDRESS           0
-        #define CFG_FW_START_ADDRESS                    0x10008001
+	#define CFG_FW_LOAD_ADDRESS                     0x10008000
+	#define CFG_OVERRIDE_FW_START_ADDRESS           0
+	#define CFG_FW_START_ADDRESS                    0x10008001
     #endif
 #elif defined(MT5931)
     #define CFG_FW_LOAD_ADDRESS                     0xFF900000
@@ -1340,9 +1341,9 @@
 
 #ifdef LINUX
     #ifdef CONFIG_X86
-        #define CFG_ENABLE_BT_OVER_WIFI         0
+	#define CFG_ENABLE_BT_OVER_WIFI         0
     #else
-        #define CFG_ENABLE_BT_OVER_WIFI         1
+	#define CFG_ENABLE_BT_OVER_WIFI         1
     #endif
 #else
     #define CFG_ENABLE_BT_OVER_WIFI             0
@@ -1366,11 +1367,11 @@
  */
 #ifdef LINUX
     #ifdef CONFIG_X86
-        #define CFG_ENABLE_WIFI_DIRECT          0
-        #define CFG_SUPPORT_802_11W             0
+	#define CFG_ENABLE_WIFI_DIRECT          0
+	#define CFG_SUPPORT_802_11W             0
     #else
-        #define CFG_ENABLE_WIFI_DIRECT          1
-        #define CFG_SUPPORT_802_11W             0 /*!< 0(default): Disable 802.11W */
+	#define CFG_ENABLE_WIFI_DIRECT          1
+	#define CFG_SUPPORT_802_11W             0 /*!< 0(default): Disable 802.11W */
     #endif
 #else
     #define CFG_ENABLE_WIFI_DIRECT              0
@@ -1588,5 +1589,3 @@
 ********************************************************************************
 */
 #endif /* _CONFIG_H */
-
-

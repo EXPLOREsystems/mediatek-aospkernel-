@@ -7,7 +7,7 @@ subdir-ccflags-y += -DWMT_UART_RX_MODE_WORK=0 # 1. work thread 0. tasklet
 subdir-ccflags-y += -DREMOVE_MK_NODE=1
 ccflags-y += -I$(src)/linux/include -I$(src)/core/include -I$(src)/include -I$(src)/ -I$(src)/../../common_detect
 
-#ifeq ($(CONFIG_MTK_COMBO_CHIP), MT6628)
+#ifeq ($(MTK_COMBO_CHIP), MT6628)
 #EXT_FLAG=
 #else
 #EXT_FLAG=_mt6628
@@ -45,14 +45,14 @@ mtk_stp_wmt$(EXT_FLAG)-objs	+= platform/$(PLAT)/wmt_plat_$(PLAT).o
 mtk_stp_wmt$(EXT_FLAG)-objs	+= platform/$(PLAT)/wmt_plat_stub.o
 
 # FIXME: select desired hw according to project configuration
-#ifeq ($(CONFIG_MTK_COMBO_CHIP), MT6628)
+#ifeq ($(MTK_COMBO_CHIP), MT6628)
 #mtk_stp_wmt$(EXT_FLAG)-objs	+= platform/alps/mtk_wcn_cmb_hw_6628.o 
 #else
 mtk_stp_wmt$(EXT_FLAG)-objs	+= platform/$(PLAT)/mtk_wcn_cmb_hw.o
 #endif
 
 mtk_stp_wmt$(EXT_FLAG)-objs	+= core/stp_exp.o core/stp_core.o core/psm_core.o core/btm_core.o linux/stp_dbg.o
-#ifeq ($(CONFIG_MTK_COMBO_CHIP), MT6628)
+#ifeq ($(MTK_COMBO_CHIP), MT6628)
 # WMT stub part (built-in kernel image)
 #obj-y			+= platform/$(PLAT)/mtk_wcn_cmb_stub_$(PLAT).o
 #endif

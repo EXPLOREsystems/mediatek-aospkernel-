@@ -15,7 +15,6 @@
 #include <linux/xlog.h>
 
 #include <mach/eint.h>
-#include <mach/mt_gpio.h>
 #include <mach/mt_reg_base.h>
 #include <mach/irqs.h>
 #include <mach/mtk_hibernate_dpm.h>

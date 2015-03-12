@@ -416,58 +416,157 @@ const long channel_freq[] = {
 };
 
 #define     MAP_CHANNEL_ID_TO_KHZ(ch, khz)  {               \
-		switch (ch)                                 \
-		{                                           \
-		    case 1:     khz = 2412000;   break;     \
-		    case 2:     khz = 2417000;   break;     \
-		    case 3:     khz = 2422000;   break;     \
-		    case 4:     khz = 2427000;   break;     \
-		    case 5:     khz = 2432000;   break;     \
-		    case 6:     khz = 2437000;   break;     \
-		    case 7:     khz = 2442000;   break;     \
-		    case 8:     khz = 2447000;   break;     \
-		    case 9:     khz = 2452000;   break;     \
-		    case 10:    khz = 2457000;   break;     \
-		    case 11:    khz = 2462000;   break;     \
-		    case 12:    khz = 2467000;   break;     \
-		    case 13:    khz = 2472000;   break;     \
-		    case 14:    khz = 2484000;   break;     \
-		    case 36:  /* UNII */  khz = 5180000;   break;     \
-		    case 40:  /* UNII */  khz = 5200000;   break;     \
-		    case 44:  /* UNII */  khz = 5220000;   break;     \
-		    case 48:  /* UNII */  khz = 5240000;   break;     \
-		    case 52:  /* UNII */  khz = 5260000;   break;     \
-		    case 56:  /* UNII */  khz = 5280000;   break;     \
-		    case 60:  /* UNII */  khz = 5300000;   break;     \
-		    case 64:  /* UNII */  khz = 5320000;   break;     \
-		    case 149: /* UNII */  khz = 5745000;   break;     \
-		    case 153: /* UNII */  khz = 5765000;   break;     \
-		    case 157: /* UNII */  khz = 5785000;   break;     \
-		    case 161: /* UNII */  khz = 5805000;   break;     \
-		    case 165: /* UNII */  khz = 5825000;   break;     \
-		    case 100: /* HiperLAN2 */  khz = 5500000;   break;     \
-		    case 104: /* HiperLAN2 */  khz = 5520000;   break;     \
-		    case 108: /* HiperLAN2 */  khz = 5540000;   break;     \
-		    case 112: /* HiperLAN2 */  khz = 5560000;   break;     \
-		    case 116: /* HiperLAN2 */  khz = 5580000;   break;     \
-		    case 120: /* HiperLAN2 */  khz = 5600000;   break;     \
-		    case 124: /* HiperLAN2 */  khz = 5620000;   break;     \
-		    case 128: /* HiperLAN2 */  khz = 5640000;   break;     \
-		    case 132: /* HiperLAN2 */  khz = 5660000;   break;     \
-		    case 136: /* HiperLAN2 */  khz = 5680000;   break;     \
-		    case 140: /* HiperLAN2 */  khz = 5700000;   break;     \
-		    case 34:  /* Japan MMAC */   khz = 5170000;   break;   \
-		    case 38:  /* Japan MMAC */   khz = 5190000;   break;   \
-		    case 42:  /* Japan MMAC */   khz = 5210000;   break;   \
-		    case 46:  /* Japan MMAC */   khz = 5230000;   break;   \
-		    case 184: /* Japan */   khz = 4920000;   break;   \
-		    case 188: /* Japan */   khz = 4940000;   break;   \
-		    case 192: /* Japan */   khz = 4960000;   break;   \
-		    case 196: /* Japan */   khz = 4980000;   break;   \
-		    case 208: /* Japan, means J08 */   khz = 5040000;   break;   \
-		    case 212: /* Japan, means J12 */   khz = 5060000;   break;   \
-		    case 216: /* Japan, means J16 */   khz = 5080000;   break;   \
-		    default:    khz = 2412000;   break;     \
+		switch (ch) {                                           \
+		case 1:     \
+			khz = 2412000;     \
+			break;     \
+		case 2:   \
+			khz = 2417000;   \
+			break;     \
+		case 3:   \
+			khz = 2422000;   \
+			break;     \
+		case 4:   \
+			khz = 2427000;   \
+			break;     \
+		case 5:   \
+			khz = 2432000;   \
+			break;     \
+		case 6:   \
+			khz = 2437000;   \
+			break;     \
+		case 7:   \
+			khz = 2442000;   \
+			break;     \
+		case 8:   \
+			khz = 2447000;   \
+			break;     \
+		case 9:   \
+			khz = 2452000;   \
+			break;     \
+		case 10:    \
+			khz = 2457000;   \
+			break;     \
+		case 11:    \
+			khz = 2462000;    \
+			break;     \
+		case 12:   \
+			khz = 2467000;   \
+			break;     \
+		case 13:   \
+			khz = 2472000;    \
+			break;     \
+		case 14:   \
+			khz = 2484000;   \
+			break;     \
+		case 36:   /* UNII */\
+			khz = 5180000;     \
+			break;     \
+		case 40:   /* UNII */\
+			khz = 5200000;   \
+			break;     \
+		case 44:  /* UNII */\
+			khz = 5220000;   \
+			break;     \
+		case 48:   /* UNII */\
+			khz = 5240000;   \
+			break;     \
+		case 52:   /* UNII */\
+			khz = 5260000;   \
+			break;     \
+		case 56:  /* UNII */\
+			khz = 5280000;   \
+			break;     \
+		case 60:   /* UNII */\
+			khz = 5300000;   \
+			break;     \
+		case 64:   /* UNII */\
+			khz = 5320000;   \
+			break;     \
+		case 149:   /* UNII */\
+			khz = 5745000;   \
+			break;     \
+		case 153:   /* UNII */\
+			khz = 5765000;   \
+			break;     \
+		case 157:   /* UNII */\
+			khz = 5785000;    \
+			break;     \
+		case 161:   /* UNII */\
+			khz = 5805000;    \
+			break;     \
+		case 165:   /* UNII */\
+			khz = 5825000;   \
+			break;     \
+		case 100:    /* HiperLAN2 */\
+			khz = 5500000;   \
+			break;     \
+		case 104:   /* HiperLAN2 */\
+			khz = 5520000;   \
+			break;     \
+		case 108:   /* HiperLAN2 */\
+			khz = 5540000;   \
+			break;     \
+		case 112:  /* HiperLAN2 */\
+			khz = 5560000;   \
+			break;     \
+		case 116:   /* HiperLAN2 */\
+			khz = 5580000;   \
+			break;     \
+		case 120:  /* HiperLAN2 */\
+			khz = 5600000;   \
+			break;     \
+		case 124:   /* HiperLAN2 */\
+			khz = 5620000;   \
+			break;     \
+		case 128:   /* HiperLAN2 */\
+			khz = 5640000;   \
+			break;     \
+		case 132:   /* HiperLAN2 */\
+			khz = 5660000;   \
+			break;     \
+		case 136:   /* HiperLAN2 */\
+			khz = 5680000;   \
+			break;     \
+		case 140:   /* HiperLAN2 */\
+			khz = 5700000;   \
+			break;     \
+		case 34:   /* Japan MMAC */\
+			khz = 5170000;   \
+			break;   \
+		case 38:  /* Japan MMAC */\
+			khz = 5190000;   \
+			break;   \
+		case 42:   /* Japan MMAC */\
+			khz = 5210000;   \
+			break;   \
+		case 46:   /* Japan MMAC */\
+			khz = 5230000;   \
+			break;   \
+		case 184:   /* Japan */\
+			khz = 4920000;   \
+			break;   \
+		case 188:   /* Japan */\
+			khz = 4940000;   \
+			break;   \
+		case 192:   /* Japan */\
+			khz = 4960000;   \
+			break;   \
+		case 196:   /* Japan */\
+			khz = 4980000;   \
+			break;   \
+		case 208:   /* Japan, means J08 */\
+			khz = 5040000;   \
+			break;   \
+		case 212:   /* Japan, means J12 */\
+			khz = 5060000;   \
+			break;   \
+		case 216:   /* Japan, means J16 */\
+			khz = 5080000;   \
+			break;   \
+		default:   \
+			khz = 2412000;   \
+			break;     \
 		}                                           \
 	    }
 
@@ -559,6 +658,8 @@ static const struct iw_priv_args rIwPrivTable[] = {
 #if CFG_ENABLE_WIFI_DIRECT
 	{PRIV_CMD_P2P_MODE, IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 2, 0, "set_p2p_mode"},
 #endif
+    {PRIV_CMD_MET_PROFILING,   IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 2, 0,   "set_met_prof" },
+
 };
 
 static const iw_handler rIwPrivHandler[] = {
@@ -602,11 +703,18 @@ const struct iw_handler_def wext_handler_def = {
 *                  F U N C T I O N   D E C L A R A T I O N S
 ********************************************************************************
 */
+extern VOID wlanUpdateChannelTable(P_GLUE_INFO_T prGlueInfo);
 
 /*******************************************************************************
 *                              F U N C T I O N S
 ********************************************************************************
 */
+static void
+wext_support_ioctl_SIOCSIWGENIE(IN P_GLUE_INFO_T prGlueInfo, IN char *prExtraBuf, IN UINT_32 u4ExtraSize);
+
+static void
+wext_support_ioctl_SIOCSIWPMKSA_Action(IN struct net_device *prDev, IN char *prExtraBuf, IN int ioMode, OUT int *ret);
+
 
 /*----------------------------------------------------------------------------*/
 /*!
@@ -2146,7 +2254,7 @@ wext_get_scan(IN struct net_device *prNetDev,
 
 	/* kalIndicateStatusAndComplete(prGlueInfo, WLAN_STATUS_SCAN_COMPLETE, NULL, 0); */
 
- error :
+error:
 	/* free local query buffer */
 	if (prList) {
 		kalMemFree(prList, VIR_MEM_TYPE, u4AllocBufLen);
@@ -3249,7 +3357,7 @@ wext_set_auth(IN struct net_device *prNetDev,
 */
 /*----------------------------------------------------------------------------*/
 #if CFG_SUPPORT_WAPI
-UINT_8 keyStructBuf[600];	/* add/remove key shared buffer */
+UINT_8 keyStructBuf[1024];	/* add/remove key shared buffer */
 #else
 UINT_8 keyStructBuf[100];	/* add/remove key shared buffer */
 #endif
@@ -3505,7 +3613,7 @@ wext_set_encode_ext(IN struct net_device *prNetDev,
 
 			prKey->u4KeyLength = prIWEncExt->key_len;
 			prKey->u4Length =
-			    ((UINT_32) &(((P_PARAM_KEY_T) 0)->aucKeyMaterial)) +
+			    ((ULONG) & (((P_PARAM_KEY_T) 0)->aucKeyMaterial)) +
 			    prKey->u4KeyLength;
 
 
@@ -3562,6 +3670,7 @@ static int wext_set_country(IN struct net_device *prNetDev, IN struct iwreq *iwr
 
 	rStatus = kalIoctl(prGlueInfo,
 			   wlanoidSetCountryCode, &aucCountry[0], 2, FALSE, FALSE, TRUE, &u4BufLen);
+	wlanUpdateChannelTable(prGlueInfo);
 
 	return 0;
 }
@@ -3971,40 +4080,7 @@ int wext_support_ioctl(IN struct net_device *prDev, IN struct ifreq *prIfReq, IN
 							   iwr->u.data.length)) {
 						ret = -EFAULT;
 					} else {
-						WLAN_STATUS rStatus;
-						UINT_32 u4BufLen;
-#if CFG_SUPPORT_WAPI
-						rStatus = kalIoctl(prGlueInfo,
-								   wlanoidSetWapiAssocInfo,
-								   prExtraBuf,
-								   u4ExtraSize,
-								   FALSE, FALSE, TRUE, &u4BufLen);
-
-						if (rStatus != WLAN_STATUS_SUCCESS) {
-							/* printk(KERN_INFO "[wapi] set wapi assoc info error:%lx\n", rStatus); */
-#endif
-#if CFG_SUPPORT_WPS2
-							PUINT_8 prDesiredIE = NULL;
-							if (wextSrchDesiredWPSIE(prExtraBuf,
-										 u4ExtraSize,
-										 0xDD,
-										 (PUINT_8 *) &
-										 prDesiredIE)) {
-								rStatus =
-								    kalIoctl(prGlueInfo,
-									     wlanoidSetWSCAssocInfo,
-									     prDesiredIE,
-									     IE_SIZE(prDesiredIE),
-									     FALSE, FALSE, TRUE,
-									     &u4BufLen);
-								if (rStatus != WLAN_STATUS_SUCCESS) {
-									/* printk(KERN_INFO "[WSC] set WSC assoc info error:%lx\n", rStatus); */
-								}
-							}
-#endif
-#if CFG_SUPPORT_WAPI
-						}
-#endif
+					    wext_support_ioctl_SIOCSIWGENIE(prGlueInfo, prExtraBuf, u4ExtraSize);
 					}
 					kalMemFree(prExtraBuf, VIR_MEM_TYPE, u4ExtraSize);
 					prExtraBuf = NULL;
@@ -4080,45 +4156,7 @@ int wext_support_ioctl(IN struct net_device *prDev, IN struct ifreq *prIfReq, IN
 					   MAC2STR(((struct iw_pmksa *)pExtraBuf)->bssid.sa_data));
 					 */
 					{
-						P_GLUE_INFO_T prGlueInfo =
-						    *((P_GLUE_INFO_T *) netdev_priv(prDev));
-						WLAN_STATUS rStatus;
-						UINT_32 u4BufLen;
-						P_PARAM_PMKID_T prPmkid;
-
-						prPmkid =
-						    (P_PARAM_PMKID_T) kalMemAlloc(8 +
-										  sizeof
-										  (PARAM_BSSID_INFO_T),
-										  VIR_MEM_TYPE);
-						if (!prPmkid) {
-							DBGLOG(INIT, INFO,
-							       ("Can not alloc memory for IW_PMKSA_ADD\n"));
-							ret = -ENOMEM;
-							break;
-						}
-
-						prPmkid->u4Length = 8 + sizeof(PARAM_BSSID_INFO_T);
-						prPmkid->u4BSSIDInfoCount = 1;
-						kalMemCopy(prPmkid->arBSSIDInfo->arBSSID,
-							   ((struct iw_pmksa *)prExtraBuf)->bssid.
-							   sa_data, 6);
-						kalMemCopy(prPmkid->arBSSIDInfo->arPMKID,
-							   ((struct iw_pmksa *)prExtraBuf)->pmkid,
-							   IW_PMKID_LEN);
-
-						rStatus = kalIoctl(prGlueInfo,
-								   wlanoidSetPmkid,
-								   prPmkid,
-								   sizeof(PARAM_PMKID_T),
-								   FALSE, FALSE, TRUE, &u4BufLen);
-
-						if (rStatus != WLAN_STATUS_SUCCESS) {
-							DBGLOG(INIT, INFO,
-							       ("add pmkid error:%lx\n", rStatus));
-						}
-						kalMemFree(prPmkid, VIR_MEM_TYPE,
-							   8 + sizeof(PARAM_BSSID_INFO_T));
+						wext_support_ioctl_SIOCSIWPMKSA_Action(prDev, prExtraBuf, IW_PMKSA_ADD, &ret);
 					}
 					break;
 				case IW_PMKSA_REMOVE:
@@ -4132,36 +4170,7 @@ int wext_support_ioctl(IN struct net_device *prDev, IN struct ifreq *prIfReq, IN
 					   printk(KERN_INFO "IW_PMKSA_FLUSH\n");
 					 */
 					{
-						P_GLUE_INFO_T prGlueInfo =
-						    *((P_GLUE_INFO_T *) netdev_priv(prDev));
-						WLAN_STATUS rStatus;
-						UINT_32 u4BufLen;
-						P_PARAM_PMKID_T prPmkid;
-
-						prPmkid =
-						    (P_PARAM_PMKID_T) kalMemAlloc(8, VIR_MEM_TYPE);
-						if (!prPmkid) {
-							DBGLOG(INIT, INFO,
-							       ("Can not alloc memory for IW_PMKSA_FLUSH\n"));
-							ret = -ENOMEM;
-							break;
-						}
-
-						prPmkid->u4Length = 8;
-						prPmkid->u4BSSIDInfoCount = 0;
-
-						rStatus = kalIoctl(prGlueInfo,
-								   wlanoidSetPmkid,
-								   prPmkid,
-								   sizeof(PARAM_PMKID_T),
-								   FALSE, FALSE, TRUE, &u4BufLen);
-
-						if (rStatus != WLAN_STATUS_SUCCESS) {
-							DBGLOG(INIT, INFO,
-							       ("flush pmkid error:%lx\n",
-								rStatus));
-						}
-						kalMemFree(prPmkid, VIR_MEM_TYPE, 8);
+						wext_support_ioctl_SIOCSIWPMKSA_Action(prDev, prExtraBuf, IW_PMKSA_FLUSH, &ret);
 					}
 					break;
 				default:
@@ -4196,7 +4205,119 @@ int wext_support_ioctl(IN struct net_device *prDev, IN struct ifreq *prIfReq, IN
 	return ret;
 }				/* wext_support_ioctl */
 
+static void
+wext_support_ioctl_SIOCSIWGENIE(IN P_GLUE_INFO_T prGlueInfo, IN char *prExtraBuf, IN UINT_32 u4ExtraSize)
+{
+	WLAN_STATUS rStatus;
+	UINT_32 u4BufLen;
+#if CFG_SUPPORT_WAPI
+	rStatus = kalIoctl(prGlueInfo,
+			   wlanoidSetWapiAssocInfo,
+			   prExtraBuf,
+			   u4ExtraSize,
+			   FALSE, FALSE, TRUE, &u4BufLen);
+	if (rStatus != WLAN_STATUS_SUCCESS) {
+#endif
+#if CFG_SUPPORT_WPS2
+		PUINT_8 prDesiredIE = NULL;
+		if (wextSrchDesiredWPSIE(prExtraBuf,
+					 u4ExtraSize,
+					 0xDD,
+					 (PUINT_8 *) &
+					 prDesiredIE)) {
+			rStatus =
+			    kalIoctl(prGlueInfo,
+				     wlanoidSetWSCAssocInfo,
+				     prDesiredIE,
+				     IE_SIZE(prDesiredIE),
+				     FALSE, FALSE, TRUE,
+				     &u4BufLen);
+			if (rStatus != WLAN_STATUS_SUCCESS) {
+				/* printk(KERN_INFO "[WSC] set WSC assoc info error:%lx\n", rStatus); */
+			}
+		}
+#endif
+#if CFG_SUPPORT_WAPI
+	}
+#endif
 
+}
+
+static void
+wext_support_ioctl_SIOCSIWPMKSA_Action(IN struct net_device *prDev, IN char *prExtraBuf, IN int ioMode, OUT int *ret)
+{
+	P_GLUE_INFO_T prGlueInfo =
+	    *((P_GLUE_INFO_T *) netdev_priv(prDev));
+	WLAN_STATUS rStatus;
+	UINT_32 u4BufLen;
+	P_PARAM_PMKID_T prPmkid;
+
+	switch (ioMode) {
+	case IW_PMKSA_ADD:
+		prPmkid =
+		    (P_PARAM_PMKID_T) kalMemAlloc(8 +
+						  sizeof
+						  (PARAM_BSSID_INFO_T),
+						  VIR_MEM_TYPE);
+		if (!prPmkid) {
+			DBGLOG(INIT, INFO,
+			       ("Can not alloc memory for IW_PMKSA_ADD\n"));
+			*ret = -ENOMEM;
+			break;
+		}
+
+		prPmkid->u4Length = 8 + sizeof(PARAM_BSSID_INFO_T);
+		prPmkid->u4BSSIDInfoCount = 1;
+		kalMemCopy(prPmkid->arBSSIDInfo->arBSSID,
+			   ((struct iw_pmksa *)prExtraBuf)->bssid.
+			   sa_data, 6);
+		kalMemCopy(prPmkid->arBSSIDInfo->arPMKID,
+			   ((struct iw_pmksa *)prExtraBuf)->pmkid,
+			   IW_PMKID_LEN);
+
+		rStatus = kalIoctl(prGlueInfo,
+				   wlanoidSetPmkid,
+				   prPmkid,
+				   sizeof(PARAM_PMKID_T),
+				   FALSE, FALSE, TRUE, &u4BufLen);
+
+		if (rStatus != WLAN_STATUS_SUCCESS) {
+			DBGLOG(INIT, INFO,
+			       ("add pmkid error:%lx\n", rStatus));
+		}
+		kalMemFree(prPmkid, VIR_MEM_TYPE,
+			   8 + sizeof(PARAM_BSSID_INFO_T));
+		break;
+	case IW_PMKSA_FLUSH:
+		prPmkid =
+		    (P_PARAM_PMKID_T) kalMemAlloc(8, VIR_MEM_TYPE);
+		if (!prPmkid) {
+			DBGLOG(INIT, INFO,
+			       ("Can not alloc memory for IW_PMKSA_FLUSH\n"));
+			*ret = -ENOMEM;
+			break;
+		}
+
+		prPmkid->u4Length = 8;
+		prPmkid->u4BSSIDInfoCount = 0;
+
+		rStatus = kalIoctl(prGlueInfo,
+				   wlanoidSetPmkid,
+				   prPmkid,
+				   sizeof(PARAM_PMKID_T),
+				   FALSE, FALSE, TRUE, &u4BufLen);
+
+		if (rStatus != WLAN_STATUS_SUCCESS) {
+			DBGLOG(INIT, INFO,
+			       ("flush pmkid error:%lx\n",
+				rStatus));
+		}
+		kalMemFree(prPmkid, VIR_MEM_TYPE, 8);
+		break;
+	default:
+		break;
+    }
+}
 
 /*----------------------------------------------------------------------------*/
 /*!
@@ -4364,7 +4485,7 @@ wext_indicate_wext_event(IN P_GLUE_INFO_T prGlueInfo,
 	/* Send event to user space */
 	wireless_send_event(prGlueInfo->prDevHandler, u4Cmd, &wrqu, pucExtraInfo);
 
- skip_indicate_event:
+skip_indicate_event:
 	return;
 }				/* wext_indicate_wext_event */
 
@@ -4409,7 +4530,7 @@ struct iw_statistics *wext_get_wireless_stats(struct net_device *prDev)
 	rStatus = kalIoctl(prGlueInfo,
 			   wlanoidQueryRssi, &i4Rssi, sizeof(i4Rssi), TRUE, TRUE, TRUE, &bufLen);
 
- stat_out:
+stat_out:
 	return pStats;
 }				/* wlan_get_wireless_stats */
 

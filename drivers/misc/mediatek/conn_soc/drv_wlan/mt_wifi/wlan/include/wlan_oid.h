@@ -1,10 +1,24 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/wlan_oid.h#2 $
 */
 
 /*! \file   "wlan_oid.h"
     \brief This file contains the declairation file of the WLAN OID processing routines
-           of Windows driver for MediaTek Inc. 802.11 Wireless LAN Adapters.
+	   of Windows driver for MediaTek Inc. 802.11 Wireless LAN Adapters.
 */
 
 
@@ -273,13 +287,13 @@
 
 #if CFG_SLT_SUPPORT
 #define PARAM_PACKET_FILTER_SUPPORTED   (PARAM_PACKET_FILTER_DIRECTED | \
-                                         PARAM_PACKET_FILTER_MULTICAST | \
-                                         PARAM_PACKET_FILTER_BROADCAST | \
-                                         PARAM_PACKET_FILTER_ALL_MULTICAST)
+					 PARAM_PACKET_FILTER_MULTICAST | \
+					 PARAM_PACKET_FILTER_BROADCAST | \
+					 PARAM_PACKET_FILTER_ALL_MULTICAST)
 #else
 #define PARAM_PACKET_FILTER_SUPPORTED   (PARAM_PACKET_FILTER_DIRECTED | \
-                                         PARAM_PACKET_FILTER_MULTICAST | \
-                                         PARAM_PACKET_FILTER_BROADCAST)
+					 PARAM_PACKET_FILTER_MULTICAST | \
+					 PARAM_PACKET_FILTER_BROADCAST)
 #endif
 
 #define PARAM_MEM_DUMP_MAX_SIZE         2048
@@ -343,16 +357,16 @@ typedef enum _ENUM_PARAM_PHY_TYPE_T {
     PHY_TYPE_802_11G,                   /*!< Can associated with 802_11g only AP, Scan single band and not report 802_11ab BSSs. */
     PHY_TYPE_802_11A,                   /*!< Can associated with 802_11a only AP, Scan single band and not report 802_11bg BSSs. */
     PHY_TYPE_802_11B,                   /*!< Can associated with 802_11b only AP, Scan single band and not report 802_11ag BSSs. */
-    PHY_TYPE_NUM // 5
+    PHY_TYPE_NUM /* 5 */
 } ENUM_PARAM_PHY_TYPE_T, *P_ENUM_PARAM_PHY_TYPE_T;
 
 typedef enum _ENUM_PARAM_OP_MODE_T {
     NET_TYPE_IBSS = 0,                  /*!< Try to merge/establish an AdHoc, do periodic SCAN for merging. */
     NET_TYPE_INFRA,                     /*!< Try to join an Infrastructure, do periodic SCAN for joining. */
     NET_TYPE_AUTO_SWITCH,               /*!< Try to join an Infrastructure, if fail then try to merge or
-                                         establish an AdHoc, do periodic SCAN for joining or merging. */
+					 establish an AdHoc, do periodic SCAN for joining or merging. */
     NET_TYPE_DEDICATED_IBSS,            /*!< Try to merge an AdHoc first, if fail then establish AdHoc permanently, no more SCAN. */
-    NET_TYPE_NUM // 4
+    NET_TYPE_NUM /* 4 */
 } ENUM_PARAM_OP_MODE_T, *P_ENUM_PARAM_OP_MODE_T;
 
 typedef struct _PARAM_SSID_T {
@@ -366,14 +380,14 @@ typedef enum _ENUM_PARAM_AD_HOC_MODE_T {
     AD_HOC_MODE_MIXED_11BG,             /*!< Create 11bg mixed IBSS if we support 802.11abg/802.11bg/802.11g. */
     AD_HOC_MODE_11G,                    /*!< Create 11g only IBSS if we support 802.11abg/802.11bg/802.11g. */
     AD_HOC_MODE_11A,                    /*!< Create 11a only IBSS if we support 802.11abg. */
-    AD_HOC_MODE_NUM // 4
+    AD_HOC_MODE_NUM /* 4 */
 } ENUM_PARAM_AD_HOC_MODE_T, *P_ENUM_PARAM_AD_HOC_MODE_T;
 
 
 typedef enum _ENUM_PARAM_MEDIA_STATE_T {
     PARAM_MEDIA_STATE_CONNECTED,
     PARAM_MEDIA_STATE_DISCONNECTED,
-    PARAM_MEDIA_STATE_TO_BE_INDICATED // for following MSDN re-association behavior
+    PARAM_MEDIA_STATE_TO_BE_INDICATED /* for following MSDN re-association behavior */
 } ENUM_PARAM_MEDIA_STATE_T, *P_ENUM_PARAM_MEDIA_STATE_T;
 
 
@@ -389,7 +403,7 @@ typedef enum _ENUM_PARAM_NETWORK_TYPE_T {
 
 typedef struct _PARAM_NETWORK_TYPE_LIST {
     UINT_32                     NumberOfItems;      /*!< At least 1 */
-    ENUM_PARAM_NETWORK_TYPE_T   eNetworkType [1];
+    ENUM_PARAM_NETWORK_TYPE_T   eNetworkType[1];
 } PARAM_NETWORK_TYPE_LIST, *PPARAM_NETWORK_TYPE_LIST;
 
 typedef enum _ENUM_PARAM_PRIVACY_FILTER_T
@@ -406,13 +420,13 @@ typedef enum _ENUM_RELOAD_DEFAULTS
 
 typedef struct _PARAM_PM_PACKET_PATTERN
 {
-    UINT_32 Priority;                   // Importance of the given pattern.
-    UINT_32 Reserved;                   // Context information for transports.
-    UINT_32 MaskSize;                   // Size in bytes of the pattern mask.
-    UINT_32 PatternOffset;              // Offset from beginning of this
-                                        // structure to the pattern bytes.
-    UINT_32 PatternSize;                // Size in bytes of the pattern.
-    UINT_32 PatternFlags;               // Flags (TBD).
+    UINT_32 Priority;                   /* Importance of the given pattern. */
+    UINT_32 Reserved;                   /* Context information for transports. */
+    UINT_32 MaskSize;                   /* Size in bytes of the pattern mask. */
+    UINT_32 PatternOffset;              /* Offset from beginning of this */
+					/* structure to the pattern bytes. */
+    UINT_32 PatternSize;                /* Size in bytes of the pattern. */
+    UINT_32 PatternFlags;               /* Flags (TBD). */
 } PARAM_PM_PACKET_PATTERN, *P_PARAM_PM_PACKET_PATTERN;
 
 /*--------------------------------------------------------------*/
@@ -595,8 +609,8 @@ typedef struct _PARAM_802_11_TEST_T
     UINT_32             u4Type;
     union
     {
-        PARAM_AUTH_EVENT_T  AuthenticationEvent;
-        PARAM_RSSI          RssiTrigger;
+	PARAM_AUTH_EVENT_T  AuthenticationEvent;
+	PARAM_RSSI          RssiTrigger;
     } u;
 } PARAM_802_11_TEST_T, *P_PARAM_802_11_TEST_T;
 
@@ -641,14 +655,14 @@ typedef struct _PARAM_PMKID_CANDIDATE_T {
     UINT_32             u4Flags;
 } PARAM_PMKID_CANDIDATE_T, *P_PARAM_PMKID_CANDIDATE_T;
 
-//#ifdef LINUX
+/* #ifdef LINUX */
 typedef struct _PARAM_PMKID_CANDIDATE_LIST_T
 {
     UINT_32                   u4Version;            /*!< Version */
     UINT_32                   u4NumCandidates;      /*!< How many candidates follow */
     PARAM_PMKID_CANDIDATE_T   arCandidateList[1];
 } PARAM_PMKID_CANDIDATE_LIST_T, *P_PARAM_PMKID_CANDIDATE_LIST_T;
-//#endif
+/* #endif */
 
 typedef struct _PARAM_CUSTOM_MCR_RW_STRUC_T {
     UINT_32             u4McrOffset;
@@ -763,7 +777,7 @@ typedef struct _PARAM_VOIP_CONFIG {
 
 /*802.11 Statistics Struct*/
 typedef struct _PARAM_802_11_STATISTICS_STRUCT_T {
-    UINT_32         u4Length;             // Length of structure
+    UINT_32         u4Length;             /* Length of structure */
     LARGE_INTEGER   rTransmittedFragmentCount;
     LARGE_INTEGER   rMulticastTransmittedFrameCount;
     LARGE_INTEGER   rFailedCount;
@@ -837,18 +851,18 @@ typedef struct _PARAM_NETWORK_ADDRESS_IP
 } PARAM_NETWORK_ADDRESS_IP, *P_PARAM_NETWORK_ADDRESS_IP;
 
 typedef struct _PARAM_NETWORK_ADDRESS {
-    UINT_16     u2AddressLength;    // length in bytes of Address[] in this
-    UINT_16     u2AddressType;      // type of this address (PARAM_PROTOCOL_ID_XXX above)
-    UINT_8      aucAddress[1];      // actually AddressLength bytes long
+    UINT_16     u2AddressLength;    /* length in bytes of Address[] in this */
+    UINT_16     u2AddressType;      /* type of this address (PARAM_PROTOCOL_ID_XXX above) */
+    UINT_8      aucAddress[1];      /* actually AddressLength bytes long */
 } PARAM_NETWORK_ADDRESS, *P_PARAM_NETWORK_ADDRESS;
 
-// The following is used with OID_GEN_NETWORK_LAYER_ADDRESSES to set network layer addresses on an interface
+/* The following is used with OID_GEN_NETWORK_LAYER_ADDRESSES to set network layer addresses on an interface */
 
 typedef struct _PARAM_NETWORK_ADDRESS_LIST
 {
-    UINT_32                 u4AddressCount;     // number of addresses following
-    UINT_16                 u2AddressType;      // type of this address (NDIS_PROTOCOL_ID_XXX above)
-    PARAM_NETWORK_ADDRESS   arAddress[1];       // actually AddressCount elements long
+    UINT_32                 u4AddressCount;     /* number of addresses following */
+    UINT_16                 u2AddressType;      /* type of this address (NDIS_PROTOCOL_ID_XXX above) */
+    PARAM_NETWORK_ADDRESS   arAddress[1];       /* actually AddressCount elements long */
 } PARAM_NETWORK_ADDRESS_LIST, *P_PARAM_NETWORK_ADDRESS_LIST;
 
 #if CFG_SLT_SUPPORT
@@ -857,8 +871,8 @@ typedef struct _PARAM_NETWORK_ADDRESS_LIST
 #define FIXED_BW_UL20       0x2000
 #define FIXED_BW_DL40       0x3000
 
-#define FIXED_EXT_CHNL_U20  0x4000   // For AGG register.
-#define FIXED_EXT_CHNL_L20  0xC000   // For AGG regsiter.
+#define FIXED_EXT_CHNL_U20  0x4000   /* For AGG register. */
+#define FIXED_EXT_CHNL_L20  0xC000   /* For AGG regsiter. */
 
 typedef enum _ENUM_MTK_LP_TEST_MODE_T {
     ENUM_MTK_LP_TEST_NORMAL,
@@ -881,8 +895,8 @@ typedef struct _PARAM_MTK_SLT_LP_TEST_STRUC_T {
 } PARAM_MTK_SLT_LP_TEST_STRUC_T, *P_PARAM_MTK_SLT_LP_TEST_STRUC_T;
 
 typedef struct _PARAM_MTK_SLT_TR_TEST_STRUC_T {
-    ENUM_PARAM_NETWORK_TYPE_T rNetworkType;         // Network Type OFDM5G or OFDM2.4G
-    UINT_32 u4FixedRate;                                                 // Fixed Rate including BW
+    ENUM_PARAM_NETWORK_TYPE_T rNetworkType;         /* Network Type OFDM5G or OFDM2.4G */
+    UINT_32 u4FixedRate;                                                 /* Fixed Rate including BW */
 } PARAM_MTK_SLT_TR_TEST_STRUC_T, *P_PARAM_MTK_SLT_TR_TEST_STRUC_T;
 
 typedef struct _PARAM_MTK_SLT_INITIAL_STRUC_T {
@@ -893,13 +907,13 @@ typedef struct _PARAM_MTK_SLT_INITIAL_STRUC_T {
 typedef struct _PARAM_MTK_SLT_TEST_STRUC_T {
     ENUM_MTK_SLT_FUNC_IDX_T rSltFuncIdx;
     UINT_32 u4Length;                       /* Length of structure,
-                                                     including myself */
+						     including myself */
     UINT_32  u4FuncInfoLen;  /* Include following content
-                                                    field and myself */
+						    field and myself */
     union {
-        PARAM_MTK_SLT_INITIAL_STRUC_T rMtkInitTest;
-        PARAM_MTK_SLT_LP_TEST_STRUC_T rMtkLpTest;
-        PARAM_MTK_SLT_TR_TEST_STRUC_T rMtkTRTest;
+	PARAM_MTK_SLT_INITIAL_STRUC_T rMtkInitTest;
+	PARAM_MTK_SLT_LP_TEST_STRUC_T rMtkLpTest;
+	PARAM_MTK_SLT_TR_TEST_STRUC_T rMtkTRTest;
     } unFuncInfoContent;
 
 } PARAM_MTK_SLT_TEST_STRUC_T, *P_PARAM_MTK_SLT_TEST_STRUC_T;
@@ -978,16 +992,16 @@ typedef enum _ENUM_BT_PROFILE_T {
 typedef struct _PTA_PROFILE_T {
     ENUM_BT_PROFILE_T eBtProfile;
     union {
-        UINT_8 aucBTPParams[BT_PROFILE_PARAM_LEN];
-                                /*  0: sco reserved slot time,
-                                    1: sco idle slot time,
-                                    2: acl throughput,
-                                    3: bt tx power,
-                                    4: bt rssi
-                                    5: VoIP interval
-                                    6: BIT(0) Use this field, BIT(1) 0 apply single/ 1 dual PTA setting.
-                                */
-        UINT_32 au4Btcr[4];
+	UINT_8 aucBTPParams[BT_PROFILE_PARAM_LEN];
+				/*  0: sco reserved slot time,
+				    1: sco idle slot time,
+				    2: acl throughput,
+				    3: bt tx power,
+				    4: bt rssi
+				    5: VoIP interval
+				    6: BIT(0) Use this field, BIT(1) 0 apply single/ 1 dual PTA setting.
+				*/
+	UINT_32 au4Btcr[4];
     } u;
 } PTA_PROFILE_T, *P_PTA_PROFILE_T;
 
@@ -995,8 +1009,8 @@ typedef struct _PTA_IPC_T {
     UINT_8      ucCmd;
     UINT_8      ucLen;
     union {
-        PTA_PROFILE_T rProfile;
-        UINT_8      aucBTPParams[BT_PROFILE_PARAM_LEN];
+	PTA_PROFILE_T rProfile;
+	UINT_8      aucBTPParams[BT_PROFILE_PARAM_LEN];
     } u;
 } PARAM_PTA_IPC_T, *P_PARAM_PTA_IPC_T, PTA_IPC_T, *P_PTA_IPC_T;
 
@@ -1060,7 +1074,7 @@ wlanoidQueryNetworkTypeInUse(
     );
 
 WLAN_STATUS
-wlanoidSetNetworkTypeInUse (
+wlanoidSetNetworkTypeInUse(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -1084,7 +1098,7 @@ wlanoidSetBssidListScan(
     );
 
 WLAN_STATUS
-wlanoidSetBssidListScanExt (
+wlanoidSetBssidListScanExt(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -1157,7 +1171,7 @@ wlanoidSetAuthMode(
 
 #if 0
 WLAN_STATUS
-wlanoidQueryPrivacyFilter (
+wlanoidQueryPrivacyFilter(
     IN  P_ADAPTER_T       prAdapter,
     OUT PVOID             pvQueryBuffer,
     IN  UINT_32           u4QueryBufferLen,
@@ -1166,7 +1180,7 @@ wlanoidQueryPrivacyFilter (
 
 
 WLAN_STATUS
-wlanoidSetPrivacyFilter (
+wlanoidSetPrivacyFilter(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -1205,16 +1219,6 @@ wlanoidSetRemoveWep(
     IN  UINT_32           u4SetBufferLen,
     OUT PUINT_32          pu4SetInfoLen
     );
-
-WLAN_STATUS
-_wlanoidSetAddKey (
-    IN  P_ADAPTER_T       prAdapter,
-    IN  PVOID    pvSetBuffer,
-    IN  UINT_32  u4SetBufferLen,
-	IN	BOOLEAN  fgIsOid,
-	IN	UINT_8   ucAlgorithmId,
-    OUT PUINT_32 pu4SetInfoLen
-    ); /* ++ TDLS */
 
 WLAN_STATUS
 wlanoidSetAddKey(
@@ -1257,7 +1261,7 @@ wlanoidQueryCapability(
     );
 
 WLAN_STATUS
-wlanoidQueryFrequency (
+wlanoidQueryFrequency(
     IN  P_ADAPTER_T prAdapter,
     OUT PVOID       pvQueryBuffer,
     IN  UINT_32     u4QueryBufferLen,
@@ -1265,7 +1269,7 @@ wlanoidQueryFrequency (
     );
 
 WLAN_STATUS
-wlanoidSetFrequency (
+wlanoidSetFrequency(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -1274,7 +1278,7 @@ wlanoidSetFrequency (
 
 
 WLAN_STATUS
-wlanoidQueryAtimWindow (
+wlanoidQueryAtimWindow(
     IN  P_ADAPTER_T prAdapter,
     OUT PVOID       pvQueryBuffer,
     IN  UINT_32     u4QueryBufferLen,
@@ -1282,7 +1286,7 @@ wlanoidQueryAtimWindow (
     );
 
 WLAN_STATUS
-wlanoidSetAtimWindow (
+wlanoidSetAtimWindow(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -1291,7 +1295,7 @@ wlanoidSetAtimWindow (
 
 
 WLAN_STATUS
-wlanoidSetChannel (
+wlanoidSetChannel(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -1323,7 +1327,7 @@ wlanoidSetRssiTrigger(
     );
 
 WLAN_STATUS
-wlanoidQueryRtsThreshold (
+wlanoidQueryRtsThreshold(
     IN  P_ADAPTER_T prAdapter,
     OUT PVOID       pvQueryBuffer,
     IN  UINT_32     u4QueryBufferLen,
@@ -1331,7 +1335,7 @@ wlanoidQueryRtsThreshold (
     );
 
 WLAN_STATUS
-wlanoidSetRtsThreshold (
+wlanoidSetRtsThreshold(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -1339,7 +1343,7 @@ wlanoidSetRtsThreshold (
     );
 
 WLAN_STATUS
-wlanoidQuery802dot11PowerSaveProfile (
+wlanoidQuery802dot11PowerSaveProfile(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvQueryBuffer,
     IN  UINT_32     u4QueryBufferLen,
@@ -1347,7 +1351,7 @@ wlanoidQuery802dot11PowerSaveProfile (
     );
 
 WLAN_STATUS
-wlanoidSet802dot11PowerSaveProfile (
+wlanoidSet802dot11PowerSaveProfile(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       prSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -1379,7 +1383,7 @@ wlanoidQuerySupportedRates(
     );
 
 WLAN_STATUS
-wlanoidQueryDesiredRates (
+wlanoidQueryDesiredRates(
     IN  P_ADAPTER_T prAdapter,
     OUT PVOID       pvQueryBuffer,
     IN  UINT_32     u4QueryBufferLen,
@@ -1387,7 +1391,7 @@ wlanoidQueryDesiredRates (
     );
 
 WLAN_STATUS
-wlanoidSetDesiredRates (
+wlanoidSetDesiredRates(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -1395,7 +1399,7 @@ wlanoidSetDesiredRates (
     );
 
 WLAN_STATUS
-wlanoidQueryPermanentAddr (
+wlanoidQueryPermanentAddr(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID    pvQueryBuf,
     IN  UINT_32  u4QueryBufLen,
@@ -1403,7 +1407,7 @@ wlanoidQueryPermanentAddr (
     );
 
 WLAN_STATUS
-wlanoidQueryCurrentAddr (
+wlanoidQueryCurrentAddr(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID    pvQueryBuf,
     IN  UINT_32  u4QueryBufLen,
@@ -1411,7 +1415,7 @@ wlanoidQueryCurrentAddr (
     );
 
 WLAN_STATUS
-wlanoidQueryPermanentAddr (
+wlanoidQueryPermanentAddr(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID    pvQueryBuf,
     IN  UINT_32  u4QueryBufLen,
@@ -1427,7 +1431,7 @@ wlanoidQueryLinkSpeed(
     );
 
 WLAN_STATUS
-wlanoidQueryMcrRead (
+wlanoidQueryMcrRead(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID    pvQueryBuffer,
     IN  UINT_32  u4QueryBufferLen,
@@ -1435,7 +1439,7 @@ wlanoidQueryMcrRead (
     );
 
 WLAN_STATUS
-wlanoidQueryMemDump (
+wlanoidQueryMemDump(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID    pvQueryBuffer,
     IN  UINT_32  u4QueryBufferLen,
@@ -1443,7 +1447,7 @@ wlanoidQueryMemDump (
     );
 
 WLAN_STATUS
-wlanoidSetMcrWrite (
+wlanoidSetMcrWrite(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID    pvSetBuffer,
     IN  UINT_32  u4SetBufferLen,
@@ -1452,7 +1456,7 @@ wlanoidSetMcrWrite (
 
 
 WLAN_STATUS
-wlanoidQuerySwCtrlRead (
+wlanoidQuerySwCtrlRead(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID    pvQueryBuffer,
     IN  UINT_32  u4QueryBufferLen,
@@ -1460,7 +1464,7 @@ wlanoidQuerySwCtrlRead (
     );
 
 WLAN_STATUS
-wlanoidSetSwCtrlWrite (
+wlanoidSetSwCtrlWrite(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID    pvSetBuffer,
     IN  UINT_32  u4SetBufferLen,
@@ -1469,7 +1473,7 @@ wlanoidSetSwCtrlWrite (
 
 
 WLAN_STATUS
-wlanoidQueryEepromRead (
+wlanoidQueryEepromRead(
     IN  P_ADAPTER_T  prAdapter,
     IN  PVOID        pvQueryBuffer,
     IN  UINT_32      u4QueryBufferLen,
@@ -1477,7 +1481,7 @@ wlanoidQueryEepromRead (
     );
 
 WLAN_STATUS
-wlanoidSetEepromWrite (
+wlanoidSetEepromWrite(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -1485,7 +1489,7 @@ wlanoidSetEepromWrite (
     );
 
 WLAN_STATUS
-wlanoidQueryRfTestRxStatus (
+wlanoidQueryRfTestRxStatus(
     IN  P_ADAPTER_T  prAdapter,
     IN  PVOID        pvQueryBuffer,
     IN  UINT_32      u4QueryBufferLen,
@@ -1493,7 +1497,7 @@ wlanoidQueryRfTestRxStatus (
     );
 
 WLAN_STATUS
-wlanoidQueryRfTestTxStatus (
+wlanoidQueryRfTestTxStatus(
     IN  P_ADAPTER_T  prAdapter,
     IN  PVOID        pvQueryBuffer,
     IN  UINT_32      u4QueryBufferLen,
@@ -1501,7 +1505,7 @@ wlanoidQueryRfTestTxStatus (
     );
 
 WLAN_STATUS
-wlanoidQueryOidInterfaceVersion (
+wlanoidQueryOidInterfaceVersion(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID    pvQueryBuffer,
     IN  UINT_32  u4QueryBufferLen,
@@ -1533,7 +1537,7 @@ wlanoidSetMulticastList(
     );
 
 WLAN_STATUS
-wlanoidQueryRcvError (
+wlanoidQueryRcvError(
     IN  P_ADAPTER_T     prAdapter,
     IN  PVOID           pvQueryBuffer,
     IN  UINT_32         u4QueryBufferLen,
@@ -1541,7 +1545,7 @@ wlanoidQueryRcvError (
     );
 
 WLAN_STATUS
-wlanoidQueryRcvNoBuffer (
+wlanoidQueryRcvNoBuffer(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvQueryBuffer,
     IN  UINT_32           u4QueryBufferLen,
@@ -1549,7 +1553,7 @@ wlanoidQueryRcvNoBuffer (
     );
 
 WLAN_STATUS
-wlanoidQueryRcvCrcError (
+wlanoidQueryRcvCrcError(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvQueryBuffer,
     IN  UINT_32           u4QueryBufferLen,
@@ -1557,25 +1561,17 @@ wlanoidQueryRcvCrcError (
     );
 
 WLAN_STATUS
-wlanoidQueryStatistics (
+wlanoidQueryStatistics(
     IN  P_ADAPTER_T     prAdapter,
     IN  PVOID           pvQueryBuffer,
     IN  UINT_32         u4QueryBufferLen,
     OUT PUINT_32        pu4QueryInfoLen
     );
-WLAN_STATUS
-wlanoidQueryStatisticsPL (
-    IN  P_ADAPTER_T     prAdapter,
-    IN  PVOID           pvQueryBuffer,
-    IN  UINT_32         u4QueryBufferLen,
-    OUT PUINT_32        pu4QueryInfoLen
-    );
-
 
 #ifdef LINUX
 
 WLAN_STATUS
-wlanoidQueryStatisticsForLinux (
+wlanoidQueryStatisticsForLinux(
     IN  P_ADAPTER_T     prAdapter,
     IN  PVOID           pvQueryBuffer,
     IN  UINT_32         u4QueryBufferLen,
@@ -1617,7 +1613,7 @@ wlanoidQueryXmitOk(
     );
 
 WLAN_STATUS
-wlanoidQueryXmitError (
+wlanoidQueryXmitError(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID           pvQueryBuffer,
     IN  UINT_32         u4QueryBufferLen,
@@ -1625,7 +1621,7 @@ wlanoidQueryXmitError (
     );
 
 WLAN_STATUS
-wlanoidQueryXmitOneCollision (
+wlanoidQueryXmitOneCollision(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID           pvQueryBuffer,
     IN  UINT_32         u4QueryBufferLen,
@@ -1633,7 +1629,7 @@ wlanoidQueryXmitOneCollision (
     );
 
 WLAN_STATUS
-wlanoidQueryXmitMoreCollisions (
+wlanoidQueryXmitMoreCollisions(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID           pvQueryBuffer,
     IN  UINT_32         u4QueryBufferLen,
@@ -1641,7 +1637,7 @@ wlanoidQueryXmitMoreCollisions (
     );
 
 WLAN_STATUS
-wlanoidQueryXmitMaxCollisions (
+wlanoidQueryXmitMaxCollisions(
     IN  P_ADAPTER_T       prAdapter,
     IN   PVOID           pvQueryBuffer,
     IN   UINT_32         u4QueryBufferLen,
@@ -1658,7 +1654,7 @@ wlanoidSetCurrentPacketFilter(
     );
 
 WLAN_STATUS
-wlanoidQueryCurrentPacketFilter (
+wlanoidQueryCurrentPacketFilter(
     IN P_ADAPTER_T prAdapter,
     IN  PVOID      pvQueryBuffer,
     IN  UINT_32    u4QueryBufferLen,
@@ -1667,7 +1663,7 @@ wlanoidQueryCurrentPacketFilter (
 
 
 WLAN_STATUS
-wlanoidSetAcpiDevicePowerState (
+wlanoidSetAcpiDevicePowerState(
     IN P_ADAPTER_T prAdapter,
     IN  PVOID    pvSetBuffer,
     IN  UINT_32  u4SetBufferLen,
@@ -1675,7 +1671,7 @@ wlanoidSetAcpiDevicePowerState (
     );
 
 WLAN_STATUS
-wlanoidQueryAcpiDevicePowerState (
+wlanoidQueryAcpiDevicePowerState(
     IN P_ADAPTER_T prAdapter,
     IN  PVOID       pvQueryBuffer,
     IN  UINT_32     u4QueryBufferLen,
@@ -1684,7 +1680,7 @@ wlanoidQueryAcpiDevicePowerState (
 
 
 WLAN_STATUS
-wlanoidSetDisassociate (
+wlanoidSetDisassociate(
     IN P_ADAPTER_T        prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -1692,7 +1688,7 @@ wlanoidSetDisassociate (
     );
 
 WLAN_STATUS
-wlanoidQueryFragThreshold (
+wlanoidQueryFragThreshold(
     IN  P_ADAPTER_T prAdapter,
     OUT PVOID       pvQueryBuffer,
     IN  UINT_32     u4QueryBufferLen,
@@ -1700,7 +1696,7 @@ wlanoidQueryFragThreshold (
     );
 
 WLAN_STATUS
-wlanoidSetFragThreshold (
+wlanoidSetFragThreshold(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -1709,7 +1705,7 @@ wlanoidSetFragThreshold (
 
 
 WLAN_STATUS
-wlanoidQueryAdHocMode (
+wlanoidQueryAdHocMode(
     IN  P_ADAPTER_T prAdapter,
     OUT PVOID       pvQueryBuffer,
     IN  UINT_32     u4QueryBufferLen,
@@ -1717,7 +1713,7 @@ wlanoidQueryAdHocMode (
     );
 
 WLAN_STATUS
-wlanoidSetAdHocMode (
+wlanoidSetAdHocMode(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -1725,7 +1721,7 @@ wlanoidSetAdHocMode (
     );
 
 WLAN_STATUS
-wlanoidQueryBeaconInterval (
+wlanoidQueryBeaconInterval(
     IN  P_ADAPTER_T prAdapter,
     OUT PVOID       pvQueryBuffer,
     IN  UINT_32     u4QueryBufferLen,
@@ -1733,7 +1729,7 @@ wlanoidQueryBeaconInterval (
     );
 
 WLAN_STATUS
-wlanoidSetBeaconInterval (
+wlanoidSetBeaconInterval(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -1741,7 +1737,7 @@ wlanoidSetBeaconInterval (
     );
 
 WLAN_STATUS
-wlanoidSetCurrentAddr (
+wlanoidSetCurrentAddr(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -1750,7 +1746,7 @@ wlanoidSetCurrentAddr (
 
 #if CFG_TCP_IP_CHKSUM_OFFLOAD
 WLAN_STATUS
-wlanoidSetCSUMOffload (
+wlanoidSetCSUMOffload(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -1759,7 +1755,7 @@ wlanoidSetCSUMOffload (
 #endif /* CFG_TCP_IP_CHKSUM_OFFLOAD */
 
 WLAN_STATUS
-wlanoidSetNetworkAddress (
+wlanoidSetNetworkAddress(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -1767,7 +1763,7 @@ wlanoidSetNetworkAddress (
     );
 
 WLAN_STATUS
-wlanoidQueryMaxFrameSize (
+wlanoidQueryMaxFrameSize(
     IN  P_ADAPTER_T       prAdapter,
     OUT PVOID             pvQueryBuffer,
     IN  UINT_32           u4QueryBufferLen,
@@ -1775,7 +1771,7 @@ wlanoidQueryMaxFrameSize (
     );
 
 WLAN_STATUS
-wlanoidQueryMaxTotalSize (
+wlanoidQueryMaxTotalSize(
     IN  P_ADAPTER_T       prAdapter,
     OUT PVOID             pvQueryBuffer,
     IN  UINT_32           u4QueryBufferLen,
@@ -1783,7 +1779,7 @@ wlanoidQueryMaxTotalSize (
     );
 
 WLAN_STATUS
-wlanoidSetCurrentLookahead (
+wlanoidSetCurrentLookahead(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -1792,7 +1788,7 @@ wlanoidSetCurrentLookahead (
 
 /* RF Test related APIs */
 WLAN_STATUS
-wlanoidRftestSetTestMode (
+wlanoidRftestSetTestMode(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -1800,7 +1796,7 @@ wlanoidRftestSetTestMode (
     );
 
 WLAN_STATUS
-wlanoidRftestSetAbortTestMode (
+wlanoidRftestSetAbortTestMode(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -1808,7 +1804,7 @@ wlanoidRftestSetAbortTestMode (
     );
 
 WLAN_STATUS
-wlanoidRftestQueryAutoTest (
+wlanoidRftestQueryAutoTest(
     IN  P_ADAPTER_T prAdapter,
     OUT PVOID       pvQueryBuffer,
     IN  UINT_32     u4QueryBufferLen,
@@ -1816,7 +1812,7 @@ wlanoidRftestQueryAutoTest (
     );
 
 WLAN_STATUS
-wlanoidRftestSetAutoTest (
+wlanoidRftestSetAutoTest(
     IN  P_ADAPTER_T prAdapter,
     OUT PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -1825,7 +1821,7 @@ wlanoidRftestSetAutoTest (
 
 #if CFG_SUPPORT_WAPI
 WLAN_STATUS
-wlanoidSetWapiMode (
+wlanoidSetWapiMode(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -1833,7 +1829,7 @@ wlanoidSetWapiMode (
     );
 
 WLAN_STATUS
-wlanoidSetWapiAssocInfo (
+wlanoidSetWapiAssocInfo(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -1851,7 +1847,7 @@ wlanoidSetWapiKey(
 
 #if CFG_SUPPORT_WPS2
 WLAN_STATUS
-wlanoidSetWSCAssocInfo (
+wlanoidSetWSCAssocInfo(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -1861,7 +1857,7 @@ wlanoidSetWSCAssocInfo (
 
 #if CFG_ENABLE_WAKEUP_ON_LAN
 WLAN_STATUS
-wlanoidSetAddWakeupPattern (
+wlanoidSetAddWakeupPattern(
     IN  P_ADAPTER_T   prAdapter,
     IN  PVOID         pvSetBuffer,
     IN  UINT_32       u4SetBufferLen,
@@ -1869,7 +1865,7 @@ wlanoidSetAddWakeupPattern (
     );
 
 WLAN_STATUS
-wlanoidSetRemoveWakeupPattern (
+wlanoidSetRemoveWakeupPattern(
     IN  P_ADAPTER_T   prAdapter,
     IN  PVOID         pvSetBuffer,
     IN  UINT_32       u4SetBufferLen,
@@ -1877,7 +1873,7 @@ wlanoidSetRemoveWakeupPattern (
     );
 
 WLAN_STATUS
-wlanoidQueryEnableWakeup (
+wlanoidQueryEnableWakeup(
     IN  P_ADAPTER_T   prAdapter,
     OUT PVOID         pvQueryBuffer,
     IN  UINT_32       u4QueryBufferLen,
@@ -1885,7 +1881,7 @@ wlanoidQueryEnableWakeup (
     );
 
 WLAN_STATUS
-wlanoidSetEnableWakeup (
+wlanoidSetEnableWakeup(
     IN  P_ADAPTER_T   prAdapter,
     IN  PVOID         pvSetBuffer,
     IN  UINT_32       u4SetBufferLen,
@@ -1894,7 +1890,7 @@ wlanoidSetEnableWakeup (
 #endif
 
 WLAN_STATUS
-wlanoidSetWiFiWmmPsTest (
+wlanoidSetWiFiWmmPsTest(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -1902,7 +1898,7 @@ wlanoidSetWiFiWmmPsTest (
     );
 
 WLAN_STATUS
-wlanoidSetTxAmpdu (
+wlanoidSetTxAmpdu(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -1910,7 +1906,7 @@ wlanoidSetTxAmpdu (
     );
 
 WLAN_STATUS
-wlanoidQueryBSSInfo (
+wlanoidQueryBSSInfo(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -1927,7 +1923,7 @@ wlanoidSetAddbaReject(
     );
 
 WLAN_STATUS
-wlanoidQueryNvramRead (
+wlanoidQueryNvramRead(
     IN  P_ADAPTER_T  prAdapter,
     OUT PVOID        pvQueryBuffer,
     IN  UINT_32      u4QueryBufferLen,
@@ -1935,7 +1931,7 @@ wlanoidQueryNvramRead (
     );
 
 WLAN_STATUS
-wlanoidSetNvramWrite (
+wlanoidSetNvramWrite(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -1959,7 +1955,7 @@ wlanoidQueryEepromType(
     );
 
 WLAN_STATUS
-wlanoidSetCountryCode (
+wlanoidSetCountryCode(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -1967,7 +1963,7 @@ wlanoidSetCountryCode (
     );
 
 WLAN_STATUS
-wlanSendMemDumpCmd (
+wlanSendMemDumpCmd(
     IN P_ADAPTER_T  prAdapter,
     IN PVOID        pvQueryBuffer,
     IN UINT_32      u4QueryBufferLen
@@ -1995,7 +1991,7 @@ wlanoidUpdateSLTMode(
 
 #if 0
 WLAN_STATUS
-wlanoidSetNoaParam (
+wlanoidSetNoaParam(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -2003,7 +1999,7 @@ wlanoidSetNoaParam (
     );
 
 WLAN_STATUS
-wlanoidSetOppPsParam (
+wlanoidSetOppPsParam(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -2011,7 +2007,7 @@ wlanoidSetOppPsParam (
     );
 
 WLAN_STATUS
-wlanoidSetUApsdParam (
+wlanoidSetUApsdParam(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -2021,7 +2017,7 @@ wlanoidSetUApsdParam (
 
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-wlanoidSetBT (
+wlanoidSetBT(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -2029,7 +2025,7 @@ wlanoidSetBT (
     );
 
 WLAN_STATUS
-wlanoidQueryBT (
+wlanoidQueryBT(
     IN  P_ADAPTER_T prAdapter,
     OUT PVOID       pvQueryBuffer,
     IN  UINT_32     u4QueryBufferLen,
@@ -2037,7 +2033,7 @@ wlanoidQueryBT (
     );
 
 WLAN_STATUS
-wlanoidSetTxPower (
+wlanoidSetTxPower(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -2046,7 +2042,7 @@ wlanoidSetTxPower (
 
 #if CFG_SUPPORT_BUILD_DATE_CODE
 WLAN_STATUS
-wlanoidQueryBuildDateCode (
+wlanoidQueryBuildDateCode(
     IN  P_ADAPTER_T prAdapter,
     OUT PVOID       pvQueryBuffer,
     IN  UINT_32     u4QueryBufferLen,
@@ -2091,7 +2087,7 @@ wlanoidQueryPta (
 
 #if CFG_ENABLE_WIFI_DIRECT
 WLAN_STATUS
-wlanoidSetP2pMode (
+wlanoidSetP2pMode(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -2101,7 +2097,7 @@ wlanoidSetP2pMode (
 
 #if CFG_SUPPORT_HOTSPOT_2_0
 WLAN_STATUS
-wlanoidSetHS20Info (
+wlanoidSetHS20Info(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -2109,7 +2105,7 @@ wlanoidSetHS20Info (
     );
 
 WLAN_STATUS
-wlanoidSetInterworkingInfo (
+wlanoidSetInterworkingInfo(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -2117,7 +2113,7 @@ wlanoidSetInterworkingInfo (
     );
 
 WLAN_STATUS
-wlanoidSetRoamingConsortiumIEInfo (
+wlanoidSetRoamingConsortiumIEInfo(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -2134,7 +2130,7 @@ wlanoidSetHS20BssidPool(
 #endif
 
 WLAN_STATUS
-wlanoidSetRoamingInfo (
+wlanoidSetRoamingInfo(
     IN P_ADAPTER_T  prAdapter,
     IN  PVOID    pvQueryBuffer,
     IN  UINT_32  u4QueryBufferLen,
@@ -2147,4 +2143,3 @@ wlanoidSetRoamingInfo (
 */
 
 #endif /* _WLAN_OID_H */
-

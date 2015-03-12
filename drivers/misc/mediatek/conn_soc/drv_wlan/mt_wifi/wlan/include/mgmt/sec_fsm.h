@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/mgmt/sec_fsm.h#1 $
 */
 
@@ -140,7 +154,7 @@
 *                    E X T E R N A L   R E F E R E N C E S
 ********************************************************************************
 */
- 
+
 /*******************************************************************************
 *                              C O N S T A N T S
 ********************************************************************************
@@ -167,7 +181,7 @@ typedef struct _PMKID_CANDICATE_T {
 } PMKID_CANDICATE_T, *P_PMKID_CANDICATE_T;
 #endif
 
-typedef SEC_STATUS (*PFN_SEC_FSM_STATE_HANDLER)(VOID);
+typedef SEC_STATUS(*PFN_SEC_FSM_STATE_HANDLER)(VOID);
 
 /*******************************************************************************
 *                            P U B L I C   D A T A
@@ -187,10 +201,10 @@ typedef SEC_STATUS (*PFN_SEC_FSM_STATE_HANDLER)(VOID);
 #define SEC_NEXT_STATE_VAR          eNextState
 
 #define SEC_STATE_TRANSITION(prAdapter, prSta, eFromState, eToState) \
-        { secFsmTrans_ ## eFromState ## _to_ ## eToState(prAdapter, prSta); \
-          SEC_NEXT_STATE_VAR = SEC_STATE_ ## eToState; \
-          SEC_STATE_TRANSITION_FLAG = (BOOLEAN)TRUE; \
-        }
+	{ secFsmTrans_ ## eFromState ## _to_ ## eToState(prAdapter, prSta); \
+	  SEC_NEXT_STATE_VAR = SEC_STATE_ ## eToState; \
+	  SEC_STATE_TRANSITION_FLAG = (BOOLEAN)TRUE; \
+	}
 
 /*******************************************************************************
 *                  F U N C T I O N   D E C L A R A T I O N S
@@ -244,14 +258,14 @@ secFsmEvent4ndEapolTxDone(
     );
 
 VOID
-secFsmEventEapolTxDone (
+secFsmEventEapolTxDone(
     IN P_ADAPTER_T          prAdapter,
     IN P_STA_RECORD_T       prStaRec,
     IN ENUM_TX_RESULT_CODE_T  rTxDoneStatus
     );
 
 VOID
-secFsmEventEapolTxTimeout (
+secFsmEventEapolTxTimeout(
     IN P_ADAPTER_T            prAdapter,
     IN UINT_32                u4Parm
     );
@@ -280,5 +294,3 @@ secFsmEventEndOfCounterMeasure(
 ********************************************************************************
 */
 #endif /* _SEC_FSM_H */
-
-

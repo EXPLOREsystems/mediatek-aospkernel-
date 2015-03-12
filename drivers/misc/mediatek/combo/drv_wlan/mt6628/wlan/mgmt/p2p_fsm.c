@@ -1694,7 +1694,7 @@ VOID p2pFsmRunEventFsmTimeout(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Param)
 			break;
 /* case P2P_STATE_GC_JOIN: */
 /* break; */
-		default :
+		default:
 			break;
 		}
 

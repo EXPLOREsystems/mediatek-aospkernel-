@@ -556,7 +556,7 @@ static INT32 mt6630_sw_init(P_WMT_HIF_CONF pWmtHifConf)
 		/* init variable fields for script execution */
 		osal_memcpy(&WMT_SET_BAUD_CMD_X[5], &pWmtHifConf->au4HifConf[0],
 			    osal_sizeof(UINT32));
-		WMT_SET_BAUD_CMD_X[8] = (UCHAR) 0x00;	/* 0xC0 MTK Flow Control */ /* no flow control */ 
+		WMT_SET_BAUD_CMD_X[8] = (UCHAR) 0x00;	/* 0xC0 MTK Flow Control */ /* no flow control */
 		osal_memcpy(&WMT_QUERY_BAUD_EVT_X[6], &pWmtHifConf->au4HifConf[0],
 			    osal_sizeof(UINT32));
 		WMT_QUERY_BAUD_EVT_X[9] = (UCHAR) 0x00;	/* 0xC0 MTK Flow Control */ /* no flow control */

@@ -35,22 +35,22 @@
  * Mali-T6xx
  */
 typedef struct kbase_device *kbase_find_device_type(int);
-typedef kbase_context *kbase_create_context_type(kbase_device *);
+typedef kbase_context * kbase_create_context_type(kbase_device *);
 typedef void kbase_destroy_context_type(kbase_context *);
 
 #if MALI_DDK_GATOR_API_VERSION == 1
 typedef void *kbase_va_alloc_type(kbase_context *, u32);
 typedef void kbase_va_free_type(kbase_context *, void *);
 #elif MALI_DDK_GATOR_API_VERSION == 2
-typedef void *kbase_va_alloc_type(kbase_context *, u32, kbase_hwc_dma_mapping * handle);
-typedef void kbase_va_free_type(kbase_context *, kbase_hwc_dma_mapping * handle);
+typedef void *kbase_va_alloc_type(kbase_context *, u32, kbase_hwc_dma_mapping *handle);
+typedef void kbase_va_free_type(kbase_context *, kbase_hwc_dma_mapping *handle);
 #endif
 
-typedef mali_error kbase_instr_hwcnt_enable_type(kbase_context *, kbase_uk_hwcnt_setup *);
+typedef mali_error kbase_instr_hwcnt_enable_type(kbase_context *, kbase_uk_hwcnt_setup * );
 typedef mali_error kbase_instr_hwcnt_disable_type(kbase_context *);
 typedef mali_error kbase_instr_hwcnt_clear_type(kbase_context *);
 typedef mali_error kbase_instr_hwcnt_dump_irq_type(kbase_context *);
-typedef mali_bool kbase_instr_hwcnt_dump_complete_type(kbase_context *, mali_bool *);
+typedef mali_bool kbase_instr_hwcnt_dump_complete_type(kbase_context *, mali_bool * );
 
 static kbase_find_device_type *kbase_find_device_symbol;
 static kbase_create_context_type *kbase_create_context_symbol;
@@ -380,8 +380,8 @@ kbase_hwc_dma_mapping kernel_dump_buffer_handle;
 #endif
 
 /* kbase context and device */
-static kbase_context *kbcontext = NULL;
-static struct kbase_device *kbdevice = NULL;
+static kbase_context *kbcontext;
+static struct kbase_device *kbdevice;
 
 /*
  * The following function has no external prototype in older DDK revisions.  When the DDK
@@ -389,7 +389,7 @@ static struct kbase_device *kbdevice = NULL;
  */
 struct kbase_device *kbase_find_device(int minor);
 
-static volatile bool kbase_device_busy = false;
+static volatile bool kbase_device_busy;
 static unsigned int num_hardware_counters_enabled;
 
 /*
@@ -403,7 +403,7 @@ static mali_counter counters[NUMBER_OF_HARDWARE_COUNTERS];
 static unsigned long counter_dump[NUMBER_OF_HARDWARE_COUNTERS * 2];
 
 #define SYMBOL_GET(FUNCTION, ERROR_COUNT) \
-	if(FUNCTION ## _symbol) \
+	if (FUNCTION ## _symbol) \
 	{ \
 		pr_debug("gator: mali " #FUNCTION " symbol was already registered\n"); \
 		(ERROR_COUNT)++; \
@@ -411,7 +411,7 @@ static unsigned long counter_dump[NUMBER_OF_HARDWARE_COUNTERS * 2];
 	else \
 	{ \
 		FUNCTION ## _symbol = symbol_get(FUNCTION); \
-		if(! FUNCTION ## _symbol) \
+		if (!FUNCTION ## _symbol) \
 		{ \
 			pr_debug("gator: mali online " #FUNCTION " symbol not found\n"); \
 			(ERROR_COUNT)++; \
@@ -419,10 +419,10 @@ static unsigned long counter_dump[NUMBER_OF_HARDWARE_COUNTERS * 2];
 	}
 
 #define SYMBOL_CLEANUP(FUNCTION) \
-	if(FUNCTION ## _symbol) \
+	if (FUNCTION ## _symbol) \
 	{ \
-        symbol_put(FUNCTION); \
-        FUNCTION ## _symbol = NULL; \
+	symbol_put(FUNCTION); \
+	FUNCTION ## _symbol = NULL; \
 	}
 
 /**
@@ -574,7 +574,7 @@ static int start(void)
 		}
 		pr_debug("gator: Mali-T6xx: hardware counters enabled\n");
 		kbase_instr_hwcnt_clear_symbol(kbcontext);
-		pr_debug("gator: Mali-T6xx: hardware counters cleared \n");
+		pr_debug("gator: Mali-T6xx: hardware counters cleared\n");
 
 		kbase_device_busy = false;
 	}
@@ -641,8 +641,8 @@ static int read(int **buffer)
 	mali_bool success;
 
 	struct timespec current_time;
-	static u32 prev_time_s = 0;
-	static s32 next_read_time_ns = 0;
+	static u32 prev_time_s;
+	static s32 next_read_time_ns;
 
 	if (!on_primary_core()) {
 		return 0;

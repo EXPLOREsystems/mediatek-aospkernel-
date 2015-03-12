@@ -47,8 +47,8 @@ UCHAR *kObjName = "hifsdiod";
 struct task_struct *gConIdQueryThread;
 wait_queue_head_t gHifsdiodEvent;
 
-//OSAL_THREAD           gConIdQueryThread;
-//OSAL_EVENT            gHifsdiodEvent;
+/* OSAL_THREAD           gConIdQueryThread; */
+/* OSAL_EVENT            gHifsdiodEvent; */
 UCHAR *gConIdQueryName = "consys-id-query";
 INT32 gComboChipId = -1;
 
@@ -67,14 +67,14 @@ INT32 hifsdiod_start(void)
 
     iRet = osal_thread_create(&gConIdQueryThread);
     if (iRet < 0) {
-        HIF_SDIO_ERR_FUNC("osal_thread_create fail...\n");
-        goto ERR_EXIT1;
+	HIF_SDIO_ERR_FUNC("osal_thread_create fail...\n");
+	goto ERR_EXIT1;
     }
 #else
     gConIdQueryThread = kthread_create(hif_sdio_proc, NULL, gConIdQueryName);
     if (NULL == gConIdQueryThread) {
-        HIF_SDIO_ERR_FUNC("osal_thread_create fail...\n");
-        goto ERR_EXIT1;
+	HIF_SDIO_ERR_FUNC("osal_thread_create fail...\n");
+	goto ERR_EXIT1;
     }
 
 #endif
@@ -83,14 +83,14 @@ INT32 hifsdiod_start(void)
     /* Start STPd thread*/
     iRet = osal_thread_run(&gConIdQueryThread);
     if (iRet < 0) {
-        HIF_SDIO_ERR_FUNC("osal_thread_run FAILS\n");
-        goto ERR_EXIT1;
+	HIF_SDIO_ERR_FUNC("osal_thread_run FAILS\n");
+	goto ERR_EXIT1;
     }
 #else
     if (gConIdQueryThread) {
-        wake_up_process(gConIdQueryThread);
+	wake_up_process(gConIdQueryThread);
     } else {
-        goto ERR_EXIT1;
+	goto ERR_EXIT1;
     }
 #endif
     iRet = 0;
@@ -107,9 +107,9 @@ ERR_EXIT1:
 INT32 hifsdiod_stop(void)
 {
     if (gConIdQueryThread) {
-        HIF_SDIO_INFO_FUNC("inform hifsdiod exit..\n");
-        kthread_stop(gConIdQueryThread);
-        gConIdQueryThread = NULL;
+	HIF_SDIO_INFO_FUNC("inform hifsdiod exit..\n");
+	kthread_stop(gConIdQueryThread);
+	gConIdQueryThread = NULL;
     }
     return 0;
 }
@@ -118,9 +118,9 @@ INT32 hifsdiod_stop(void)
 static int hif_sdio_proc(void *pvData)
 {
     while (!kthread_should_stop()) {
-        //HIF_SDIO_INFO_FUNC("enter sleep.\n");
-        msleep(10000);
-        //HIF_SDIO_INFO_FUNC("wakeup\n");
+	/* HIF_SDIO_INFO_FUNC("enter sleep.\n"); */
+	msleep(10000);
+	/* HIF_SDIO_INFO_FUNC("wakeup\n"); */
     }
     HIF_SDIO_INFO_FUNC("hifsdiod exit.\n");
     return 0;
@@ -160,18 +160,18 @@ static long hif_sdio_unlocked_ioctl(struct file *filp, unsigned int cmd, unsigne
 
     switch (cmd) {
     case COMBO_IOCTL_GET_CHIP_ID:
-        gComboChipId = 0x6628;
-        retval = gComboChipId;
-        HIF_SDIO_INFO_FUNC("get combo chip id: 0x%x\n", gComboChipId);
-        break;
+	gComboChipId = 0x6628;
+	retval = gComboChipId;
+	HIF_SDIO_INFO_FUNC("get combo chip id: 0x%x\n", gComboChipId);
+	break;
     case COMBO_IOCTL_SET_CHIP_ID:
-        gComboChipId = arg;
-        HIF_SDIO_INFO_FUNC("set combo chip id to 0x%x\n", gComboChipId);
-        break;
+	gComboChipId = arg;
+	HIF_SDIO_INFO_FUNC("set combo chip id to 0x%x\n", gComboChipId);
+	break;
     default:
-        HIF_SDIO_WARN_FUNC("unknown cmd (%d)\n", cmd);
-        retval = 0;
-        break;
+	HIF_SDIO_WARN_FUNC("unknown cmd (%d)\n", cmd);
+	retval = 0;
+	break;
     }
     return retval;
 }
@@ -185,27 +185,27 @@ INT32 hif_sdio_is_chipid_valid(INT32 chipId)
     INT32 middle = 0;
     INT32 right = sizeof(gChipInfoArray) / sizeof(gChipInfoArray[0]) - 1;
     if ((chipId < gChipInfoArray[left].chipId) || (chipId > gChipInfoArray[right].chipId)) {
-        return index;
+	return index;
     }
 
     middle = (left + right) / 2;
 
     while (left <= right) {
-        if (chipId > gChipInfoArray[middle].chipId) {
-            left = middle + 1;
-        } else if (chipId < gChipInfoArray[middle].chipId) {
-            right = middle - 1;
-        } else {
-            index = middle;
-            break;
-        }
-        middle = (left + right) / 2;
+	if (chipId > gChipInfoArray[middle].chipId) {
+	    left = middle + 1;
+	} else if (chipId < gChipInfoArray[middle].chipId) {
+	    right = middle - 1;
+	} else {
+	    index = middle;
+	    break;
+	}
+	middle = (left + right) / 2;
     }
 
     if (0 > index) {
-        HIF_SDIO_ERR_FUNC("no supported chipid found\n");
+	HIF_SDIO_ERR_FUNC("no supported chipid found\n");
     } else {
-        HIF_SDIO_INFO_FUNC("index:%d, chipId:0x%x\n", index, gChipInfoArray[index].chipId);
+	HIF_SDIO_INFO_FUNC("index:%d, chipId:0x%x\n", index, gChipInfoArray[index].chipId);
     }
 
     return index;
@@ -218,16 +218,16 @@ INT32 hif_sdio_match_chipid_by_dev_id(const struct sdio_device_id *id)
     struct sdio_device_id *localId = NULL;
     INT32 chipId = -1;
     for (index = 0; index < maxIndex; index++) {
-        localId = & (gChipInfoArray[index].deviceId);
-        if ((localId->vendor == id->vendor) && (localId->device == id->device)) {
-            chipId = gChipInfoArray[index].chipId;
-            HIF_SDIO_INFO_FUNC("valid chipId found, index(%d), vendor id(0x%x), device id(0x%x), chip id(0x%x)\n", index, localId->vendor, localId->device, chipId);
-            gComboChipId = chipId;
-            break;
-        }
+        localId = &(gChipInfoArray[index].deviceId);
+	if ((localId->vendor == id->vendor) && (localId->device == id->device)) {
+	    chipId = gChipInfoArray[index].chipId;
+	    HIF_SDIO_INFO_FUNC("valid chipId found, index(%d), vendor id(0x%x), device id(0x%x), chip id(0x%x)\n", index, localId->vendor, localId->device, chipId);
+	    gComboChipId = chipId;
+	    break;
+	}
     }
     if (0 > chipId) {
-        HIF_SDIO_ERR_FUNC("No valid chipId found, vendor id(0x%x), device id(0x%x)\n", id->vendor, id->device);
+	HIF_SDIO_ERR_FUNC("No valid chipId found, vendor id(0x%x), device id(0x%x)\n", id->vendor, id->device);
     }
 
     return chipId;
@@ -239,21 +239,21 @@ INT32 mtk_wcn_hif_sdio_query_chipid(INT32 waitFlag)
     UINT32 timeSlotMs = 200;
     UINT32 maxTimeSlot = 15;
     UINT32 counter = 0;
-    //gComboChipId = 0x6628;
+    /* gComboChipId = 0x6628; */
     if (0 == waitFlag) {
-        return gComboChipId;
+	return gComboChipId;
     }
     if (0 <= hif_sdio_is_chipid_valid(gComboChipId)) {
-        return gComboChipId;
+	return gComboChipId;
     }
     wmt_plat_pwr_ctrl(FUNC_ON);
     wmt_plat_sdio_ctrl(WMT_SDIO_SLOT_SDIO1, FUNC_ON);
     while (counter < maxTimeSlot) {
-        if (0 <= hif_sdio_is_chipid_valid(gComboChipId)) {
-            break;
-        }
-        msleep(timeSlotMs);
-        counter++;
+	if (0 <= hif_sdio_is_chipid_valid(gComboChipId)) {
+	    break;
+	}
+	msleep(timeSlotMs);
+	counter++;
     }
 
     wmt_plat_sdio_ctrl(WMT_SDIO_SLOT_SDIO1, FUNC_OFF);
@@ -280,25 +280,25 @@ INT32 hif_sdio_create_dev_node(void)
     HIF_SDIO_DBG_FUNC("++");
     iResult = register_chrdev(hifSdioMajor, kObjName, &hifDevOps);
     if (0 > iResult) {
-        HIF_SDIO_ERR_FUNC("register_chrdev failed.\n");
-        iResult = -1;
+	HIF_SDIO_ERR_FUNC("register_chrdev failed.\n");
+	iResult = -1;
     } else {
-        hifSdioMajor = hifSdioMajor == 0 ? iResult : hifSdioMajor;
-        HIF_SDIO_INFO_FUNC("register_chrdev succeed, mtk_jajor = %d\n", hifSdioMajor);
-        pHifClass = class_create(THIS_MODULE, HifClassName);
-        if (IS_ERR(pHifClass)) {
-            HIF_SDIO_ERR_FUNC("class_create error\n");
-            iResult = -2;
-        } else {
-            pHifDev = device_create(pHifClass, NULL, MKDEV(hifSdioMajor, 0), NULL, HifClassName, "%d", 0);
-            if (IS_ERR(pHifDev)) {
-                HIF_SDIO_ERR_FUNC("device_create error:%ld\n", PTR_ERR(pHifDev));
-                iResult = -3;
-            } else {
-                HIF_SDIO_INFO_FUNC("device_create succeed\n");
-                iResult = 0;
-            }
-        }
+	hifSdioMajor = hifSdioMajor == 0 ? iResult : hifSdioMajor;
+	HIF_SDIO_INFO_FUNC("register_chrdev succeed, mtk_jajor = %d\n", hifSdioMajor);
+	pHifClass = class_create(THIS_MODULE, HifClassName);
+	if (IS_ERR(pHifClass)) {
+	    HIF_SDIO_ERR_FUNC("class_create error\n");
+	    iResult = -2;
+	} else {
+	    pHifDev = device_create(pHifClass, NULL, MKDEV(hifSdioMajor, 0), NULL, HifClassName, "%d", 0);
+	    if (IS_ERR(pHifDev)) {
+		HIF_SDIO_ERR_FUNC("device_create error:%ld\n", PTR_ERR(pHifDev));
+		iResult = -3;
+	    } else {
+		HIF_SDIO_INFO_FUNC("device_create succeed\n");
+		iResult = 0;
+	    }
+	}
     }
     return iResult;
 }
@@ -307,19 +307,17 @@ INT32 hif_sdio_create_dev_node(void)
 INT32 hif_sdio_remove_dev_node(void)
 {
     if (pHifDev != NULL) {
-        device_destroy(pHifClass, MKDEV(hifSdioMajor, 0));
-        pHifDev = NULL;
+	device_destroy(pHifClass, MKDEV(hifSdioMajor, 0));
+	pHifDev = NULL;
     }
     if (pHifClass != NULL) {
-        class_destroy(pHifClass);
-        pHifClass = NULL;
+	class_destroy(pHifClass);
+	pHifClass = NULL;
     }
 
     if (hifSdioMajor != 0) {
-        unregister_chrdev(hifSdioMajor, kObjName);
-        hifSdioMajor = 0;
+	unregister_chrdev(hifSdioMajor, kObjName);
+	hifSdioMajor = 0;
     }
     return 0;
 }
-
-

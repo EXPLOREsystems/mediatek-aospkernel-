@@ -1,17 +1,3 @@
-/*
-* Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
-* GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with this program.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
-
 /*****************************************************************************
  *
  * Filename:
@@ -20,14 +6,14 @@
  *
  * Project:
  * --------
- *   
+ *
  *
  * Description:
  * ------------
  *
  * Author:
  * -------
- *   
+ *
  *
  ****************************************************************************/
 
@@ -44,15 +30,15 @@
 #include <ccmni_net.h>
 #include <ccci_platform_cfg.h>
 #include <mach/mtk_ccci_helper.h>
-//==================================================================================
-// debug log define    
-//==================================================================================
+/* ================================================================================== */
+/* debug log define */
+/* ================================================================================== */
 /*---------------------------alway on log-----------------------------------*/
 #ifdef USING_PRINTK_LOG
 
 #define CCCI_MSG(fmt, args...)	printk("[ccci]" fmt, ##args)
 #define CCCI_RAW		printk
-//#define CCCI_DEBUG_MSG(format, ...) printk("CCCI :" format, __VA_ARGS__)
+/* #define CCCI_DEBUG_MSG(format, ...) printk("CCCI :" format, __VA_ARGS__) */
 
 #else
 #if 0
@@ -95,9 +81,9 @@ extern unsigned int ccci_msg_mask[];
 
 #define CCCI_FILTER_MSG(mask, fmt, args...) \
 do {	\
-	if ((CCCI_DBG_##mask) & ccci_msg_mask ) \
-            printk("[ccci]" fmt , ##args); \
-} while(0)
+	if ((CCCI_DBG_##mask) & ccci_msg_mask) \
+	    printk("[ccci]" fmt , ##args); \
+} while (0)
 
 #define CCCI_CTL_MSG(fmt, args...)	CCCI_FILTER_MSG(CTL, "<ctl>"fmt, ##args)
 #define CCCI_TTY_MSG(fmt, args...)	CCCI_FILTER_MSG(TTY, "<tty>"fmt, ##args)
@@ -105,7 +91,7 @@ do {	\
 #define CCCI_RPC_MSG(fmt, args...)	CCCI_FILTER_MSG(RPC, "<rpc>"fmt, ##args)
 #define CCCI_IPC_MSG(fmt, args...)	CCCI_FILTER_MSG(IPC, "<ipc>"fmt, ##args)
 #define CCCI_PMIC_MSG(fmt, args...)	CCCI_FILTER_MSG(PMIC, "<pmic>"fmt, ##args)
-#define CCCI_FUNC_ENTRY(f)		CCCI_FILTER_MSG(FUNC, "%s\n", __FUNCTION__)
+#define CCCI_FUNC_ENTRY(f)		CCCI_FILTER_MSG(FUNC, "%s\n", __func__)
 #define CCCI_MISC_MSG(fmt, args...)	CCCI_FILTER_MSG(MISC, fmt, ##args)
 #define CCCI_CHR_MSG(fmt, args...)	CCCI_FILTER_MSG(CHR, "<chr>"fmt, ##args)
 #define CCCI_CCIF_MSG(fmt, args...)	CCCI_FILTER_MSG(CCIF, "<chr>"fmt, ##args)
@@ -114,9 +100,9 @@ do {	\
 #else
 #define CCCI_FILTER_MSG(mask, tag, idx, fmt, args...) \
 do {	\
-	if ((CCCI_DBG_##mask) & ccci_msg_mask[idx] ) \
-            xlog_printk(ANDROID_LOG_ERROR, "ccci"tag, "(%d)"fmt , idx+1, ##args); \
-} while(0)
+	if ((CCCI_DBG_##mask) & ccci_msg_mask[idx]) \
+	    xlog_printk(ANDROID_LOG_ERROR, "ccci"tag, "(%d)"fmt , idx+1, ##args); \
+} while (0)
 
 #define CCCI_CTL_MSG(idx, fmt, args...)		CCCI_FILTER_MSG(CTL, "/ctl", idx, fmt, ##args)
 #define CCCI_TTY_MSG(idx, fmt, args...)		CCCI_FILTER_MSG(TTY, "/tty", idx, fmt, ##args)
@@ -124,7 +110,7 @@ do {	\
 #define CCCI_RPC_MSG(idx, fmt, args...)		CCCI_FILTER_MSG(RPC, "/rpc", idx, fmt, ##args)
 #define CCCI_IPC_MSG(idx, fmt, args...)		CCCI_FILTER_MSG(IPC, "/ipc", idx, fmt, ##args)
 #define CCCI_PMIC_MSG(idx, fmt, args...)	CCCI_FILTER_MSG(PMIC, "/pmc", idx, fmt, ##args)
-#define CCCI_FUNC_ENTRY(idx)				CCCI_FILTER_MSG(FUNC, "/fun", idx, "%s\n", __FUNCTION__)
+#define CCCI_FUNC_ENTRY(idx)				CCCI_FILTER_MSG(FUNC, "/fun", idx, "%s\n", __func__)
 #define CCCI_MISC_MSG(idx, fmt, args...)	CCCI_FILTER_MSG(MISC, "/mis", idx, fmt, ##args)
 #define CCCI_CHR_MSG(idx, fmt, args...)		CCCI_FILTER_MSG(CHR, "/chr", idx, fmt, ##args)
 #define CCCI_CCIF_MSG(idx, fmt, args...)	CCCI_FILTER_MSG(CCIF, "/cci", idx, fmt, ##args)
@@ -133,9 +119,9 @@ do {	\
 
 
 
-//==================================================================================
-// AEE function and macro define  
-//==================================================================================
+/* ================================================================================== */
+/* AEE function and macro define */
+/* ================================================================================== */
 #define CCCI_AED_DUMP_EX_MEM		(1<<0)
 #define CCCI_AED_DUMP_MD_IMG_MEM	(1<<1)
 #define CCCI_AED_DUMP_CCIF_REG		(1<<2)
@@ -143,9 +129,9 @@ do {	\
 void ccci_aed(int, unsigned int, char *);
 
 
-//==================================================================================
-// ccci related macro and structure define  
-//==================================================================================
+/* ================================================================================== */
+/* ccci related macro and structure define */
+/* ================================================================================== */
 #define CAN_BE_RELOAD		(0x1<<1)
 #define LOAD_ONE_TIME		(0x1<<0)
 #define LOAD_ALL_IMG		(LOAD_ONE_TIME|CAN_BE_RELOAD)
@@ -166,123 +152,123 @@ enum {
 
 typedef enum _ccif_type
 {
-	CCIF_STD_V1=0,	// 16 channel ccif, tx 8, rx 8
-	CCIF_VIR,		// Virtual CCIF type
-}ccif_type_t;
+	CCIF_STD_V1 = 0,
+	CCIF_VIR,		/* Virtual CCIF type */
+} ccif_type_t;
 
 typedef struct _ccif_hw_info
 {
 	unsigned long	reg_base;
-	unsigned long 	md_reg_base;
+	unsigned long	md_reg_base;
 	unsigned int	irq_id;
 	unsigned int	irq_attr;
 	ccif_type_t		type;
 	unsigned int	md_id;
-}ccif_hw_info_t;
+} ccif_hw_info_t;
 
 typedef struct _rpc_cfg_inf
 {
 	int rpc_ch_num;
 	int rpc_max_buf_size;
-}rpc_cfg_inf_t;
+} rpc_cfg_inf_t;
 
 
 
-//==================================================================================
-// share memory layout define  
-//==================================================================================
-//share memory table
+/* ================================================================================== */
+/* share memory layout define */
+/* ================================================================================== */
+/* share memory table */
 typedef struct _smem_alloc
 {
-	// Share memory
+	/* Share memory */
 	unsigned int		ccci_smem_size;
 	unsigned int		ccci_smem_vir;
 	unsigned int		ccci_smem_phy;
-	// -- Log
+	/* -- Log */
 	unsigned int		ccci_mdlog_smem_base_virt;
 	unsigned int		ccci_mdlog_smem_base_phy;
 	unsigned int		ccci_mdlog_smem_size;
-	// -- PCM
+	/* -- PCM */
 	unsigned int		ccci_pcm_smem_base_virt;
 	unsigned int		ccci_pcm_smem_base_phy;
 	unsigned int		ccci_pcm_smem_size;
-	// -- PMIC
+	/* -- PMIC */
 	unsigned int		ccci_pmic_smem_base_virt;
 	unsigned int		ccci_pmic_smem_base_phy;
 	unsigned int		ccci_pmic_smem_size;
-	// -- FS
+	/* -- FS */
 	unsigned int		ccci_fs_smem_base_virt;
 	unsigned int		ccci_fs_smem_base_phy;
 	unsigned int		ccci_fs_smem_size;
-	// -- RPC
+	/* -- RPC */
 	unsigned int		ccci_rpc_smem_base_virt;
 	unsigned int		ccci_rpc_smem_base_phy;
 	unsigned int		ccci_rpc_smem_size;
-	// -- TTY
+	/* -- TTY */
 	unsigned int		ccci_uart_smem_base_virt[CCCI_UART_PORT_NUM];
 	unsigned int		ccci_uart_smem_base_phy[CCCI_UART_PORT_NUM];
 	unsigned int		ccci_uart_smem_size[CCCI_UART_PORT_NUM];
-	// -- Exception
+	/* -- Exception */
 	unsigned int		ccci_exp_smem_base_virt;
 	unsigned int		ccci_exp_smem_base_phy;
 	unsigned int		ccci_exp_smem_size;
-	// -- IPC
+	/* -- IPC */
 	unsigned int		ccci_ipc_smem_base_virt;
 	unsigned int		ccci_ipc_smem_base_phy;
 	unsigned int		ccci_ipc_smem_size;
-	// -- SYS - Eint exchagne
+	/* -- SYS - Eint exchagne */
 	unsigned int		ccci_sys_smem_base_virt;
 	unsigned int		ccci_sys_smem_base_phy;
 	unsigned int		ccci_sys_smem_size;
-	// -- CCMNI new version
-	// ----- Up-link
+	/* -- CCMNI new version */
+	/* ----- Up-link */
 	unsigned int		ccci_ccmni_smem_ul_base_virt;
 	unsigned int		ccci_ccmni_smem_ul_base_phy;
 	unsigned int		ccci_ccmni_smem_ul_size;
-	// ----- Donw-link
+	/* ----- Donw-link */
 	unsigned int		ccci_ccmni_smem_dl_base_virt;
 	unsigned int		ccci_ccmni_smem_dl_base_phy;
 	unsigned int		ccci_ccmni_smem_dl_size;
 	unsigned int		ccci_ccmni_ctl_smem_base_virt[NET_PORT_NUM];
 	unsigned int		ccci_ccmni_ctl_smem_base_phy[NET_PORT_NUM];
 	unsigned int		ccci_ccmni_ctl_smem_size[NET_PORT_NUM];
-	// -- EXT MD Exception
+	/* -- EXT MD Exception */
 	unsigned int		ccci_md_ex_exp_info_smem_base_virt;
 	unsigned int		ccci_md_ex_exp_info_smem_base_phy;
 	unsigned int		ccci_md_ex_exp_info_smem_size;
-	// -- MD Runtime Data
+	/* -- MD Runtime Data */
 	unsigned int		ccci_md_runtime_data_smem_base_virt;
 	unsigned int		ccci_md_runtime_data_smem_base_phy;
 	unsigned int		ccci_md_runtime_data_smem_size;
-	// -- Misc Info Data
+	/* -- Misc Info Data */
 	unsigned int		ccci_misc_info_base_virt;
 	unsigned int		ccci_misc_info_base_phy;
 	unsigned int		ccci_misc_info_size;
-}smem_alloc_t;
+} smem_alloc_t;
 
-// Memory layout table
+/* Memory layout table */
 typedef struct _ccci_mem_layout
 {
-	// MD image
+	/* MD image */
 	unsigned int		md_region_vir;
 	unsigned int		md_region_phy;
 	unsigned int		md_region_size;
-	// DSP image
+	/* DSP image */
 	unsigned int		dsp_region_vir;
 	unsigned int		dsp_region_phy;
 	unsigned int		dsp_region_size;
-	// Share memory
+	/* Share memory */
 	unsigned int		smem_region_vir;
 	unsigned int		smem_region_phy;
 	unsigned int		smem_region_size;
 	unsigned int		smem_region_phy_before_map;
-}ccci_mem_layout_t;
+} ccci_mem_layout_t;
 
 
-// Misc info structure
+/* Misc info structure */
 typedef struct _misc_info
 {
-	unsigned int prefix;		// "CCIF"
+	unsigned int prefix;		/* "CCIF" */
 	unsigned int support_mask;
 	unsigned int index;
 	unsigned int next;
@@ -303,7 +289,7 @@ typedef struct _misc_info
 	unsigned int feature_14_val[4];
 	unsigned int feature_15_val[4];
 	unsigned int reserved_2[3];
-	unsigned int postfix;		// "CCIF"
+	unsigned int postfix;		/* "CCIF" */
 } misc_info_t;
 
 typedef enum
@@ -312,7 +298,7 @@ typedef enum
 	FEATURE_NOT_SUPPORT,
 	FEATURE_SUPPORT,
 	FEATURE_PARTIALLY_SUPPORT,
-} misc_feature_sta_t; 
+} misc_feature_sta_t;
 
 typedef enum
 {
@@ -320,24 +306,23 @@ typedef enum
 	MISC_32K_LESS,
 	MISC_RAND_SEED,
 	MISC_MD_COCLK_SETTING,
-    MISC_MD_SBP_SETTING,
 } misc_feature_id_t;
 
 
 
-//==================================================================================
-// API need implemented by ccci platform
-//==================================================================================
+/* ================================================================================== */
+/* API need implemented by ccci platform */
+/* ================================================================================== */
 int					get_dev_major_for_md_sys(int md_id);
 int					get_ccif_hw_info(int md_id, ccif_hw_info_t *ccif_hw_info);
 void				md_env_setup_before_boot(int md_id);
-void        		md_env_setup_before_ready(int md_id);
+void			md_env_setup_before_ready(int md_id);
 void				md_boot_up_additional_operation(int md_id);
 void				md_boot_ready_additional_operation(int md_id);
 void				additional_operation_before_stop_md(int md_id);
-smem_alloc_t*		get_md_smem_layout(int md_id);
+smem_alloc_t *get_md_smem_layout(int md_id);
 unsigned int		get_md_sys_max_num(void);
-void 			ccci_md_wdt_notify_register(int, int (*funcp)(int));
+void			ccci_md_wdt_notify_register(int, int (*funcp)(int));
 int					ccci_load_firmware(int md_id, unsigned int load_flag, char img_err_str[], int len);
 int					ccci_power_on_md(int md_id);
 int					ccci_power_down_md(int md_id);
@@ -346,34 +331,29 @@ int					let_md_go(int md_id);
 int					ccci_get_sub_module_cfg(int md_id, char name[], char out_buf[], int size);
 int					ccci_alloc_smem(int md_id);
 void				ccci_free_smem(int md_id);
-ccci_mem_layout_t*	get_md_sys_layout(int md_id);
+ccci_mem_layout_t *get_md_sys_layout(int md_id);
 int					is_modem_debug_ver(int md_id);
-char*				get_md_info_str(int md_id);
+char *get_md_info_str(int md_id);
 void				platform_set_runtime_data(int md_id, modem_runtime_t *runtime);
-void 				config_misc_info(int md_id, unsigned int base[], unsigned int size);
+void				config_misc_info(int md_id, unsigned int base[], unsigned int size);
 void                send_battery_info(int md_id);
 void                md_fast_dormancy(int md_id);
 void				start_md_wdt_recov_timer(int md_id);
 int                 platform_init(int md_id, int power_down);
 void                platform_deinit(int md_id);
 unsigned int	get_debug_mode_flag(void);
-int		ccci_ipo_h_platform_restore(int md_id); 
+int		ccci_ipo_h_platform_restore(int md_id);
 int					set_sim_type(int md_id, int data);
 int					get_sim_type(int md_id, int *p_sim_type);
 int					enable_get_sim_type(int md_id, unsigned int enable);
 void ccci_dump_md_register(int md_id);
-#ifdef CONFIG_MTK_MD_SBP_CUSTOM_VALUE
-int                 ccci_set_md_sbp(int md_id, unsigned int md_sbp);
-#endif // CONFIG_MTK_MD_SBP_CUSTOM_VALUE
-
-
-extern int md_2_ap_phy_addr_offset_fixed;//Generally, AP and MD has same share memory address after hw remapp.
-									     //however, if hardware remapp does not work, then need software remap,
-									     //This variable is used to fix md phy addr does not equeal with AP.
-									     //If hardware remap works, then the variable is 0.
-//==================================================================================
-// CCCI API cannot be directly called by platform, 
-// since ccci.ko is loaded after ccci_platform.ko, 
-// so there is no API exported to platform.
-//==================================================================================
-#endif //__CCCI_COMMON_H__
+extern int md_2_ap_phy_addr_offset_fixed;/* Generally, AP and MD has same share memory address after hw remapp. */
+									     /* however, if hardware remapp does not work, then need software remap, */
+									     /* This variable is used to fix md phy addr does not equeal with AP. */
+									     /* If hardware remap works, then the variable is 0. */
+/* ================================================================================== */
+/* CCCI API cannot be directly called by platform, */
+/* since ccci.ko is loaded after ccci_platform.ko, */
+/* so there is no API exported to platform. */
+/* ================================================================================== */
+#endif /* __CCCI_COMMON_H__ */

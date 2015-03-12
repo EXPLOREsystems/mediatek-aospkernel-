@@ -6,7 +6,7 @@
 
 #define CONFIG_LOG_STP_INTERNAL
 
-#if 1//#ifndef CONFIG_LOG_STP_INTERNAL
+#if 1/* #ifndef CONFIG_LOG_STP_INTERNAL */
 #define STP_PKT_SZ  16
 #define STP_DMP_SZ 2048
 #define STP_PKT_NO 2048
@@ -89,7 +89,7 @@ typedef struct log_sys {
 /*--*/
 
 typedef struct stp_dbg_pkt_hdr {
-    //packet information
+    /* packet information */
     unsigned int   sec;
     unsigned int   usec;
     unsigned int   dbg_type;
@@ -97,7 +97,7 @@ typedef struct stp_dbg_pkt_hdr {
     unsigned int   no;
     unsigned int   dir;
 
-    //packet content
+    /* packet content */
     unsigned int  type;
     unsigned int  len;
     unsigned int  ack;
@@ -121,7 +121,7 @@ typedef struct mtkstp_dbg_t {
 
 extern void aed_combo_exception(const int *, int, const int *, int, const char *);
 
-#define STP_CORE_DUMP_TIMEOUT 5*60*1000 // default 5minutes
+#define STP_CORE_DUMP_TIMEOUT 5*60*1000 /* default 5minutes */
 #define STP_OJB_NAME_SZ 20
 #define STP_CORE_DUMP_INFO_SZ 500
 typedef enum wcn_compress_algorithm_t {
@@ -132,28 +132,28 @@ typedef enum wcn_compress_algorithm_t {
     MAX
 } WCN_COMPRESS_ALG_T;
 
-typedef INT32(*COMPRESS_HANDLER)(void *worker, UINT8 *in_buf, INT32 in_sz, UINT8 *out_buf, INT32 *out_sz, INT32 finish);
+typedef INT32(*COMPRESS_HANDLER)(void *worker, UINT8 * in_buf, INT32 in_sz, UINT8 * out_buf, INT32 * out_sz, INT32 finish);
 typedef struct wcn_compressor_t {
-    // current object name
+    /* current object name */
     UINT8 name[STP_OJB_NAME_SZ + 1];
 
-    // buffer for raw data, named L1
+    /* buffer for raw data, named L1 */
     PUINT8 L1_buf;
     INT32 L1_buf_sz;
     INT32 L1_pos;
 
-    // target buffer, named L2
+    /* target buffer, named L2 */
     PUINT8 L2_buf;
     INT32 L2_buf_sz;
     INT32 L2_pos;
 
-    // compress state
+    /* compress state */
     UINT8 f_done;
     UINT16 reserved;
     UINT32 uncomp_size;
     UINT32 crc32;
 
-    // compress algorithm
+    /* compress algorithm */
     UINT8 f_compress_en;
     WCN_COMPRESS_ALG_T compress_type;
     void *worker;
@@ -175,19 +175,19 @@ typedef enum core_dump_state_t {
 } CORE_DUMP_STA;
 
 typedef struct core_dump_t {
-    // compress dump data and buffered
+    /* compress dump data and buffered */
     P_WCN_COMPRESSOR_T compressor;
 
-    // timer for monitor timeout
+    /* timer for monitor timeout */
     OSAL_TIMER dmp_timer;
     UINT32 timeout;
 
     OSAL_SLEEPABLE_LOCK dmp_lock;
 
-    // state machine for core dump flow
+    /* state machine for core dump flow */
     CORE_DUMP_STA sm;
 
-    // dump info
+    /* dump info */
     CHAR info[STP_CORE_DUMP_INFO_SZ + 1];
 } WCN_CORE_DUMP_T, *P_WCN_CORE_DUMP_T;
 
@@ -274,4 +274,3 @@ extern INT32 stp_dbg_cpupcr_infor_format(UINT8 **buf, UINT32 *len);
 extern INT32 stp_dbg_set_fw_info(UINT8 *assert_info, UINT32 len, ENUM_STP_FW_ISSUE_TYPE issue_type);
 
 #endif /* end of _STP_DEBUG_H_ */
-

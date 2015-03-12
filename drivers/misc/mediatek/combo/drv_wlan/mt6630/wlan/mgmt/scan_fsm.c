@@ -417,8 +417,7 @@ VOID scnFsmSteps(IN P_ADAPTER_T prAdapter, IN ENUM_SCAN_STATE_T eNextState)
 			break;
 
 		}
-	}
-	while (fgIsTransition);
+	} while (fgIsTransition);
 
 	return;
 }
@@ -1123,6 +1122,8 @@ scnFsmSchedScanRequest(IN P_ADAPTER_T prAdapter,
 
 	ASSERT(prAdapter);
 
+	DBGLOG(SCN, INFO, ("scnFsmSchedScanRequest\n"));
+
 	prScanInfo = &(prAdapter->rWifiVar.rScanInfo);
 	prNloParam = &prScanInfo->rNloParam;
 	prScanParam = &prNloParam->rScanParam;
@@ -1134,6 +1135,22 @@ scnFsmSchedScanRequest(IN P_ADAPTER_T prAdapter,
 	prScanParam->ucBssIndex = prAdapter->prAisBssInfo->ucBssIndex;
 	prNloParam->fgStopAfterIndication = TRUE;
 	prNloParam->ucFastScanIteration = 0;
+
+	if (u2Interval < SCAN_NLO_DEFAULT_INTERVAL) {
+	    u2Interval = SCAN_NLO_DEFAULT_INTERVAL;
+	    DBGLOG(SCN, INFO, ("force interval to SCAN_NLO_DEFAULT_INTERVAL\n"));
+	}
+
+	prAdapter->prAisBssInfo->fgIsPNOEnable = TRUE;
+
+	if (!IS_NET_ACTIVE(prAdapter, prAdapter->prAisBssInfo->ucBssIndex)) {
+	    SET_NET_ACTIVE(prAdapter, prAdapter->prAisBssInfo->ucBssIndex);
+
+	    DBGLOG(SCN, INFO, ("ACTIVE AIS from INACTIVE to enable PNO\n"));
+	    /* sync with firmware */
+	    nicActivateNetwork(prAdapter, prAdapter->prAisBssInfo->ucBssIndex);
+	}
+
 	prNloParam->u2FastScanPeriod = u2Interval;
 	prNloParam->u2SlowScanPeriod = u2Interval;
 
@@ -1160,6 +1177,7 @@ scnFsmSchedScanRequest(IN P_ADAPTER_T prAdapter,
 			  prNloParam->ucMatchSSIDLen[i],
 			  prSsid[i].aucSsid, (UINT_8) prSsid[i].u4SsidLen);
 
+		 /*  for linux the Ciper,Auth Algo will be zero  */
 		prNloParam->aucCipherAlgo[i] = 0;
 		prNloParam->au2AuthAlgo[i] = 0;
 
@@ -1188,6 +1206,11 @@ scnFsmSchedScanRequest(IN P_ADAPTER_T prAdapter,
 	prCmdNloReq->u2FastScanPeriod = prNloParam->u2FastScanPeriod;
 	prCmdNloReq->u2SlowScanPeriod = prNloParam->u2SlowScanPeriod;
 	prCmdNloReq->ucEntryNum = prNloParam->ucMatchSSIDNum;
+
+#ifdef LINUX
+	prCmdNloReq->ucFlag = SCAN_NLO_CHECK_SSID_ONLY;
+	DBGLOG(SCN, INFO, ("LINUX only check SSID for PNO SCAN\n"));
+#endif
 	for (i = 0; i < prNloParam->ucMatchSSIDNum; i++) {
 		COPY_SSID(prCmdNloReq->arNetworkList[i].aucSSID,
 			  prCmdNloReq->arNetworkList[i].ucSSIDLength,
@@ -1195,6 +1218,10 @@ scnFsmSchedScanRequest(IN P_ADAPTER_T prAdapter,
 
 		prCmdNloReq->arNetworkList[i].ucCipherAlgo = prNloParam->aucCipherAlgo[i];
 		prCmdNloReq->arNetworkList[i].u2AuthAlgo = prNloParam->au2AuthAlgo[i];
+                DBGLOG(SCN, INFO, ("prCmdNloReq->arNetworkList[i].aucSSID %s \n", prCmdNloReq->arNetworkList[i].aucSSID));
+                DBGLOG(SCN, INFO, ("prCmdNloReq->arNetworkList[i].ucSSIDLength %d \n", prCmdNloReq->arNetworkList[i].ucSSIDLength));
+                DBGLOG(SCN, INFO, ("prCmdNloReq->arNetworkList[i].ucCipherAlgo %d \n", prCmdNloReq->arNetworkList[i].ucCipherAlgo));
+                DBGLOG(SCN, INFO, ("prCmdNloReq->arNetworkList[i].u2AuthAlgo %d \n", prCmdNloReq->arNetworkList[i].u2AuthAlgo));
 
 		for (j = 0; j < SCN_NLO_NETWORK_CHANNEL_NUM; j++) {
 			prCmdNloReq->arNetworkList[i].ucNumChannelHint[j] =
@@ -1244,30 +1271,37 @@ BOOLEAN scnFsmSchedScanStopRequest(IN P_ADAPTER_T prAdapter)
 	P_NLO_PARAM_T prNloParam;
 	P_SCAN_PARAM_T prScanParam;
 	CMD_NLO_CANCEL rCmdNloCancel;
-
+	WLAN_STATUS rStatus;
 	ASSERT(prAdapter);
-
+	DBGLOG(SCN, INFO, ("scnFsmSchedScanStopRequest\n"));
 	prScanInfo = &(prAdapter->rWifiVar.rScanInfo);
 	prNloParam = &prScanInfo->rNloParam;
 	prScanParam = &prNloParam->rScanParam;
+	prAdapter->prAisBssInfo->fgIsPNOEnable = FALSE;
+	if (prAdapter->prAisBssInfo->fgIsNetRequestInActive && prAdapter->prAisBssInfo->fgIsPNOEnable) {
+	    UNSET_NET_ACTIVE(prAdapter, prAdapter->prAisBssInfo->ucBssIndex);
 
-	if (prScanInfo->fgNloScanning == TRUE) {
+	    DBGLOG(SCN, INFO, ("INACTIVE  AIS from ACTIVE to DISABLE PNO\n"));
+	    /* sync with firmware */
+	    nicDeactivateNetwork(prAdapter, prAdapter->prAisBssInfo->ucBssIndex);
+	}
+
 		/* send cancel message to firmware domain */
-		rCmdNloCancel.ucSeqNum = prScanParam->ucSeqNum;
+	rCmdNloCancel.ucSeqNum = prScanParam->ucSeqNum;
 
-		wlanSendSetQueryCmd(prAdapter,
-				    CMD_ID_SET_NLO_CANCEL,
-				    TRUE,
-				    FALSE,
-				    TRUE,
-				    nicCmdEventSetStopSchedScan,
-				    nicOidCmdTimeoutCommon,
-				    sizeof(CMD_NLO_CANCEL), (PUINT_8) &rCmdNloCancel, NULL, 0);
+	rStatus = wlanSendSetQueryCmd(prAdapter,
+				CMD_ID_SET_NLO_CANCEL,
+				TRUE,
+				FALSE,
+				TRUE,
+				nicCmdEventSetStopSchedScan,
+				nicOidCmdTimeoutCommon,
+				sizeof(CMD_NLO_CANCEL), (PUINT_8) &rCmdNloCancel, NULL, 0);
 
 		prScanInfo->fgNloScanning = FALSE;
-
-		return TRUE;
+	if (rStatus != WLAN_STATUS_FAILURE) {
+	    return TRUE;
 	} else {
-		return FALSE;
+	    return FALSE;
 	}
 }

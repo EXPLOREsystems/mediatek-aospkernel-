@@ -109,4 +109,3 @@ typedef struct _WMT_IC_INFO_S {
 */
 
 #endif /* _WMT_IC_H_ */
-

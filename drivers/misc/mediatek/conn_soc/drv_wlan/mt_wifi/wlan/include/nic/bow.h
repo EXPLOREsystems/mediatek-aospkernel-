@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/nic/bow.h#1 $
 */
 
@@ -30,7 +44,7 @@
  * 02 10 2011 chinghwa.yu
  * [WCXRP00000065] Update BoW design and settings
  * Fix kernel API change issue.
- * Before ALPS 2.2 (2.2 included), kfifo_alloc() is 
+ * Before ALPS 2.2 (2.2 included), kfifo_alloc() is
  * struct kfifo *kfifo_alloc(unsigned int size, gfp_t gfp_mask, spinlock_t *lock);
  * After ALPS 2.3, kfifo_alloc() is changed to
  * int kfifo_alloc(struct kfifo *fifo, unsigned int size, gfp_t gfp_mask);
@@ -41,7 +55,7 @@
  *
  * 02 09 2011 cp.wu
  * [WCXRP00000430] [MT6620 Wi-Fi][Firmware][Driver] Create V1.2 branch for MT6620E1 and MT6620E3
- * create V1.2 driver branch based on label MT6620_WIFI_DRIVER_V1_2_110209_1031 
+ * create V1.2 driver branch based on label MT6620_WIFI_DRIVER_V1_2_110209_1031
  * with BOW and P2P enabled as default
  *
  * 02 08 2011 chinghwa.yu
@@ -58,56 +72,56 @@
  * Fix wrong BoW event size.
  *
  * 07 15 2010 cp.wu
- * 
+ *
  * sync. bluetooth-over-Wi-Fi interface to driver interface document v0.2.6.
  *
  * 07 08 2010 cp.wu
- * 
+ *
  * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
  *
  * 06 06 2010 kevin.huang
- * [WPD00003832][MT6620 5931] Create driver base 
+ * [WPD00003832][MT6620 5931] Create driver base
  * [MT6620 5931] Create driver base
  *
  * 05 13 2010 cp.wu
- * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support 
+ * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support
  * 1) all BT physical handles shares the same RSSI/Link Quality.
  * 2) simplify BT command composing
  *
  * 04 28 2010 cp.wu
- * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support 
+ * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support
  * change prefix for data structure used to communicate with 802.11 PAL
  * to avoid ambiguous naming with firmware interface
  *
  * 04 27 2010 cp.wu
- * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support 
+ * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support
  * basic implementation for EVENT_BT_OVER_WIFI
  *
  * 04 13 2010 cp.wu
- * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support 
+ * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support
  * add framework for BT-over-Wi-Fi support.
  *  *  *  *  *  *  * 1) prPendingCmdInfo is replaced by queue for multiple handler capability
- *  *  *  *  *  *  * 2) command sequence number is now increased atomically 
+ *  *  *  *  *  *  * 2) command sequence number is now increased atomically
  *  *  *  *  *  *  * 3) private data could be hold and taken use for other purpose
  *
  * 04 09 2010 cp.wu
- * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support 
+ * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support
  * sync. with design document for interface change.
  *
  * 04 02 2010 cp.wu
- * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support 
+ * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support
  * Wi-Fi driver no longer needs to implement 802.11 PAL, thus replaced by wrapping command/event definitions
  *
  * 03 16 2010 cp.wu
- * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support 
+ * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support
  * correct typo.
  *
  * 03 16 2010 cp.wu
- * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support 
+ * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support
  * update for all command/event needed to be supported by 802.11 PAL.
  *
  * 03 16 2010 cp.wu
- * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support 
+ * [WPD00003823][MT6620 Wi-Fi] Add Bluetooth-over-Wi-Fi support
  * build up basic data structure and definitions to support BT-over-WiFi
  *
 */
@@ -134,7 +148,7 @@
 
 #define MAX_BOW_NUMBER_OF_CHANNEL_2G4            14
 #define MAX_BOW_NUMBER_OF_CHANNEL_5G              4
-#define MAX_BOW_NUMBER_OF_CHANNEL                    18 //(MAX_BOW_NUMBER_OF_CHANNEL_2G4 + MAX_BOW_NUMBER_OF_CHANNEL_5G)
+#define MAX_BOW_NUMBER_OF_CHANNEL                    18 /* (MAX_BOW_NUMBER_OF_CHANNEL_2G4 + MAX_BOW_NUMBER_OF_CHANNEL_5G) */
 
 #define MAX_ACTIVITY_REPORT                                    2
 #define MAX_ACTIVITY_REPROT_TIME                          660
@@ -144,7 +158,7 @@
 #define ACTIVITY_REPORT_STATUS_TIME_INVALID     2
 #define ACTIVITY_REPORT_STATUS_OTHERS                3
 
-#define ACTIVITY_REPORT_SCHEDULE_UNKNOWN        0           //Does not know the schedule of the interference
+#define ACTIVITY_REPORT_SCHEDULE_UNKNOWN        0           /* Does not know the schedule of the interference */
 #define ACTIVITY_REPORT_SCHEDULE_KNOWN             1
 
 /*******************************************************************************
@@ -183,9 +197,9 @@ typedef struct _CHANNEL_DESC_T {
     UINT_8     ucChannelNum;
 } CHANNEL_DESC, P_CHANNEL_DESC;
 
-// Command Structures 
+/* Command Structures */
 typedef struct _BOW_SETUP_CONNECTION {
-//Fixed to 2.4G
+/* Fixed to 2.4G */
     UINT_8      ucChannelNum;
     UINT_8      ucReserved1;
     UINT_8      aucPeerAddress[6];
@@ -197,7 +211,7 @@ typedef struct _BOW_SETUP_CONNECTION {
     INT_8        cMaxTxPower;
     UINT_8      ucReserved2;
 
-//Pending, for future BOW 5G supporting.
+/* Pending, for future BOW 5G supporting. */
 /*    UINT_8          aucPeerAddress[6];
     UINT_16         u2BeaconInterval;
     UINT_8          ucTimeoutDiscovery;
@@ -237,7 +251,7 @@ typedef struct _BOW_SHORT_RANGE_MODE {
     UINT_8      ucReserved;
 } BOW_SHORT_RANGE_MODE, *P_BOW_SHORT_RANGE_MODE;
 
-// Event Structures
+/* Event Structures */
 typedef struct _BOW_COMMAND_STATUS {
     UINT_8      ucStatus;
     UINT_8      ucReserved[3];

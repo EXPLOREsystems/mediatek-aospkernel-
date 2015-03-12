@@ -34,7 +34,6 @@
 
 #include <asm/uaccess.h>
 #include <mach/mt_typedefs.h>
-#include <mach/hardware.h>
 #include <mach/mt_boot.h>
 
 #include <mach/battery_common.h>

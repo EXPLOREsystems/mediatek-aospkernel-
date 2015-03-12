@@ -14,6 +14,10 @@
 /*
 ** $Log: gl_p2p.c $
 **
+** 04 14 2014 eason.tsai
+** [ALPS01510349] [6595][KK][HotKnot][Reboot][KE][p2pDevFsmRunEventScanDone]Sender reboot automatically with KE about p2pDevFsmRunEventScanDone.
+** fix KE
+**
 ** 01 23 2014 eason.tsai
 ** [ALPS01070904] [Need Patch] [Volunteer Patch][MT6630][Driver]MT6630 Wi-Fi Patch
 ** fix ap mode
@@ -1006,7 +1010,7 @@ const struct iw_handler_def mtk_p2p_wext_handler_def = {
 
 #ifdef CONFIG_PM
 static const struct wiphy_wowlan_support mtk_p2p_wowlan_support = {
-	.flags = WIPHY_WOWLAN_DISCONNECT,
+	.flags = WIPHY_WOWLAN_DISCONNECT | WIPHY_WOWLAN_ANY,
 };
 #endif
 
@@ -1019,18 +1023,6 @@ static const struct wiphy_wowlan_support mtk_p2p_wowlan_support = {
 *                   F U N C T I O N   D E C L A R A T I O N S
 ********************************************************************************
 */
-/* for IE Searching */
-extern BOOLEAN
-wextSrchDesiredWPAIE(IN PUINT_8 pucIEStart,
-		     IN INT_32 i4TotalIeLen,
-		     IN UINT_8 ucDesiredElemId, OUT PUINT_8 * ppucDesiredIE);
-
-#if CFG_SUPPORT_WPS
-extern BOOLEAN
-wextSrchDesiredWPSIE(IN PUINT_8 pucIEStart,
-		     IN INT_32 i4TotalIeLen,
-		     IN UINT_8 ucDesiredElemId, OUT PUINT_8 * ppucDesiredIE);
-#endif
 
 /* Net Device Hooks */
 static int p2pOpen(IN struct net_device *prDev);
@@ -1302,6 +1294,8 @@ BOOLEAN p2PFreeInfo(P_GLUE_INFO_T prGlueInfo)
 		prGlueInfo->prAdapter->rWifiVar.prP2PConnSettings = NULL;
 /* prGlueInfo->prAdapter->rWifiVar.prP2pFsmInfo = NULL; */
 		prGlueInfo->prAdapter->rWifiVar.prP2pSpecificBssInfo = NULL;
+		prGlueInfo->prAdapter->rWifiVar.prP2pDevFsmInfo = NULL;
+
 
 		return TRUE;
 	} else {
@@ -1663,6 +1657,8 @@ BOOLEAN glRegisterP2P(P_GLUE_INFO_T prGlueInfo, const char *prDevName, BOOLEAN f
 	prGlueInfo->prP2PInfo->prDevHandler->features = NETIF_F_IP_CSUM;
 #endif				/* CFG_TCP_IP_CHKSUM_OFFLOAD */
 
+	kalResetStats(prGlueInfo->prP2PInfo->prDevHandler);
+
 #if 0
 	/* 7. net device initialize */
 	netif_carrier_off(prGlueInfo->prP2PInfo->prDevHandler);
@@ -1707,10 +1703,10 @@ BOOLEAN glRegisterP2P(P_GLUE_INFO_T prGlueInfo, const char *prDevName, BOOLEAN f
 
 	return TRUE;
 #if 0
- err_reg_netdev:
+err_reg_netdev:
 	free_netdev(prGlueInfo->prP2PInfo->prDevHandler);
 #endif
- err_alloc_netdev:
+err_alloc_netdev:
 #if CFG_ENABLE_WIFI_DIRECT_CFG_80211
 /* wiphy_unregister(prGlueInfo->prP2PInfo->wdev.wiphy); */
 
@@ -1718,7 +1714,7 @@ BOOLEAN glRegisterP2P(P_GLUE_INFO_T prGlueInfo, const char *prDevName, BOOLEAN f
 	wiphy_free(prGlueInfo->prP2PInfo->wdev.wiphy);
 	prGlueInfo->prP2PInfo->wdev.wiphy = NULL;
 
- err_alloc_wiphy:
+err_alloc_wiphy:
 #endif
 
 	return FALSE;
@@ -1958,35 +1954,7 @@ static int p2pStop(IN struct net_device *prDev)
 /*----------------------------------------------------------------------------*/
 struct net_device_stats *p2pGetStats(IN struct net_device *prDev)
 {
-	P_GLUE_INFO_T prGlueInfo = NULL;
-	ASSERT(prDev);
-
-	prGlueInfo = *((P_GLUE_INFO_T *) netdev_priv(prDev));
-
-#if 1				/* frog temp fix */
-	/* @FIXME */
-	/* prDev->stats.rx_packets = 0; */
-	/* prDev->stats.tx_packets = 0; */
-	prDev->stats.tx_errors = 0;
-	prDev->stats.rx_errors = 0;
-	/* prDev->stats.rx_bytes = 0; */
-	/* prDev->stats.tx_bytes = 0; */
-	prDev->stats.multicast = 0;
-
-	return &prDev->stats;
-
-#else
-	prGlueInfo->prP2PInfo->rNetDevStats.rx_packets = 0;
-	prGlueInfo->prP2PInfo->rNetDevStats.tx_packets = 0;
-	prGlueInfo->prP2PInfo->rNetDevStats.tx_errors = 0;
-	prGlueInfo->prP2PInfo->rNetDevStats.rx_errors = 0;
-	prGlueInfo->prP2PInfo->rNetDevStats.rx_bytes = 0;
-	prGlueInfo->prP2PInfo->rNetDevStats.tx_bytes = 0;
-	prGlueInfo->prP2PInfo->rNetDevStats.rx_errors = 0;
-	prGlueInfo->prP2PInfo->rNetDevStats.multicast = 0;
-
-	return &prGlueInfo->prP2PInfo->rNetDevStats;
-#endif
+	return (struct net_device_stats *)kalGetStats(prDev);
 }				/* end of p2pGetStats() */
 
 
@@ -2008,7 +1976,7 @@ static void p2pSetMulticastList(IN struct net_device *prDev)
 	g_P2pPrDev = prDev;
 
 	/* 4  Mark HALT, notify main thread to finish current job */
-	set_bit(GLUE_FLAG_SUB_MOD_MULTICAST_BIT, &prGlueInfo->u4Flag);
+	set_bit(GLUE_FLAG_SUB_MOD_MULTICAST_BIT, &prGlueInfo->ulFlag);
 	/* wake up main thread */
 	wake_up_interruptible(&prGlueInfo->waitq);
 
@@ -2124,6 +2092,8 @@ int p2pHardStartXmit(IN struct sk_buff *prSkb, IN struct net_device *prDev)
 	prNetDevPrivate = (P_NETDEV_PRIVATE_GLUE_INFO) netdev_priv(prDev);
 	prGlueInfo = prNetDevPrivate->prGlueInfo;
 	ucBssIndex = prNetDevPrivate->ucBssIdx;
+
+    kalResetPacket(prGlueInfo, (P_NATIVE_PACKET)prSkb);
 
 	kalHardStartXmit(prSkb, prDev, prGlueInfo, ucBssIndex);
 
@@ -3010,48 +2980,7 @@ mtk_p2p_wext_set_key(IN struct net_device *prDev,
 					if (prKey->u4KeyIndex <= 3) {
 						/* bit(31) and bit(30) are shared by pKey and pRemoveKey */
 						/* Tx Key Bit(31) */
-						if (prIWEncExt->
-						    ext_flags & IW_ENCODE_EXT_SET_TX_KEY) {
-							prKey->u4KeyIndex |= 0x1UL << 31;
-						}
-
-						/* Pairwise Key Bit(30) */
-						if (prIWEncExt->ext_flags & IW_ENCODE_EXT_GROUP_KEY) {
-							/* group key */
-						} else {
-							/* pairwise key */
-							prKey->u4KeyIndex |= 0x1UL << 30;
-						}
-
-						/* Rx SC Bit(29) */
-						if (prIWEncExt->
-						    ext_flags & IW_ENCODE_EXT_RX_SEQ_VALID) {
-							prKey->u4KeyIndex |= 0x1UL << 29;
-							memcpy(&prKey->rKeyRSC, prIWEncExt->rx_seq,
-							       IW_ENCODE_SEQ_MAX_SIZE);
-						}
-
-						/* BSSID */
-						memcpy(prKey->arBSSID, prIWEncExt->addr.sa_data, 6);
-						memcpy(prKey->aucKeyMaterial, prIWEncExt->key,
-						       prIWEncExt->key_len);
-
-						prKey->u4KeyLength = prIWEncExt->key_len;
-						prKey->u4Length =
-						    ((UINT_32) &
-						     (((P_PARAM_KEY_T) 0)->aucKeyMaterial)) +
-						    prKey->u4KeyLength;
-
-						rStatus = kalIoctl(prGlueInfo,
-								   wlanoidSetAddP2PKey,
-								   prKey,
-								   prKey->u4Length,
-								   FALSE,
-								   FALSE, TRUE, TRUE, &u4BufLen);
-
-						if (rStatus != WLAN_STATUS_SUCCESS) {
-							ret = -EFAULT;
-						}
+						mtk_p2p_wext_set_key_prkit();
 					} else {
 						ret = -EINVAL;
 					}
@@ -3072,8 +3001,51 @@ mtk_p2p_wext_set_key(IN struct net_device *prDev,
 	return ret;
 }				/* end of mtk_p2p_wext_set_key() */
 
+/* For resolve error and warning of AOSP coding style check */
+/* To be fixed */
+void mtk_p2p_wext_set_key_prkit(void)
+{
+	if (prIWEncExt->ext_flags & IW_ENCODE_EXT_SET_TX_KEY) {
+		prKey->u4KeyIndex |= 0x1UL << 31;
+		}
+	/* Pairwise Key Bit(30) */
+	if (prIWEncExt->ext_flags & IW_ENCODE_EXT_GROUP_KEY) {
+		/* group key */
+	} else {
+		/* pairwise key */
+		prKey->u4KeyIndex |= 0x1UL << 30;
+	}
 
+	/* Rx SC Bit(29) */
+	if (prIWEncExt->
+	    ext_flags & IW_ENCODE_EXT_RX_SEQ_VALID) {
+		prKey->u4KeyIndex |= 0x1UL << 29;
+		memcpy(&prKey->rKeyRSC, prIWEncExt->rx_seq,
+		       IW_ENCODE_SEQ_MAX_SIZE);
+	}
 
+	/* BSSID */
+	memcpy(prKey->arBSSID, prIWEncExt->addr.sa_data, 6);
+	memcpy(prKey->aucKeyMaterial, prIWEncExt->key,
+	       prIWEncExt->key_len);
+
+	prKey->u4KeyLength = prIWEncExt->key_len;
+	prKey->u4Length =
+	    ((UINT_32) &
+	     (((P_PARAM_KEY_T) 0)->aucKeyMaterial)) +
+	    prKey->u4KeyLength;
+
+	rStatus = kalIoctl(prGlueInfo,
+			   wlanoidSetAddP2PKey,
+			   prKey,
+			   prKey->u4Length,
+			   FALSE,
+			   FALSE, TRUE, TRUE, &u4BufLen);
+
+	if (rStatus != WLAN_STATUS_SUCCESS) {
+		ret = -EFAULT;
+	}
+}
 
 /*----------------------------------------------------------------------------*/
 /*!
@@ -5087,7 +5059,7 @@ mtk_p2p_wext_get_rssi(IN struct net_device *prDev,
 	}
 
 
- stat_out:
+stat_out:
 
 	if (rStatus != WLAN_STATUS_SUCCESS) {
 		return -EFAULT;
@@ -5122,7 +5094,7 @@ struct iw_statistics *mtk_p2p_wext_get_wireless_stats(struct net_device *prDev)
 			   wlanoidQueryP2pRssi,
 			   &i4Rssi, sizeof(i4Rssi), TRUE, TRUE, TRUE, TRUE, &bufLen);
 
- stat_out:
+stat_out:
 	return pStats;
 }				/* mtk_p2p_wext_get_wireless_stats */
 

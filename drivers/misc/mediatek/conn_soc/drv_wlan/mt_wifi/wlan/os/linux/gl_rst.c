@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: @(#) gl_rst.c@@
 */
 
@@ -49,7 +63,7 @@
 #include <net/genetlink.h>
 
 #include "gl_os.h"
-#include "debug.h"
+#include "os_debug.h"
 #include "wlan_lib.h"
 #include "gl_wext.h"
 #include "precomp.h"
@@ -169,11 +183,11 @@ extern int
 wifi_reset_end(void);
 
 static void *
-glResetCallback (
+glResetCallback(
     ENUM_WMTDRV_TYPE_T  eSrcType,
     ENUM_WMTDRV_TYPE_T  eDstType,
     ENUM_WMTMSG_TYPE_T  eMsgType,
-    void *              prMsgBody,
+    void *prMsgBody,
     unsigned int        u4MsgLength
     );
 
@@ -191,9 +205,9 @@ glResetSendMessage (
 */
 /*----------------------------------------------------------------------------*/
 /*!
- * @brief This routine is responsible for 
+ * @brief This routine is responsible for
  *        1. registering for reset callbacks
- *        2. initialize netlink socket 
+ *        2. initialize netlink socket
  *
  * @param none
  *
@@ -211,18 +225,18 @@ glResetInit(
 #endif /* MTK_WCN_SINGLE_MODULE */
 
     /* 2.1 registration for NETLINK_GENERIC family */
-    if(genl_register_family(&mtk_wifi_gnl_family) != 0) {
-        DBGLOG(INIT, WARN, ("%s(): GE_NELINK family registration fail\n", __func__));
+    if (genl_register_family(&mtk_wifi_gnl_family) != 0) {
+	DBGLOG(INIT, WARN, ("%s(): GE_NELINK family registration fail\n", __func__));
     }
     else {
-        /* 2.2 operation registration */
-        if(genl_register_ops(&mtk_wifi_gnl_family, &mtk_wifi_gnl_ops_bind) != 0) {
-            DBGLOG(INIT, WARN, ("%s(): BIND operation registration fail\n", __func__));
-        }
-        /*
-        if(genl_register_ops(&mtk_wifi_gnl_family, &mtk_wifi_gnl_ops_reset) != 0) {
-            DBGLOG(INIT, WARN, ("%s(): RESET operation registration fail\n", __func__));
-        }*/
+	/* 2.2 operation registration */
+	if (genl_register_ops(&mtk_wifi_gnl_family, &mtk_wifi_gnl_ops_bind) != 0) {
+	    DBGLOG(INIT, WARN, ("%s(): BIND operation registration fail\n", __func__));
+	}
+	/*
+	if(genl_register_ops(&mtk_wifi_gnl_family, &mtk_wifi_gnl_ops_reset) != 0) {
+	    DBGLOG(INIT, WARN, ("%s(): RESET operation registration fail\n", __func__));
+	}*/
     }
 
     INIT_WORK(&work_rst, mtk_wifi_reset);
@@ -233,8 +247,8 @@ glResetInit(
 
 /*----------------------------------------------------------------------------*/
 /*!
- * @brief This routine is responsible for 
- *        1. uninitialize netlink socket 
+ * @brief This routine is responsible for
+ *        1. uninitialize netlink socket
  *        2. deregistering for reset callbacks
  *
  * @param none
@@ -269,46 +283,46 @@ glResetUninit(
  *          prMsgBody
  *          u4MsgLength
  *
- * @retval 
+ * @retval
  */
 /*----------------------------------------------------------------------------*/
 static void *
-glResetCallback (
+glResetCallback(
     ENUM_WMTDRV_TYPE_T  eSrcType,
     ENUM_WMTDRV_TYPE_T  eDstType,
     ENUM_WMTMSG_TYPE_T  eMsgType,
-    void *              prMsgBody,
+    void *prMsgBody,
     unsigned int        u4MsgLength
     )
 {
     switch (eMsgType) {
     case WMTMSG_TYPE_RESET:
-        if (u4MsgLength == sizeof(ENUM_WMTRSTMSG_TYPE_T)) {
-            P_ENUM_WMTRSTMSG_TYPE_T prRstMsg = (P_ENUM_WMTRSTMSG_TYPE_T) prMsgBody;
+	if (u4MsgLength == sizeof(ENUM_WMTRSTMSG_TYPE_T)) {
+	    P_ENUM_WMTRSTMSG_TYPE_T prRstMsg = (P_ENUM_WMTRSTMSG_TYPE_T) prMsgBody;
 
-            switch (*prRstMsg) {
-            case WMTRSTMSG_RESET_START:
-                DBGLOG(INIT, WARN, ("Whole chip reset start!\n"));
-                fgIsResetting = TRUE;
-                //glResetSendMessage(MTK_WIFI_RESET_START_NAME, MTK_WIFI_COMMAND_RESET);
-                wifi_reset_start();
-                break;
+	    switch (*prRstMsg) {
+	    case WMTRSTMSG_RESET_START:
+		DBGLOG(INIT, WARN, ("Whole chip reset start!\n"));
+		fgIsResetting = TRUE;
+		/* glResetSendMessage(MTK_WIFI_RESET_START_NAME, MTK_WIFI_COMMAND_RESET); */
+		wifi_reset_start();
+		break;
 
-            case WMTRSTMSG_RESET_END:
-                DBGLOG(INIT, WARN, ("Whole chip reset end!\n"));
-                schedule_work(&work_rst);
-                //glResetSendMessage(MTK_WIFI_RESET_END_NAME, MTK_WIFI_COMMAND_RESET);
-                fgIsResetting = FALSE;
-                break;
+	    case WMTRSTMSG_RESET_END:
+		DBGLOG(INIT, WARN, ("Whole chip reset end!\n"));
+		schedule_work(&work_rst);
+		/* glResetSendMessage(MTK_WIFI_RESET_END_NAME, MTK_WIFI_COMMAND_RESET); */
+		fgIsResetting = FALSE;
+		break;
 
-            default:
-                break;
-            }
-        }
-        break;
+	    default:
+		break;
+	    }
+	}
+	break;
 
     default:
-        break;
+	break;
     }
 
     return NULL;
@@ -329,7 +343,7 @@ glResetCallback (
 #if 0
 static BOOLEAN
 glResetSendMessage(
-    char *  aucMsg,
+    char *aucMsg,
     u8      cmd
     )
 {
@@ -338,40 +352,40 @@ glResetSendMessage(
     int rc = -1, i;
     static UINT_32 mtk_wifi_seqnum;
 
-    if(num_bind_process == 0) {
-        /* no listening process */
-        return FALSE;
+    if (num_bind_process == 0) {
+	/* no listening process */
+	return FALSE;
     }
 
-    for(i = 0 ; i < num_bind_process ; i++) {
-        skb = genlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
+    for (i = 0; i < num_bind_process; i++) {
+	skb = genlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
 
-        if(skb) {
-            msg_head = genlmsg_put(skb, 0, mtk_wifi_seqnum++, &mtk_wifi_gnl_family, 0, cmd);
+	if (skb) {
+	    msg_head = genlmsg_put(skb, 0, mtk_wifi_seqnum++, &mtk_wifi_gnl_family, 0, cmd);
 
-            if(msg_head == NULL) {
-                nlmsg_free(skb);
-                return FALSE;
-            }
+	    if (msg_head == NULL) {
+		nlmsg_free(skb);
+		return FALSE;
+	    }
 
-            rc = nla_put_string(skb, MTK_WIFI_ATTR_MSG, aucMsg);
-            if(rc != 0) {
-                nlmsg_free(skb);
-                return FALSE;
-            }
-        
-            /* finalize the message */
-            genlmsg_end(skb, msg_head);
-        
-            /* sending message */
-            rc = genlmsg_unicast(&init_net, skb, bind_pid[i]);
-            if(rc != 0) {
-                return FALSE;
-            }
-        }
-        else {
-            return FALSE;
-        }
+	    rc = nla_put_string(skb, MTK_WIFI_ATTR_MSG, aucMsg);
+	    if (rc != 0) {
+		nlmsg_free(skb);
+		return FALSE;
+	    }
+
+	    /* finalize the message */
+	    genlmsg_end(skb, msg_head);
+
+	    /* sending message */
+	    rc = genlmsg_unicast(&init_net, skb, bind_pid[i]);
+	    if (rc != 0) {
+		return FALSE;
+	    }
+	}
+	else {
+	    return FALSE;
+	}
     }
 
     return TRUE;
@@ -395,34 +409,34 @@ int mtk_wifi_bind(
     )
 {
     struct nlattr *na;
-    char * mydata;
+    char *mydata;
 
     if (info == NULL) {
-        goto out;
+	goto out;
     }
 
     /*for each attribute there is an index in info->attrs which points to a nlattr structure
      *in this structure the data is given
      */
-    
+
     na = info->attrs[MTK_WIFI_ATTR_MSG];
     if (na) {
-        mydata = (char *)nla_data(na);
+	mydata = (char *)nla_data(na);
 
-        /* no need to parse mydata */
+	/* no need to parse mydata */
     }
 
     /* collect PID */
-    if(num_bind_process < MAX_BIND_PROCESS) {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 8, 0)   
-        bind_pid[num_bind_process] = info->snd_portid;
+    if (num_bind_process < MAX_BIND_PROCESS) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 8, 0)
+	bind_pid[num_bind_process] = info->snd_portid;
 #else
-        bind_pid[num_bind_process] = info->snd_pid;
+	bind_pid[num_bind_process] = info->snd_pid;
 #endif
-        num_bind_process++;
-        }
+	num_bind_process++;
+    }
     else {
-        DBGLOG(INIT, WARN, ("%s(): exceeding binding limit %d\n", __func__, MAX_BIND_PROCESS));
+	DBGLOG(INIT, WARN, ("%s(): exceeding binding limit %d\n", __func__, MAX_BIND_PROCESS));
     }
 
 out:

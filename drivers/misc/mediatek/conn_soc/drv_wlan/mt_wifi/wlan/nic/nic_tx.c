@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/nic/nic_tx.c#1 $
 */
 
@@ -58,7 +72,7 @@
  * [WCXRP00000559] [MT6620 Wi-Fi][Driver] Combine TX/RX DMA buffers into a single one to reduce physically continuous memory consumption
  * 1. deprecate CFG_HANDLE_IST_IN_SDIO_CALLBACK
  * 2. Use common coalescing buffer for both TX/RX directions
- * 
+ *
  *
  * 02 16 2011 cp.wu
  * [WCXRP00000449] [MT6620 Wi-Fi][Driver] Refine CMD queue handling by adding an extra API for checking availble count and modify behavior
@@ -460,7 +474,7 @@
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicTxInitialize (
+nicTxInitialize(
     IN P_ADAPTER_T  prAdapter
     )
 {
@@ -475,26 +489,26 @@ nicTxInitialize (
     ASSERT(prAdapter);
     prTxCtrl = &prAdapter->rTxCtrl;
 
-    //4 <1> Initialization of Traffic Class Queue Parameters
+    /* 4 <1> Initialization of Traffic Class Queue Parameters */
     nicTxResetResource(prAdapter);
 
 #if CFG_SDIO_TX_AGG
     prTxCtrl->pucTxCoalescingBufPtr = prAdapter->pucCoalescingBufCached;
 #endif /* CFG_SDIO_TX_AGG */
 
-    // allocate MSDU_INFO_T and link it into rFreeMsduInfoList
+    /* allocate MSDU_INFO_T and link it into rFreeMsduInfoList */
     QUEUE_INITIALIZE(&prTxCtrl->rFreeMsduInfoList);
 
     pucMemHandle = prTxCtrl->pucTxCached;
-    for (i = 0 ; i < CFG_TX_MAX_PKT_NUM ; i++) {
-        prMsduInfo = (P_MSDU_INFO_T)pucMemHandle;
-        kalMemZero(prMsduInfo, sizeof(MSDU_INFO_T));
+    for (i = 0; i < CFG_TX_MAX_PKT_NUM; i++) {
+	prMsduInfo = (P_MSDU_INFO_T)pucMemHandle;
+	kalMemZero(prMsduInfo, sizeof(MSDU_INFO_T));
 
-        KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
-        QUEUE_INSERT_TAIL(&prTxCtrl->rFreeMsduInfoList, (P_QUE_ENTRY_T)prMsduInfo);
-        KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
+	QUEUE_INSERT_TAIL(&prTxCtrl->rFreeMsduInfoList, (P_QUE_ENTRY_T)prMsduInfo);
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
 
-        pucMemHandle += ALIGN_4(sizeof(MSDU_INFO_T));
+	pucMemHandle += ALIGN_4(sizeof(MSDU_INFO_T));
     }
 
     ASSERT(prTxCtrl->rFreeMsduInfoList.u4NumElem == CFG_TX_MAX_PKT_NUM);
@@ -533,7 +547,7 @@ nicTxInitialize (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicTxAcquireResource (
+nicTxAcquireResource(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_8       ucTC
     )
@@ -548,23 +562,23 @@ nicTxAcquireResource (
 
     KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_RESOURCE);
 
-//    DbgPrint("nicTxAcquireResource prTxCtrl->rTc.aucFreeBufferCount[%d]=%d\n", ucTC, prTxCtrl->rTc.aucFreeBufferCount[ucTC]);
+/* DbgPrint("nicTxAcquireResource prTxCtrl->rTc.aucFreeBufferCount[%d]=%d\n", ucTC, prTxCtrl->rTc.aucFreeBufferCount[ucTC]); */
 
     if (prTxCtrl->rTc.aucFreeBufferCount[ucTC]) {
 
-        /* get a available TX entry */
-        prTxCtrl->rTc.aucFreeBufferCount[ucTC]--;
+	/* get a available TX entry */
+	prTxCtrl->rTc.aucFreeBufferCount[ucTC]--;
 
-        DBGLOG(TX, EVENT, ("Acquire: TC = %d aucFreeBufferCount = %d\n",
-            ucTC, prTxCtrl->rTc.aucFreeBufferCount[ucTC]));
+	DBGLOG(TX, EVENT, ("Acquire: TC = %d aucFreeBufferCount = %d\n",
+	    ucTC, prTxCtrl->rTc.aucFreeBufferCount[ucTC]));
 
-        u4Status = WLAN_STATUS_SUCCESS;
+	u4Status = WLAN_STATUS_SUCCESS;
     }
     KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_RESOURCE);
 
     return u4Status;
 
-}/* end of nicTxAcquireResourceAndTFCBs() */
+} /* end of nicTxAcquireResourceAndTFCBs() */
 
 
 /*----------------------------------------------------------------------------*/
@@ -581,7 +595,7 @@ nicTxAcquireResource (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicTxPollingResource (
+nicTxPollingResource(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_8       ucTC
     )
@@ -595,47 +609,43 @@ nicTxPollingResource (
     prTxCtrl = &prAdapter->rTxCtrl;
 
     if (ucTC >= TC_NUM) {
-        return WLAN_STATUS_FAILURE;
+	return WLAN_STATUS_FAILURE;
     }
 
     if (prTxCtrl->rTc.aucFreeBufferCount[ucTC] > 0) {
-        return WLAN_STATUS_SUCCESS;
+	return WLAN_STATUS_SUCCESS;
     }
 
     while (i-- > 0) {
-        HAL_READ_TX_RELEASED_COUNT(prAdapter, au4WTSR);
+	HAL_READ_TX_RELEASED_COUNT(prAdapter, au4WTSR);
 
-        if(kalIsCardRemoved(prAdapter->prGlueInfo) == TRUE
-                || fgIsBusAccessFailed == TRUE) {
-            u4Status = WLAN_STATUS_FAILURE;
-            break;
-        }
-        else if (nicTxReleaseResource(prAdapter, (PUINT_8)au4WTSR)) {
-            if (prTxCtrl->rTc.aucFreeBufferCount[ucTC] > 0) {
-                u4Status = WLAN_STATUS_SUCCESS;
-                break;
-            }
-            else {
-                kalMsleep(NIC_TX_RESOURCE_POLLING_DELAY_MSEC);
-            }
-        }
-        else {
-            kalMsleep(NIC_TX_RESOURCE_POLLING_DELAY_MSEC);
-        }
+	if (kalIsCardRemoved(prAdapter->prGlueInfo) == TRUE
+		|| fgIsBusAccessFailed == TRUE) {
+	    u4Status = WLAN_STATUS_FAILURE;
+	    break;
+	}
+	else if (nicTxReleaseResource(prAdapter, (PUINT_8)au4WTSR)) {
+	    if (prTxCtrl->rTc.aucFreeBufferCount[ucTC] > 0) {
+		u4Status = WLAN_STATUS_SUCCESS;
+		break;
+	    }
+	    else {
+		kalMsleep(NIC_TX_RESOURCE_POLLING_DELAY_MSEC);
+	    }
+	}
+	else {
+	    kalMsleep(NIC_TX_RESOURCE_POLLING_DELAY_MSEC);
+	}
     }
 
-    if (i <= 0 && ucTC == TC4_INDEX) {
-        DBGLOG(TX, ERROR, ("polling Tx resource for Tc4 timeout\n"));
-        glDumpConnSysCpuInfo(prAdapter->prGlueInfo);
-    }
 #if DBG
     {
-        INT_32 i4Times = NIC_TX_RESOURCE_POLLING_TIMEOUT - (i+1);
+	INT_32 i4Times = NIC_TX_RESOURCE_POLLING_TIMEOUT - (i+1);
 
-        if (i4Times) {
-            DBGLOG(TX, TRACE, ("Polling MCR_WTSR delay %d times, %d msec\n",
-                i4Times, (i4Times * NIC_TX_RESOURCE_POLLING_DELAY_MSEC)));
-        }
+	if (i4Times) {
+	    DBGLOG(TX, TRACE, ("Polling MCR_WTSR delay %d times, %d msec\n",
+		i4Times, (i4Times * NIC_TX_RESOURCE_POLLING_DELAY_MSEC)));
+	}
     }
 #endif /* DBG */
 
@@ -657,9 +667,9 @@ nicTxPollingResource (
 */
 /*----------------------------------------------------------------------------*/
 BOOLEAN
-nicTxReleaseResource (
+nicTxReleaseResource(
     IN P_ADAPTER_T  prAdapter,
-    IN UINT_8*      aucTxRlsCnt
+    IN UINT_8 * aucTxRlsCnt
     )
 {
     PUINT_32 pu4Tmp = (PUINT_32)aucTxRlsCnt;
@@ -674,35 +684,35 @@ nicTxReleaseResource (
 
     if (pu4Tmp[0] | pu4Tmp[1]) {
 
-        KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_RESOURCE);
-        for (i = 0; i < TC_NUM; i++) {
-            prTxCtrl->rTc.aucFreeBufferCount[i] += aucTxRlsCnt[i];
-        }
-        if (aucTxRlsCnt[TC4_INDEX] != 0 || aucTxRlsCnt[TC5_INDEX] != 0){
-            DBGLOG(TX, STATE, ("Release: TC4 count %d, Free=%d; TC5 count %d, Free=%d\n",
-                aucTxRlsCnt[TC4_INDEX], prTxCtrl->rTc.aucFreeBufferCount[TC4_INDEX],
-                aucTxRlsCnt[TC5_INDEX], prTxCtrl->rTc.aucFreeBufferCount[TC5_INDEX]));
-        }
-        KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_RESOURCE);
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_RESOURCE);
+	for (i = 0; i < TC_NUM; i++) {
+	    prTxCtrl->rTc.aucFreeBufferCount[i] += aucTxRlsCnt[i];
+
+            if ((i == 1) || (i == 5)) {
+		DBGLOG(TX, EVENT, ("Release: i = %d aucFreeBufferCount = %d\n",
+		    i, prTxCtrl->rTc.aucFreeBufferCount[i]));
+	    }
+	}
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_RESOURCE);
 #if 0
-        for (i = 0; i < TC_NUM; i++) {
-            DBGLOG(INIT, TRACE, ("aucFreeBufferCount[%d]: %d, aucMaxNumOfBuffer[%d]: %d\n",
-                i, prTxCtrl->rTc.aucFreeBufferCount[i], i, prTxCtrl->rTc.aucMaxNumOfBuffer[i]));
-        }
-        DbgPrint("prTxCtrl->rTc.aucFreeBufferCount[0]=%d\n", prTxCtrl->rTc.aucFreeBufferCount[0]);
-        DbgPrint("prTxCtrl->rTc.aucFreeBufferCount[1]=%d\n", prTxCtrl->rTc.aucFreeBufferCount[1]);
-        DbgPrint("prTxCtrl->rTc.aucFreeBufferCount[2]=%d\n", prTxCtrl->rTc.aucFreeBufferCount[2]);
-        DbgPrint("prTxCtrl->rTc.aucFreeBufferCount[3]=%d\n", prTxCtrl->rTc.aucFreeBufferCount[3]);
-        DbgPrint("prTxCtrl->rTc.aucFreeBufferCount[4]=%d\n", prTxCtrl->rTc.aucFreeBufferCount[4]);
-        DbgPrint("prTxCtrl->rTc.aucFreeBufferCount[5]=%d\n", prTxCtrl->rTc.aucFreeBufferCount[5]);
+	for (i = 0; i < TC_NUM; i++) {
+	    DBGLOG(INIT, TRACE, ("aucFreeBufferCount[%d]: %d, aucMaxNumOfBuffer[%d]: %d\n",
+		i, prTxCtrl->rTc.aucFreeBufferCount[i], i, prTxCtrl->rTc.aucMaxNumOfBuffer[i]));
+	}
+	DbgPrint("prTxCtrl->rTc.aucFreeBufferCount[0]=%d\n", prTxCtrl->rTc.aucFreeBufferCount[0]);
+	DbgPrint("prTxCtrl->rTc.aucFreeBufferCount[1]=%d\n", prTxCtrl->rTc.aucFreeBufferCount[1]);
+	DbgPrint("prTxCtrl->rTc.aucFreeBufferCount[2]=%d\n", prTxCtrl->rTc.aucFreeBufferCount[2]);
+	DbgPrint("prTxCtrl->rTc.aucFreeBufferCount[3]=%d\n", prTxCtrl->rTc.aucFreeBufferCount[3]);
+	DbgPrint("prTxCtrl->rTc.aucFreeBufferCount[4]=%d\n", prTxCtrl->rTc.aucFreeBufferCount[4]);
+	DbgPrint("prTxCtrl->rTc.aucFreeBufferCount[5]=%d\n", prTxCtrl->rTc.aucFreeBufferCount[5]);
 #endif
-        ASSERT(prTxCtrl->rTc.aucFreeBufferCount[TC0_INDEX] <= prTxCtrl->rTc.aucMaxNumOfBuffer[TC0_INDEX]);
-        ASSERT(prTxCtrl->rTc.aucFreeBufferCount[TC1_INDEX] <= prTxCtrl->rTc.aucMaxNumOfBuffer[TC1_INDEX]);
-        ASSERT(prTxCtrl->rTc.aucFreeBufferCount[TC2_INDEX] <= prTxCtrl->rTc.aucMaxNumOfBuffer[TC2_INDEX]);
-        ASSERT(prTxCtrl->rTc.aucFreeBufferCount[TC3_INDEX] <= prTxCtrl->rTc.aucMaxNumOfBuffer[TC3_INDEX]);
-        ASSERT(prTxCtrl->rTc.aucFreeBufferCount[TC4_INDEX] <= prTxCtrl->rTc.aucMaxNumOfBuffer[TC4_INDEX]);
-        ASSERT(prTxCtrl->rTc.aucFreeBufferCount[TC5_INDEX] <= prTxCtrl->rTc.aucMaxNumOfBuffer[TC5_INDEX]);
-        bStatus = TRUE;
+	ASSERT(prTxCtrl->rTc.aucFreeBufferCount[TC0_INDEX] <= prTxCtrl->rTc.aucMaxNumOfBuffer[TC0_INDEX]);
+	ASSERT(prTxCtrl->rTc.aucFreeBufferCount[TC1_INDEX] <= prTxCtrl->rTc.aucMaxNumOfBuffer[TC1_INDEX]);
+	ASSERT(prTxCtrl->rTc.aucFreeBufferCount[TC2_INDEX] <= prTxCtrl->rTc.aucMaxNumOfBuffer[TC2_INDEX]);
+	ASSERT(prTxCtrl->rTc.aucFreeBufferCount[TC3_INDEX] <= prTxCtrl->rTc.aucMaxNumOfBuffer[TC3_INDEX]);
+	ASSERT(prTxCtrl->rTc.aucFreeBufferCount[TC4_INDEX] <= prTxCtrl->rTc.aucMaxNumOfBuffer[TC4_INDEX]);
+	ASSERT(prTxCtrl->rTc.aucFreeBufferCount[TC5_INDEX] <= prTxCtrl->rTc.aucMaxNumOfBuffer[TC5_INDEX]);
+	bStatus = TRUE;
     }
 
     return bStatus;
@@ -719,7 +729,7 @@ nicTxReleaseResource (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicTxResetResource (
+nicTxResetResource(
     IN P_ADAPTER_T  prAdapter
     )
 {
@@ -771,7 +781,7 @@ nicTxResetResource (
 */
 /*----------------------------------------------------------------------------*/
 UINT_8
-nicTxGetResource (
+nicTxGetResource(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_8       ucTC
     )
@@ -784,10 +794,10 @@ nicTxGetResource (
     ASSERT(prTxCtrl);
 
     if (ucTC >= TC_NUM) {
-        return 0;
+	return 0;
     }
     else {
-        return prTxCtrl->rTc.aucFreeBufferCount[ucTC];
+	return prTxCtrl->rTc.aucFreeBufferCount[ucTC];
     }
 }
 
@@ -805,7 +815,7 @@ nicTxGetResource (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicTxMsduInfoList (
+nicTxMsduInfoList(
     IN P_ADAPTER_T      prAdapter,
     IN P_MSDU_INFO_T    prMsduInfoListHead
     )
@@ -822,62 +832,62 @@ nicTxMsduInfoList (
     QUEUE_INITIALIZE(&qDataPort0);
     QUEUE_INITIALIZE(&qDataPort1);
 
-    // Separate MSDU_INFO_T lists into 2 categories: for Port#0 & Port#1
-    while(prMsduInfo) {
-        prNextMsduInfo = (P_MSDU_INFO_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo);
+    /* Separate MSDU_INFO_T lists into 2 categories: for Port#0 & Port#1 */
+    while (prMsduInfo) {
+	prNextMsduInfo = (P_MSDU_INFO_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo);
 #if DBG && 0
-        LOG_FUNC("nicTxMsduInfoList Acquire TC %d net %u mac len %u len %u Type %u 1x %u 11 %u\n",
-            prMsduInfo->ucTC,
-                prMsduInfo->ucNetworkType,
-                prMsduInfo->ucMacHeaderLength,
-            prMsduInfo->u2FrameLength,
-            prMsduInfo->ucPacketType,
-            prMsduInfo->fgIs802_1x,
-            prMsduInfo->fgIs802_11 );
+	LOG_FUNC("nicTxMsduInfoList Acquire TC %d net %u mac len %u len %u Type %u 1x %u 11 %u\n",
+	    prMsduInfo->ucTC,
+		prMsduInfo->ucNetworkType,
+		prMsduInfo->ucMacHeaderLength,
+	    prMsduInfo->u2FrameLength,
+	    prMsduInfo->ucPacketType,
+	    prMsduInfo->fgIs802_1x,
+	    prMsduInfo->fgIs802_11);
 
-        LOG_FUNC("Dest Mac: " MACSTR "\n",
-                MAC2STR(prMsduInfo->aucEthDestAddr));
+	LOG_FUNC("Dest Mac: " MACSTR "\n",
+		MAC2STR(prMsduInfo->aucEthDestAddr));
 #endif
 
-        /* double-check available TX resouce (need to sync with CONNSYS FW) */
-        /* caller must guarantee that the TX resource is enough in the func; OR assert here */
-        switch(prMsduInfo->ucTC) {
-        case TC0_INDEX:
-        case TC1_INDEX:
-        case TC2_INDEX:
-        case TC3_INDEX:
-        case TC5_INDEX: // Broadcast/multicast data packets
-            QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo) = NULL;
-            QUEUE_INSERT_TAIL(&qDataPort0, (P_QUE_ENTRY_T)prMsduInfo);
-            status = nicTxAcquireResource(prAdapter, prMsduInfo->ucTC);
-            ASSERT(status == WLAN_STATUS_SUCCESS)
+	/* double-check available TX resouce (need to sync with CONNSYS FW) */
+	/* caller must guarantee that the TX resource is enough in the func; OR assert here */
+	switch (prMsduInfo->ucTC) {
+	case TC0_INDEX:
+	case TC1_INDEX:
+	case TC2_INDEX:
+	case TC3_INDEX:
+	case TC5_INDEX: /* Broadcast/multicast data packets */
+	    QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo) = NULL;
+	    QUEUE_INSERT_TAIL(&qDataPort0, (P_QUE_ENTRY_T)prMsduInfo);
+	    status = nicTxAcquireResource(prAdapter, prMsduInfo->ucTC);
+	    ASSERT(status == WLAN_STATUS_SUCCESS)
 
-            break;
+	    break;
 
-        case TC4_INDEX: // Command or 802.1x packets
-            QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo) = NULL;
-            QUEUE_INSERT_TAIL(&qDataPort1, (P_QUE_ENTRY_T)prMsduInfo);
+	case TC4_INDEX: /* Command or 802.1x packets */
+	    QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo) = NULL;
+	    QUEUE_INSERT_TAIL(&qDataPort1, (P_QUE_ENTRY_T)prMsduInfo);
 
-            status = nicTxAcquireResource(prAdapter, prMsduInfo->ucTC);
-            ASSERT(status == WLAN_STATUS_SUCCESS)
+	    status = nicTxAcquireResource(prAdapter, prMsduInfo->ucTC);
+	    ASSERT(status == WLAN_STATUS_SUCCESS)
 
-            break;
+	    break;
 
-        default:
-            ASSERT(0);
-            break;
-        }
+	default:
+	    ASSERT(0);
+	    break;
+	}
 
-        prMsduInfo = prNextMsduInfo;
+	prMsduInfo = prNextMsduInfo;
     }
 
     /* send packets to HIF port0 or port1 here */
-    if(qDataPort0.u4NumElem > 0) {
-        nicTxMsduQueue(prAdapter, 0, &qDataPort0);
+    if (qDataPort0.u4NumElem > 0) {
+	nicTxMsduQueue(prAdapter, 0, &qDataPort0);
     }
 
-    if(qDataPort1.u4NumElem > 0) {
-        nicTxMsduQueue(prAdapter, 1, &qDataPort1);
+    if (qDataPort1.u4NumElem > 0) {
+	nicTxMsduQueue(prAdapter, 1, &qDataPort1);
     }
 
     return WLAN_STATUS_SUCCESS;
@@ -889,7 +899,7 @@ nicTxMsduInfoList (
 PKT_PROFILE_T rPrevRoundLastPkt;
 
 BOOLEAN
-nicTxLifetimePrintCheckRTP (
+nicTxLifetimePrintCheckRTP(
     IN P_MSDU_INFO_T        prPrevProfileMsduInfo,
     IN P_PKT_PROFILE_T      prPrevRoundLastPkt,
     IN P_PKT_PROFILE_T      prPktProfile,
@@ -900,38 +910,38 @@ nicTxLifetimePrintCheckRTP (
 {
     BOOLEAN fgPrintCurPkt = FALSE;
 
-    if(u4MaxDeltaTime) {
-        //4 1. check delta between current round first pkt and prevous round last pkt
-        if(!*pfgGotFirst) {
-            *pfgGotFirst = TRUE;
+    if (u4MaxDeltaTime) {
+	/* 4 1. check delta between current round first pkt and prevous round last pkt */
+	if (!*pfgGotFirst) {
+	    *pfgGotFirst = TRUE;
 
-            if(prPrevRoundLastPkt->fgIsValid) {
-                if(CHK_PROFILES_DELTA(prPktProfile, prPrevRoundLastPkt, u4MaxDeltaTime)) {
-                    PRINT_PKT_PROFILE(prPrevRoundLastPkt, "PR");
-                    fgPrintCurPkt = TRUE;
-                }
-            }
-        }
+	    if (prPrevRoundLastPkt->fgIsValid) {
+		if (CHK_PROFILES_DELTA(prPktProfile, prPrevRoundLastPkt, u4MaxDeltaTime)) {
+		    PRINT_PKT_PROFILE(prPrevRoundLastPkt, "PR");
+		    fgPrintCurPkt = TRUE;
+		}
+	    }
+	}
 
-        //4 2. check delta between current pkt and previous pkt
-        if(prPrevProfileMsduInfo) {
-            if(CHK_PROFILES_DELTA(prPktProfile, &prPrevProfileMsduInfo->rPktProfile, u4MaxDeltaTime)) {
-                PRINT_PKT_PROFILE(&prPrevProfileMsduInfo->rPktProfile, "P");
-                fgPrintCurPkt = TRUE;
-            }
-        }
+	/* 4 2. check delta between current pkt and previous pkt */
+	if (prPrevProfileMsduInfo) {
+	    if (CHK_PROFILES_DELTA(prPktProfile, &prPrevProfileMsduInfo->rPktProfile, u4MaxDeltaTime)) {
+		PRINT_PKT_PROFILE(&prPrevProfileMsduInfo->rPktProfile, "P");
+		fgPrintCurPkt = TRUE;
+	    }
+	}
 
-        //4 3. check delta of current pkt lifetime
-        if(CHK_PROFILE_DELTA(prPktProfile, u4MaxDeltaTime)) {
-            fgPrintCurPkt = TRUE;
-        }
+	/* 4 3. check delta of current pkt lifetime */
+	if (CHK_PROFILE_DELTA(prPktProfile, u4MaxDeltaTime)) {
+	    fgPrintCurPkt = TRUE;
+	}
     }
 
-    //4 4. print every X RTP packets
+    /* 4 4. print every X RTP packets */
     #if CFG_SUPPORT_WFD
-    if((ucSnToBePrinted != 0) &&
+    if ((ucSnToBePrinted != 0) &&
        (prPktProfile->u2RtpSn % ucSnToBePrinted) == 0) {
-        fgPrintCurPkt = TRUE;
+	fgPrintCurPkt = TRUE;
     }
     #endif
 
@@ -939,7 +949,7 @@ nicTxLifetimePrintCheckRTP (
 }
 
 BOOLEAN
-nicTxLifetimePrintCheckSnOrder (
+nicTxLifetimePrintCheckSnOrder(
     IN P_MSDU_INFO_T        prPrevProfileMsduInfo,
     IN P_PKT_PROFILE_T      prPrevRoundLastPkt,
     IN P_PKT_PROFILE_T      prPktProfile,
@@ -952,45 +962,45 @@ nicTxLifetimePrintCheckSnOrder (
     UINT_16 u2PredictSn = 0;
     UINT_16 u2CurrentSn = 0;
     UINT_8  aucNote[8];
-    
-    //4 1. Get the target packet profile to compare
 
-    //4 1.1 check SN between current round first pkt and prevous round last pkt
-    if((!*pfgGotFirst) && (prPrevRoundLastPkt->fgIsValid)) {
-        *pfgGotFirst = TRUE;
-        prTarPktProfile = prPrevRoundLastPkt;
-        kalMemCopy(aucNote, "PR\0", 3);
-            }
-    //4 1.2 check SN between current pkt and previous pkt
+    /* 4 1. Get the target packet profile to compare */
+
+    /* 4 1.1 check SN between current round first pkt and prevous round last pkt */
+    if ((!*pfgGotFirst) && (prPrevRoundLastPkt->fgIsValid)) {
+	*pfgGotFirst = TRUE;
+	prTarPktProfile = prPrevRoundLastPkt;
+	kalMemCopy(aucNote, "PR\0", 3);
+	    }
+    /* 4 1.2 check SN between current pkt and previous pkt */
     else if (prPrevProfileMsduInfo) {
-        prTarPktProfile = &prPrevProfileMsduInfo->rPktProfile;
-        kalMemCopy(aucNote, "P\0", 2);
-        }
+	prTarPktProfile = &prPrevProfileMsduInfo->rPktProfile;
+	kalMemCopy(aucNote, "P\0", 2);
+	}
 
-    if(!prTarPktProfile) {
-        return FALSE;
+    if (!prTarPktProfile) {
+	return FALSE;
     }
 
-    //4 2. Check IP or RTP SN
-    switch(ucLayer) {
-        /* Check IP SN */ 
-        case 0:
-            u2PredictSn = prTarPktProfile->u2IpSn + 1;
-            u2CurrentSn = prPktProfile->u2IpSn;
-            break;
-        /* Check RTP SN */
-        case 1:
-        default:
-            u2PredictSn = prTarPktProfile->u2RtpSn + 1;
-            u2CurrentSn = prPktProfile->u2RtpSn;            
-            break;
+    /* 4 2. Check IP or RTP SN */
+    switch (ucLayer) {
+	/* Check IP SN */
+	case 0:
+	    u2PredictSn = prTarPktProfile->u2IpSn + 1;
+	    u2CurrentSn = prPktProfile->u2IpSn;
+	    break;
+	/* Check RTP SN */
+	case 1:
+	default:
+	    u2PredictSn = prTarPktProfile->u2RtpSn + 1;
+	    u2CurrentSn = prPktProfile->u2RtpSn;
+	    break;
 
-        }
-    //4 
-    //4 3. Compare SN
-    if(u2CurrentSn != u2PredictSn) {
-        PRINT_PKT_PROFILE(prTarPktProfile, aucNote);
-            fgPrintCurPkt = TRUE;
+	}
+    /* 4 */
+    /* 4 3. Compare SN */
+    if (u2CurrentSn != u2PredictSn) {
+	PRINT_PKT_PROFILE(prTarPktProfile, aucNote);
+	    fgPrintCurPkt = TRUE;
     }
 
     return fgPrintCurPkt;
@@ -999,7 +1009,7 @@ nicTxLifetimePrintCheckSnOrder (
 
 
 VOID
-nicTxReturnMsduInfoProfiling (
+nicTxReturnMsduInfoProfiling(
     IN P_ADAPTER_T    prAdapter,
     IN P_MSDU_INFO_T  prMsduInfoListHead
     )
@@ -1016,136 +1026,136 @@ nicTxReturnMsduInfoProfiling (
     BOOLEAN fgGotFirst = FALSE;
     UINT_8 ucSnToBePrinted = 0;
 
-    UINT_32 u4MaxDeltaTime = 50; // in ms
+    UINT_32 u4MaxDeltaTime = 50; /* in ms */
     #endif
 
     #if CFG_ENABLE_PER_STA_STATISTICS
     UINT_32 u4PktPrintPeriod = 0;
     #endif
-    
+
     #if CFG_SUPPORT_WFD
     P_WFD_CFG_SETTINGS_T prWfdCfgSettings = (P_WFD_CFG_SETTINGS_T)NULL;
-    
-    if(prAdapter->fgIsP2PRegistered) {        
-        prWfdCfgSettings = &prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings;
-        u2MagicCode = prWfdCfgSettings->u2WfdMaximumTp;
-        //if(prWfdCfgSettings->ucWfdEnable && (prWfdCfgSettings->u4WfdFlag & BIT(0))) {
-            //u2MagicCode = 0xE040;
-        //}
+
+    if (prAdapter->fgIsP2PRegistered) {
+	prWfdCfgSettings = &prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings;
+	u2MagicCode = prWfdCfgSettings->u2WfdMaximumTp;
+	/* if(prWfdCfgSettings->ucWfdEnable && (prWfdCfgSettings->u4WfdFlag & BIT(0))) { */
+	    /* u2MagicCode = 0xE040; */
+	/* } */
     }
-    #endif  
+    #endif
 
     #if CFG_PRINT_RTP_PROFILE
-    if((u2MagicCode >= 0xF000)) {
-        ucSnToBePrinted = (UINT_8)(u2MagicCode & BITS(0, 7));
-        u4MaxDeltaTime = (UINT_8)(((u2MagicCode & BITS(8, 11)) >> 8) * 10);  
-    }  
+    if ((u2MagicCode >= 0xF000)) {
+	ucSnToBePrinted = (UINT_8)(u2MagicCode & BITS(0, 7));
+	u4MaxDeltaTime = (UINT_8)(((u2MagicCode & BITS(8, 11)) >> 8) * 10);
+    }
     else {
-        ucSnToBePrinted = 0;
-        u4MaxDeltaTime = 0;
-    }    
+	ucSnToBePrinted = 0;
+	u4MaxDeltaTime = 0;
+    }
     #endif
 
     #if CFG_ENABLE_PER_STA_STATISTICS
-    if((u2MagicCode >= 0xE000) && (u2MagicCode < 0xF000)) {
-        u4PktPrintPeriod = (UINT_32)((u2MagicCode & BITS(0, 7)) * 32);
-    }  
+    if ((u2MagicCode >= 0xE000) && (u2MagicCode < 0xF000)) {
+	u4PktPrintPeriod = (UINT_32)((u2MagicCode & BITS(0, 7)) * 32);
+    }
     else {
-        u4PktPrintPeriod = 0;
-    }    
+	u4PktPrintPeriod = 0;
+    }
     #endif
 
-    while(prMsduInfo) {
-        prNextMsduInfo = (P_MSDU_INFO_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo);
-        prPktProfile = &prMsduInfo->rPktProfile;
-            
-        if(prPktProfile->fgIsValid) {
+    while (prMsduInfo) {
+	prNextMsduInfo = (P_MSDU_INFO_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo);
+	prPktProfile = &prMsduInfo->rPktProfile;
 
-            prPktProfile->rHifTxDoneTimestamp = kalGetTimeTick();
-            
-            #if CFG_PRINT_RTP_PROFILE
-            #if CFG_PRINT_RTP_SN_SKIP
-            fgPrintCurPkt = nicTxLifetimePrintCheckSnOrder(
-                                prPrevProfileMsduInfo, 
-                                prPrevRoundLastPkt, 
-                                prPktProfile, 
-                                &fgGotFirst,
-                                0);
-            #else
-            fgPrintCurPkt = nicTxLifetimePrintCheckRTP(
-                                prPrevProfileMsduInfo,
-                                prPrevRoundLastPkt,
-                                prPktProfile,
-                                &fgGotFirst,
-                                u4MaxDeltaTime,
-                                ucSnToBePrinted);
-            #endif
+	if (prPktProfile->fgIsValid) {
 
-            /* Print current pkt profile */
-            if(fgPrintCurPkt) {
-                PRINT_PKT_PROFILE(prPktProfile, "C");
-            }
+	    prPktProfile->rHifTxDoneTimestamp = kalGetTimeTick();
 
-            prPrevProfileMsduInfo = prMsduInfo;   
-            fgPrintCurPkt = FALSE;
-            #endif
+	    #if CFG_PRINT_RTP_PROFILE
+	    #if CFG_PRINT_RTP_SN_SKIP
+	    fgPrintCurPkt = nicTxLifetimePrintCheckSnOrder(
+				prPrevProfileMsduInfo,
+				prPrevRoundLastPkt,
+				prPktProfile,
+				&fgGotFirst,
+				0);
+	    #else
+	    fgPrintCurPkt = nicTxLifetimePrintCheckRTP(
+				prPrevProfileMsduInfo,
+				prPrevRoundLastPkt,
+				prPktProfile,
+				&fgGotFirst,
+				u4MaxDeltaTime,
+				ucSnToBePrinted);
+	    #endif
 
-            #if CFG_ENABLE_PER_STA_STATISTICS
-            {
-                P_STA_RECORD_T prStaRec = cnmGetStaRecByIndex(prAdapter, prMsduInfo->ucStaRecIndex);
-                UINT_32 u4DeltaTime;
-                P_QUE_MGT_T prQM = &prAdapter->rQM;
+	    /* Print current pkt profile */
+	    if (fgPrintCurPkt) {
+		PRINT_PKT_PROFILE(prPktProfile, "C");
+	    }
 
-                if(prStaRec) {
-                    u4DeltaTime = (UINT_32)(prPktProfile->rHifTxDoneTimestamp - prPktProfile->rHardXmitArrivalTimestamp);
-                        
-                    prStaRec->u4TotalTxPktsNumber++;
-                    prStaRec->u4TotalTxPktsTime += u4DeltaTime;
-					if(u4DeltaTime > prStaRec->u4MaxTxPktsTime) {
+	    prPrevProfileMsduInfo = prMsduInfo;
+	    fgPrintCurPkt = FALSE;
+	    #endif
+
+	    #if CFG_ENABLE_PER_STA_STATISTICS
+	    {
+		P_STA_RECORD_T prStaRec = cnmGetStaRecByIndex(prAdapter, prMsduInfo->ucStaRecIndex);
+		UINT_32 u4DeltaTime;
+		P_QUE_MGT_T prQM = &prAdapter->rQM;
+
+		if (prStaRec) {
+		    u4DeltaTime = (UINT_32)(prPktProfile->rHifTxDoneTimestamp - prPktProfile->rHardXmitArrivalTimestamp);
+
+		    prStaRec->u4TotalTxPktsNumber++;
+		    prStaRec->u4TotalTxPktsTime += u4DeltaTime;
+					if (u4DeltaTime > prStaRec->u4MaxTxPktsTime) {
 						prStaRec->u4MaxTxPktsTime = u4DeltaTime;
 					}
-                    if(u4DeltaTime >= NIC_TX_TIME_THRESHOLD) {
-                        prStaRec->u4ThresholdCounter++;
-                    }
-                                                         
-                    if(u4PktPrintPeriod && (prStaRec->u4TotalTxPktsNumber >= u4PktPrintPeriod)) {
-                        
-                        DBGLOG(TX, TRACE, ("[%u]N[%4lu]A[%5lu]M[%4lu]T[%4lu]E[%4lu]\n",
-                            prStaRec->ucIndex,
-                            prStaRec->u4TotalTxPktsNumber, 
-                            (prStaRec->u4TotalTxPktsTime/prStaRec->u4TotalTxPktsNumber),
+		    if (u4DeltaTime >= NIC_TX_TIME_THRESHOLD) {
+			prStaRec->u4ThresholdCounter++;
+		    }
+
+		    if (u4PktPrintPeriod && (prStaRec->u4TotalTxPktsNumber >= u4PktPrintPeriod)) {
+
+			DBGLOG(TX, TRACE, ("[%u]N[%4lu]A[%5lu]M[%4lu]T[%4lu]E[%4lu]\n",
+			    prStaRec->ucIndex,
+			    prStaRec->u4TotalTxPktsNumber,
+			    (prStaRec->u4TotalTxPktsTime/prStaRec->u4TotalTxPktsNumber),
 							prStaRec->u4MaxTxPktsTime,
 							prStaRec->u4ThresholdCounter,
 							prQM->au4QmTcResourceEmptyCounter[prStaRec->ucNetTypeIndex][TC2_INDEX]));
-                        
-                        prStaRec->u4TotalTxPktsNumber = 0;
-                        prStaRec->u4TotalTxPktsTime = 0;
+
+			prStaRec->u4TotalTxPktsNumber = 0;
+			prStaRec->u4TotalTxPktsTime = 0;
 						prStaRec->u4MaxTxPktsTime = 0;
-                        prStaRec->u4ThresholdCounter = 0;
-                        prQM->au4QmTcResourceEmptyCounter[prStaRec->ucNetTypeIndex][TC2_INDEX] = 0;    
-                    }                    
-                }
-            
-            }
-            #endif            
-        }
-            
-        prMsduInfo = prNextMsduInfo;
+			prStaRec->u4ThresholdCounter = 0;
+			prQM->au4QmTcResourceEmptyCounter[prStaRec->ucNetTypeIndex][TC2_INDEX] = 0;
+		    }
+		}
+
+	    }
+	    #endif
+	}
+
+	prMsduInfo = prNextMsduInfo;
     };
 
 #if CFG_PRINT_RTP_PROFILE
-    //4 4. record the lifetime of current round last pkt
-    if(prPrevProfileMsduInfo) {
-        prPktProfile = &prPrevProfileMsduInfo->rPktProfile;
-        prPrevRoundLastPkt->u2IpSn = prPktProfile->u2IpSn;
-        prPrevRoundLastPkt->u2RtpSn = prPktProfile->u2RtpSn;
-        prPrevRoundLastPkt->rHardXmitArrivalTimestamp = prPktProfile->rHardXmitArrivalTimestamp;
-        prPrevRoundLastPkt->rEnqueueTimestamp = prPktProfile->rEnqueueTimestamp;
-        prPrevRoundLastPkt->rDequeueTimestamp = prPktProfile->rDequeueTimestamp;
-        prPrevRoundLastPkt->rHifTxDoneTimestamp = prPktProfile->rHifTxDoneTimestamp;
-        prPrevRoundLastPkt->ucTcxFreeCount = prPktProfile->ucTcxFreeCount;
-        prPrevRoundLastPkt->fgIsPrinted = prPktProfile->fgIsPrinted;
-        prPrevRoundLastPkt->fgIsValid = TRUE;
+    /* 4 4. record the lifetime of current round last pkt */
+    if (prPrevProfileMsduInfo) {
+	prPktProfile = &prPrevProfileMsduInfo->rPktProfile;
+	prPrevRoundLastPkt->u2IpSn = prPktProfile->u2IpSn;
+	prPrevRoundLastPkt->u2RtpSn = prPktProfile->u2RtpSn;
+	prPrevRoundLastPkt->rHardXmitArrivalTimestamp = prPktProfile->rHardXmitArrivalTimestamp;
+	prPrevRoundLastPkt->rEnqueueTimestamp = prPktProfile->rEnqueueTimestamp;
+	prPrevRoundLastPkt->rDequeueTimestamp = prPktProfile->rDequeueTimestamp;
+	prPrevRoundLastPkt->rHifTxDoneTimestamp = prPktProfile->rHifTxDoneTimestamp;
+	prPrevRoundLastPkt->ucTcxFreeCount = prPktProfile->ucTcxFreeCount;
+	prPrevRoundLastPkt->fgIsPrinted = prPktProfile->fgIsPrinted;
+	prPrevRoundLastPkt->fgIsValid = TRUE;
     }
 #endif
 
@@ -1156,14 +1166,14 @@ nicTxReturnMsduInfoProfiling (
 
 
 VOID
-nicTxLifetimeRecordEn (
+nicTxLifetimeRecordEn(
     IN P_ADAPTER_T     prAdapter,
     IN P_MSDU_INFO_T   prMsduInfo,
     IN P_NATIVE_PACKET prPacket
     )
 {
     P_PKT_PROFILE_T prPktProfile = &prMsduInfo->rPktProfile;
-    
+
     /* Enable packet lifetime profiling */
     prPktProfile->fgIsValid = TRUE;
 
@@ -1178,31 +1188,31 @@ nicTxLifetimeRecordEn (
 #if CFG_PRINT_RTP_PROFILE
 /*
     in:
-        data   RTP packet pointer
-        size   RTP size    
-    return 
-        0:audio 1: video, -1:none
+	data   RTP packet pointer
+	size   RTP size
+    return
+	0:audio 1: video, -1:none
 */
 UINT8 checkRtpAV(PUINT_8 data, UINT_32 size)
 {
     PUINT_8 buf = data+12;
     while (buf+188 <= data+size) {
-        int pid = ((buf[1] << 8 ) & 0x1F00) | (buf[2] & 0xFF);
-        if (pid == 0 || pid == 0x100 || pid == 0x1000) {
-            buf += 188;
-        } 
-        else if (pid == 0x1100){
-            return 0;
-        }
-        else if (pid == 0x1011){
-            return 1;
-        }
+	int pid = ((buf[1] << 8) & 0x1F00) | (buf[2] & 0xFF);
+	if (pid == 0 || pid == 0x100 || pid == 0x1000) {
+	    buf += 188;
+	}
+	else if (pid == 0x1100) {
+	    return 0;
+	}
+	else if (pid == 0x1011) {
+	    return 1;
+	}
     }
     return -1;
 }
 
 VOID
-nicTxLifetimeCheckRTP (
+nicTxLifetimeCheckRTP(
     IN P_ADAPTER_T     prAdapter,
     IN P_MSDU_INFO_T   prMsduInfo,
     IN P_NATIVE_PACKET prPacket,
@@ -1211,115 +1221,115 @@ nicTxLifetimeCheckRTP (
     )
 {
     struct sk_buff *prSkb = (struct sk_buff *) prPacket;
-    UINT_16 u2EtherTypeLen;        
+    UINT_16 u2EtherTypeLen;
     PUINT_8 aucLookAheadBuf = NULL;
     P_PKT_PROFILE_T prPktProfile = &prMsduInfo->rPktProfile;
 
-    //UINT_8 ucRtpHdrOffset = 28;
+    /* UINT_8 ucRtpHdrOffset = 28; */
     UINT_8 ucRtpSnOffset = 30;
-    //UINT_32 u4RtpSrcPort = 15550;
+    /* UINT_32 u4RtpSrcPort = 15550; */
     P_TX_CTRL_T prTxCtrl;
 #if CFG_SUPPORT_WFD
     P_WFD_CFG_SETTINGS_T prWfdCfgSettings = (P_WFD_CFG_SETTINGS_T)NULL;
     BOOLEAN fgEnProfiling = FALSE;
 
-    if(prAdapter->fgIsP2PRegistered) {    
-        prWfdCfgSettings = &prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings;
+    if (prAdapter->fgIsP2PRegistered) {
+	prWfdCfgSettings = &prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings;
 
-        #if CFG_PRINT_RTP_SN_SKIP
-        if(ucNetworkType == NETWORK_TYPE_P2P_INDEX) {
-            fgEnProfiling = TRUE;
-        }
-        else
-        #endif
-        if((prWfdCfgSettings->u2WfdMaximumTp >= 0xF000) &&
-              (ucNetworkType == NETWORK_TYPE_P2P_INDEX)) {
-            fgEnProfiling = TRUE;
-        }
+	#if CFG_PRINT_RTP_SN_SKIP
+	if (ucNetworkType == NETWORK_TYPE_P2P_INDEX) {
+	    fgEnProfiling = TRUE;
+	}
+	else
+	#endif
+	if ((prWfdCfgSettings->u2WfdMaximumTp >= 0xF000) &&
+	      (ucNetworkType == NETWORK_TYPE_P2P_INDEX)) {
+	    fgEnProfiling = TRUE;
+	}
     }
 
-    if(fgEnProfiling == FALSE) {
-        //prPktProfile->fgIsValid = FALSE;
-        return;
+    if (fgEnProfiling == FALSE) {
+	/* prPktProfile->fgIsValid = FALSE; */
+	return;
     }
 #endif
-    
+
     prTxCtrl = &prAdapter->rTxCtrl;
-    //prPktProfile->fgIsValid = FALSE;
+    /* prPktProfile->fgIsValid = FALSE; */
 
     aucLookAheadBuf = prSkb->data;
 
     u2EtherTypeLen = (aucLookAheadBuf[ETH_TYPE_LEN_OFFSET] << 8) | (aucLookAheadBuf[ETH_TYPE_LEN_OFFSET + 1]);
 
     if ((u2EtherTypeLen == ETH_P_IP) &&
-        (u4PacketLen >= LOOK_AHEAD_LEN)) {
-        PUINT_8 pucIpHdr = &aucLookAheadBuf[ETH_HLEN];
-        UINT_8 ucIpVersion;
-    
-        ucIpVersion = (pucIpHdr[0] & IPVH_VERSION_MASK) >> IPVH_VERSION_OFFSET;
-        if (ucIpVersion == IPVERSION) {
-            if(pucIpHdr[IPV4_HDR_IP_PROTOCOL_OFFSET] == IP_PROTOCOL_UDP) {
-                
-               //if(checkRtpAV(&pucIpHdr[ucRtpHdrOffset], (u4PacketLen - ETH_HLEN - ucRtpHdrOffset)) == 0) {
+	(u4PacketLen >= LOOK_AHEAD_LEN)) {
+	PUINT_8 pucIpHdr = &aucLookAheadBuf[ETH_HLEN];
+	UINT_8 ucIpVersion;
 
-                if(prPktProfile->fgIsValid == FALSE) {
-                    nicTxLifetimeRecordEn(prAdapter, prMsduInfo, prPacket);
-                }
-                
-                prPktProfile->fgIsPrinted = FALSE;
+	ucIpVersion = (pucIpHdr[0] & IPVH_VERSION_MASK) >> IPVH_VERSION_OFFSET;
+	if (ucIpVersion == IPVERSION) {
+	    if (pucIpHdr[IPV4_HDR_IP_PROTOCOL_OFFSET] == IP_PROTOCOL_UDP) {
 
-                prPktProfile->ucTcxFreeCount = prTxCtrl->rTc.aucFreeBufferCount[TC2_INDEX];
+	       /* if(checkRtpAV(&pucIpHdr[ucRtpHdrOffset], (u4PacketLen - ETH_HLEN - ucRtpHdrOffset)) == 0) { */
 
-                /* RTP SN */
-                prPktProfile->u2RtpSn = pucIpHdr[ucRtpSnOffset] << 8 | pucIpHdr[ucRtpSnOffset + 1];
+		if (prPktProfile->fgIsValid == FALSE) {
+		    nicTxLifetimeRecordEn(prAdapter, prMsduInfo, prPacket);
+		}
 
-                /* IP SN */
-                prPktProfile->u2IpSn = pucIpHdr[IPV4_HDR_IP_IDENTIFICATION_OFFSET] << 8 |
-					                    pucIpHdr[IPV4_HDR_IP_IDENTIFICATION_OFFSET + 1];
+		prPktProfile->fgIsPrinted = FALSE;
 
-                //}
-            }
-        }
+		prPktProfile->ucTcxFreeCount = prTxCtrl->rTc.aucFreeBufferCount[TC2_INDEX];
+
+		/* RTP SN */
+		prPktProfile->u2RtpSn = pucIpHdr[ucRtpSnOffset] << 8 | pucIpHdr[ucRtpSnOffset + 1];
+
+		/* IP SN */
+		prPktProfile->u2IpSn = pucIpHdr[IPV4_HDR_IP_IDENTIFICATION_OFFSET] << 8 |
+							    pucIpHdr[IPV4_HDR_IP_IDENTIFICATION_OFFSET + 1];
+
+		/* } */
+	    }
+	}
     }
 
 }
 #endif
 #if CFG_ENABLE_PER_STA_STATISTICS
 VOID
-nicTxLifetimeCheckByAC (
+nicTxLifetimeCheckByAC(
     IN P_ADAPTER_T     prAdapter,
     IN P_MSDU_INFO_T   prMsduInfo,
     IN P_NATIVE_PACKET prPacket,
     IN UINT_8          ucPriorityParam
     )
 {
-    switch(ucPriorityParam){
-        /* BK */
-        //case 1:
-        //case 2:
-        
-        /* BE */
-        //case 0:
-        //case 3:
-        
-        /* VI */
-        case 4:
-        case 5:
-            
-        /* VO */
-        case 6:
-        case 7:
-            nicTxLifetimeRecordEn(prAdapter, prMsduInfo, prPacket);
-            break;
-        default:
-            break;
+    switch (ucPriorityParam) {
+	/* BK */
+	/* case 1: */
+	/* case 2: */
+
+	/* BE */
+	/* case 0: */
+	/* case 3: */
+
+	/* VI */
+	case 4:
+	case 5:
+
+	/* VO */
+	case 6:
+	case 7:
+	    nicTxLifetimeRecordEn(prAdapter, prMsduInfo, prPacket);
+	    break;
+	default:
+	    break;
     }
 }
 
 #endif
 
 VOID
-nicTxLifetimeCheck (
+nicTxLifetimeCheck(
     IN P_ADAPTER_T     prAdapter,
     IN P_MSDU_INFO_T   prMsduInfo,
     IN P_NATIVE_PACKET prPacket,
@@ -1359,7 +1369,7 @@ nicTxLifetimeCheck (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicTxMsduQueue (
+nicTxMsduQueue(
     IN P_ADAPTER_T  prAdapter,
     UINT_8          ucPortIdx,
     P_QUE_T         prQue
@@ -1394,244 +1404,231 @@ nicTxMsduQueue (
 
     QUEUE_INITIALIZE(&rFreeQueue);
 
-    if(prQue->u4NumElem > 0) {
-        prMsduInfo = (P_MSDU_INFO_T)QUEUE_GET_HEAD(prQue);
-        pucOutputBuf = prTxCtrl->pucTxCoalescingBufPtr;
-        u4TotalLength = 0;
+    if (prQue->u4NumElem > 0) {
+	prMsduInfo = (P_MSDU_INFO_T)QUEUE_GET_HEAD(prQue);
+	pucOutputBuf = prTxCtrl->pucTxCoalescingBufPtr;
+	u4TotalLength = 0;
 
-        while(prMsduInfo) {
+	while (prMsduInfo) {
 
-#if (CFG_SUPPORT_TDLS_DBG == 1)
-{
-	struct sk_buff *prSkb = (struct sk_buff *)prMsduInfo->prPacket;
-	UINT8 *pkt = prSkb->data;
-	UINT16 u2Identifier;
-	if ((*(pkt+12) == 0x08) && (*(pkt+13) == 0x00))
-	{
-		/* ip */
-		u2Identifier = ((*(pkt+18)) << 8) | (*(pkt+19));
-		printk("<hif> %d\n", u2Identifier);
-	}
-}
-#endif
-            kalMemZero(&rHwTxHeader, sizeof(rHwTxHeader));
+	    kalMemZero(&rHwTxHeader, sizeof(rHwTxHeader));
 
-            prNativePacket = prMsduInfo->prPacket;
+	    prNativePacket = prMsduInfo->prPacket;
 
-            ASSERT(prNativePacket);
+	    ASSERT(prNativePacket);
 
-            u4TxHdrSize = TX_HDR_SIZE;
+	    u4TxHdrSize = TX_HDR_SIZE;
 
-            u2OverallBufferLength = ((prMsduInfo->u2FrameLength + TX_HDR_SIZE) &
-                    (UINT_16)HIF_TX_HDR_TX_BYTE_COUNT_MASK);
+	    u2OverallBufferLength = ((prMsduInfo->u2FrameLength + TX_HDR_SIZE) &
+		    (UINT_16)HIF_TX_HDR_TX_BYTE_COUNT_MASK);
 
-            /* init TX header */
-            rHwTxHeader.u2TxByteCount_UserPriority = u2OverallBufferLength;
-            rHwTxHeader.u2TxByteCount_UserPriority |=
-                ((UINT_16)prMsduInfo->ucUserPriority << HIF_TX_HDR_USER_PRIORITY_OFFSET);
+	    /* init TX header */
+	    rHwTxHeader.u2TxByteCount_UserPriority = u2OverallBufferLength;
+	    rHwTxHeader.u2TxByteCount_UserPriority |=
+		((UINT_16)prMsduInfo->ucUserPriority << HIF_TX_HDR_USER_PRIORITY_OFFSET);
 
-            if (prMsduInfo->fgIs802_11) {
-                ucEtherTypeOffsetInWord =
-                    (TX_HDR_SIZE + prMsduInfo->ucMacHeaderLength + prMsduInfo->ucLlcLength) >> 1;
-            }
-            else {
-                ucEtherTypeOffsetInWord =
-                    ((ETHER_HEADER_LEN - ETHER_TYPE_LEN) + TX_HDR_SIZE) >> 1;
-            }
+	    if (prMsduInfo->fgIs802_11) {
+		ucEtherTypeOffsetInWord =
+		    (TX_HDR_SIZE + prMsduInfo->ucMacHeaderLength + prMsduInfo->ucLlcLength) >> 1;
+	    }
+	    else {
+		ucEtherTypeOffsetInWord =
+		    ((ETHER_HEADER_LEN - ETHER_TYPE_LEN) + TX_HDR_SIZE) >> 1;
+	    }
 
-            rHwTxHeader.ucEtherTypeOffset =
-                ucEtherTypeOffsetInWord & HIF_TX_HDR_ETHER_TYPE_OFFSET_MASK;
+	    rHwTxHeader.ucEtherTypeOffset =
+		ucEtherTypeOffsetInWord & HIF_TX_HDR_ETHER_TYPE_OFFSET_MASK;
 
-            rHwTxHeader.ucResource_PktType_CSflags = (prMsduInfo->ucTC) << HIF_TX_HDR_RESOURCE_OFFSET;
-            rHwTxHeader.ucResource_PktType_CSflags |=
-                (UINT_8)(((prMsduInfo->ucPacketType) << HIF_TX_HDR_PACKET_TYPE_OFFSET) &
-                        (HIF_TX_HDR_PACKET_TYPE_MASK));
+	    rHwTxHeader.ucResource_PktType_CSflags = (prMsduInfo->ucTC) << HIF_TX_HDR_RESOURCE_OFFSET;
+	    rHwTxHeader.ucResource_PktType_CSflags |=
+		(UINT_8)(((prMsduInfo->ucPacketType) << HIF_TX_HDR_PACKET_TYPE_OFFSET) &
+			(HIF_TX_HDR_PACKET_TYPE_MASK));
 
 #if CFG_TCP_IP_CHKSUM_OFFLOAD
-            if (prMsduInfo->eSrc == TX_PACKET_OS
-                    || prMsduInfo->eSrc == TX_PACKET_FORWARDING) {
-                if (prAdapter->u4CSUMFlags &
-                        (CSUM_OFFLOAD_EN_TX_TCP |
-                         CSUM_OFFLOAD_EN_TX_UDP |
-                         CSUM_OFFLOAD_EN_TX_IP)) {
-                    kalQueryTxChksumOffloadParam(prNativePacket, &ucChksumFlag);
+	    if (prMsduInfo->eSrc == TX_PACKET_OS
+		    || prMsduInfo->eSrc == TX_PACKET_FORWARDING) {
+		if (prAdapter->u4CSUMFlags &
+			(CSUM_OFFLOAD_EN_TX_TCP |
+			 CSUM_OFFLOAD_EN_TX_UDP |
+			 CSUM_OFFLOAD_EN_TX_IP)) {
+		    kalQueryTxChksumOffloadParam(prNativePacket, &ucChksumFlag);
 
-                    if (ucChksumFlag & TX_CS_IP_GEN) {
-                        rHwTxHeader.ucResource_PktType_CSflags |= (UINT_8)HIF_TX_HDR_IP_CSUM;
-                    }
+		    if (ucChksumFlag & TX_CS_IP_GEN) {
+			rHwTxHeader.ucResource_PktType_CSflags |= (UINT_8)HIF_TX_HDR_IP_CSUM;
+		    }
 
-                    if (ucChksumFlag & TX_CS_TCP_UDP_GEN) {
-                        rHwTxHeader.ucResource_PktType_CSflags |= (UINT_8)HIF_TX_HDR_TCP_CSUM;
-                    }
-                }
-            }
+		    if (ucChksumFlag & TX_CS_TCP_UDP_GEN) {
+			rHwTxHeader.ucResource_PktType_CSflags |= (UINT_8)HIF_TX_HDR_TCP_CSUM;
+		    }
+		}
+	    }
 #endif /* CFG_TCP_IP_CHKSUM_OFFLOAD */
 
-            rHwTxHeader.u2LLH = prMsduInfo->u2PalLLH;
-            rHwTxHeader.ucStaRecIdx = prMsduInfo->ucStaRecIndex;
-            rHwTxHeader.ucForwardingType_SessionID_Reserved =
-                (prMsduInfo->ucPsForwardingType) | ((prMsduInfo->ucPsSessionID) << HIF_TX_HDR_PS_SESSION_ID_OFFSET)
-                | ((prMsduInfo->fgIsBurstEnd)? HIF_TX_HDR_BURST_END_MASK : 0);
+	    rHwTxHeader.u2LLH = prMsduInfo->u2PalLLH;
+	    rHwTxHeader.ucStaRecIdx = prMsduInfo->ucStaRecIndex;
+	    rHwTxHeader.ucForwardingType_SessionID_Reserved =
+		(prMsduInfo->ucPsForwardingType) | ((prMsduInfo->ucPsSessionID) << HIF_TX_HDR_PS_SESSION_ID_OFFSET)
+                | ((prMsduInfo->fgIsBurstEnd) ? HIF_TX_HDR_BURST_END_MASK : 0);
 
-            rHwTxHeader.ucWlanHeaderLength = (prMsduInfo->ucMacHeaderLength & HIF_TX_HDR_WLAN_HEADER_LEN_MASK);
-            rHwTxHeader.ucPktFormtId_Flags =
-                (prMsduInfo->ucFormatID & HIF_TX_HDR_FORMAT_ID_MASK)
-                | ((prMsduInfo->ucNetworkType << HIF_TX_HDR_NETWORK_TYPE_OFFSET) & HIF_TX_HDR_NETWORK_TYPE_MASK)
-                | ((prMsduInfo->fgIs802_1x << HIF_TX_HDR_FLAG_1X_FRAME_OFFSET) & HIF_TX_HDR_FLAG_1X_FRAME_MASK)
-                | ((prMsduInfo->fgIs802_11 << HIF_TX_HDR_FLAG_802_11_FORMAT_OFFSET) & HIF_TX_HDR_FLAG_802_11_FORMAT_MASK);
+	    rHwTxHeader.ucWlanHeaderLength = (prMsduInfo->ucMacHeaderLength & HIF_TX_HDR_WLAN_HEADER_LEN_MASK);
+	    rHwTxHeader.ucPktFormtId_Flags =
+		(prMsduInfo->ucFormatID & HIF_TX_HDR_FORMAT_ID_MASK)
+		| ((prMsduInfo->ucNetworkType << HIF_TX_HDR_NETWORK_TYPE_OFFSET) & HIF_TX_HDR_NETWORK_TYPE_MASK)
+		| ((prMsduInfo->fgIs802_1x << HIF_TX_HDR_FLAG_1X_FRAME_OFFSET) & HIF_TX_HDR_FLAG_1X_FRAME_MASK)
+		| ((prMsduInfo->fgIs802_11 << HIF_TX_HDR_FLAG_802_11_FORMAT_OFFSET) & HIF_TX_HDR_FLAG_802_11_FORMAT_MASK);
 
-            rHwTxHeader.u2SeqNo = prMsduInfo->u2AclSN;
+	    rHwTxHeader.u2SeqNo = prMsduInfo->u2AclSN;
 
-            if(prMsduInfo->pfTxDoneHandler) {
-                rHwTxHeader.ucPacketSeqNo = prMsduInfo->ucTxSeqNum;
-                rHwTxHeader.ucAck_BIP_BasicRate = HIF_TX_HDR_NEED_ACK;
-            }
-            else {
-                rHwTxHeader.ucPacketSeqNo = 0;
-                rHwTxHeader.ucAck_BIP_BasicRate = 0;
-            }
+	    if (prMsduInfo->pfTxDoneHandler) {
+		rHwTxHeader.ucPacketSeqNo = prMsduInfo->ucTxSeqNum;
+		rHwTxHeader.ucAck_BIP_BasicRate = HIF_TX_HDR_NEED_ACK;
+	    }
+	    else {
+		rHwTxHeader.ucPacketSeqNo = 0;
+		rHwTxHeader.ucAck_BIP_BasicRate = 0;
+	    }
 
-            if(prMsduInfo->fgIsBIP) {
-                rHwTxHeader.ucAck_BIP_BasicRate |= HIF_TX_HDR_BIP;
-            }
+	    if (prMsduInfo->fgIsBIP) {
+		rHwTxHeader.ucAck_BIP_BasicRate |= HIF_TX_HDR_BIP;
+	    }
 
-            if(prMsduInfo->fgIsBasicRate) {
-                rHwTxHeader.ucAck_BIP_BasicRate |= HIF_TX_HDR_BASIC_RATE;
-            }
+	    if (prMsduInfo->fgIsBasicRate) {
+		rHwTxHeader.ucAck_BIP_BasicRate |= HIF_TX_HDR_BASIC_RATE;
+	    }
 
 #if CFG_ENABLE_PKT_LIFETIME_PROFILE
-            if(prMsduInfo->rPktProfile.fgIsValid) {
-                prMsduInfo->rPktProfile.rDequeueTimestamp = kalGetTimeTick();
-            }
-#endif            
+	    if (prMsduInfo->rPktProfile.fgIsValid) {
+		prMsduInfo->rPktProfile.rDequeueTimestamp = kalGetTimeTick();
+	    }
+#endif
 
 #if CFG_SDIO_TX_AGG
-            // attach to coalescing buffer
-            kalMemCopy(pucOutputBuf + u4TotalLength, &rHwTxHeader, u4TxHdrSize);
-            u4TotalLength += u4TxHdrSize;
+	    /* attach to coalescing buffer */
+	    kalMemCopy(pucOutputBuf + u4TotalLength, &rHwTxHeader, u4TxHdrSize);
+	    u4TotalLength += u4TxHdrSize;
 
-            if (prMsduInfo->eSrc == TX_PACKET_OS
-                    || prMsduInfo->eSrc == TX_PACKET_FORWARDING) {
-                kalCopyFrame(prAdapter->prGlueInfo,
-                        prNativePacket,
-                        pucOutputBuf + u4TotalLength);
-            }
-            else if(prMsduInfo->eSrc == TX_PACKET_MGMT) {
-                kalMemCopy(pucOutputBuf + u4TotalLength,
-                        prNativePacket,
-                        prMsduInfo->u2FrameLength);
-            }
-            else {
-                ASSERT(0);
-            }
+	    if (prMsduInfo->eSrc == TX_PACKET_OS
+		    || prMsduInfo->eSrc == TX_PACKET_FORWARDING) {
+		kalCopyFrame(prAdapter->prGlueInfo,
+			prNativePacket,
+			pucOutputBuf + u4TotalLength);
+	    }
+	    else if (prMsduInfo->eSrc == TX_PACKET_MGMT) {
+		kalMemCopy(pucOutputBuf + u4TotalLength,
+			prNativePacket,
+			prMsduInfo->u2FrameLength);
+	    }
+	    else {
+		ASSERT(0);
+	    }
 
-            u4TotalLength += ALIGN_4(prMsduInfo->u2FrameLength);
+	    u4TotalLength += ALIGN_4(prMsduInfo->u2FrameLength);
 
 #else
-            kalMemCopy(pucOutputBuf, &rHwTxHeader, u4TxHdrSize);
+	    kalMemCopy(pucOutputBuf, &rHwTxHeader, u4TxHdrSize);
 
-            /* Copy Frame Body */
-            if (prMsduInfo->eSrc == TX_PACKET_OS
-                    || prMsduInfo->eSrc == TX_PACKET_FORWARDING) {
-                kalCopyFrame(prAdapter->prGlueInfo,
-                        prNativePacket,
-                        pucOutputBuf + u4TxHdrSize);
-            }
-            else if(prMsduInfo->eSrc == TX_PACKET_MGMT) {
-                kalMemCopy(pucOutputBuf + u4TxHdrSize,
-                        prNativePacket,
-                        prMsduInfo->u2FrameLength);
-            }
-            else {
-                ASSERT(0);
-            }
+	    /* Copy Frame Body */
+	    if (prMsduInfo->eSrc == TX_PACKET_OS
+		    || prMsduInfo->eSrc == TX_PACKET_FORWARDING) {
+		kalCopyFrame(prAdapter->prGlueInfo,
+			prNativePacket,
+			pucOutputBuf + u4TxHdrSize);
+	    }
+	    else if (prMsduInfo->eSrc == TX_PACKET_MGMT) {
+		kalMemCopy(pucOutputBuf + u4TxHdrSize,
+			prNativePacket,
+			prMsduInfo->u2FrameLength);
+	    }
+	    else {
+		ASSERT(0);
+	    }
 
-            ASSERT(u2OverallBufferLength <= u4ValidBufSize);
+	    ASSERT(u2OverallBufferLength <= u4ValidBufSize);
 
-            HAL_WRITE_TX_PORT(prAdapter,
-                    ucPortIdx,
-                    (UINT_32)u2OverallBufferLength,
-                    (PUINT_8)pucOutputBuf,
-                    u4ValidBufSize);
+	    HAL_WRITE_TX_PORT(prAdapter,
+		    ucPortIdx,
+		    (UINT_32)u2OverallBufferLength,
+		    (PUINT_8)pucOutputBuf,
+		    u4ValidBufSize);
 
-            // send immediately
+	    /* send immediately */
 #endif
-            prNextMsduInfo = (P_MSDU_INFO_T)
-                        QUEUE_GET_NEXT_ENTRY(&prMsduInfo->rQueEntry);
+	    prNextMsduInfo = (P_MSDU_INFO_T)
+			QUEUE_GET_NEXT_ENTRY(&prMsduInfo->rQueEntry);
 
-            if (prMsduInfo->eSrc == TX_PACKET_MGMT) {
-                GLUE_DEC_REF_CNT(prTxCtrl->i4TxMgmtPendingNum);
+	    if (prMsduInfo->eSrc == TX_PACKET_MGMT) {
+		GLUE_DEC_REF_CNT(prTxCtrl->i4TxMgmtPendingNum);
 
-                if (prMsduInfo->pfTxDoneHandler == NULL) {
-                    cnmMgtPktFree(prAdapter, prMsduInfo);
-                }
-                else {
-                    KAL_SPIN_LOCK_DECLARATION();
-                    DBGLOG(INIT, TRACE,("Wait TxSeqNum:%d\n", prMsduInfo->ucTxSeqNum));
-                    KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TXING_MGMT_LIST);
-                    QUEUE_INSERT_TAIL(&(prTxCtrl->rTxMgmtTxingQueue), (P_QUE_ENTRY_T)prMsduInfo);
-                    KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TXING_MGMT_LIST);
-                }
-            }
-            else {
-                /* only free MSDU when it is not a MGMT frame */
-                QUEUE_INSERT_TAIL(&rFreeQueue, (P_QUE_ENTRY_T)prMsduInfo);
+		if (prMsduInfo->pfTxDoneHandler == NULL) {
+		    cnmMgtPktFree(prAdapter, prMsduInfo);
+		}
+		else {
+		    KAL_SPIN_LOCK_DECLARATION();
+                    DBGLOG(INIT, TRACE, ("Wait TxSeqNum:%d\n", prMsduInfo->ucTxSeqNum));
+		    KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TXING_MGMT_LIST);
+		    QUEUE_INSERT_TAIL(&(prTxCtrl->rTxMgmtTxingQueue), (P_QUE_ENTRY_T)prMsduInfo);
+		    KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TXING_MGMT_LIST);
+		}
+	    }
+	    else {
+		/* only free MSDU when it is not a MGMT frame */
+		QUEUE_INSERT_TAIL(&rFreeQueue, (P_QUE_ENTRY_T)prMsduInfo);
 
-                if (prMsduInfo->eSrc == TX_PACKET_OS) {
-                    kalSendComplete(prAdapter->prGlueInfo,
-                            prNativePacket,
-                            WLAN_STATUS_SUCCESS);
-                }
-                else if(prMsduInfo->eSrc == TX_PACKET_FORWARDING) {
-                    GLUE_DEC_REF_CNT(prTxCtrl->i4PendingFwdFrameCount);
-                }
-            }
+		if (prMsduInfo->eSrc == TX_PACKET_OS) {
+		    kalSendComplete(prAdapter->prGlueInfo,
+			    prNativePacket,
+			    WLAN_STATUS_SUCCESS);
+		}
+		else if (prMsduInfo->eSrc == TX_PACKET_FORWARDING) {
+		    GLUE_DEC_REF_CNT(prTxCtrl->i4PendingFwdFrameCount);
+		}
+	    }
 
-            prMsduInfo = prNextMsduInfo;
-        }
+	    prMsduInfo = prNextMsduInfo;
+	}
 
 #if CFG_SDIO_TX_AGG
-        ASSERT(u4TotalLength <= u4ValidBufSize);
+	ASSERT(u4TotalLength <= u4ValidBufSize);
 
     #if CFG_DBG_GPIO_PINS
-        {
-            /* Start port write */
-            mtk_wcn_stp_debug_gpio_assert(IDX_TX_PORT_WRITE, DBG_TIE_LOW);
-            kalUdelay(1);
-            mtk_wcn_stp_debug_gpio_assert(IDX_TX_PORT_WRITE, DBG_TIE_HIGH);
-        }
+	{
+	    /* Start port write */
+	    mtk_wcn_stp_debug_gpio_assert(IDX_TX_PORT_WRITE, DBG_TIE_LOW);
+	    kalUdelay(1);
+	    mtk_wcn_stp_debug_gpio_assert(IDX_TX_PORT_WRITE, DBG_TIE_HIGH);
+	}
     #endif
 
-        // send coalescing buffer
-        HAL_WRITE_TX_PORT(prAdapter,
-                ucPortIdx,
-                u4TotalLength,
-                (PUINT_8)pucOutputBuf,
-                u4ValidBufSize);
+	/* send coalescing buffer */
+	HAL_WRITE_TX_PORT(prAdapter,
+		ucPortIdx,
+		u4TotalLength,
+		(PUINT_8)pucOutputBuf,
+		u4ValidBufSize);
 #endif
 
 #if CFG_ENABLE_PKT_LIFETIME_PROFILE
-        #if CFG_SUPPORT_WFD && CFG_PRINT_RTP_PROFILE && !CFG_ENABLE_PER_STA_STATISTICS
-        do {          
-            P_WFD_CFG_SETTINGS_T prWfdCfgSettings = (P_WFD_CFG_SETTINGS_T)NULL;
-            
-            prWfdCfgSettings = &prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings;
+	#if CFG_SUPPORT_WFD && CFG_PRINT_RTP_PROFILE && !CFG_ENABLE_PER_STA_STATISTICS
+	do {
+	    P_WFD_CFG_SETTINGS_T prWfdCfgSettings = (P_WFD_CFG_SETTINGS_T)NULL;
 
-            if((prWfdCfgSettings->u2WfdMaximumTp >= 0xF000)) {
-                //Enable profiling
-                nicTxReturnMsduInfoProfiling(prAdapter, (P_MSDU_INFO_T)QUEUE_GET_HEAD(&rFreeQueue));
-            }
-            else {
-                //Skip profiling
-        nicTxReturnMsduInfo(prAdapter, (P_MSDU_INFO_T)QUEUE_GET_HEAD(&rFreeQueue));
+	    prWfdCfgSettings = &prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings;
+
+	    if ((prWfdCfgSettings->u2WfdMaximumTp >= 0xF000)) {
+		/* Enable profiling */
+		nicTxReturnMsduInfoProfiling(prAdapter, (P_MSDU_INFO_T)QUEUE_GET_HEAD(&rFreeQueue));
+	    }
+	    else {
+		/* Skip profiling */
+	nicTxReturnMsduInfo(prAdapter, (P_MSDU_INFO_T)QUEUE_GET_HEAD(&rFreeQueue));
     }
-        }while(FALSE);
-        #else
-            nicTxReturnMsduInfoProfiling(prAdapter, (P_MSDU_INFO_T)QUEUE_GET_HEAD(&rFreeQueue));
-        #endif
+	} while (FALSE);
+	#else
+	    nicTxReturnMsduInfoProfiling(prAdapter, (P_MSDU_INFO_T)QUEUE_GET_HEAD(&rFreeQueue));
+	#endif
 #else
-        // return
-        nicTxReturnMsduInfo(prAdapter, (P_MSDU_INFO_T)QUEUE_GET_HEAD(&rFreeQueue));
+	/* return */
+	nicTxReturnMsduInfo(prAdapter, (P_MSDU_INFO_T)QUEUE_GET_HEAD(&rFreeQueue));
 #endif
     }
 
@@ -1652,7 +1649,7 @@ nicTxMsduQueue (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicTxCmd (
+nicTxCmd(
     IN P_ADAPTER_T      prAdapter,
     IN P_CMD_INFO_T     prCmdInfo,
     IN UINT_8           ucTC
@@ -1677,164 +1674,164 @@ nicTxCmd (
     prTxCtrl = &prAdapter->rTxCtrl;
     pucOutputBuf = prTxCtrl->pucTxCoalescingBufPtr;
 
-    // <1> Assign Data Port
+    /* <1> Assign Data Port */
     if (ucTC != TC4_INDEX) {
-        ucPortIdx = 0;
+	ucPortIdx = 0;
     }
     else {
-        // Broadcast/multicast data frames, 1x frames, command packets, MMPDU
-        ucPortIdx = 1;
+	/* Broadcast/multicast data frames, 1x frames, command packets, MMPDU */
+	ucPortIdx = 1;
     }
 
-    if(prCmdInfo->eCmdType == COMMAND_TYPE_SECURITY_FRAME) {
-        // <2> Compose HIF_TX_HEADER
-        kalMemZero(&rHwTxHeader, sizeof(rHwTxHeader));
+    if (prCmdInfo->eCmdType == COMMAND_TYPE_SECURITY_FRAME) {
+	/* <2> Compose HIF_TX_HEADER */
+	kalMemZero(&rHwTxHeader, sizeof(rHwTxHeader));
 
-        prNativePacket = prCmdInfo->prPacket;
+	prNativePacket = prCmdInfo->prPacket;
 
-        ASSERT(prNativePacket);
+	ASSERT(prNativePacket);
 
-        u2OverallBufferLength = TFCB_FRAME_PAD_TO_DW((prCmdInfo->u2InfoBufLen + TX_HDR_SIZE)
-                & (UINT_16)HIF_TX_HDR_TX_BYTE_COUNT_MASK);
+	u2OverallBufferLength = TFCB_FRAME_PAD_TO_DW((prCmdInfo->u2InfoBufLen + TX_HDR_SIZE)
+		& (UINT_16)HIF_TX_HDR_TX_BYTE_COUNT_MASK);
 
-        rHwTxHeader.u2TxByteCount_UserPriority = ((prCmdInfo->u2InfoBufLen + TX_HDR_SIZE)
-                & (UINT_16)HIF_TX_HDR_TX_BYTE_COUNT_MASK);
-        ucEtherTypeOffsetInWord = ((ETHER_HEADER_LEN - ETHER_TYPE_LEN) + TX_HDR_SIZE) >> 1;
+	rHwTxHeader.u2TxByteCount_UserPriority = ((prCmdInfo->u2InfoBufLen + TX_HDR_SIZE)
+		& (UINT_16)HIF_TX_HDR_TX_BYTE_COUNT_MASK);
+	ucEtherTypeOffsetInWord = ((ETHER_HEADER_LEN - ETHER_TYPE_LEN) + TX_HDR_SIZE) >> 1;
 
-        rHwTxHeader.ucEtherTypeOffset =
-            ucEtherTypeOffsetInWord & HIF_TX_HDR_ETHER_TYPE_OFFSET_MASK;
+	rHwTxHeader.ucEtherTypeOffset =
+	    ucEtherTypeOffsetInWord & HIF_TX_HDR_ETHER_TYPE_OFFSET_MASK;
 
-        rHwTxHeader.ucResource_PktType_CSflags = (ucTC << HIF_TX_HDR_RESOURCE_OFFSET);
+	rHwTxHeader.ucResource_PktType_CSflags = (ucTC << HIF_TX_HDR_RESOURCE_OFFSET);
 
-        rHwTxHeader.ucStaRecIdx = prCmdInfo->ucStaRecIndex;
-        rHwTxHeader.ucForwardingType_SessionID_Reserved = HIF_TX_HDR_BURST_END_MASK;
+	rHwTxHeader.ucStaRecIdx = prCmdInfo->ucStaRecIndex;
+	rHwTxHeader.ucForwardingType_SessionID_Reserved = HIF_TX_HDR_BURST_END_MASK;
 
-        rHwTxHeader.ucWlanHeaderLength = (ETH_HLEN & HIF_TX_HDR_WLAN_HEADER_LEN_MASK);
-        rHwTxHeader.ucPktFormtId_Flags =
-            (((UINT_8)(prCmdInfo->eNetworkType) << HIF_TX_HDR_NETWORK_TYPE_OFFSET) & HIF_TX_HDR_NETWORK_TYPE_MASK)
-            | ((1 << HIF_TX_HDR_FLAG_1X_FRAME_OFFSET) & HIF_TX_HDR_FLAG_1X_FRAME_MASK);
+	rHwTxHeader.ucWlanHeaderLength = (ETH_HLEN & HIF_TX_HDR_WLAN_HEADER_LEN_MASK);
+	rHwTxHeader.ucPktFormtId_Flags =
+	    (((UINT_8)(prCmdInfo->eNetworkType) << HIF_TX_HDR_NETWORK_TYPE_OFFSET) & HIF_TX_HDR_NETWORK_TYPE_MASK)
+	    | ((1 << HIF_TX_HDR_FLAG_1X_FRAME_OFFSET) & HIF_TX_HDR_FLAG_1X_FRAME_MASK);
 
-        rHwTxHeader.u2SeqNo = 0;
-        rHwTxHeader.ucPacketSeqNo = 0;
-        rHwTxHeader.ucAck_BIP_BasicRate = 0;
+	rHwTxHeader.u2SeqNo = 0;
+	rHwTxHeader.ucPacketSeqNo = 0;
+	rHwTxHeader.ucAck_BIP_BasicRate = 0;
 
-        // <2.3> Copy HIF TX HEADER
-        kalMemCopy((PVOID)&pucOutputBuf[0], (PVOID)&rHwTxHeader, TX_HDR_SIZE);
+	/* <2.3> Copy HIF TX HEADER */
+	kalMemCopy((PVOID)&pucOutputBuf[0], (PVOID)&rHwTxHeader, TX_HDR_SIZE);
 
-        // <3> Copy Frame Body Copy
-        kalCopyFrame(prAdapter->prGlueInfo,
-                prNativePacket,
-                pucOutputBuf + TX_HDR_SIZE);
+	/* <3> Copy Frame Body Copy */
+	kalCopyFrame(prAdapter->prGlueInfo,
+		prNativePacket,
+		pucOutputBuf + TX_HDR_SIZE);
     }
-    else if(prCmdInfo->eCmdType == COMMAND_TYPE_MANAGEMENT_FRAME) {
-        prMsduInfo = (P_MSDU_INFO_T)prCmdInfo->prPacket;
+    else if (prCmdInfo->eCmdType == COMMAND_TYPE_MANAGEMENT_FRAME) {
+	prMsduInfo = (P_MSDU_INFO_T)prCmdInfo->prPacket;
 
-        ASSERT(prMsduInfo->fgIs802_11 == TRUE);
-        ASSERT(prMsduInfo->eSrc == TX_PACKET_MGMT);
+	ASSERT(prMsduInfo->fgIs802_11 == TRUE);
+	ASSERT(prMsduInfo->eSrc == TX_PACKET_MGMT);
 
-        // <2> Compose HIF_TX_HEADER
-        kalMemZero(&rHwTxHeader, sizeof(rHwTxHeader));
+	/* <2> Compose HIF_TX_HEADER */
+	kalMemZero(&rHwTxHeader, sizeof(rHwTxHeader));
 
-        u2OverallBufferLength = ((prMsduInfo->u2FrameLength + TX_HDR_SIZE) &
-                                  (UINT_16)HIF_TX_HDR_TX_BYTE_COUNT_MASK);
+	u2OverallBufferLength = ((prMsduInfo->u2FrameLength + TX_HDR_SIZE) &
+				  (UINT_16)HIF_TX_HDR_TX_BYTE_COUNT_MASK);
 
-        rHwTxHeader.u2TxByteCount_UserPriority = u2OverallBufferLength;
-        rHwTxHeader.u2TxByteCount_UserPriority |=
-                ((UINT_16)prMsduInfo->ucUserPriority << HIF_TX_HDR_USER_PRIORITY_OFFSET);
+	rHwTxHeader.u2TxByteCount_UserPriority = u2OverallBufferLength;
+	rHwTxHeader.u2TxByteCount_UserPriority |=
+		((UINT_16)prMsduInfo->ucUserPriority << HIF_TX_HDR_USER_PRIORITY_OFFSET);
 
-        ucEtherTypeOffsetInWord =
-                (TX_HDR_SIZE + prMsduInfo->ucMacHeaderLength + prMsduInfo->ucLlcLength) >> 1;
+	ucEtherTypeOffsetInWord =
+		(TX_HDR_SIZE + prMsduInfo->ucMacHeaderLength + prMsduInfo->ucLlcLength) >> 1;
 
-        rHwTxHeader.ucEtherTypeOffset =
-                ucEtherTypeOffsetInWord & HIF_TX_HDR_ETHER_TYPE_OFFSET_MASK;
+	rHwTxHeader.ucEtherTypeOffset =
+		ucEtherTypeOffsetInWord & HIF_TX_HDR_ETHER_TYPE_OFFSET_MASK;
 
-        rHwTxHeader.ucResource_PktType_CSflags = (prMsduInfo->ucTC) << HIF_TX_HDR_RESOURCE_OFFSET;
-        rHwTxHeader.ucResource_PktType_CSflags |=
-                (UINT_8)(((prMsduInfo->ucPacketType) << HIF_TX_HDR_PACKET_TYPE_OFFSET) &
-                                    (HIF_TX_HDR_PACKET_TYPE_MASK));
+	rHwTxHeader.ucResource_PktType_CSflags = (prMsduInfo->ucTC) << HIF_TX_HDR_RESOURCE_OFFSET;
+	rHwTxHeader.ucResource_PktType_CSflags |=
+		(UINT_8)(((prMsduInfo->ucPacketType) << HIF_TX_HDR_PACKET_TYPE_OFFSET) &
+				    (HIF_TX_HDR_PACKET_TYPE_MASK));
 
-        rHwTxHeader.u2LLH = prMsduInfo->u2PalLLH;
-        rHwTxHeader.ucStaRecIdx = prMsduInfo->ucStaRecIndex;
-        rHwTxHeader.ucForwardingType_SessionID_Reserved =
-            (prMsduInfo->ucPsForwardingType) | ((prMsduInfo->ucPsSessionID) << HIF_TX_HDR_PS_SESSION_ID_OFFSET)
-            | ((prMsduInfo->fgIsBurstEnd)? HIF_TX_HDR_BURST_END_MASK : 0);
+	rHwTxHeader.u2LLH = prMsduInfo->u2PalLLH;
+	rHwTxHeader.ucStaRecIdx = prMsduInfo->ucStaRecIndex;
+	rHwTxHeader.ucForwardingType_SessionID_Reserved =
+	    (prMsduInfo->ucPsForwardingType) | ((prMsduInfo->ucPsSessionID) << HIF_TX_HDR_PS_SESSION_ID_OFFSET)
+            | ((prMsduInfo->fgIsBurstEnd) ? HIF_TX_HDR_BURST_END_MASK : 0);
 
-        rHwTxHeader.ucWlanHeaderLength = (prMsduInfo->ucMacHeaderLength & HIF_TX_HDR_WLAN_HEADER_LEN_MASK);
-        rHwTxHeader.ucPktFormtId_Flags =
-            (prMsduInfo->ucFormatID & HIF_TX_HDR_FORMAT_ID_MASK)
-            | ((prMsduInfo->ucNetworkType << HIF_TX_HDR_NETWORK_TYPE_OFFSET) & HIF_TX_HDR_NETWORK_TYPE_MASK)
-            | ((prMsduInfo->fgIs802_1x << HIF_TX_HDR_FLAG_1X_FRAME_OFFSET) & HIF_TX_HDR_FLAG_1X_FRAME_MASK)
-            | ((prMsduInfo->fgIs802_11 << HIF_TX_HDR_FLAG_802_11_FORMAT_OFFSET) & HIF_TX_HDR_FLAG_802_11_FORMAT_MASK);
+	rHwTxHeader.ucWlanHeaderLength = (prMsduInfo->ucMacHeaderLength & HIF_TX_HDR_WLAN_HEADER_LEN_MASK);
+	rHwTxHeader.ucPktFormtId_Flags =
+	    (prMsduInfo->ucFormatID & HIF_TX_HDR_FORMAT_ID_MASK)
+	    | ((prMsduInfo->ucNetworkType << HIF_TX_HDR_NETWORK_TYPE_OFFSET) & HIF_TX_HDR_NETWORK_TYPE_MASK)
+	    | ((prMsduInfo->fgIs802_1x << HIF_TX_HDR_FLAG_1X_FRAME_OFFSET) & HIF_TX_HDR_FLAG_1X_FRAME_MASK)
+	    | ((prMsduInfo->fgIs802_11 << HIF_TX_HDR_FLAG_802_11_FORMAT_OFFSET) & HIF_TX_HDR_FLAG_802_11_FORMAT_MASK);
 
-        rHwTxHeader.u2SeqNo = prMsduInfo->u2AclSN;
+	rHwTxHeader.u2SeqNo = prMsduInfo->u2AclSN;
 
-        if(prMsduInfo->pfTxDoneHandler) {
-            rHwTxHeader.ucPacketSeqNo = prMsduInfo->ucTxSeqNum;
-            rHwTxHeader.ucAck_BIP_BasicRate = HIF_TX_HDR_NEED_ACK;
-        }
-        else {
-            rHwTxHeader.ucPacketSeqNo = 0;
-            rHwTxHeader.ucAck_BIP_BasicRate = 0;
-        }
+	if (prMsduInfo->pfTxDoneHandler) {
+	    rHwTxHeader.ucPacketSeqNo = prMsduInfo->ucTxSeqNum;
+	    rHwTxHeader.ucAck_BIP_BasicRate = HIF_TX_HDR_NEED_ACK;
+	}
+	else {
+	    rHwTxHeader.ucPacketSeqNo = 0;
+	    rHwTxHeader.ucAck_BIP_BasicRate = 0;
+	}
 
-        if(prMsduInfo->fgIsBIP) {
-            rHwTxHeader.ucAck_BIP_BasicRate |= HIF_TX_HDR_BIP;
-        }
+	if (prMsduInfo->fgIsBIP) {
+	    rHwTxHeader.ucAck_BIP_BasicRate |= HIF_TX_HDR_BIP;
+	}
 
-        if(prMsduInfo->fgIsBasicRate) {
-            rHwTxHeader.ucAck_BIP_BasicRate |= HIF_TX_HDR_BASIC_RATE;
-        }
+	if (prMsduInfo->fgIsBasicRate) {
+	    rHwTxHeader.ucAck_BIP_BasicRate |= HIF_TX_HDR_BASIC_RATE;
+	}
 
-        // <2.3> Copy HIF TX HEADER
-        kalMemCopy((PVOID)&pucOutputBuf[0], (PVOID)&rHwTxHeader, TX_HDR_SIZE);
+	/* <2.3> Copy HIF TX HEADER */
+	kalMemCopy((PVOID)&pucOutputBuf[0], (PVOID)&rHwTxHeader, TX_HDR_SIZE);
 
-        // <3> Copy Frame Body
-        kalMemCopy(pucOutputBuf + TX_HDR_SIZE,
-                prMsduInfo->prPacket,
-                prMsduInfo->u2FrameLength);
+	/* <3> Copy Frame Body */
+	kalMemCopy(pucOutputBuf + TX_HDR_SIZE,
+		prMsduInfo->prPacket,
+		prMsduInfo->u2FrameLength);
 
-        // <4> Management Frame Post-Processing
-        GLUE_DEC_REF_CNT(prTxCtrl->i4TxMgmtPendingNum);
+	/* <4> Management Frame Post-Processing */
+	GLUE_DEC_REF_CNT(prTxCtrl->i4TxMgmtPendingNum);
 
-        if (prMsduInfo->pfTxDoneHandler == NULL) {
-            cnmMgtPktFree(prAdapter, prMsduInfo);
-        }
-        else {
+	if (prMsduInfo->pfTxDoneHandler == NULL) {
+	    cnmMgtPktFree(prAdapter, prMsduInfo);
+	}
+	else {
 
-            DBGLOG(INIT, TRACE,("Wait Cmd TxSeqNum:%d\n", prMsduInfo->ucTxSeqNum));
+            DBGLOG(INIT, TRACE, ("Wait Cmd TxSeqNum:%d\n", prMsduInfo->ucTxSeqNum));
 
-            KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TXING_MGMT_LIST);
-            QUEUE_INSERT_TAIL(&(prTxCtrl->rTxMgmtTxingQueue), (P_QUE_ENTRY_T)prMsduInfo);
-            KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TXING_MGMT_LIST);
-        }
+	    KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TXING_MGMT_LIST);
+	    QUEUE_INSERT_TAIL(&(prTxCtrl->rTxMgmtTxingQueue), (P_QUE_ENTRY_T)prMsduInfo);
+	    KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TXING_MGMT_LIST);
+	}
     }
     else {
-        prWifiCmd = (P_WIFI_CMD_T)prCmdInfo->pucInfoBuffer;
+	prWifiCmd = (P_WIFI_CMD_T)prCmdInfo->pucInfoBuffer;
 
-        // <2> Compose the Header of Transmit Data Structure for CMD Packet
-        u2OverallBufferLength = TFCB_FRAME_PAD_TO_DW(
-               (prCmdInfo->u2InfoBufLen) & (UINT_16)HIF_TX_HDR_TX_BYTE_COUNT_MASK);
+	/* <2> Compose the Header of Transmit Data Structure for CMD Packet */
+	u2OverallBufferLength = TFCB_FRAME_PAD_TO_DW(
+	       (prCmdInfo->u2InfoBufLen) & (UINT_16)HIF_TX_HDR_TX_BYTE_COUNT_MASK);
 
-        prWifiCmd->u2TxByteCount_UserPriority = u2OverallBufferLength;
-        prWifiCmd->ucEtherTypeOffset = 0;
-        prWifiCmd->ucResource_PktType_CSflags = (ucTC << HIF_TX_HDR_RESOURCE_OFFSET)
-            | (UINT_8)((HIF_TX_PKT_TYPE_CMD << HIF_TX_HDR_PACKET_TYPE_OFFSET) & (HIF_TX_HDR_PACKET_TYPE_MASK));
+	prWifiCmd->u2TxByteCount_UserPriority = u2OverallBufferLength;
+	prWifiCmd->ucEtherTypeOffset = 0;
+	prWifiCmd->ucResource_PktType_CSflags = (ucTC << HIF_TX_HDR_RESOURCE_OFFSET)
+	    | (UINT_8)((HIF_TX_PKT_TYPE_CMD << HIF_TX_HDR_PACKET_TYPE_OFFSET) & (HIF_TX_HDR_PACKET_TYPE_MASK));
 
 
-        // <3> Copy CMD Header to command buffer (by using pucCoalescingBufCached)
-        kalMemCopy((PVOID)&pucOutputBuf[0],
-                   (PVOID)prCmdInfo->pucInfoBuffer,
-                   prCmdInfo->u2InfoBufLen);
+	/* <3> Copy CMD Header to command buffer (by using pucCoalescingBufCached) */
+	kalMemCopy((PVOID)&pucOutputBuf[0],
+		   (PVOID)prCmdInfo->pucInfoBuffer,
+		   prCmdInfo->u2InfoBufLen);
 
-        ASSERT(u2OverallBufferLength <= prAdapter->u4CoalescingBufCachedSize);
+	ASSERT(u2OverallBufferLength <= prAdapter->u4CoalescingBufCachedSize);
     }
 
-    // <4> Write frame to data port
+    /* <4> Write frame to data port */
     HAL_WRITE_TX_PORT(prAdapter,
-            ucPortIdx,
-            (UINT_32)u2OverallBufferLength,
-            (PUINT_8)pucOutputBuf,
-            (UINT_32)prAdapter->u4CoalescingBufCachedSize);
+	    ucPortIdx,
+	    (UINT_32)u2OverallBufferLength,
+	    (PUINT_8)pucOutputBuf,
+	    (UINT_32)prAdapter->u4CoalescingBufCachedSize);
 
     return WLAN_STATUS_SUCCESS;
 } /* end of nicTxCmd() */
@@ -1851,7 +1848,7 @@ nicTxCmd (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicTxRelease (
+nicTxRelease(
     IN P_ADAPTER_T  prAdapter
     )
 {
@@ -1866,26 +1863,26 @@ nicTxRelease (
 
     nicTxFlush(prAdapter);
 
-    // free MSDU_INFO_T from rTxMgmtMsduInfoList
+    /* free MSDU_INFO_T from rTxMgmtMsduInfoList */
     do {
-        KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TXING_MGMT_LIST);
-        QUEUE_REMOVE_HEAD(&prTxCtrl->rTxMgmtTxingQueue, prMsduInfo, P_MSDU_INFO_T);
-        KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TXING_MGMT_LIST);
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TXING_MGMT_LIST);
+	QUEUE_REMOVE_HEAD(&prTxCtrl->rTxMgmtTxingQueue, prMsduInfo, P_MSDU_INFO_T);
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TXING_MGMT_LIST);
 
-        if(prMsduInfo) {
-            // the packet must be mgmt frame with tx done callback
-            ASSERT(prMsduInfo->eSrc == TX_PACKET_MGMT);
-            ASSERT(prMsduInfo->pfTxDoneHandler != NULL);
+	if (prMsduInfo) {
+	    /* the packet must be mgmt frame with tx done callback */
+	    ASSERT(prMsduInfo->eSrc == TX_PACKET_MGMT);
+	    ASSERT(prMsduInfo->pfTxDoneHandler != NULL);
 
-            // invoke done handler
-            prMsduInfo->pfTxDoneHandler(prAdapter, prMsduInfo, TX_RESULT_LIFE_TIMEOUT);
+	    /* invoke done handler */
+	    prMsduInfo->pfTxDoneHandler(prAdapter, prMsduInfo, TX_RESULT_LIFE_TIMEOUT);
 
-            cnmMgtPktFree(prAdapter, prMsduInfo);
-        }
-        else {
-            break;
-        }
-    } while(TRUE);
+	    cnmMgtPktFree(prAdapter, prMsduInfo);
+	}
+	else {
+	    break;
+	}
+    } while (TRUE);
 
     return;
 } /* end of nicTxRelease() */
@@ -1923,7 +1920,7 @@ nicProcessTxInterrupt(
 
     prSDIOCtrl = prAdapter->prSDIOCtrl;
     #if DBG
-    //dumpMemory8((PUINT_8)prSDIOCtrl, sizeof(SDIO_CTRL_T));
+    /* dumpMemory8((PUINT_8)prSDIOCtrl, sizeof(SDIO_CTRL_T)); */
     #endif
 
     nicTxReleaseResource(prAdapter, (PUINT_8)&prSDIOCtrl->rTxInfo);
@@ -1941,10 +1938,10 @@ nicProcessTxInterrupt(
 
     nicTxAdjustTcq(prAdapter);
 
-    // Indicate Service Thread
-    if(kalGetTxPendingCmdCount(prAdapter->prGlueInfo) > 0
-            || wlanGetTxPendingFrameCount(prAdapter) > 0) {
-        kalSetEvent(prAdapter->prGlueInfo);
+    /* Indicate Service Thread */
+    if (kalGetTxPendingCmdCount(prAdapter->prGlueInfo) > 0
+	    || wlanGetTxPendingFrameCount(prAdapter) > 0) {
+	kalSetEvent(prAdapter->prGlueInfo);
     }
 
     return;
@@ -1962,7 +1959,7 @@ nicProcessTxInterrupt(
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicTxFreeMsduInfoPacket (
+nicTxFreeMsduInfoPacket(
     IN P_ADAPTER_T    prAdapter,
     IN P_MSDU_INFO_T  prMsduInfoListHead
     )
@@ -1977,28 +1974,28 @@ nicTxFreeMsduInfoPacket (
 
     prTxCtrl = &prAdapter->rTxCtrl;
 
-    while(prMsduInfo) {
-        prNativePacket = prMsduInfo->prPacket;
+    while (prMsduInfo) {
+	prNativePacket = prMsduInfo->prPacket;
 
-        if(prMsduInfo->eSrc == TX_PACKET_OS) {
-            kalSendComplete(prAdapter->prGlueInfo,
-                    prNativePacket,
-                    WLAN_STATUS_FAILURE);
-        }
-        else if(prMsduInfo->eSrc == TX_PACKET_MGMT) {
-            P_MSDU_INFO_T prTempMsduInfo = prMsduInfo;
-            if (prMsduInfo->pfTxDoneHandler) {
-                prMsduInfo->pfTxDoneHandler(prAdapter, prMsduInfo, TX_RESULT_DROPPED_IN_DRIVER);
-            }
-            prMsduInfo = (P_MSDU_INFO_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo);
-            cnmMgtPktFree(prAdapter, prTempMsduInfo);
-            continue;
-        }
-        else if(prMsduInfo->eSrc == TX_PACKET_FORWARDING) {
-            GLUE_DEC_REF_CNT(prTxCtrl->i4PendingFwdFrameCount);
-        }
+	if (prMsduInfo->eSrc == TX_PACKET_OS) {
+	    kalSendComplete(prAdapter->prGlueInfo,
+		    prNativePacket,
+		    WLAN_STATUS_FAILURE);
+	}
+	else if (prMsduInfo->eSrc == TX_PACKET_MGMT) {
+	    P_MSDU_INFO_T prTempMsduInfo = prMsduInfo;
+	    if (prMsduInfo->pfTxDoneHandler) {
+		prMsduInfo->pfTxDoneHandler(prAdapter, prMsduInfo, TX_RESULT_DROPPED_IN_DRIVER);
+	    }
+	    prMsduInfo = (P_MSDU_INFO_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo);
+	    cnmMgtPktFree(prAdapter, prTempMsduInfo);
+	    continue;
+	}
+	else if (prMsduInfo->eSrc == TX_PACKET_FORWARDING) {
+	    GLUE_DEC_REF_CNT(prTxCtrl->i4PendingFwdFrameCount);
+	}
 
-        prMsduInfo = (P_MSDU_INFO_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo);
+	prMsduInfo = (P_MSDU_INFO_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo);
     }
 
     return;
@@ -2016,7 +2013,7 @@ nicTxFreeMsduInfoPacket (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-nicTxReturnMsduInfo (
+nicTxReturnMsduInfo(
     IN P_ADAPTER_T    prAdapter,
     IN P_MSDU_INFO_T  prMsduInfoListHead
     )
@@ -2031,24 +2028,24 @@ nicTxReturnMsduInfo (
     prTxCtrl = &prAdapter->rTxCtrl;
     ASSERT(prTxCtrl);
 
-    while(prMsduInfo) {
-        prNextMsduInfo = (P_MSDU_INFO_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo);
+    while (prMsduInfo) {
+	prNextMsduInfo = (P_MSDU_INFO_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo);
 
-        switch(prMsduInfo->eSrc) {
-        case TX_PACKET_FORWARDING:
-            wlanReturnPacket(prAdapter, prMsduInfo->prPacket);
-            break;
-        case TX_PACKET_OS:
-        case TX_PACKET_OS_OID:
-        case TX_PACKET_MGMT:
-        default:
-            break;
-        }
+	switch (prMsduInfo->eSrc) {
+	case TX_PACKET_FORWARDING:
+	    wlanReturnPacket(prAdapter, prMsduInfo->prPacket);
+	    break;
+	case TX_PACKET_OS:
+	case TX_PACKET_OS_OID:
+	case TX_PACKET_MGMT:
+	default:
+	    break;
+	}
 
-        KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
-        QUEUE_INSERT_TAIL(&prTxCtrl->rFreeMsduInfoList, (P_QUE_ENTRY_T)prMsduInfo);
-        KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
-        prMsduInfo = prNextMsduInfo;
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
+	QUEUE_INSERT_TAIL(&prTxCtrl->rFreeMsduInfoList, (P_QUE_ENTRY_T)prMsduInfo);
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_MSDU_INFO_LIST);
+	prMsduInfo = prNextMsduInfo;
     };
 
     return;
@@ -2069,7 +2066,7 @@ nicTxReturnMsduInfo (
 */
 /*----------------------------------------------------------------------------*/
 BOOLEAN
-nicTxFillMsduInfo (
+nicTxFillMsduInfo(
     IN P_ADAPTER_T     prAdapter,
     IN P_MSDU_INFO_T   prMsduInfo,
     IN P_NATIVE_PACKET prPacket
@@ -2092,35 +2089,35 @@ nicTxFillMsduInfo (
     ASSERT(prGlueInfo);
 
     if (kalQoSFrameClassifierAndPacketInfo(prGlueInfo,
-                prPacket,
-                &ucPriorityParam,
-                &u4PacketLen,
-                aucEthDestAddr,
-                &fgIs1x,
-                &fgIsPAL,
-                &ucNetworkType) == FALSE) {
-        return FALSE;
+		prPacket,
+		&ucPriorityParam,
+		&u4PacketLen,
+		aucEthDestAddr,
+		&fgIs1x,
+		&fgIsPAL,
+		&ucNetworkType) == FALSE) {
+	return FALSE;
     }
 
     #if CFG_ENABLE_PKT_LIFETIME_PROFILE
-    nicTxLifetimeCheck (
-        prAdapter,
-        prMsduInfo,
-        prPacket,
-        ucPriorityParam,
-        u4PacketLen,
-        ucNetworkType);    
+    nicTxLifetimeCheck(
+	prAdapter,
+	prMsduInfo,
+	prPacket,
+	ucPriorityParam,
+	u4PacketLen,
+	ucNetworkType);
     #endif
 
     /* Save the value of Priority Parameter */
     GLUE_SET_PKT_TID(prPacket, ucPriorityParam);
 
     if (fgIs1x) {
-        GLUE_SET_PKT_FLAG_1X(prPacket);
+	GLUE_SET_PKT_FLAG_1X(prPacket);
     }
 
     if (fgIsPAL) {
-        GLUE_SET_PKT_FLAG_PAL(prPacket);
+	GLUE_SET_PKT_FLAG_PAL(prPacket);
     }
 
     ucMacHeaderLen = ETH_HLEN;
@@ -2158,7 +2155,7 @@ nicTxFillMsduInfo (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicTxAdjustTcq (
+nicTxAdjustTcq(
     IN P_ADAPTER_T  prAdapter
     )
 {
@@ -2175,12 +2172,12 @@ nicTxAdjustTcq (
     qmAdjustTcQuotas(prAdapter, &rTcqAdjust, &prTxCtrl->rTc);
     KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_RESOURCE);
 
-    for (u4Num = 0 ; u4Num < TC_NUM ; u4Num++) {
-        prTxCtrl->rTc.aucFreeBufferCount[u4Num] += rTcqAdjust.acVariation[u4Num];
-        prTxCtrl->rTc.aucMaxNumOfBuffer[u4Num] += rTcqAdjust.acVariation[u4Num];
+    for (u4Num = 0; u4Num < TC_NUM; u4Num++) {
+	prTxCtrl->rTc.aucFreeBufferCount[u4Num] += rTcqAdjust.acVariation[u4Num];
+	prTxCtrl->rTc.aucMaxNumOfBuffer[u4Num] += rTcqAdjust.acVariation[u4Num];
 
-        ASSERT(prTxCtrl->rTc.aucFreeBufferCount[u4Num] >= 0);
-        ASSERT(prTxCtrl->rTc.aucMaxNumOfBuffer[u4Num] >= 0);
+	ASSERT(prTxCtrl->rTc.aucFreeBufferCount[u4Num] >= 0);
+	ASSERT(prTxCtrl->rTc.aucMaxNumOfBuffer[u4Num] >= 0);
     }
 
     KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_RESOURCE);
@@ -2200,7 +2197,7 @@ nicTxAdjustTcq (
 /*----------------------------------------------------------------------------*/
 
 WLAN_STATUS
-nicTxFlush (
+nicTxFlush(
     IN P_ADAPTER_T  prAdapter
     )
 {
@@ -2209,14 +2206,14 @@ nicTxFlush (
 
     ASSERT(prAdapter);
 
-    // ask Per STA/AC queue to be fllushed and return all queued packets
+    /* ask Per STA/AC queue to be fllushed and return all queued packets */
     KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_QM_TX_QUEUE);
     prMsduInfo = qmFlushTxQueues(prAdapter);
     KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_QM_TX_QUEUE);
 
-    if(prMsduInfo != NULL) {
-        nicTxFreeMsduInfoPacket(prAdapter, prMsduInfo);
-        nicTxReturnMsduInfo(prAdapter, prMsduInfo);
+    if (prMsduInfo != NULL) {
+	nicTxFreeMsduInfoPacket(prAdapter, prMsduInfo);
+	nicTxReturnMsduInfo(prAdapter, prMsduInfo);
     }
 
     return WLAN_STATUS_SUCCESS;
@@ -2240,7 +2237,7 @@ nicTxFlush (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicTxInitCmd (
+nicTxInitCmd(
     IN P_ADAPTER_T      prAdapter,
     IN P_CMD_INFO_T     prCmdInfo,
     IN UINT_8           ucTC
@@ -2260,35 +2257,35 @@ nicTxInitCmd (
     pucOutputBuf = prTxCtrl->pucTxCoalescingBufPtr;
     prInitTxHeader = (P_INIT_HIF_TX_HEADER_T)prCmdInfo->pucInfoBuffer;
 
-    // <1> Compose the Header of Transmit Data Structure for CMD Packet
+    /* <1> Compose the Header of Transmit Data Structure for CMD Packet */
     u2OverallBufferLength = TFCB_FRAME_PAD_TO_DW(
-            (prCmdInfo->u2InfoBufLen) & (UINT_16)HIF_TX_HDR_TX_BYTE_COUNT_MASK);
+	    (prCmdInfo->u2InfoBufLen) & (UINT_16)HIF_TX_HDR_TX_BYTE_COUNT_MASK);
 
     prInitTxHeader->u2TxByteCount = u2OverallBufferLength;
     prInitTxHeader->ucEtherTypeOffset = 0;
     prInitTxHeader->ucCSflags = 0;
 
-    // <2> Assign Data Port
+    /* <2> Assign Data Port */
     if (ucTC != TC4_INDEX) {
-        ucPortIdx = 0;
+	ucPortIdx = 0;
     }
-    else { // Broadcast/multicast data packets
-        ucPortIdx = 1;
+    else { /* Broadcast/multicast data packets */
+	ucPortIdx = 1;
     }
 
-    // <3> Copy CMD Header to command buffer (by using pucCoalescingBufCached)
+    /* <3> Copy CMD Header to command buffer (by using pucCoalescingBufCached) */
     kalMemCopy((PVOID)&pucOutputBuf[0],
-               (PVOID)prCmdInfo->pucInfoBuffer,
-               prCmdInfo->u2InfoBufLen);
+	       (PVOID)prCmdInfo->pucInfoBuffer,
+	       prCmdInfo->u2InfoBufLen);
 
     ASSERT(u2OverallBufferLength <= prAdapter->u4CoalescingBufCachedSize);
 
-    // <4> Write frame to data port
+    /* <4> Write frame to data port */
     HAL_WRITE_TX_PORT(prAdapter,
-            ucPortIdx,
-            (UINT_32)u2OverallBufferLength,
-            (PUINT_8)pucOutputBuf,
-            (UINT_32)prAdapter->u4CoalescingBufCachedSize);
+	    ucPortIdx,
+	    (UINT_32)u2OverallBufferLength,
+	    (PUINT_8)pucOutputBuf,
+	    (UINT_32)prAdapter->u4CoalescingBufCachedSize);
 
     return WLAN_STATUS_SUCCESS;
 }
@@ -2305,7 +2302,7 @@ nicTxInitCmd (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicTxInitResetResource (
+nicTxInitResetResource(
     IN P_ADAPTER_T  prAdapter
     )
 {
@@ -2353,7 +2350,7 @@ nicTxInitResetResource (
 */
 /*----------------------------------------------------------------------------*/
 WLAN_STATUS
-nicTxEnqueueMsdu (
+nicTxEnqueueMsdu(
     IN P_ADAPTER_T      prAdapter,
     IN P_MSDU_INFO_T    prMsduInfo
     )
@@ -2375,104 +2372,104 @@ nicTxEnqueueMsdu (
     QUEUE_INITIALIZE(&qDataPort1);
 
     /* check how many management frame are being queued */
-    while(prMsduInfo) {
-        prNextMsduInfo = (P_MSDU_INFO_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo);
+    while (prMsduInfo) {
+	prNextMsduInfo = (P_MSDU_INFO_T)QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo);
 
-        QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo) = NULL;
+	QUEUE_GET_NEXT_ENTRY((P_QUE_ENTRY_T)prMsduInfo) = NULL;
 
-        if(prMsduInfo->eSrc == TX_PACKET_MGMT) {
-            // MMPDU: force stick to TC4
-            prMsduInfo->ucTC = TC4_INDEX;
+	if (prMsduInfo->eSrc == TX_PACKET_MGMT) {
+	    /* MMPDU: force stick to TC4 */
+	    prMsduInfo->ucTC = TC4_INDEX;
 
-            QUEUE_INSERT_TAIL(&qDataPort1, (P_QUE_ENTRY_T)prMsduInfo);
-        }
-        else {
-            QUEUE_INSERT_TAIL(&qDataPort0, (P_QUE_ENTRY_T)prMsduInfo);
-        }
+	    QUEUE_INSERT_TAIL(&qDataPort1, (P_QUE_ENTRY_T)prMsduInfo);
+	}
+	else {
+	    QUEUE_INSERT_TAIL(&qDataPort0, (P_QUE_ENTRY_T)prMsduInfo);
+	}
 
-        prMsduInfo = prNextMsduInfo;
+	prMsduInfo = prNextMsduInfo;
     }
 
-    if(qDataPort0.u4NumElem) {
-        /* send to QM: queue the packet to different TX queue by policy */
-        KAL_SPIN_LOCK_DECLARATION();
-        KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_QM_TX_QUEUE);
-        prRetMsduInfo = qmEnqueueTxPackets(prAdapter, (P_MSDU_INFO_T)QUEUE_GET_HEAD(&qDataPort0));
-        KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_QM_TX_QUEUE);
+    if (qDataPort0.u4NumElem) {
+	/* send to QM: queue the packet to different TX queue by policy */
+	KAL_SPIN_LOCK_DECLARATION();
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_QM_TX_QUEUE);
+	prRetMsduInfo = qmEnqueueTxPackets(prAdapter, (P_MSDU_INFO_T)QUEUE_GET_HEAD(&qDataPort0));
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_QM_TX_QUEUE);
 
-        /* post-process for "dropped" packets */
-        if(prRetMsduInfo != NULL) { // unable to enqueue
-            nicTxFreeMsduInfoPacket(prAdapter, prRetMsduInfo);
-            nicTxReturnMsduInfo(prAdapter, prRetMsduInfo);
-        }
+	/* post-process for "dropped" packets */
+	if (prRetMsduInfo != NULL) { /* unable to enqueue */
+	    nicTxFreeMsduInfoPacket(prAdapter, prRetMsduInfo);
+	    nicTxReturnMsduInfo(prAdapter, prRetMsduInfo);
+	}
     }
 
-    if(qDataPort1.u4NumElem) {
-        prMsduInfoHead = (P_MSDU_INFO_T)QUEUE_GET_HEAD(&qDataPort1);
+    if (qDataPort1.u4NumElem) {
+	prMsduInfoHead = (P_MSDU_INFO_T)QUEUE_GET_HEAD(&qDataPort1);
 
-        if(qDataPort1.u4NumElem > nicTxGetFreeCmdCount(prAdapter)) {
-            // not enough descriptors for sending
-            u4Status = WLAN_STATUS_FAILURE;
+	if (qDataPort1.u4NumElem > nicTxGetFreeCmdCount(prAdapter)) {
+	    /* not enough descriptors for sending */
+	    u4Status = WLAN_STATUS_FAILURE;
 
-            // free all MSDUs
-            while(prMsduInfoHead) {
-                prNextMsduInfo = (P_MSDU_INFO_T) QUEUE_GET_NEXT_ENTRY(&prMsduInfoHead->rQueEntry);
+	    /* free all MSDUs */
+	    while (prMsduInfoHead) {
+		prNextMsduInfo = (P_MSDU_INFO_T) QUEUE_GET_NEXT_ENTRY(&prMsduInfoHead->rQueEntry);
 
-                if (prMsduInfoHead->pfTxDoneHandler != NULL) {
-                    prMsduInfoHead->pfTxDoneHandler(prAdapter, prMsduInfoHead, TX_RESULT_DROPPED_IN_DRIVER);
-                }
+		if (prMsduInfoHead->pfTxDoneHandler != NULL) {
+		    prMsduInfoHead->pfTxDoneHandler(prAdapter, prMsduInfoHead, TX_RESULT_DROPPED_IN_DRIVER);
+		}
 
 
-                cnmMgtPktFree(prAdapter, prMsduInfoHead);
+		cnmMgtPktFree(prAdapter, prMsduInfoHead);
 
-                prMsduInfoHead = prNextMsduInfo;
-            }
-        }
-        else {
-            /* send to command queue */
-            while(prMsduInfoHead) {
-                prNextMsduInfo = (P_MSDU_INFO_T) QUEUE_GET_NEXT_ENTRY(&prMsduInfoHead->rQueEntry);
+		prMsduInfoHead = prNextMsduInfo;
+	    }
+	}
+	else {
+	    /* send to command queue */
+	    while (prMsduInfoHead) {
+		prNextMsduInfo = (P_MSDU_INFO_T) QUEUE_GET_NEXT_ENTRY(&prMsduInfoHead->rQueEntry);
 
-                KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
-                QUEUE_REMOVE_HEAD(&prAdapter->rFreeCmdList, prCmdInfo, P_CMD_INFO_T);
-                KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
+		KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
+		QUEUE_REMOVE_HEAD(&prAdapter->rFreeCmdList, prCmdInfo, P_CMD_INFO_T);
+		KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_RESOURCE);
 
-                if (prCmdInfo) {
-                    GLUE_INC_REF_CNT(prTxCtrl->i4TxMgmtPendingNum);
+		if (prCmdInfo) {
+		    GLUE_INC_REF_CNT(prTxCtrl->i4TxMgmtPendingNum);
 
-                    kalMemZero(prCmdInfo, sizeof(CMD_INFO_T));
+		    kalMemZero(prCmdInfo, sizeof(CMD_INFO_T));
 
-                    prCmdInfo->eCmdType             = COMMAND_TYPE_MANAGEMENT_FRAME;
-                    prCmdInfo->u2InfoBufLen         = prMsduInfoHead->u2FrameLength;
-                    prCmdInfo->pucInfoBuffer        = NULL;
-                    prCmdInfo->prPacket             = (P_NATIVE_PACKET)prMsduInfoHead;
-                    prCmdInfo->ucStaRecIndex        = prMsduInfoHead->ucStaRecIndex;
-                    prCmdInfo->eNetworkType         = prMsduInfoHead->ucNetworkType;
-                    prCmdInfo->pfCmdDoneHandler     = NULL;
-                    prCmdInfo->pfCmdTimeoutHandler  = NULL;
-                    prCmdInfo->fgIsOid              = FALSE;
-                    prCmdInfo->fgSetQuery           = TRUE;
-                    prCmdInfo->fgNeedResp           = FALSE;
+		    prCmdInfo->eCmdType             = COMMAND_TYPE_MANAGEMENT_FRAME;
+		    prCmdInfo->u2InfoBufLen         = prMsduInfoHead->u2FrameLength;
+		    prCmdInfo->pucInfoBuffer        = NULL;
+		    prCmdInfo->prPacket             = (P_NATIVE_PACKET)prMsduInfoHead;
+		    prCmdInfo->ucStaRecIndex        = prMsduInfoHead->ucStaRecIndex;
+		    prCmdInfo->eNetworkType         = prMsduInfoHead->ucNetworkType;
+		    prCmdInfo->pfCmdDoneHandler     = NULL;
+		    prCmdInfo->pfCmdTimeoutHandler  = NULL;
+		    prCmdInfo->fgIsOid              = FALSE;
+		    prCmdInfo->fgSetQuery           = TRUE;
+		    prCmdInfo->fgNeedResp           = FALSE;
 
-                    kalEnqueueCommand(prAdapter->prGlueInfo, (P_QUE_ENTRY_T)prCmdInfo);
-                }
-                else {
-                    /* Cmd free count is larger than expected, but allocation fail. */
-                    ASSERT(0);
+		    kalEnqueueCommand(prAdapter->prGlueInfo, (P_QUE_ENTRY_T)prCmdInfo);
+		}
+		else {
+		    /* Cmd free count is larger than expected, but allocation fail. */
+		    ASSERT(0);
 
-                    u4Status = WLAN_STATUS_FAILURE;
-                    cnmMgtPktFree(prAdapter, prMsduInfoHead);
-                }
+		    u4Status = WLAN_STATUS_FAILURE;
+		    cnmMgtPktFree(prAdapter, prMsduInfoHead);
+		}
 
-                prMsduInfoHead = prNextMsduInfo;
-            }
-        }
+		prMsduInfoHead = prNextMsduInfo;
+	    }
+	}
     }
 
     /* indicate service thread for sending */
-    if(prTxCtrl->i4TxMgmtPendingNum > 0
-            || kalGetTxPendingFrameCount(prAdapter->prGlueInfo) > 0) {
-        kalSetEvent(prAdapter->prGlueInfo);
+    if (prTxCtrl->i4TxMgmtPendingNum > 0
+	    || kalGetTxPendingFrameCount(prAdapter->prGlueInfo) > 0) {
+	kalSetEvent(prAdapter->prGlueInfo);
     }
 
     return u4Status;
@@ -2489,7 +2486,7 @@ nicTxEnqueueMsdu (
 */
 /*----------------------------------------------------------------------------*/
 UINT_32
-nicTxGetFreeCmdCount (
+nicTxGetFreeCmdCount(
     IN P_ADAPTER_T  prAdapter
     )
 {
@@ -2497,4 +2494,3 @@ nicTxGetFreeCmdCount (
 
     return prAdapter->rFreeCmdList.u4NumElem;
 }
-

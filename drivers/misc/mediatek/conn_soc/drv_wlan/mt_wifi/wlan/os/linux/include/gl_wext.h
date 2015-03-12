@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/os/linux/include/gl_wext.h#1 $
 */
 
@@ -176,7 +190,7 @@ struct iw_mlme {
 /* IW_AUTH_ROAMING_CONTROL values */
 #define IW_AUTH_ROAMING_ENABLE  0   /* driver/firmware based roaming */
 #define IW_AUTH_ROAMING_DISABLE 1   /* user space program used for roaming
-                                     * control */
+				     * control */
 
 #define SIOCSIWENCODEEXT 0x8B34     /* set encoding token & mode */
 #define SIOCGIWENCODEEXT 0x8B35     /* get encoding token & mode */
@@ -202,8 +216,8 @@ struct iw_encode_ext {
     __u8    tx_seq[IW_ENCODE_SEQ_MAX_SIZE]; /*!< LSB first */
     __u8    rx_seq[IW_ENCODE_SEQ_MAX_SIZE]; /*!< LSB first */
     struct sockaddr addr;   /*!< ff:ff:ff:ff:ff:ff for broadcast/multicast
-                             *   (group) keys or unicast address for
-                             *   individual keys */
+			     *   (group) keys or unicast address for
+			     *   individual keys */
     __u16   alg;            /*!< IW_ENCODE_ALG_* */
     __u16   key_len;
     __u8    key[0];
@@ -223,33 +237,33 @@ struct iw_pmksa {
 };
 
 #define IWEVGENIE   0x8C05      /* Generic IE (WPA, RSN, WMM, ..)
-                                 * (scan results); This includes id and
-                                 * length fields. One IWEVGENIE may
-                                 * contain more than one IE. Scan
-                                 * results may contain one or more
-                                 * IWEVGENIE events. */
+				 * (scan results); This includes id and
+				 * length fields. One IWEVGENIE may
+				 * contain more than one IE. Scan
+				 * results may contain one or more
+				 * IWEVGENIE events. */
 #define IWEVMICHAELMICFAILURE 0x8C06    /* Michael MIC failure
-                                         * (struct iw_michaelmicfailure)
-                                         */
+					 * (struct iw_michaelmicfailure)
+					 */
 #define IWEVASSOCREQIE  0x8C07  /* IEs used in (Re)Association Request.
-                                 * The data includes id and length
-                                 * fields and may contain more than one
-                                 * IE. This event is required in
-                                 * Managed mode if the driver
-                                 * generates its own WPA/RSN IE. This
-                                 * should be sent just before
-                                 * IWEVREGISTERED event for the
-                                 * association. */
+				 * The data includes id and length
+				 * fields and may contain more than one
+				 * IE. This event is required in
+				 * Managed mode if the driver
+				 * generates its own WPA/RSN IE. This
+				 * should be sent just before
+				 * IWEVREGISTERED event for the
+				 * association. */
 #define IWEVASSOCRESPIE 0x8C08  /* IEs used in (Re)Association
-                                 * Response. The data includes id and
-                                 * length fields and may contain more
-                                 * than one IE. This may be sent
-                                 * between IWEVASSOCREQIE and
-                                 * IWEVREGISTERED events for the
-                                 * association. */
+				 * Response. The data includes id and
+				 * length fields and may contain more
+				 * than one IE. This may be sent
+				 * between IWEVASSOCREQIE and
+				 * IWEVREGISTERED events for the
+				 * association. */
 #define IWEVPMKIDCAND   0x8C09  /* PMKID candidate for RSN
-                                 * pre-authentication
-                                 * (struct iw_pmkid_cand) */
+				 * pre-authentication
+				 * (struct iw_pmkid_cand) */
 
 #endif /* WIRELESS_EXT < 18 */
 
@@ -321,7 +335,7 @@ wext_support_ioctl(
     );
 
 int
-wext_set_rate (
+wext_set_rate(
     IN struct net_device *prNetDev,
     IN struct iw_request_info *prIwReqInfo,
     IN struct iw_param *prRate,
@@ -337,70 +351,61 @@ wext_indicate_wext_event(
     );
 
 struct iw_statistics *
-wext_get_wireless_stats (
+wext_get_wireless_stats(
     struct net_device *prDev
     );
 
 int
-wext_get_priv (
+wext_get_priv(
     IN struct net_device *prNetDev,
     IN struct ifreq *prIfReq
     );
 
 BOOLEAN
-wextSrchDesiredWPAIE (
+wextSrchDesiredWPAIE(
     IN  PUINT_8         pucIEStart,
     IN  INT_32          i4TotalIeLen,
     IN  UINT_8          ucDesiredElemId,
-    OUT PUINT_8         *ppucDesiredIE
+    OUT PUINT_8 * ppucDesiredIE
     );
-	
+
 #if CFG_SUPPORT_WPS
 BOOLEAN
-wextSrchDesiredWPSIE (
+wextSrchDesiredWPSIE(
     IN PUINT_8 pucIEStart,
     IN INT_32 i4TotalIeLen,
     IN UINT_8 ucDesiredElemId,
-    OUT PUINT_8 *ppucDesiredIE
+    OUT PUINT_8 * ppucDesiredIE
     );
 #endif
 
 #if CFG_SUPPORT_HOTSPOT_2_0
 BOOLEAN
-wextSrchDesiredHS20IE (
+wextSrchDesiredHS20IE(
     IN PUINT_8 pucIEStart,
     IN INT_32 i4TotalIeLen,
-    OUT PUINT_8 *ppucDesiredIE
+    OUT PUINT_8 * ppucDesiredIE
     );
 
 BOOLEAN
-wextSrchDesiredInterworkingIE (
+wextSrchDesiredInterworkingIE(
     IN PUINT_8 pucIEStart,
     IN INT_32 i4TotalIeLen,
-    OUT PUINT_8 *ppucDesiredIE
+    OUT PUINT_8 * ppucDesiredIE
     );
 
 BOOLEAN
-wextSrchDesiredAdvProtocolIE (
+wextSrchDesiredAdvProtocolIE(
     IN PUINT_8 pucIEStart,
     IN INT_32 i4TotalIeLen,
-    OUT PUINT_8 *ppucDesiredIE
+    OUT PUINT_8 * ppucDesiredIE
     );
 
 BOOLEAN
-wextSrchDesiredRoamingConsortiumIE (
+wextSrchDesiredRoamingConsortiumIE(
     IN PUINT_8 pucIEStart,
     IN INT_32 i4TotalIeLen,
-    OUT PUINT_8 *ppucDesiredIE
-    );
-#endif
-
-#if CFG_SUPPORT_WAPI
-BOOLEAN
-wextSrchDesiredWAPIIE (
-    IN  PUINT_8         pucIEStart,
-    IN  INT_32          i4TotalIeLen,
-    OUT PUINT_8         *ppucDesiredIE
+    OUT PUINT_8 * ppucDesiredIE
     );
 #endif
 
@@ -412,4 +417,3 @@ wextSrchDesiredWAPIIE (
 #endif /* WIRELESS_EXT */
 
 #endif /* _GL_WEXT_H */
-

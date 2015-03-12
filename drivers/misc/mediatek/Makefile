@@ -6,32 +6,24 @@ obj-y	+= kernel/
 obj-y	+= aee/
 #obj-y	+= dual_ccci/
 #obj-y   += eccci/
-obj-y	+= fmradio/
+#obj-y	+= fmradio/
 obj-y	+= gps/
-obj-y	+= hwmon/
+#obj-y	+= hwmon/
 
-obj-$(CONFIG_MTK_CCCI_DRIVER)  +=  ccci/
+#obj-$(CONFIG_MTK_CCCI_DRIVER)  +=  ccci/
 obj-$(CONFIG_MTK_CCCI_EXT)     +=  dual_ccci/
 obj-$(CONFIG_MTK_ECCCI_DRIVER) +=  eccci/
 
 #obj-y   += ion_drv/
 obj-y	+= m4u/
-#obj-y	+= mhl/
 obj-y	+= mtprof/
 
-obj-y   += cmdq/
+#obj-y	+= sched/
+#obj-y   += cmdq/
 obj-y   += video/
-ifeq ($(CONFIG_MTK_HDMI_SUPPORT),y)
-#obj-y	+= hdmi/
-#obj-y	+= ext_disp/
-endif
 #obj-y	+= bthid/
 #obj-y	+= ccmni/
 #obj-y	+= emd_ctl/
-
-ifeq ($(CONFIG_MTK_WFD_SUPPORT),y)
-obj-y  += uibc/
-endif
 
 obj-y	+= $(call all-subdirs-with-makefile,gator-driver)
 #obj-y	+= $(call all-subdirs-with-makefile,met)
@@ -43,22 +35,23 @@ obj-$(CONFIG_MTK_XHCI)   +=  xhci/
 obj-y	+= mmp/
 obj-y	+= ram_console/
 obj-y   += thermal/
-obj-y   += videocodec/
+#obj-y   += videocodec/
 obj-y   += xlog/
 obj-y   += wdk/
 #obj-y   += evdo_support/
 obj-y	+= mt_logger/
 
 ifeq ($(CONFIG_MTK_SENSOR_SUPPORT),y)
-obj-$(CONFIG_CUSTOM_KERNEL_ALSPS) += alsps/
-obj-$(CONFIG_CUSTOM_KERNEL_ACCELEROMETER) += accelerometer/
-obj-$(CONFIG_CUSTOM_KERNEL_GYROSCOPE) += gyroscope/
-obj-$(CONFIG_CUSTOM_KERNEL_MAGNETOMETER) += magnetometer/
+#obj-y	+= alsps/
+obj-y	+= accelerometer/
+#obj-y	+= gyroscope/
+#obj-y	+= magnetometer/
 endif
 #obj-y	+= matv/
 #obj-y	+= touchpanel/
 #obj-y	+= cpu_stress/
 
+obj-$(CONFIG_CUSTOM_KERNEL_SENSORHUB) += sensorhub/
 
 ifneq ($(CONFIG_MTK_COMBO),)
 	subdir-ccflags-y += -D MTK_WCN_WMT_STP_EXP_SYMBOL_ABSTRACT
@@ -89,8 +82,8 @@ endif
 
 obj-$(CONFIG_MTK_BTIF)	+= btif/
 
-ifeq ($(CONFIG_MTK_NFC_SUPPORT),y)
-#obj-y	+= nfc/
+ifeq ($(CONFIG_MTK_NFC),y)
+obj-y	+= nfc/
 endif
 
 #ifeq ($(CONFIG_MTK_WIFI),m)
@@ -99,9 +92,9 @@ endif
 
 obj-$(CONFIG_ZRAM)	+= mlog/
 #obj-y	+= cam_cal/dummy_eeprom/
-obj-y	+= lens/
-obj-y	+= imgsensor/src/
-obj-y   += flashlight/src/
+#obj-y	+= lens/
+#obj-y	+= imgsensor/src/
+#obj-y   += flashlight/src/
 obj-y	+= sync/
 
 #rtc must compile before power, because they are both in fs_initcall, rtc need initial first for PMIC alarm call back
@@ -119,15 +112,16 @@ endif
 obj-y	+= auxadc/
 obj-y	+= accdet/
 obj-y	+= keypad/
-obj-y	+= dum-char/
-obj-y	+= ssw/
+#obj-y	+= dum-char/
+#obj-y	+= sysenv/
+#obj-y	+= ssw/
 #obj-$(CONFIG_MTK_CMMB) += cmmbdrv/
 #obj-y	+= devapc/
 obj-y	+= devinfo/
 obj-y	+= dispsys/
 obj-y	+= gpu/
 obj-y	+= i2c/
-obj-y	+= jpeg/
+#obj-y	+= jpeg/
 obj-y	+= leds/
 #obj-y	+= masp/
 obj-$(CONFIG_MTK_MMC) += mmc-host/

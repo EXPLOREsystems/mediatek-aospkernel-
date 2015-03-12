@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/os/linux/include/gl_wext_priv.h#3 $
 */
 
@@ -151,7 +165,6 @@
 #define IOCTL_SET_STRUCT_FOR_EM         (SIOCIWFIRSTPRIV + 11)
 #define IOCTL_SET_INTS                  (SIOCIWFIRSTPRIV + 12)
 #define IOCTL_GET_INTS                  (SIOCIWFIRSTPRIV + 13)
-#define IOCTL_SET_STRING				(SIOCIWFIRSTPRIV + 14) /* ++ TDLS */
 
 #define PRIV_CMD_REG_DOMAIN             0
 #define PRIV_CMD_BEACON_PERIOD          1
@@ -169,11 +182,11 @@
 #define PRIV_CMD_BT_COEXIST             8
 #define PRIV_GPIO2_MODE                 9
 
-#define PRIV_CUSTOM_SET_PTA        		10
+#define PRIV_CUSTOM_SET_PTA			10
 #define PRIV_CUSTOM_CONTINUOUS_POLL     11
 #define PRIV_CUSTOM_SINGLE_ANTENNA		12
 #define PRIV_CUSTOM_BWCS_CMD			13
-#define PRIV_CUSTOM_DISABLE_BEACON_DETECTION	14//later
+#define PRIV_CUSTOM_DISABLE_BEACON_DETECTION	14/* later */
 #define PRIV_CMD_OID                    15
 #define PRIV_SEC_MSG_OID                16
 
@@ -203,13 +216,6 @@
 #define PRIV_CMD_GET_BUILD_DATE_CODE    29
 
 #define PRIV_CMD_GET_DEBUG_CODE			30
-
-/* ++ TDLS */
-#define PRIV_CMD_OTHER					31
-
-/* other string command ID */
-#define PRIV_CMD_OTHER_TDLS				0x00
-/* -- TDLS */
 
 /* 802.3 Objects (Ethernet) */
 #define OID_802_3_CURRENT_ADDRESS           0x01010102
@@ -292,7 +298,7 @@ typedef struct _PRIV_CONFIG_ENTRY {
     UINT_8      ucValue;
 } PRIV_CONFIG_ENTRY, *PPRIV_CONFIG_ENTRY;
 
-typedef WLAN_STATUS (*PFN_OID_HANDLER_FUNC_REQ) (
+typedef WLAN_STATUS(*PFN_OID_HANDLER_FUNC_REQ) (
     IN  PVOID       prAdapter,
     IN OUT PVOID    pvBuf,
     IN  UINT_32     u4BufLen,
@@ -385,41 +391,15 @@ priv_set_struct(
     );
 
 int
-priv_get_struct (
+priv_get_struct(
     IN struct net_device *prNetDev,
     IN struct iw_request_info *prIwReqInfo,
     IN union iwreq_data *prIwReqData,
     IN OUT char *pcExtra
     );
 
-/* ++ TDLS */
-UINT_32
-CmdStringDecParse(
-    IN UINT_8 *InStr,
-    OUT UINT_8 **OutStr,
-    OUT UINT_32 *OutLen
-    );
-
-
-UINT_32
-CmdStringMacParse(
-    IN UINT_8 *InStr,
-    OUT UINT_8 **OutStr,
-    OUT UINT_32 *OutLen,
-	OUT UINT_8 *OutMac
-    );
-
 int
-priv_set_string(
-    IN struct net_device *prNetDev,
-    IN struct iw_request_info *prIwReqInfo,
-    IN union iwreq_data *prIwReqData,
-    IN char *pcExtra
-    );
-/* -- TDLS */
-
-int
-priv_support_ioctl (
+priv_support_ioctl(
     IN struct net_device *prDev,
     IN OUT struct ifreq *prReq,
     IN int i4Cmd
@@ -431,4 +411,3 @@ priv_support_ioctl (
 */
 
 #endif /* _GL_WEXT_PRIV_H */
-

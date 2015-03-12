@@ -21,8 +21,8 @@ static ulong meminfo_global_enabled;
 static ulong meminfo_enabled[MEMINFO_TOTAL];
 static ulong meminfo_key[MEMINFO_TOTAL];
 static unsigned long long meminfo_buffer[MEMINFO_TOTAL * 2];
-static int meminfo_length = 0;
-static unsigned int mem_event = 0;
+static int meminfo_length;
+static unsigned int mem_event;
 static bool new_data_avail;
 
 static void wq_sched_handler(struct work_struct *wsptr);
@@ -153,7 +153,7 @@ static void gator_events_meminfo_stop(void)
 	}
 }
 
-// Must be run in process context as the kernel function si_meminfo() can sleep
+/* Must be run in process context as the kernel function si_meminfo() can sleep */
 static void wq_sched_handler(struct work_struct *wsptr)
 {
 	struct sysinfo info;
@@ -190,13 +190,13 @@ static void wq_sched_handler(struct work_struct *wsptr)
 
 static void meminfo_wake_up_handler(unsigned long unused_data)
 {
-	// had to delay scheduling work as attempting to schedule work during the context switch is illegal in kernel versions 3.5 and greater
+	/* had to delay scheduling work as attempting to schedule work during the context switch is illegal in kernel versions 3.5 and greater */
 	schedule_work(&work);
 }
 
 static int gator_events_meminfo_read(long long **buffer)
 {
-	static unsigned int last_mem_event = 0;
+	static unsigned int last_mem_event;
 
 	if (!on_primary_core() || !meminfo_global_enabled)
 		return 0;

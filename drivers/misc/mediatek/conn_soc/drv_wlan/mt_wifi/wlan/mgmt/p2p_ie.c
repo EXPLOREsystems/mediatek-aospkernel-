@@ -1,3 +1,17 @@
+/*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "p2p_precomp.h"
 
 #if CFG_SUPPORT_WFD
@@ -5,30 +19,30 @@
 #if 0
 APPEND_VAR_ATTRI_ENTRY_T txProbeRspWFDAttributesTable[] = {
      { (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_DEV_INFO)   ,    NULL,                           wfdFuncAppendAttriDevInfo        }  /* 0 */
-    ,{ (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_ASSOC_BSSID),    NULL,                           wfdFuncAppendAttriAssocBssid   }  /* 1 */
-    ,{ (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_COUPLED_SINK_INFO),    NULL,                           wfdFuncAppendAttriCoupledSinkInfo   }  /* 6 */
-    ,{ (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_EXT_CAPABILITY),    NULL,                           wfdFuncAppendAttriExtCapability   }  /* 7 */
-    ,{ 0,                                                            wfdFuncCalculateAttriLenSessionInfo,                           wfdFuncAppendAttriSessionInfo   }  /* 9 */
+    , { (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_ASSOC_BSSID),    NULL,                           wfdFuncAppendAttriAssocBssid   }  /* 1 */
+    , { (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_COUPLED_SINK_INFO),    NULL,                           wfdFuncAppendAttriCoupledSinkInfo   }  /* 6 */
+    , { (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_EXT_CAPABILITY),    NULL,                           wfdFuncAppendAttriExtCapability   }  /* 7 */
+    , { 0,                                                            wfdFuncCalculateAttriLenSessionInfo,                           wfdFuncAppendAttriSessionInfo   }  /* 9 */
 };
 
 APPEND_VAR_ATTRI_ENTRY_T txBeaconWFDAttributesTable[] = {
      { (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_DEV_INFO)   ,    NULL,                           wfdFuncAppendAttriDevInfo        }  /* 0 */
-    ,{ (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_ASSOC_BSSID),    NULL,                           wfdFuncAppendAttriAssocBssid   }  /* 1 */
-    ,{ (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_COUPLED_SINK_INFO),    NULL,                           wfdFuncAppendAttriCoupledSinkInfo   }  /* 6 */
+    , { (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_ASSOC_BSSID),    NULL,                           wfdFuncAppendAttriAssocBssid   }  /* 1 */
+    , { (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_COUPLED_SINK_INFO),    NULL,                           wfdFuncAppendAttriCoupledSinkInfo   }  /* 6 */
 };
 
 APPEND_VAR_ATTRI_ENTRY_T txAssocReqWFDAttributesTable[] = {
      { (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_DEV_INFO)   ,    NULL,                           wfdFuncAppendAttriDevInfo        }  /* 0 */
-    ,{ (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_ASSOC_BSSID),    NULL,                           wfdFuncAppendAttriAssocBssid   }  /* 1 */
-    ,{ (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_COUPLED_SINK_INFO),    NULL,                           wfdFuncAppendAttriCoupledSinkInfo   }  /* 6 */
+    , { (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_ASSOC_BSSID),    NULL,                           wfdFuncAppendAttriAssocBssid   }  /* 1 */
+    , { (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_COUPLED_SINK_INFO),    NULL,                           wfdFuncAppendAttriCoupledSinkInfo   }  /* 6 */
 };
 #endif
 
 APPEND_VAR_ATTRI_ENTRY_T txAssocRspWFDAttributesTable[] = {
      { (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_DEV_INFO)   ,    NULL,                           wfdFuncAppendAttriDevInfo        }  /* 0 */
-    ,{ (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_ASSOC_BSSID),    NULL,                           wfdFuncAppendAttriAssocBssid   }  /* 1 */
-    ,{ (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_COUPLED_SINK_INFO),    NULL,                           wfdFuncAppendAttriCoupledSinkInfo   }  /* 6 */
-    ,{ 0,                                                            wfdFuncCalculateAttriLenSessionInfo,                           wfdFuncAppendAttriSessionInfo   }  /* 9 */
+    , { (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_ASSOC_BSSID),    NULL,                           wfdFuncAppendAttriAssocBssid   }  /* 1 */
+    , { (WFD_ATTRI_HDR_LEN + WFD_ATTRI_MAX_LEN_COUPLED_SINK_INFO),    NULL,                           wfdFuncAppendAttriCoupledSinkInfo   }  /* 6 */
+    , { 0,                                                            wfdFuncCalculateAttriLenSessionInfo,                           wfdFuncAppendAttriSessionInfo   }  /* 9 */
 
 };
 
@@ -38,7 +52,7 @@ APPEND_VAR_ATTRI_ENTRY_T txAssocRspWFDAttributesTable[] = {
 
 
 UINT_32
-p2pCalculate_IEForAssocReq (
+p2pCalculate_IEForAssocReq(
 
     IN P_ADAPTER_T prAdapter,
     IN ENUM_NETWORK_TYPE_INDEX_T eNetTypeIndex,
@@ -50,19 +64,19 @@ p2pCalculate_IEForAssocReq (
     UINT_32 u4RetValue = 0;
 
     do {
-        ASSERT_BREAK((eNetTypeIndex == NETWORK_TYPE_P2P_INDEX) && (prAdapter != NULL));
+	ASSERT_BREAK((eNetTypeIndex == NETWORK_TYPE_P2P_INDEX) && (prAdapter != NULL));
 
-        prP2pFsmInfo = prAdapter->rWifiVar.prP2pFsmInfo;
+	prP2pFsmInfo = prAdapter->rWifiVar.prP2pFsmInfo;
 
-        prConnReqInfo = &(prP2pFsmInfo->rConnReqInfo);
+	prConnReqInfo = &(prP2pFsmInfo->rConnReqInfo);
 
-        u4RetValue = prConnReqInfo->u4BufLength;
+	u4RetValue = prConnReqInfo->u4BufLength;
 
-        // ADD HT Capability
-        u4RetValue += (ELEM_HDR_LEN + ELEM_MAX_LEN_HT_CAP);
-		
-		// ADD WMM Information Element
-        u4RetValue += (ELEM_HDR_LEN + ELEM_MAX_LEN_WMM_INFO);
+	/* ADD HT Capability */
+	u4RetValue += (ELEM_HDR_LEN + ELEM_MAX_LEN_HT_CAP);
+
+		/* ADD WMM Information Element */
+	u4RetValue += (ELEM_HDR_LEN + ELEM_MAX_LEN_WMM_INFO);
 
     } while (FALSE);
 
@@ -81,7 +95,7 @@ p2pCalculate_IEForAssocReq (
 */
 /*----------------------------------------------------------------------------*/
 VOID
-p2pGenerate_IEForAssocReq (
+p2pGenerate_IEForAssocReq(
     IN P_ADAPTER_T prAdapter,
     IN P_MSDU_INFO_T prMsduInfo
     )
@@ -91,20 +105,20 @@ p2pGenerate_IEForAssocReq (
     PUINT_8 pucIEBuf = (PUINT_8)NULL;
 
     do {
-        ASSERT_BREAK((prAdapter != NULL) && (prMsduInfo != NULL));
+	ASSERT_BREAK((prAdapter != NULL) && (prMsduInfo != NULL));
 
-        prP2pFsmInfo = prAdapter->rWifiVar.prP2pFsmInfo;
+	prP2pFsmInfo = prAdapter->rWifiVar.prP2pFsmInfo;
 
-        prConnReqInfo = &(prP2pFsmInfo->rConnReqInfo);
+	prConnReqInfo = &(prP2pFsmInfo->rConnReqInfo);
 
-        pucIEBuf = (PUINT_8)((UINT_32)prMsduInfo->prPacket + (UINT_32)prMsduInfo->u2FrameLength);
+	pucIEBuf = (PUINT_8)((UINT_32)prMsduInfo->prPacket + (UINT_32)prMsduInfo->u2FrameLength);
 
-        kalMemCopy(pucIEBuf, prConnReqInfo->aucIEBuf, prConnReqInfo->u4BufLength);
+	kalMemCopy(pucIEBuf, prConnReqInfo->aucIEBuf, prConnReqInfo->u4BufLength);
 
-        prMsduInfo->u2FrameLength += prConnReqInfo->u4BufLength;
+	prMsduInfo->u2FrameLength += prConnReqInfo->u4BufLength;
 
-        rlmReqGenerateHtCapIE (prAdapter,prMsduInfo);
-		mqmGenerateWmmInfoIE (prAdapter,prMsduInfo);
+        rlmReqGenerateHtCapIE (prAdapter, prMsduInfo);
+		mqmGenerateWmmInfoIE (prAdapter, prMsduInfo);
 
 
     } while (FALSE);
@@ -116,7 +130,7 @@ p2pGenerate_IEForAssocReq (
 
 
 UINT_32
-wfdFuncAppendAttriDevInfo (
+wfdFuncAppendAttriDevInfo(
     IN P_ADAPTER_T prAdapter,
     IN BOOLEAN fgIsAssocFrame,
     IN PUINT_16 pu2Offset,
@@ -130,34 +144,34 @@ wfdFuncAppendAttriDevInfo (
     P_WFD_CFG_SETTINGS_T prWfdCfgSettings = (P_WFD_CFG_SETTINGS_T)NULL;
 
     do {
-        ASSERT_BREAK((prAdapter != NULL) && (pucBuf != NULL) && (pu2Offset != NULL));
+	ASSERT_BREAK((prAdapter != NULL) && (pucBuf != NULL) && (pu2Offset != NULL));
 
-        prWfdCfgSettings = &(prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings);
+	prWfdCfgSettings = &(prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings);
 
-        ASSERT_BREAK((prWfdCfgSettings != NULL));
+	ASSERT_BREAK((prWfdCfgSettings != NULL));
 
-        if ((prWfdCfgSettings->ucWfdEnable == 0) ||
-                ((prWfdCfgSettings->u4WfdFlag & WFD_FLAGS_DEV_INFO_VALID) == 0)) {
-            break;
-        }
+	if ((prWfdCfgSettings->ucWfdEnable == 0) ||
+		((prWfdCfgSettings->u4WfdFlag & WFD_FLAGS_DEV_INFO_VALID) == 0)) {
+	    break;
+	}
 
-        pucBuffer = (PUINT_8)((UINT_32)pucBuf + (UINT_32)(*pu2Offset));
+	pucBuffer = (PUINT_8)((UINT_32)pucBuf + (UINT_32)(*pu2Offset));
 
-        ASSERT_BREAK(pucBuffer != NULL);
+	ASSERT_BREAK(pucBuffer != NULL);
 
-        prWfdDevInfo = (P_WFD_DEVICE_INFORMATION_IE_T)pucBuffer;
+	prWfdDevInfo = (P_WFD_DEVICE_INFORMATION_IE_T)pucBuffer;
 
-        prWfdDevInfo->ucElemID = WFD_ATTRI_ID_DEV_INFO;
+	prWfdDevInfo->ucElemID = WFD_ATTRI_ID_DEV_INFO;
 
-        WLAN_SET_FIELD_BE16(&prWfdDevInfo->u2WfdDevInfo, prWfdCfgSettings->u2WfdDevInfo);
+	WLAN_SET_FIELD_BE16(&prWfdDevInfo->u2WfdDevInfo, prWfdCfgSettings->u2WfdDevInfo);
 
-        WLAN_SET_FIELD_BE16(&prWfdDevInfo->u2SessionMgmtCtrlPort, prWfdCfgSettings->u2WfdControlPort);
+	WLAN_SET_FIELD_BE16(&prWfdDevInfo->u2SessionMgmtCtrlPort, prWfdCfgSettings->u2WfdControlPort);
 
-        WLAN_SET_FIELD_BE16(&prWfdDevInfo->u2WfdDevMaxSpeed, prWfdCfgSettings->u2WfdMaximumTp);
+	WLAN_SET_FIELD_BE16(&prWfdDevInfo->u2WfdDevMaxSpeed, prWfdCfgSettings->u2WfdMaximumTp);
 
-        WLAN_SET_FIELD_BE16(&prWfdDevInfo->u2Length, WFD_ATTRI_MAX_LEN_DEV_INFO);
+	WLAN_SET_FIELD_BE16(&prWfdDevInfo->u2Length, WFD_ATTRI_MAX_LEN_DEV_INFO);
 
-        u4AttriLen = WFD_ATTRI_MAX_LEN_DEV_INFO + WFD_ATTRI_HDR_LEN;
+	u4AttriLen = WFD_ATTRI_MAX_LEN_DEV_INFO + WFD_ATTRI_HDR_LEN;
 
     } while (FALSE);
 
@@ -168,7 +182,7 @@ wfdFuncAppendAttriDevInfo (
 /* wfdFuncAppendAttriDevInfo */
 
 UINT_32
-wfdFuncAppendAttriAssocBssid (
+wfdFuncAppendAttriAssocBssid(
     IN P_ADAPTER_T prAdapter,
     IN BOOLEAN fgIsAssocFrame,
     IN PUINT_16 pu2Offset,
@@ -183,37 +197,37 @@ wfdFuncAppendAttriAssocBssid (
     P_BSS_INFO_T prAisBssInfo = (P_BSS_INFO_T)NULL;
 
     do {
-        ASSERT_BREAK((prAdapter != NULL) && (pucBuf != NULL) && (pu2Offset != NULL));
+	ASSERT_BREAK((prAdapter != NULL) && (pucBuf != NULL) && (pu2Offset != NULL));
 
-        prWfdCfgSettings = &(prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings);
+	prWfdCfgSettings = &(prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings);
 
-        ASSERT_BREAK((prWfdCfgSettings != NULL));
+	ASSERT_BREAK((prWfdCfgSettings != NULL));
 
-        if (prWfdCfgSettings->ucWfdEnable == 0) {
-            break;
-        }
+	if (prWfdCfgSettings->ucWfdEnable == 0) {
+	    break;
+	}
 
-        /* AIS network. */
-        prAisBssInfo = &(prAdapter->rWifiVar.arBssInfo[NETWORK_TYPE_AIS_INDEX]);
+	/* AIS network. */
+	prAisBssInfo = &(prAdapter->rWifiVar.arBssInfo[NETWORK_TYPE_AIS_INDEX]);
 
-        if ((!IS_NET_ACTIVE(prAdapter, NETWORK_TYPE_AIS_INDEX)) ||
-                (prAisBssInfo->eConnectionState != PARAM_MEDIA_STATE_CONNECTED)) {
-            break;
-        }
+	if ((!IS_NET_ACTIVE(prAdapter, NETWORK_TYPE_AIS_INDEX)) ||
+		(prAisBssInfo->eConnectionState != PARAM_MEDIA_STATE_CONNECTED)) {
+	    break;
+	}
 
-        pucBuffer = (PUINT_8)((UINT_32)pucBuf + (UINT_32)(*pu2Offset));
+	pucBuffer = (PUINT_8)((UINT_32)pucBuf + (UINT_32)(*pu2Offset));
 
-        ASSERT_BREAK(pucBuffer != NULL);
+	ASSERT_BREAK(pucBuffer != NULL);
 
-        prWfdAssocBssid = (P_WFD_ASSOCIATED_BSSID_IE_T)pucBuffer;
+	prWfdAssocBssid = (P_WFD_ASSOCIATED_BSSID_IE_T)pucBuffer;
 
-        prWfdAssocBssid->ucElemID = WFD_ATTRI_ID_ASSOC_BSSID;
+	prWfdAssocBssid->ucElemID = WFD_ATTRI_ID_ASSOC_BSSID;
 
-        WLAN_SET_FIELD_BE16(&prWfdAssocBssid->u2Length, WFD_ATTRI_MAX_LEN_ASSOC_BSSID);
+	WLAN_SET_FIELD_BE16(&prWfdAssocBssid->u2Length, WFD_ATTRI_MAX_LEN_ASSOC_BSSID);
 
-        COPY_MAC_ADDR(prWfdAssocBssid->aucAssocBssid, prAisBssInfo->aucBSSID);
+	COPY_MAC_ADDR(prWfdAssocBssid->aucAssocBssid, prAisBssInfo->aucBSSID);
 
-        u4AttriLen = WFD_ATTRI_MAX_LEN_ASSOC_BSSID + WFD_ATTRI_HDR_LEN;
+	u4AttriLen = WFD_ATTRI_MAX_LEN_ASSOC_BSSID + WFD_ATTRI_HDR_LEN;
 
     } while (FALSE);
 
@@ -224,7 +238,7 @@ wfdFuncAppendAttriAssocBssid (
 /* wfdFuncAppendAttriAssocBssid */
 
 UINT_32
-wfdFuncAppendAttriCoupledSinkInfo (
+wfdFuncAppendAttriCoupledSinkInfo(
     IN P_ADAPTER_T prAdapter,
     IN BOOLEAN fgIsAssocFrame,
     IN PUINT_16 pu2Offset,
@@ -238,32 +252,32 @@ wfdFuncAppendAttriCoupledSinkInfo (
     P_WFD_CFG_SETTINGS_T prWfdCfgSettings = (P_WFD_CFG_SETTINGS_T)NULL;
 
     do {
-        ASSERT_BREAK((prAdapter != NULL) && (pucBuf != NULL) && (pu2Offset != NULL));
+	ASSERT_BREAK((prAdapter != NULL) && (pucBuf != NULL) && (pu2Offset != NULL));
 
-        prWfdCfgSettings = &(prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings);
+	prWfdCfgSettings = &(prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings);
 
-        ASSERT_BREAK((prWfdCfgSettings != NULL));
+	ASSERT_BREAK((prWfdCfgSettings != NULL));
 
-        if ((prWfdCfgSettings->ucWfdEnable == 0) ||
-                ((prWfdCfgSettings->u4WfdFlag & WFD_FLAGS_SINK_INFO_VALID) == 0)) {
-            break;
-        }
+	if ((prWfdCfgSettings->ucWfdEnable == 0) ||
+		((prWfdCfgSettings->u4WfdFlag & WFD_FLAGS_SINK_INFO_VALID) == 0)) {
+	    break;
+	}
 
-        pucBuffer = (PUINT_8)((UINT_32)pucBuf + (UINT_32)(*pu2Offset));
+	pucBuffer = (PUINT_8)((UINT_32)pucBuf + (UINT_32)(*pu2Offset));
 
-        ASSERT_BREAK(pucBuffer != NULL);
+	ASSERT_BREAK(pucBuffer != NULL);
 
-        prWfdCoupleSinkInfo = (P_WFD_COUPLE_SINK_INFORMATION_IE_T)pucBuffer;
+	prWfdCoupleSinkInfo = (P_WFD_COUPLE_SINK_INFORMATION_IE_T)pucBuffer;
 
-        prWfdCoupleSinkInfo->ucElemID = WFD_ATTRI_ID_COUPLED_SINK_INFO;
+	prWfdCoupleSinkInfo->ucElemID = WFD_ATTRI_ID_COUPLED_SINK_INFO;
 
-        WLAN_SET_FIELD_BE16(&prWfdCoupleSinkInfo->u2Length, WFD_ATTRI_MAX_LEN_COUPLED_SINK_INFO);
+	WLAN_SET_FIELD_BE16(&prWfdCoupleSinkInfo->u2Length, WFD_ATTRI_MAX_LEN_COUPLED_SINK_INFO);
 
-        COPY_MAC_ADDR(prWfdCoupleSinkInfo->aucCoupleSinkMac, prWfdCfgSettings->aucWfdCoupleSinkAddress);
+	COPY_MAC_ADDR(prWfdCoupleSinkInfo->aucCoupleSinkMac, prWfdCfgSettings->aucWfdCoupleSinkAddress);
 
-        prWfdCoupleSinkInfo->ucCoupleSinkStatusBp = prWfdCfgSettings->ucWfdCoupleSinkStatus;
+	prWfdCoupleSinkInfo->ucCoupleSinkStatusBp = prWfdCfgSettings->ucWfdCoupleSinkStatus;
 
-        u4AttriLen = WFD_ATTRI_MAX_LEN_COUPLED_SINK_INFO + WFD_ATTRI_HDR_LEN;
+	u4AttriLen = WFD_ATTRI_MAX_LEN_COUPLED_SINK_INFO + WFD_ATTRI_HDR_LEN;
 
     } while (FALSE);
 
@@ -274,7 +288,7 @@ wfdFuncAppendAttriCoupledSinkInfo (
 /* wfdFuncAppendAttriCoupledSinkInfo */
 
 UINT_32
-wfdFuncAppendAttriExtCapability (
+wfdFuncAppendAttriExtCapability(
     IN P_ADAPTER_T prAdapter,
     IN BOOLEAN fgIsAssocFrame,
     IN PUINT_16 pu2Offset,
@@ -288,30 +302,30 @@ wfdFuncAppendAttriExtCapability (
     P_WFD_CFG_SETTINGS_T prWfdCfgSettings = (P_WFD_CFG_SETTINGS_T)NULL;
 
     do {
-        ASSERT_BREAK((prAdapter != NULL) && (pucBuf != NULL) && (pu2Offset != NULL));
+	ASSERT_BREAK((prAdapter != NULL) && (pucBuf != NULL) && (pu2Offset != NULL));
 
-        prWfdCfgSettings = &(prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings);
+	prWfdCfgSettings = &(prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings);
 
-        ASSERT_BREAK((prWfdCfgSettings != NULL));
+	ASSERT_BREAK((prWfdCfgSettings != NULL));
 
-        if ((prWfdCfgSettings->ucWfdEnable == 0) ||
-                ((prWfdCfgSettings->u4WfdFlag & WFD_FLAGS_EXT_CAPABILITY_VALID) == 0)) {
-            break;
-        }
+	if ((prWfdCfgSettings->ucWfdEnable == 0) ||
+		((prWfdCfgSettings->u4WfdFlag & WFD_FLAGS_EXT_CAPABILITY_VALID) == 0)) {
+	    break;
+	}
 
-        pucBuffer = (PUINT_8)((UINT_32)pucBuf + (UINT_32)(*pu2Offset));
+	pucBuffer = (PUINT_8)((UINT_32)pucBuf + (UINT_32)(*pu2Offset));
 
-        ASSERT_BREAK(pucBuffer != NULL);
+	ASSERT_BREAK(pucBuffer != NULL);
 
-        prWfdExtCapability = (P_WFD_EXTENDED_CAPABILITY_IE_T)pucBuffer;
+	prWfdExtCapability = (P_WFD_EXTENDED_CAPABILITY_IE_T)pucBuffer;
 
-        prWfdExtCapability->ucElemID = WFD_ATTRI_ID_EXT_CAPABILITY;
+	prWfdExtCapability->ucElemID = WFD_ATTRI_ID_EXT_CAPABILITY;
 
-        WLAN_SET_FIELD_BE16(&prWfdExtCapability->u2Length, WFD_ATTRI_MAX_LEN_EXT_CAPABILITY);
+	WLAN_SET_FIELD_BE16(&prWfdExtCapability->u2Length, WFD_ATTRI_MAX_LEN_EXT_CAPABILITY);
 
-        WLAN_SET_FIELD_BE16(&prWfdExtCapability->u2WfdExtCapabilityBp, prWfdCfgSettings->u2WfdExtendCap);
+	WLAN_SET_FIELD_BE16(&prWfdExtCapability->u2WfdExtCapabilityBp, prWfdCfgSettings->u2WfdExtendCap);
 
-        u4AttriLen = WFD_ATTRI_MAX_LEN_EXT_CAPABILITY + WFD_ATTRI_HDR_LEN;
+	u4AttriLen = WFD_ATTRI_MAX_LEN_EXT_CAPABILITY + WFD_ATTRI_HDR_LEN;
 
     } while (FALSE);
 
@@ -333,7 +347,7 @@ wfdFuncAppendAttriExtCapability (
 */
 /*----------------------------------------------------------------------------*/
 UINT_32
-wfdFuncCalculateAttriLenSessionInfo (
+wfdFuncCalculateAttriLenSessionInfo(
     IN P_ADAPTER_T prAdapter,
     IN P_STA_RECORD_T prStaRec
     )
@@ -342,15 +356,15 @@ wfdFuncCalculateAttriLenSessionInfo (
     P_WFD_CFG_SETTINGS_T prWfdCfgSettings = (P_WFD_CFG_SETTINGS_T)NULL;
 
     do {
-        ASSERT_BREAK((prAdapter != NULL) && (prStaRec != NULL));
+	ASSERT_BREAK((prAdapter != NULL) && (prStaRec != NULL));
 
-        prWfdCfgSettings = &(prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings);
+	prWfdCfgSettings = &(prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings);
 
-        if (prWfdCfgSettings->ucWfdEnable == 0) {
-            break;
-        }
+	if (prWfdCfgSettings->ucWfdEnable == 0) {
+	    break;
+	}
 
-        u2AttriLen = prWfdCfgSettings->u2WfdSessionInformationIELen + WFD_ATTRI_HDR_LEN;
+	u2AttriLen = prWfdCfgSettings->u2WfdSessionInformationIELen + WFD_ATTRI_HDR_LEN;
 
     } while (FALSE);
 
@@ -361,7 +375,7 @@ wfdFuncCalculateAttriLenSessionInfo (
 
 
 UINT_32
-wfdFuncAppendAttriSessionInfo (
+wfdFuncAppendAttriSessionInfo(
     IN P_ADAPTER_T prAdapter,
     IN BOOLEAN fgIsAssocFrame,
     IN PUINT_16 pu2Offset,
@@ -375,30 +389,30 @@ wfdFuncAppendAttriSessionInfo (
     P_WFD_CFG_SETTINGS_T prWfdCfgSettings = (P_WFD_CFG_SETTINGS_T)NULL;
 
     do {
-        ASSERT_BREAK((prAdapter != NULL) && (pucBuf != NULL) && (pu2Offset != NULL));
+	ASSERT_BREAK((prAdapter != NULL) && (pucBuf != NULL) && (pu2Offset != NULL));
 
-        prWfdCfgSettings = &(prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings);
+	prWfdCfgSettings = &(prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings);
 
-        ASSERT_BREAK((prWfdCfgSettings != NULL));
+	ASSERT_BREAK((prWfdCfgSettings != NULL));
 
-        if ((prWfdCfgSettings->ucWfdEnable == 0) || (prWfdCfgSettings->u2WfdSessionInformationIELen == 0)) {
-            break;
-        }
+	if ((prWfdCfgSettings->ucWfdEnable == 0) || (prWfdCfgSettings->u2WfdSessionInformationIELen == 0)) {
+	    break;
+	}
 
-        pucBuffer = (PUINT_8)((UINT_32)pucBuf + (UINT_32)(*pu2Offset));
+	pucBuffer = (PUINT_8)((UINT_32)pucBuf + (UINT_32)(*pu2Offset));
 
-        ASSERT_BREAK(pucBuffer != NULL);
+	ASSERT_BREAK(pucBuffer != NULL);
 
-        prWfdSessionInfo = (P_WFD_SESSION_INFORMATION_IE_T)pucBuffer;
+	prWfdSessionInfo = (P_WFD_SESSION_INFORMATION_IE_T)pucBuffer;
 
-        prWfdSessionInfo->ucElemID = WFD_ATTRI_ID_SESSION_INFO;
+	prWfdSessionInfo->ucElemID = WFD_ATTRI_ID_SESSION_INFO;
 
-        // TODO: Check endian issue?
-        kalMemCopy(prWfdSessionInfo->pucWfdDevInfoDesc, prWfdCfgSettings->aucWfdSessionInformationIE, prWfdCfgSettings->u2WfdSessionInformationIELen);
+	/* TODO: Check endian issue? */
+	kalMemCopy(prWfdSessionInfo->pucWfdDevInfoDesc, prWfdCfgSettings->aucWfdSessionInformationIE, prWfdCfgSettings->u2WfdSessionInformationIELen);
 
-        WLAN_SET_FIELD_16(&prWfdSessionInfo->u2Length, prWfdCfgSettings->u2WfdSessionInformationIELen);
+	WLAN_SET_FIELD_16(&prWfdSessionInfo->u2Length, prWfdCfgSettings->u2WfdSessionInformationIELen);
 
-        u4AttriLen = prWfdCfgSettings->u2WfdSessionInformationIELen + WFD_ATTRI_HDR_LEN;
+	u4AttriLen = prWfdCfgSettings->u2WfdSessionInformationIELen + WFD_ATTRI_HDR_LEN;
 
     }
 while (FALSE);
@@ -413,7 +427,7 @@ while (FALSE);
 
 #if CFG_SUPPORT_WFD_COMPOSE_IE
 VOID
-wfdFuncGenerateWfd_IE (
+wfdFuncGenerateWfd_IE(
     IN P_ADAPTER_T prAdapter,
     IN BOOLEAN fgIsAssocFrame,
     IN PUINT_16 pu2Offset,
@@ -435,63 +449,63 @@ wfdFuncGenerateWfd_IE (
 
 
     do {
-        ASSERT_BREAK((prAdapter != NULL) && (pucBuf != NULL));
+	ASSERT_BREAK((prAdapter != NULL) && (pucBuf != NULL));
 
-        pucBuffer = (PUINT_8)((UINT_32)pucBuf + (*pu2Offset));
+	pucBuffer = (PUINT_8)((UINT_32)pucBuf + (*pu2Offset));
 
-        ASSERT_BREAK(pucBuffer != NULL);
+	ASSERT_BREAK(pucBuffer != NULL);
 
-        /* Check buffer length is still enough. */
-        ASSERT_BREAK((u2BufSize - (*pu2Offset)) >= WFD_IE_OUI_HDR);
+	/* Check buffer length is still enough. */
+	ASSERT_BREAK((u2BufSize - (*pu2Offset)) >= WFD_IE_OUI_HDR);
 
-        prIeWFD = (P_IE_WFD_T)pucBuffer;
+	prIeWFD = (P_IE_WFD_T)pucBuffer;
 
-        prIeWFD->ucId = ELEM_ID_WFD;
+	prIeWFD->ucId = ELEM_ID_WFD;
 
-        prIeWFD->aucOui[0] = aucWfaOui[0];
-        prIeWFD->aucOui[1] = aucWfaOui[1];
-        prIeWFD->aucOui[2] = aucWfaOui[2];
-        prIeWFD->ucOuiType = VENDOR_OUI_TYPE_WFD;
+	prIeWFD->aucOui[0] = aucWfaOui[0];
+	prIeWFD->aucOui[1] = aucWfaOui[1];
+	prIeWFD->aucOui[2] = aucWfaOui[2];
+	prIeWFD->ucOuiType = VENDOR_OUI_TYPE_WFD;
 
-        (*pu2Offset) += WFD_IE_OUI_HDR;
+	(*pu2Offset) += WFD_IE_OUI_HDR;
 
-        /* Overall length of all Attributes */
-        u4OverallAttriLen = 0;
+	/* Overall length of all Attributes */
+	u4OverallAttriLen = 0;
 
-        for (i = 0; i < u4AttriTableSize; i++) {
+	for (i = 0; i < u4AttriTableSize; i++) {
 
-            if (arAppendAttriTable[i].pfnAppendAttri) {
-                u4AttriLen = arAppendAttriTable[i].pfnAppendAttri(prAdapter, fgIsAssocFrame, pu2Offset, pucBuf, u2BufSize);
+	    if (arAppendAttriTable[i].pfnAppendAttri) {
+		u4AttriLen = arAppendAttriTable[i].pfnAppendAttri(prAdapter, fgIsAssocFrame, pu2Offset, pucBuf, u2BufSize);
 
-                u4OverallAttriLen += u4AttriLen;
+		u4OverallAttriLen += u4AttriLen;
 
-                if (u4OverallAttriLen > P2P_MAXIMUM_ATTRIBUTE_LEN) {
-                    u4OverallAttriLen -= P2P_MAXIMUM_ATTRIBUTE_LEN;
+		if (u4OverallAttriLen > P2P_MAXIMUM_ATTRIBUTE_LEN) {
+		    u4OverallAttriLen -= P2P_MAXIMUM_ATTRIBUTE_LEN;
 
-                    prIeWFD->ucLength = (VENDOR_OUI_TYPE_LEN + P2P_MAXIMUM_ATTRIBUTE_LEN);
+		    prIeWFD->ucLength = (VENDOR_OUI_TYPE_LEN + P2P_MAXIMUM_ATTRIBUTE_LEN);
 
-                    pucBuffer = (PUINT_8)((UINT_32)prIeWFD + (WFD_IE_OUI_HDR + P2P_MAXIMUM_ATTRIBUTE_LEN));
+		    pucBuffer = (PUINT_8)((UINT_32)prIeWFD + (WFD_IE_OUI_HDR + P2P_MAXIMUM_ATTRIBUTE_LEN));
 
-                    prIeWFD = (P_IE_WFD_T)((UINT_32)prIeWFD + (WFD_IE_OUI_HDR + P2P_MAXIMUM_ATTRIBUTE_LEN));
+		    prIeWFD = (P_IE_WFD_T)((UINT_32)prIeWFD + (WFD_IE_OUI_HDR + P2P_MAXIMUM_ATTRIBUTE_LEN));
 
-                    kalMemCopy(aucTempBuffer, pucBuffer, u4OverallAttriLen);
+		    kalMemCopy(aucTempBuffer, pucBuffer, u4OverallAttriLen);
 
-                    prIeWFD->ucId = ELEM_ID_WFD;
+		    prIeWFD->ucId = ELEM_ID_WFD;
 
-                    prIeWFD->aucOui[0] = aucWfaOui[0];
-                    prIeWFD->aucOui[1] = aucWfaOui[1];
-                    prIeWFD->aucOui[2] = aucWfaOui[2];
-                    prIeWFD->ucOuiType = VENDOR_OUI_TYPE_WFD;
+		    prIeWFD->aucOui[0] = aucWfaOui[0];
+		    prIeWFD->aucOui[1] = aucWfaOui[1];
+		    prIeWFD->aucOui[2] = aucWfaOui[2];
+		    prIeWFD->ucOuiType = VENDOR_OUI_TYPE_WFD;
 
-                    kalMemCopy(prIeWFD->aucWFDAttributes, aucTempBuffer, u4OverallAttriLen);
-                    (*pu2Offset) += WFD_IE_OUI_HDR;
-                }
+		    kalMemCopy(prIeWFD->aucWFDAttributes, aucTempBuffer, u4OverallAttriLen);
+		    (*pu2Offset) += WFD_IE_OUI_HDR;
+		}
 
-            }
+	    }
 
-        }
+	}
 
-        prIeWFD->ucLength = (UINT_8)(VENDOR_OUI_TYPE_LEN + u4OverallAttriLen);
+	prIeWFD->ucLength = (UINT_8)(VENDOR_OUI_TYPE_LEN + u4OverallAttriLen);
 
 
     } while (FALSE);
@@ -505,7 +519,7 @@ wfdFuncGenerateWfd_IE (
 
 
 UINT_32
-wfdFuncCalculateWfdIELenForAssocRsp (
+wfdFuncCalculateWfdIELenForAssocRsp(
     IN P_ADAPTER_T prAdapter,
     IN ENUM_NETWORK_TYPE_INDEX_T eNetTypeIndex,
     IN P_STA_RECORD_T prStaRec
@@ -518,17 +532,17 @@ wfdFuncCalculateWfdIELenForAssocRsp (
     prWfdCfgSettings = &(prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings);
 
     if (
-        !IS_STA_P2P_TYPE(prStaRec) ||
-            (prWfdCfgSettings->ucWfdEnable == 0)) {
-        return 0;
+	!IS_STA_P2P_TYPE(prStaRec) ||
+	    (prWfdCfgSettings->ucWfdEnable == 0)) {
+	return 0;
     }
 
     return p2pFuncCalculateP2P_IELen(prAdapter,
-                                eNetTypeIndex,
-                                prStaRec,
-                                txAssocRspWFDAttributesTable,
-                                sizeof(txAssocRspWFDAttributesTable)/sizeof(APPEND_VAR_ATTRI_ENTRY_T));
-    
+				eNetTypeIndex,
+				prStaRec,
+				txAssocRspWFDAttributesTable,
+				sizeof(txAssocRspWFDAttributesTable)/sizeof(APPEND_VAR_ATTRI_ENTRY_T));
+
 #else
     return 0;
 #endif
@@ -537,7 +551,7 @@ wfdFuncCalculateWfdIELenForAssocRsp (
 
 
 VOID
-wfdFuncGenerateWfdIEForAssocRsp (
+wfdFuncGenerateWfdIEForAssocRsp(
     IN  P_ADAPTER_T       prAdapter,
     IN  P_MSDU_INFO_T     prMsduInfo
     )
@@ -546,30 +560,30 @@ wfdFuncGenerateWfdIEForAssocRsp (
 #if CFG_SUPPORT_WFD_COMPOSE_IE
     P_WFD_CFG_SETTINGS_T prWfdCfgSettings = (P_WFD_CFG_SETTINGS_T)NULL;
     P_STA_RECORD_T prStaRec;
-    
+
     do {
-        ASSERT_BREAK((prMsduInfo != NULL) && (prAdapter != NULL));
-    
-        prWfdCfgSettings = &(prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings);
-        prStaRec = cnmGetStaRecByIndex(prAdapter, prMsduInfo->ucStaRecIndex);
+	ASSERT_BREAK((prMsduInfo != NULL) && (prAdapter != NULL));
 
-        if (IS_STA_P2P_TYPE(prStaRec)) {
-       
-            if (prWfdCfgSettings->ucWfdEnable == 0) {
-                break;
-            }
-            if((prWfdCfgSettings->u4WfdFlag & WFD_FLAGS_DEV_INFO_VALID) == 0) {
-                break;
-            }
+	prWfdCfgSettings = &(prAdapter->rWifiVar.prP2pFsmInfo->rWfdConfigureSettings);
+	prStaRec = cnmGetStaRecByIndex(prAdapter, prMsduInfo->ucStaRecIndex);
 
-            wfdFuncGenerateWfd_IE(prAdapter,
-                            FALSE,
-                            &prMsduInfo->u2FrameLength,
-                            prMsduInfo->prPacket,
-                            1500,
-                            txAssocRspWFDAttributesTable,
-                            sizeof(txAssocRspWFDAttributesTable)/sizeof(APPEND_VAR_ATTRI_ENTRY_T));
-        }
+	if (IS_STA_P2P_TYPE(prStaRec)) {
+
+	    if (prWfdCfgSettings->ucWfdEnable == 0) {
+		break;
+	    }
+	    if ((prWfdCfgSettings->u4WfdFlag & WFD_FLAGS_DEV_INFO_VALID) == 0) {
+		break;
+	    }
+
+	    wfdFuncGenerateWfd_IE(prAdapter,
+			    FALSE,
+			    &prMsduInfo->u2FrameLength,
+			    prMsduInfo->prPacket,
+			    1500,
+			    txAssocRspWFDAttributesTable,
+			    sizeof(txAssocRspWFDAttributesTable)/sizeof(APPEND_VAR_ATTRI_ENTRY_T));
+	}
     } while (FALSE);
 
     return;

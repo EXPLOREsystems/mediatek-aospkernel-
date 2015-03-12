@@ -495,11 +495,20 @@ struct file_operations WIFI_fops = {
 	.write = WIFI_write,
 };
 
+
+#if REMOVE_MK_NODE
+struct class *wmtWifi_class = NULL;
+#endif
+
+
 static int WIFI_init(void)
 {
 	dev_t dev = MKDEV(WIFI_major, 0);
 	int alloc_ret = 0;
 	int cdev_err = 0;
+#if REMOVE_MK_NODE
+	struct device *wmtWifi_dev = NULL;
+#endif
 
 	/*static allocate chrdev */
 	alloc_ret = register_chrdev_region(dev, 1, WIFI_DRIVER_NAME);
@@ -515,7 +524,14 @@ static int WIFI_init(void)
 	if (cdev_err) {
 		goto error;
 	}
-
+#if REMOVE_MK_NODE
+	wmtWifi_class = class_create(THIS_MODULE, "wmtWifi");
+	if (IS_ERR(wmtWifi_class))
+		goto error;
+	wmtWifi_dev = device_create(wmtWifi_class, NULL, dev, NULL, "wmtWifi");
+	if (IS_ERR(wmtWifi_dev))
+		goto error;
+#endif
 	sema_init(&wr_mtx, 1);
 
 	WIFI_INFO_FUNC("%s driver(major %d) installed.\n", WIFI_DRIVER_NAME, WIFI_major);
@@ -526,6 +542,14 @@ static int WIFI_init(void)
 	return 0;
 
  error:
+#if REMOVE_MK_NODE
+	if (!IS_ERR(wmtWifi_dev))
+		device_destroy(wmtWifi_class, dev);
+	if (!IS_ERR(wmtWifi_class)) {
+		class_destroy(wmtWifi_class);
+		wmtWifi_class = NULL;
+	}
+#endif
 	if (cdev_err == 0) {
 		cdev_del(&WIFI_cdev);
 	}
@@ -541,6 +565,11 @@ static void WIFI_exit(void)
 {
 	dev_t dev = MKDEV(WIFI_major, 0);
 	retflag = 0;
+#if REMOVE_MK_NODE
+	device_destroy(wmtWifi_class, dev);
+	class_destroy(wmtWifi_class);
+	wmtWifi_class = NULL;
+#endif
 
 	cdev_del(&WIFI_cdev);
 	unregister_chrdev_region(dev, WIFI_devs);

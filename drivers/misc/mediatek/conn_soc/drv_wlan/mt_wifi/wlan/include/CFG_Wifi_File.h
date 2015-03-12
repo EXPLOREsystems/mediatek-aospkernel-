@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/CFG_Wifi_File.h#1 $
 */
 
@@ -91,10 +105,18 @@
 *                            P U B L I C   D A T A
 ********************************************************************************
 */
-// duplicated from nic_cmd_event.h to avoid header dependency
+/* duplicated from nic_cmd_event.h to avoid header dependency */
 typedef struct _TX_PWR_PARAM_T {
     INT_8       cTxPwr2G4Cck;		/* signed, in unit of 0.5dBm */
-    INT_8       acReserved[3];          /* form MT6628 acReserved[0]=cTxPwr2G4Dsss */
+#if defined(MT6620)
+    INT_8       acReserved[3];
+#elif defined(MT5931) || defined(MT6628)
+    INT_8       cTxPwr2G4Dsss;      /* signed, in unit of 0.5dBm */
+    INT_8       acReserved[2];
+#else
+    #error "No valid definition!"
+#endif
+
     INT_8       cTxPwr2G4OFDM_BPSK;
     INT_8       cTxPwr2G4OFDM_QPSK;
     INT_8       cTxPwr2G4OFDM_16QAM;
@@ -183,11 +205,7 @@ typedef struct _MT6620_CFG_PARAM_STRUCT {
     UINT_8              uc5GBwFixed20M;
     UINT_8              ucEnable5GBand;
     UINT_8              aucPreTailReserved;
-    UINT_8              uc2GRssiCompensation;
-    UINT_8              uc5GRssiCompensation;
-    UINT_8              fgRssiCompensationValidbit;
-    UINT_8              ucRxAntennanumber;
-    UINT_8              aucTailReserved[256-12];
+    UINT_8              aucTailReserved[256-8];
 } MT6620_CFG_PARAM_STRUCT, *P_MT6620_CFG_PARAM_STRUCT,
     WIFI_CFG_PARAM_STRUCT, *P_WIFI_CFG_PARAM_STRUCT;
 
@@ -202,7 +220,7 @@ typedef struct _MT6620_CFG_PARAM_STRUCT {
 */
 #ifndef DATA_STRUC_INSPECTING_ASSERT
 #define DATA_STRUC_INSPECTING_ASSERT(expr) \
-        switch (0) {case 0: case (expr): default:;}
+        switch (0) {case 0: case (expr): default:; }
 #endif
 
 #define CFG_FILE_WIFI_REC_SIZE    sizeof(WIFI_CFG_PARAM_STRUCT)
@@ -224,24 +242,22 @@ typedef struct _MT6620_CFG_PARAM_STRUCT {
  * to simply handling effort in some functions.
  */
 __KAL_INLINE__ VOID
-nvramOffsetCheck (
+nvramOffsetCheck(
     VOID
     )
 {
     DATA_STRUC_INSPECTING_ASSERT(
-        OFFSET_OF(WIFI_CFG_PARAM_STRUCT, u2Part2OwnVersion) == 256);
+	OFFSET_OF(WIFI_CFG_PARAM_STRUCT, u2Part2OwnVersion) == 256);
 
     DATA_STRUC_INSPECTING_ASSERT(
-        sizeof(WIFI_CFG_PARAM_STRUCT) == 512);
+	sizeof(WIFI_CFG_PARAM_STRUCT) == 512);
 
     DATA_STRUC_INSPECTING_ASSERT(
-        (OFFSET_OF(WIFI_CFG_PARAM_STRUCT, aucEFUSE) & 0x0001) == 0);
+	(OFFSET_OF(WIFI_CFG_PARAM_STRUCT, aucEFUSE) & 0x0001) == 0);
 
     DATA_STRUC_INSPECTING_ASSERT(
-        (OFFSET_OF(WIFI_CFG_PARAM_STRUCT, aucRegSubbandInfo) & 0x0001) == 0);
+	(OFFSET_OF(WIFI_CFG_PARAM_STRUCT, aucRegSubbandInfo) & 0x0001) == 0);
 }
 #endif
 
 #endif /* _CFG_WIFI_FILE_H */
-
-

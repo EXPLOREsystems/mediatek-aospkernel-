@@ -1,4 +1,3 @@
-/* MPU3000 motion sensor driver
 /*
 * Copyright (C) 2011-2014 MediaTek Inc.
 *
@@ -31,18 +30,16 @@
 #include <linux/sensors_io.h>
 #include <linux/hwmsen_helper.h>
 #include <linux/kernel.h>
-
-
 #include <mach/mt_typedefs.h>
 #include <mach/mt_gpio.h>
 #include <mach/mt_pm_ldo.h>
-
 #include <mach/mt_boot.h>
 #include <cust_gyro.h>
 #include <gyroscope.h>
 #include <linux/batch.h>
 #include "mpu3050c.h"
-#include <mach/sensors_ssb.h>
+#include <linux/Sensors_SSB.h>
+/*-------------------------MT6516&MT6573 define-------------------------------*/
 
 
 #define POWER_NONE_MACRO MT65XX_POWER_NONE
@@ -64,21 +61,30 @@
 #define MPU3000_DATA_LEN        6
 #define MPU3000_DEV_NAME        "MPU3000"
 /*----------------------------------------------------------------------------*/
-static const struct i2c_device_id mpu3000_i2c_id[] = {{MPU3000_DEV_NAME,0},{}};
+static const struct i2c_device_id mpu3000_i2c_id[] = {{MPU3000_DEV_NAME, 0}, {} };
+/* static struct i2c_board_info __initdata i2c_mpu3000={ I2C_BOARD_INFO("MPU3000", (0xD0>>1))}; */
+extern struct sensor_tuning_data *sensors_tuning_data;
+/*the adapter id will be available in customization*/
+/* static unsigned short mpu3000_force[] = {0x00, MPU3000_I2C_SLAVE_ADDR, I2C_CLIENT_END, I2C_CLIENT_END}; */
+/* static const unsigned short *const mpu3000_forces[] = { mpu3000_force, NULL }; */
+/* static struct i2c_client_address_data mpu3000_addr_data = { .forces = mpu3000_forces,}; */
 
-static int packet_thresh = 75; // 600 ms / 8ms/sample
+static int packet_thresh = 75; /* 600 ms / 8ms/sample */
 
 /*----------------------------------------------------------------------------*/
 static int mpu3000_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id);
 static int mpu3000_i2c_remove(struct i2c_client *client);
-extern struct gyro_hw* mpu3050_get_cust_gyro_hw(void);
+/* static int mpu3000_i2c_detect(struct i2c_client *client, int kind, struct i2c_board_info *info); */
+/* static int mpu3000_suspend(struct i2c_client *client, pm_message_t msg) ; */
+/* static int mpu3000_resume(struct i2c_client *client); */
+extern struct gyro_hw *mpu3050_get_cust_gyro_hw(void);
 static int mpu3050_local_init(void);
 static int  mpu3050_remove(void);
-static int mpu3050_init_flag =-1;
+static int mpu3050_init_flag =  -1;
 static struct gyro_init_info mpu3050_init_info = {
-        .name = "mpu3050",
-        .init = mpu3050_local_init,
-        .uninit = mpu3050_remove,
+	.name = "mpu3050",
+	.init = mpu3050_local_init,
+	.uninit = mpu3050_remove,
 };
 /*----------------------------------------------------------------------------*/
 typedef enum {
@@ -90,7 +96,7 @@ typedef enum {
     GYRO_TRC_DATA    = 0X20,
 } GYRO_TRC;
 /*----------------------------------------------------------------------------*/
-struct scale_factor{
+struct scale_factor {
     u8  whole;
     u8  fraction;
 };
@@ -139,33 +145,33 @@ struct mpu3000_i2c_data {
 /*----------------------------------------------------------------------------*/
 static struct i2c_driver mpu3000_i2c_driver = {
     .driver = {
-        .name           = MPU3000_DEV_NAME,
+/* .owner          = THIS_MODULE,//modified */
+	.name           = MPU3000_DEV_NAME,
     },
     .probe              = mpu3000_i2c_probe,
     .remove                = mpu3000_i2c_remove,
+/* .detect                = mpu3000_i2c_detect, */
 #if !defined(CONFIG_HAS_EARLYSUSPEND)
     .suspend            = mpu3000_suspend,
     .resume             = mpu3000_resume,
 #endif
     .id_table = mpu3000_i2c_id,
+    /* .address_list = mpu3000_forces,//modified */
 };
 
 /*----------------------------------------------------------------------------*/
-static struct i2c_client *mpu3000_i2c_client = NULL;
-static struct mpu3000_i2c_data *obj_i2c_data = NULL;
-static bool sensor_power = false;
-
-/* log macro */
-#ifndef  GYROS_TAG
-#define GYROS_TAG                  "[MPU3050C] "
-#define GYRO_FUN(f)               pr_notice(GYROS_TAG"%s\n", __func__)
-#define GYRO_ERR(fmt, args...) \
-    pr_err(GYROS_TAG"%s %d : "fmt, __func__, __LINE__, ##args)
-#define GYRO_LOG(fmt, args...)    pr_notice(GYROS_TAG fmt, ##args)
-#define GYRO_WARN(fmt, args...)   pr_warn(GYROS_TAG"%s: "fmt, __func__, ##args)
-#endif
+static struct i2c_client *mpu3000_i2c_client;
+static struct mpu3000_i2c_data *obj_i2c_data;
+static bool sensor_power;
 
 
+
+/*----------------------------------------------------------------------------*/
+/* #define GYRO_TAG                  "[Gyroscope] " */
+/* #define GYRO_FUN(f)               printk(KERN_INFO GYRO_TAG"%s\n", __FUNCTION__) */
+/* #define GYRO_ERR(fmt, args...)    printk(KERN_ERR GYRO_TAG"%s %d : "fmt, __FUNCTION__, __LINE__, ##args) */
+/* #define GYRO_LOG(fmt, args...)    printk(KERN_INFO GYRO_TAG fmt, ##args) */
+/*----------------------------------------------------------------------------*/
 /*
 
 //----------------------------------------------------------------------------//
@@ -174,29 +180,29 @@ static struct data_resolution mpu3000_offset_resolution = {{15, 6}, 64};
 /*--------------------gyroscopy power control function----------------------------------*/
 static void MPU3000_power(struct gyro_hw *hw, unsigned int on)
 {
-    static unsigned int power_on = 0;
+    static unsigned int power_on;
 
-    if(hw->power_id != POWER_NONE_MACRO)        // have externel LDO
+    if (hw->power_id != POWER_NONE_MACRO)        /* have externel LDO */
     {
-        GYRO_LOG("power %s\n", on ? "on" : "off");
-        if(power_on == on)    // power status not change
-        {
-            GYRO_LOG("ignore power control: %d\n", on);
-        }
-        else if(on)    // power on
-        {
-            if(!hwPowerOn(hw->power_id, hw->power_vol, "MPU3000"))
-            {
-                GYRO_ERR("power on fails!!\n");
-            }
-        }
-        else    // power off
-        {
-            if (!hwPowerDown(hw->power_id, "MPU3000"))
-            {
-                GYRO_ERR("power off fail!!\n");
-            }
-        }
+	GYRO_LOG("power %s\n", on ? "on" : "off");
+	if (power_on == on)    /* power status not change */
+	{
+	    GYRO_LOG("ignore power control: %d\n", on);
+	}
+	else if (on)    /* power on */
+	{
+	    if (!hwPowerOn(hw->power_id, hw->power_vol, "MPU3000"))
+	    {
+		GYRO_ERR("power on fails!!\n");
+	    }
+	}
+	else    /* power off */
+	{
+	    if (!hwPowerDown(hw->power_id, "MPU3000"))
+	    {
+		GYRO_ERR("power off fail!!\n");
+	    }
+	}
     }
     power_on = on;
 }
@@ -210,15 +216,15 @@ static int MPU3000_write_rel_calibration(struct mpu3000_i2c_data *obj, int dat[M
     obj->cali_sw[MPU3000_AXIS_Y] = obj->cvt.sign[MPU3000_AXIS_Y]*dat[obj->cvt.map[MPU3000_AXIS_Y]];
     obj->cali_sw[MPU3000_AXIS_Z] = obj->cvt.sign[MPU3000_AXIS_Z]*dat[obj->cvt.map[MPU3000_AXIS_Z]];
 #if DEBUG
-        if(atomic_read(&obj->trace) & GYRO_TRC_CALI)
-        {
-            GYRO_LOG("test  (%5d, %5d, %5d) ->(%5d, %5d, %5d)->(%5d, %5d, %5d))\n",
-                obj->cvt.sign[MPU3000_AXIS_X],obj->cvt.sign[MPU3000_AXIS_Y],obj->cvt.sign[MPU3000_AXIS_Z],
-                dat[MPU3000_AXIS_X], dat[MPU3000_AXIS_Y], dat[MPU3000_AXIS_Z],
-                obj->cvt.map[MPU3000_AXIS_X],obj->cvt.map[MPU3000_AXIS_Y],obj->cvt.map[MPU3000_AXIS_Z]);
-            GYRO_LOG("write gyro calibration data  (%5d, %5d, %5d)\n",
-                obj->cali_sw[MPU3000_AXIS_X],obj->cali_sw[MPU3000_AXIS_Y],obj->cali_sw[MPU3000_AXIS_Z]);
-        }
+	if (atomic_read(&obj->trace) & GYRO_TRC_CALI)
+	{
+	    GYRO_LOG("test  (%5d, %5d, %5d) ->(%5d, %5d, %5d)->(%5d, %5d, %5d))\n",
+                obj->cvt.sign[MPU3000_AXIS_X], obj->cvt.sign[MPU3000_AXIS_Y], obj->cvt.sign[MPU3000_AXIS_Z],
+		dat[MPU3000_AXIS_X], dat[MPU3000_AXIS_Y], dat[MPU3000_AXIS_Z],
+                obj->cvt.map[MPU3000_AXIS_X], obj->cvt.map[MPU3000_AXIS_Y], obj->cvt.map[MPU3000_AXIS_Z]);
+	    GYRO_LOG("write gyro calibration data  (%5d, %5d, %5d)\n",
+                obj->cali_sw[MPU3000_AXIS_X], obj->cali_sw[MPU3000_AXIS_Y], obj->cali_sw[MPU3000_AXIS_Z]);
+	}
 #endif
     return 0;
 }
@@ -242,11 +248,11 @@ static int MPU3000_ReadCalibration(struct i2c_client *client, int dat[MPU3000_AX
     dat[obj->cvt.map[MPU3000_AXIS_Z]] = obj->cvt.sign[MPU3000_AXIS_Z]*obj->cali_sw[MPU3000_AXIS_Z];
 
 #if DEBUG
-        if(atomic_read(&obj->trace) & GYRO_TRC_CALI)
-        {
-            GYRO_LOG("Read gyro calibration data  (%5d, %5d, %5d)\n",
-                dat[MPU3000_AXIS_X],dat[MPU3000_AXIS_Y],dat[MPU3000_AXIS_Z]);
-        }
+	if (atomic_read(&obj->trace) & GYRO_TRC_CALI)
+	{
+	    GYRO_LOG("Read gyro calibration data  (%5d, %5d, %5d)\n",
+                dat[MPU3000_AXIS_X], dat[MPU3000_AXIS_Y], dat[MPU3000_AXIS_Z]);
+	}
 #endif
 
     return 0;
@@ -261,28 +267,28 @@ static int MPU3000_WriteCalibration(struct i2c_client *client, int dat[MPU3000_A
 
 
     GYRO_FUN();
-    if(!obj || ! dat)
+    if (!obj || !dat)
     {
-        GYRO_ERR("null ptr!!\n");
-        return -EINVAL;
+	GYRO_ERR("null ptr!!\n");
+	return -EINVAL;
     }
     else
     {
-        cali[obj->cvt.map[MPU3000_AXIS_X]] = obj->cvt.sign[MPU3000_AXIS_X]*obj->cali_sw[MPU3000_AXIS_X];
-        cali[obj->cvt.map[MPU3000_AXIS_Y]] = obj->cvt.sign[MPU3000_AXIS_Y]*obj->cali_sw[MPU3000_AXIS_Y];
-        cali[obj->cvt.map[MPU3000_AXIS_Z]] = obj->cvt.sign[MPU3000_AXIS_Z]*obj->cali_sw[MPU3000_AXIS_Z];
-        cali[MPU3000_AXIS_X] += dat[MPU3000_AXIS_X];
-        cali[MPU3000_AXIS_Y] += dat[MPU3000_AXIS_Y];
-        cali[MPU3000_AXIS_Z] += dat[MPU3000_AXIS_Z];
+	cali[obj->cvt.map[MPU3000_AXIS_X]] = obj->cvt.sign[MPU3000_AXIS_X]*obj->cali_sw[MPU3000_AXIS_X];
+	cali[obj->cvt.map[MPU3000_AXIS_Y]] = obj->cvt.sign[MPU3000_AXIS_Y]*obj->cali_sw[MPU3000_AXIS_Y];
+	cali[obj->cvt.map[MPU3000_AXIS_Z]] = obj->cvt.sign[MPU3000_AXIS_Z]*obj->cali_sw[MPU3000_AXIS_Z];
+	cali[MPU3000_AXIS_X] += dat[MPU3000_AXIS_X];
+	cali[MPU3000_AXIS_Y] += dat[MPU3000_AXIS_Y];
+	cali[MPU3000_AXIS_Z] += dat[MPU3000_AXIS_Z];
 #if DEBUG
-        if(atomic_read(&obj->trace) & GYRO_TRC_CALI)
-        {
-            GYRO_LOG("write gyro calibration data  (%5d, %5d, %5d)-->(%5d, %5d, %5d)\n",
-                dat[MPU3000_AXIS_X], dat[MPU3000_AXIS_Y], dat[MPU3000_AXIS_Z],
-                cali[MPU3000_AXIS_X],cali[MPU3000_AXIS_Y],cali[MPU3000_AXIS_Z]);
-        }
+	if (atomic_read(&obj->trace) & GYRO_TRC_CALI)
+	{
+	    GYRO_LOG("write gyro calibration data  (%5d, %5d, %5d)-->(%5d, %5d, %5d)\n",
+		dat[MPU3000_AXIS_X], dat[MPU3000_AXIS_Y], dat[MPU3000_AXIS_Z],
+                cali[MPU3000_AXIS_X], cali[MPU3000_AXIS_Y], cali[MPU3000_AXIS_Z]);
+	}
 #endif
-        return MPU3000_write_rel_calibration(obj, cali);
+	return MPU3000_write_rel_calibration(obj, cali);
     }
 
     return err;
@@ -299,22 +305,22 @@ static int MPU3000_ReadStart(struct i2c_client *client, bool enable)
 
     databuf[0] = MPU3000_REG_FIFO_EN;
 
-    if(enable)
+    if (enable)
     {
-        //enable xyz gyro in FIFO
-        databuf[1] = (MPU3000_FIFO_GYROX_EN|MPU3000_FIFO_GYROY_EN|MPU3000_FIFO_GYROZ_EN);
+	/* enable xyz gyro in FIFO */
+	databuf[1] = (MPU3000_FIFO_GYROX_EN|MPU3000_FIFO_GYROY_EN|MPU3000_FIFO_GYROZ_EN);
     }
     else
     {
-        //disable xyz gyro in FIFO
-        databuf[1] = 0;
+	/* disable xyz gyro in FIFO */
+	databuf[1] = 0;
     }
 
     res = i2c_master_send(client, databuf, 0x2);
-    if(res <= 0)
+    if (res <= 0)
     {
-        GYRO_ERR(" enable xyz gyro in FIFO error,enable: 0x%x!\n", databuf[1]);
-        return MPU3000_ERR_I2C;
+	GYRO_ERR(" enable xyz gyro in FIFO error,enable: 0x%x!\n", databuf[1]);
+	return MPU3000_ERR_I2C;
     }
     GYRO_LOG("MPU3000_ReadStart: enable xyz gyro in FIFO: 0x%x\n", databuf[1]);
     return MPU3000_SUCCESS;
@@ -322,51 +328,51 @@ static int MPU3000_ReadStart(struct i2c_client *client, bool enable)
 
 
 
-//----------------------------------------------------------------------------//
+/* ----------------------------------------------------------------------------// */
 static int MPU3000_SetPowerMode(struct i2c_client *client, bool enable)
 {
     u8 databuf[2] = {0};
     int res = 0;
     int i;
 
-    if(enable == sensor_power)
+    if (enable == sensor_power)
     {
-        GYRO_LOG("Sensor power status is newest!\n");
-        return MPU3000_SUCCESS;
+	GYRO_LOG("Sensor power status is newest!\n");
+	return MPU3000_SUCCESS;
     }
 
-    if(hwmsen_read_byte(client, MPU3000_REG_PWR_CTL, databuf))
+    if (hwmsen_read_byte(client, MPU3000_REG_PWR_CTL, databuf))
     {
-        GYRO_ERR("read power ctl register err!\n");
-        return MPU3000_ERR_I2C;
+	GYRO_ERR("read power ctl register err!\n");
+	return MPU3000_ERR_I2C;
     }
 
     databuf[0] &= ~MPU3000_SLEEP;
-    if(enable == FALSE)
+    if (enable == FALSE)
     {
-        databuf[0] |= MPU3000_SLEEP;
+	databuf[0] |= MPU3000_SLEEP;
     }
     else
     {
-        // do nothing
+	/* do nothing */
     }
 
 
     databuf[1] = databuf[0];
     databuf[0] = MPU3000_REG_PWR_CTL;
-    for(i=0; i<10; i++) {
-    res = i2c_master_send(client, databuf, 0x2);
-        if(res >0)
-            break;
-        }
-    if(i >= 10)
+    for (i = 0; i < 10; i++) {
+	res = i2c_master_send(client, databuf, 0x2);
+        if (res > 0)
+	    break;
+	}
+    if (i >= 10)
     {
-        GYRO_LOG("set power mode failed!\n");
-        return MPU3000_ERR_I2C;
+	GYRO_LOG("set power mode failed!\n");
+	return MPU3000_ERR_I2C;
     }
     else
     {
-        GYRO_LOG("set power mode ok %d!\n", enable);
+	GYRO_LOG("set power mode ok %d!\n", enable);
     }
 
     sensor_power = enable;
@@ -384,28 +390,28 @@ static int MPU3000_SetDataFormat(struct i2c_client *client, u8 dataformat)
     databuf[0] = MPU3000_REG_DATA_FMT;
     databuf[1] = dataformat;
     res = i2c_master_send(client, databuf, 0x2);
-    if(res <= 0)
+    if (res <= 0)
     {
-        return MPU3000_ERR_I2C;
+	return MPU3000_ERR_I2C;
     }
 
-    //read sample rate after written for test
+    /* read sample rate after written for test */
     udelay(500);
-    if(hwmsen_read_byte(client, MPU3000_REG_DATA_FMT, databuf))
+    if (hwmsen_read_byte(client, MPU3000_REG_DATA_FMT, databuf))
     {
-        GYRO_ERR("read data format register err!\n");
-        return MPU3000_ERR_I2C;
+	GYRO_ERR("read data format register err!\n");
+	return MPU3000_ERR_I2C;
     }
     else
     {
-        GYRO_LOG("read  data format: 0x%x\n", databuf[0]);
+	GYRO_LOG("read  data format: 0x%x\n", databuf[0]);
     }
 
-    //return MPU3000_SetDataResolution(obj);
+    /* return MPU3000_SetDataResolution(obj); */
     return MPU3000_SUCCESS;
 }
 
-// set the sample rate
+/* set the sample rate */
 static int MPU3000_SetSampleRate(struct i2c_client *client, int sample_rate)
 {
     u8 databuf[2] = {0};
@@ -413,53 +419,53 @@ static int MPU3000_SetSampleRate(struct i2c_client *client, int sample_rate)
     int res = 0;
     GYRO_FUN();
 
-    if(hwmsen_read_byte(client, MPU3000_REG_DATA_FMT, databuf))
+    if (hwmsen_read_byte(client, MPU3000_REG_DATA_FMT, databuf))
     {
-        GYRO_ERR("read gyro data format register err!\n");
-        return MPU3000_ERR_I2C;
+	GYRO_ERR("read gyro data format register err!\n");
+	return MPU3000_ERR_I2C;
     }
     else
     {
-        GYRO_LOG("read  gyro data format register: 0x%x\n", databuf[0]);
+	GYRO_LOG("read  gyro data format register: 0x%x\n", databuf[0]);
     }
 
-    if((databuf[0] & 0x07) == 0)    //Analog sample rate is 8KHz
+    if ((databuf[0] & 0x07) == 0)    /* Analog sample rate is 8KHz */
     {
-        rate_div = 8 * 1024 / sample_rate - 1;
+	rate_div = 8 * 1024 / sample_rate - 1;
     }
-    else    // 1kHz
+    else    /* 1kHz */
     {
-        rate_div = 1024 / sample_rate - 1;
+	rate_div = 1024 / sample_rate - 1;
     }
 
-    if(rate_div > 255)    // rate_div: 0 to 255;
+    if (rate_div > 255)    /* rate_div: 0 to 255; */
     {
-        rate_div = 255;
+	rate_div = 255;
     }
-    else if(rate_div < 0)
+    else if (rate_div < 0)
     {
-        rate_div = 0;
+	rate_div = 0;
     }
 
     databuf[0] = MPU3000_REG_SAMRT_DIV;
     databuf[1] = rate_div;
     res = i2c_master_send(client, databuf, 0x2);
-    if(res <= 0)
+    if (res <= 0)
     {
-        GYRO_ERR("write sample rate register err!\n");
-        return MPU3000_ERR_I2C;
+	GYRO_ERR("write sample rate register err!\n");
+	return MPU3000_ERR_I2C;
     }
 
-    //read sample div after written for test
+    /* read sample div after written for test */
     udelay(500);
-    if(hwmsen_read_byte(client, MPU3000_REG_SAMRT_DIV, databuf))
+    if (hwmsen_read_byte(client, MPU3000_REG_SAMRT_DIV, databuf))
     {
-        GYRO_ERR("read gyro sample rate register err!\n");
-        return MPU3000_ERR_I2C;
+	GYRO_ERR("read gyro sample rate register err!\n");
+	return MPU3000_ERR_I2C;
     }
     else
     {
-        GYRO_LOG("read  gyro sample rate: 0x%x\n", databuf[0]);
+	GYRO_LOG("read  gyro sample rate: 0x%x\n", databuf[0]);
     }
 
     return MPU3000_SUCCESS;
@@ -477,7 +483,7 @@ static int MPU3000_SetIntEnable(struct i2c_client *client, u8 intenable)
     res = i2c_master_send(client, databuf, 0x2);
     if(res <= 0)
     {
-        return MPU3000_ERR_I2C;
+	return MPU3000_ERR_I2C;
     }
 
     return MPU3000_SUCCESS;
@@ -492,25 +498,25 @@ static int MPU3000_Reset(struct i2c_client *client, u8 reset)
     int res = 0;
     GYRO_FUN();
 
-    //read FIFO CTL register
-    if(hwmsen_read_byte(client, MPU3000_REG_FIFO_CTL, databuf))
+    /* read FIFO CTL register */
+    if (hwmsen_read_byte(client, MPU3000_REG_FIFO_CTL, databuf))
     {
-        GYRO_ERR("read gyro FIFO CTRL register err!\n");
-        return MPU3000_ERR_I2C;
+	GYRO_ERR("read gyro FIFO CTRL register err!\n");
+	return MPU3000_ERR_I2C;
     }
     else
     {
-        GYRO_LOG("read  gyro FIFO CTRL: 0x%x\n", databuf[0]);
+	GYRO_LOG("read  gyro FIFO CTRL: 0x%x\n", databuf[0]);
     }
 
-    //write the reset flag of this register
-    databuf[1] = databuf[0] |reset;
+    /* write the reset flag of this register */
+    databuf[1] = databuf[0] | reset;
     databuf[0] = MPU3000_REG_FIFO_CTL;
     res = i2c_master_send(client, databuf, 0x2);
-    if(res <= 0)
+    if (res <= 0)
     {
-        GYRO_ERR("write FIFO CTRL register err!\n");
-        return MPU3000_ERR_I2C;
+	GYRO_ERR("write FIFO CTRL register err!\n");
+	return MPU3000_ERR_I2C;
     }
 
     GYRO_LOG("MPU3000_Reset OK!\n");
@@ -526,49 +532,49 @@ static int MPU3000_FIFOConfig(struct i2c_client *client, u8 clk)
     int res = 0;
     GYRO_FUN();
 
-    //use gyro X, Y or Z for clocking
+    /* use gyro X, Y or Z for clocking */
     databuf[0] = MPU3000_REG_PWR_CTL;
     databuf[1] = clk;
     res = i2c_master_send(client, databuf, 0x2);
-    if(res <= 0)
+    if (res <= 0)
     {
-        GYRO_ERR("write Power CTRL register err!\n");
-        return MPU3000_ERR_I2C;
+	GYRO_ERR("write Power CTRL register err!\n");
+	return MPU3000_ERR_I2C;
     }
     GYRO_LOG("MPU3000 use gyro X for clocking OK!\n");
 
     mdelay(50);
 
-    //enable xyz gyro in FIFO
+    /* enable xyz gyro in FIFO */
     databuf[0] = MPU3000_REG_FIFO_EN;
     databuf[1] = (MPU3000_FIFO_GYROX_EN|MPU3000_FIFO_GYROY_EN|MPU3000_FIFO_GYROZ_EN);
     res = i2c_master_send(client, databuf, 0x2);
-    if(res <= 0)
+    if (res <= 0)
     {
-        GYRO_ERR("write Power CTRL register err!\n");
-        return MPU3000_ERR_I2C;
+	GYRO_ERR("write Power CTRL register err!\n");
+	return MPU3000_ERR_I2C;
     }
     GYRO_LOG("MPU3000 enable xyz gyro in FIFO OK!\n");
 
-    //disable AUX_VDDIO
+    /* disable AUX_VDDIO */
     databuf[0] = MPU3000_REG_AUX_VDD;
     databuf[1] = MPU3000_AUX_VDDIO_DIS;
     res = i2c_master_send(client, databuf, 0x2);
-    if(res <= 0)
+    if (res <= 0)
     {
-        GYRO_ERR("write AUX_VDD register err!\n");
-        return MPU3000_ERR_I2C;
+	GYRO_ERR("write AUX_VDD register err!\n");
+	return MPU3000_ERR_I2C;
     }
     GYRO_LOG("MPU3000 disable AUX_VDDIO OK!\n");
 
-    //enable FIFO and reset FIFO
+    /* enable FIFO and reset FIFO */
     databuf[0] = MPU3000_REG_FIFO_CTL;
     databuf[1] = (MPU3000_FIFO_EN | MPU3000_FIFO_RST);
     res = i2c_master_send(client, databuf, 0x2);
-    if(res <= 0)
+    if (res <= 0)
     {
-        GYRO_ERR("write FIFO CTRL register err!\n");
-        return MPU3000_ERR_I2C;
+	GYRO_ERR("write FIFO CTRL register err!\n");
+	return MPU3000_ERR_I2C;
     }
 
     GYRO_LOG("MPU3000_FIFOConfig OK!\n");
@@ -576,7 +582,7 @@ static int MPU3000_FIFOConfig(struct i2c_client *client, u8 clk)
 }
 
 /*----------------------------------------------------------------------------*/
-static int MPU3000_ReadFifoData(struct i2c_client *client, s16 *data, int* datalen)
+static int MPU3000_ReadFifoData(struct i2c_client *client, s16 *data, int *datalen)
 {
     struct mpu3000_i2c_data *obj = i2c_get_clientdata(client);
     u8 buf[MPU3000_DATA_LEN] = {0};
@@ -588,74 +594,74 @@ static int MPU3000_ReadFifoData(struct i2c_client *client, s16 *data, int* datal
     int i;
     GYRO_FUN();
 
-    if(NULL == client)
+    if (NULL == client)
     {
-        return -EINVAL;
+	return -EINVAL;
     }
 
-    //stop putting data in FIFO
+    /* stop putting data in FIFO */
     MPU3000_ReadStart(client, FALSE);
 
-    //read data number of bytes in FIFO
+    /* read data number of bytes in FIFO */
     err = hwmsen_read_byte(client, MPU3000_REG_FIFO_CNTH, &tmp);
-    if(err)
+    if (err)
     {
-        GYRO_ERR("read data high number of bytes error: %d\n", err);
-        return -1;
+	GYRO_ERR("read data high number of bytes error: %d\n", err);
+	return -1;
     }
-    packet_cnt = tmp<< 8;
+    packet_cnt = tmp << 8;
 
     err = hwmsen_read_byte(client, MPU3000_REG_FIFO_CNTL, &tmp);
-    if(err)
+    if (err)
     {
-        GYRO_ERR("read data low number of bytes error: %d\n", err);
-        return -1;
+	GYRO_ERR("read data low number of bytes error: %d\n", err);
+	return -1;
     }
-    packet_cnt = (packet_cnt + tmp) /MPU3000_DATA_LEN;
+    packet_cnt = (packet_cnt + tmp) / MPU3000_DATA_LEN;
 
     GYRO_LOG("MPU3000 Read Data packet number OK: %d\n", packet_cnt);
 
     *datalen = packet_cnt;
 
-    //Within +-3% range: timing_tolerance * packet_thresh=0.03*75
-    if(packet_cnt && (abs(packet_thresh -packet_cnt) < 4))
+    /* Within +-3% range: timing_tolerance * packet_thresh=0.03*75 */
+    if (packet_cnt && (abs(packet_thresh - packet_cnt) < 4))
     {
-        //read data in FIFO
-        for(i = 0; i < packet_cnt; i++)
-        {
-            if(hwmsen_read_block(client, MPU3000_REG_FIFO_DATA, buf, MPU3000_DATA_LEN))
-            {
-                GYRO_ERR("MPU3000 read data from FIFO error: %d\n", err);
-                return -2;
-            }
-            else
-            {
-                GYRO_LOG("MPU3000 read Data of diff address from FIFO OK !\n");
-            }
+	/* read data in FIFO */
+	for (i = 0; i < packet_cnt; i++)
+	{
+	    if (hwmsen_read_block(client, MPU3000_REG_FIFO_DATA, buf, MPU3000_DATA_LEN))
+	    {
+		GYRO_ERR("MPU3000 read data from FIFO error: %d\n", err);
+		return -2;
+	    }
+	    else
+	    {
+		GYRO_LOG("MPU3000 read Data of diff address from FIFO OK !\n");
+	    }
 
-            tmp1[MPU3000_AXIS_X] = (s16)((buf[MPU3000_AXIS_X*2+1]) | (buf[MPU3000_AXIS_X*2] << 8));
-            tmp1[MPU3000_AXIS_Y] = (s16)((buf[MPU3000_AXIS_Y*2+1]) | (buf[MPU3000_AXIS_Y*2] << 8));
-            tmp1[MPU3000_AXIS_Z] = (s16)((buf[MPU3000_AXIS_Z*2+1]) | (buf[MPU3000_AXIS_Z*2] << 8));
+	    tmp1[MPU3000_AXIS_X] = (s16)((buf[MPU3000_AXIS_X*2+1]) | (buf[MPU3000_AXIS_X*2] << 8));
+	    tmp1[MPU3000_AXIS_Y] = (s16)((buf[MPU3000_AXIS_Y*2+1]) | (buf[MPU3000_AXIS_Y*2] << 8));
+	    tmp1[MPU3000_AXIS_Z] = (s16)((buf[MPU3000_AXIS_Z*2+1]) | (buf[MPU3000_AXIS_Z*2] << 8));
 
-            //remap coordinate//
-            tmp2[obj->cvt.map[MPU3000_AXIS_X]] = obj->cvt.sign[MPU3000_AXIS_X]*tmp1[MPU3000_AXIS_X];
-            tmp2[obj->cvt.map[MPU3000_AXIS_Y]] = obj->cvt.sign[MPU3000_AXIS_Y]*tmp1[MPU3000_AXIS_Y];
-            tmp2[obj->cvt.map[MPU3000_AXIS_Z]] = obj->cvt.sign[MPU3000_AXIS_Z]*tmp1[MPU3000_AXIS_Z];
+	    /* remap coordinate// */
+	    tmp2[obj->cvt.map[MPU3000_AXIS_X]] = obj->cvt.sign[MPU3000_AXIS_X]*tmp1[MPU3000_AXIS_X];
+	    tmp2[obj->cvt.map[MPU3000_AXIS_Y]] = obj->cvt.sign[MPU3000_AXIS_Y]*tmp1[MPU3000_AXIS_Y];
+	    tmp2[obj->cvt.map[MPU3000_AXIS_Z]] = obj->cvt.sign[MPU3000_AXIS_Z]*tmp1[MPU3000_AXIS_Z];
 
-            data[3* i +MPU3000_AXIS_X] = tmp2[MPU3000_AXIS_X];
-            data[3* i +MPU3000_AXIS_Y] = tmp2[MPU3000_AXIS_Y];
-            data[3* i +MPU3000_AXIS_Z] = tmp2[MPU3000_AXIS_Z];
+            data[3 * i + MPU3000_AXIS_X] = tmp2[MPU3000_AXIS_X];
+            data[3 * i + MPU3000_AXIS_Y] = tmp2[MPU3000_AXIS_Y];
+            data[3 * i + MPU3000_AXIS_Z] = tmp2[MPU3000_AXIS_Z];
 
-            GYRO_LOG("gyro FIFO packet[%d]:[%04X %04X %04X] => [%5d %5d %5d]\n", i,
-            data[3*i +MPU3000_AXIS_X], data[3*i +MPU3000_AXIS_Y], data[3*i +MPU3000_AXIS_Z],
-            data[3*i +MPU3000_AXIS_X], data[3*i +MPU3000_AXIS_Y], data[3*i +MPU3000_AXIS_Z]);
-        }
+	    GYRO_LOG("gyro FIFO packet[%d]:[%04X %04X %04X] => [%5d %5d %5d]\n", i,
+            data[3*i + MPU3000_AXIS_X], data[3*i + MPU3000_AXIS_Y], data[3*i + MPU3000_AXIS_Z],
+            data[3*i + MPU3000_AXIS_X], data[3*i + MPU3000_AXIS_Y], data[3*i + MPU3000_AXIS_Z]);
+	}
 
     }
     else
     {
-        GYRO_ERR("MPU3000 Incorrect packet count: %d\n", packet_cnt);
-        return -3;
+	GYRO_ERR("MPU3000 Incorrect packet count: %d\n", packet_cnt);
+	return -3;
     }
 
     return 0;
@@ -668,55 +674,55 @@ static int MPU3000_ReadGyroData(struct i2c_client *client, char *buf, int bufsiz
     int data[3];
     struct mpu3000_i2c_data *obj = i2c_get_clientdata(client);
 
-    if(sensor_power == false)
+    if (sensor_power == false)
     {
-        MPU3000_SetPowerMode(client, true);
-        msleep(50);
+	MPU3000_SetPowerMode(client, true);
+	msleep(50);
     }
 
-    if(hwmsen_read_block(client, MPU3000_REG_GYRO_XH, databuf, 6))
+    if (hwmsen_read_block(client, MPU3000_REG_GYRO_XH, databuf, 6))
     {
-        GYRO_ERR("MPU3000 read gyroscope data  error\n");
-        return -2;
+	GYRO_ERR("MPU3000 read gyroscope data  error\n");
+	return -2;
     }
     else
     {
-        obj->data[MPU3000_AXIS_X] = ((s16)((databuf[MPU3000_AXIS_X*2+1]) | (databuf[MPU3000_AXIS_X*2] << 8)));
-        obj->data[MPU3000_AXIS_Y] = ((s16)((databuf[MPU3000_AXIS_Y*2+1]) | (databuf[MPU3000_AXIS_Y*2] << 8)));
-        obj->data[MPU3000_AXIS_Z] = ((s16)((databuf[MPU3000_AXIS_Z*2+1]) | (databuf[MPU3000_AXIS_Z*2] << 8)));
+	obj->data[MPU3000_AXIS_X] = ((s16)((databuf[MPU3000_AXIS_X*2+1]) | (databuf[MPU3000_AXIS_X*2] << 8)));
+	obj->data[MPU3000_AXIS_Y] = ((s16)((databuf[MPU3000_AXIS_Y*2+1]) | (databuf[MPU3000_AXIS_Y*2] << 8)));
+	obj->data[MPU3000_AXIS_Z] = ((s16)((databuf[MPU3000_AXIS_Z*2+1]) | (databuf[MPU3000_AXIS_Z*2] << 8)));
 #if DEBUG
-        if(atomic_read(&obj->trace) & GYRO_TRC_RAWDATA)
-        {
-            GYRO_LOG("read gyro register: %d, %d, %d, %d, %d, %d",
-                databuf[0], databuf[1], databuf[2], databuf[3], databuf[4], databuf[5]);
-            GYRO_LOG("get gyro raw data (0x%08X, 0x%08X, 0x%08X) -> (%5d, %5d, %5d)\n",
-                obj->data[MPU3000_AXIS_X],obj->data[MPU3000_AXIS_Y],obj->data[MPU3000_AXIS_Z],
-                obj->data[MPU3000_AXIS_X],obj->data[MPU3000_AXIS_Y],obj->data[MPU3000_AXIS_Z]);
-        }
+	if (atomic_read(&obj->trace) & GYRO_TRC_RAWDATA)
+	{
+	    GYRO_LOG("read gyro register: %d, %d, %d, %d, %d, %d",
+		databuf[0], databuf[1], databuf[2], databuf[3], databuf[4], databuf[5]);
+	    GYRO_LOG("get gyro raw data (0x%08X, 0x%08X, 0x%08X) -> (%5d, %5d, %5d)\n",
+                obj->data[MPU3000_AXIS_X], obj->data[MPU3000_AXIS_Y], obj->data[MPU3000_AXIS_Z],
+                obj->data[MPU3000_AXIS_X], obj->data[MPU3000_AXIS_Y], obj->data[MPU3000_AXIS_Z]);
+	}
 #endif
-        obj->data[MPU3000_AXIS_X] = obj->data[MPU3000_AXIS_X] + obj->cali_sw[MPU3000_AXIS_X];
-        obj->data[MPU3000_AXIS_Y] = obj->data[MPU3000_AXIS_Y] + obj->cali_sw[MPU3000_AXIS_Y];
-        obj->data[MPU3000_AXIS_Z] = obj->data[MPU3000_AXIS_Z] + obj->cali_sw[MPU3000_AXIS_Z];
+	obj->data[MPU3000_AXIS_X] = obj->data[MPU3000_AXIS_X] + obj->cali_sw[MPU3000_AXIS_X];
+	obj->data[MPU3000_AXIS_Y] = obj->data[MPU3000_AXIS_Y] + obj->cali_sw[MPU3000_AXIS_Y];
+	obj->data[MPU3000_AXIS_Z] = obj->data[MPU3000_AXIS_Z] + obj->cali_sw[MPU3000_AXIS_Z];
 
-        /*remap coordinate*/
-        data[obj->cvt.map[MPU3000_AXIS_X]] = obj->cvt.sign[MPU3000_AXIS_X]*obj->data[MPU3000_AXIS_X];
-        data[obj->cvt.map[MPU3000_AXIS_Y]] = obj->cvt.sign[MPU3000_AXIS_Y]*obj->data[MPU3000_AXIS_Y];
-        data[obj->cvt.map[MPU3000_AXIS_Z]] = obj->cvt.sign[MPU3000_AXIS_Z]*obj->data[MPU3000_AXIS_Z];
+	/*remap coordinate*/
+	data[obj->cvt.map[MPU3000_AXIS_X]] = obj->cvt.sign[MPU3000_AXIS_X]*obj->data[MPU3000_AXIS_X];
+	data[obj->cvt.map[MPU3000_AXIS_Y]] = obj->cvt.sign[MPU3000_AXIS_Y]*obj->data[MPU3000_AXIS_Y];
+	data[obj->cvt.map[MPU3000_AXIS_Z]] = obj->cvt.sign[MPU3000_AXIS_Z]*obj->data[MPU3000_AXIS_Z];
 
-        //Out put the degree/second(o/s)
-        data[MPU3000_AXIS_X] = data[MPU3000_AXIS_X] * MPU3000_FS_MAX_LSB / MPU3000_DEFAULT_LSB;
-        data[MPU3000_AXIS_Y] = data[MPU3000_AXIS_Y] * MPU3000_FS_MAX_LSB / MPU3000_DEFAULT_LSB;
-        data[MPU3000_AXIS_Z] = data[MPU3000_AXIS_Z] * MPU3000_FS_MAX_LSB / MPU3000_DEFAULT_LSB;
+	/* Out put the degree/second(o/s) */
+	data[MPU3000_AXIS_X] = data[MPU3000_AXIS_X] * MPU3000_FS_MAX_LSB / MPU3000_DEFAULT_LSB;
+	data[MPU3000_AXIS_Y] = data[MPU3000_AXIS_Y] * MPU3000_FS_MAX_LSB / MPU3000_DEFAULT_LSB;
+	data[MPU3000_AXIS_Z] = data[MPU3000_AXIS_Z] * MPU3000_FS_MAX_LSB / MPU3000_DEFAULT_LSB;
 
 
     }
 
-    sprintf(buf, "%04x %04x %04x", data[MPU3000_AXIS_X],data[MPU3000_AXIS_Y],data[MPU3000_AXIS_Z]);
+    sprintf(buf, "%04x %04x %04x", data[MPU3000_AXIS_X], data[MPU3000_AXIS_Y], data[MPU3000_AXIS_Z]);
 
 #if DEBUG
-    if(atomic_read(&obj->trace) & GYRO_TRC_DATA)
+    if (atomic_read(&obj->trace) & GYRO_TRC_DATA)
     {
-        GYRO_LOG("get gyro data packet:[%d %d %d]\n", data[0], data[1], data[2]);
+	GYRO_LOG("get gyro data packet:[%d %d %d]\n", data[0], data[1], data[2]);
     }
 #endif
 
@@ -724,107 +730,107 @@ static int MPU3000_ReadGyroData(struct i2c_client *client, char *buf, int bufsiz
 
 }
 
-//for factory mode
+/* for factory mode */
 static int MPU3000_PROCESS_SMT_DATA(struct i2c_client *client, short *data)
 {
     int total_num = 0;
-    int retval =0;
+    int retval = 0;
     long xSum = 0;
     long ySum = 0;
     long zSum = 0;
     long xAvg, yAvg, zAvg;
     long xRMS, yRMS, zRMS;
-    int i=0;
+    int i = 0;
 
-    int bias_thresh = 5242; // 40 dps * 131.072 LSB/dps
-    //float RMS_thresh = 687.19f; // (.2 dps * 131.072) ^ 2
-    long RMS_thresh = 68719; // (.2 dps * 131.072) ^ 2
+    int bias_thresh = 5242; /* 40 dps * 131.072 LSB/dps */
+    /* float RMS_thresh = 687.19f; // (.2 dps * 131.072) ^ 2 */
+    long RMS_thresh = 68719; /* (.2 dps * 131.072) ^ 2 */
 
     total_num = data[0];
     retval = data[1];
-    GYRO_LOG("MPU3000 read gyro data OK, total number: %d \n", total_num);
-    for(i = 0; i < total_num; i++)
+    GYRO_LOG("MPU3000 read gyro data OK, total number: %d\n", total_num);
+    for (i = 0; i < total_num; i++)
     {
-        xSum =xSum + data[MPU3000_AXES_NUM*i + MPU3000_AXIS_X +2];
-        ySum =ySum + data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Y +2];
-        zSum =zSum + data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Z +2];
+        xSum = xSum + data[MPU3000_AXES_NUM*i + MPU3000_AXIS_X + 2];
+        ySum = ySum + data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Y + 2];
+        zSum = zSum + data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Z + 2];
 
-        /*
-        FLPLOGD("read gyro data OK: packet_num:%d, [X:%5d, Y:%5d, Z:%5d]\n", i, data[MPU3000_AXES_NUM*i + MPU3000_AXIS_X +2],
-            data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Y +2], data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Z +2]);
-        FLPLOGD("MPU3000 xSum: %5d,  ySum: %5d, zSum: %5d \n", xSum, ySum, zSum);
-        */
+	/*
+	FLPLOGD("read gyro data OK: packet_num:%d, [X:%5d, Y:%5d, Z:%5d]\n", i, data[MPU3000_AXES_NUM*i + MPU3000_AXIS_X +2],
+	    data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Y +2], data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Z +2]);
+	FLPLOGD("MPU3000 xSum: %5d,  ySum: %5d, zSum: %5d\n", xSum, ySum, zSum);
+	*/
     }
-    GYRO_LOG("MPU3000 xSum: %5ld,  ySum: %5ld, zSum: %5ld \n", xSum, ySum, zSum);
+    GYRO_LOG("MPU3000 xSum: %5ld,  ySum: %5ld, zSum: %5ld\n", xSum, ySum, zSum);
 
     if (total_num != 0)
     {
-        xAvg = (xSum / total_num);
-        yAvg = (ySum / total_num);
-        zAvg = (zSum / total_num);
+	xAvg = (xSum / total_num);
+	yAvg = (ySum / total_num);
+	zAvg = (zSum / total_num);
     }
     else
     {
-        xAvg = xSum;
-        yAvg = ySum;
-        zAvg = zSum;
+	xAvg = xSum;
+	yAvg = ySum;
+	zAvg = zSum;
     }
 
-    GYRO_LOG("MPU3000 xAvg: %ld,  yAvg: %ld,  zAvg: %ld \n", xAvg, yAvg, zAvg);
+    GYRO_LOG("MPU3000 xAvg: %ld,  yAvg: %ld,  zAvg: %ld\n", xAvg, yAvg, zAvg);
 
-    if ( abs(xAvg) >bias_thresh)
+    if (abs(xAvg) > bias_thresh)
     {
-        GYRO_LOG("X-Gyro bias exceeded threshold \n");
-        retval |= 1 << 3;
+	GYRO_LOG("X-Gyro bias exceeded threshold\n");
+	retval |= 1 << 3;
     }
-    if ( abs(yAvg) >  bias_thresh)
+    if (abs(yAvg) >  bias_thresh)
     {
-        GYRO_LOG("Y-Gyro bias exceeded threshold \n");
-        retval |= 1 << 4;
+	GYRO_LOG("Y-Gyro bias exceeded threshold\n");
+	retval |= 1 << 4;
     }
-    if ( abs(zAvg ) > bias_thresh)
+    if (abs(zAvg) > bias_thresh)
     {
-        GYRO_LOG("Z-Gyro bias exceeded threshold \n");
-        retval |= 1 << 5;
+	GYRO_LOG("Z-Gyro bias exceeded threshold\n");
+	retval |= 1 << 5;
     }
 
     xRMS = 0;
     yRMS = 0;
     zRMS = 0;
 
-    //Finally, check RMS
-    for ( i = 0; i < total_num ; i++)
+    /* Finally, check RMS */
+    for (i = 0; i < total_num; i++)
     {
-        xRMS += (data[MPU3000_AXES_NUM*i + MPU3000_AXIS_X+2]-xAvg)*(data[MPU3000_AXES_NUM*i + MPU3000_AXIS_X+2]-xAvg);
-        yRMS += (data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Y+2]-yAvg)*(data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Y+2]-yAvg);
-        zRMS += (data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Z+2]-zAvg)*(data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Z+2]-zAvg);
+	xRMS += (data[MPU3000_AXES_NUM*i + MPU3000_AXIS_X+2]-xAvg)*(data[MPU3000_AXES_NUM*i + MPU3000_AXIS_X+2]-xAvg);
+	yRMS += (data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Y+2]-yAvg)*(data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Y+2]-yAvg);
+	zRMS += (data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Z+2]-zAvg)*(data[MPU3000_AXES_NUM*i + MPU3000_AXIS_Z+2]-zAvg);
     }
 
-    GYRO_LOG("MPU3000 xRMS: %ld,  yRMS: %ld,  zRMS: %ld \n", xRMS, yRMS, zRMS);
+    GYRO_LOG("MPU3000 xRMS: %ld,  yRMS: %ld,  zRMS: %ld\n", xRMS, yRMS, zRMS);
     xRMS = 100*xRMS;
     yRMS = 100*yRMS;
     zRMS = 100*zRMS;
 
     if (FACTORY_BOOT == get_boot_mode())
-          return retval;
-    if ( xRMS > RMS_thresh * total_num)
+	  return retval;
+    if (xRMS > RMS_thresh * total_num)
     {
-        GYRO_LOG("X-Gyro RMS exceeded threshold, RMS_thresh: %ld \n", RMS_thresh * total_num);
-        retval |= 1 << 6;
+	GYRO_LOG("X-Gyro RMS exceeded threshold, RMS_thresh: %ld\n", RMS_thresh * total_num);
+	retval |= 1 << 6;
     }
-    if ( yRMS > RMS_thresh * total_num )
+    if (yRMS > RMS_thresh * total_num)
     {
-        GYRO_LOG("Y-Gyro RMS exceeded threshold, RMS_thresh: %ld \n", RMS_thresh * total_num);
-        retval |= 1 << 7;
+	GYRO_LOG("Y-Gyro RMS exceeded threshold, RMS_thresh: %ld\n", RMS_thresh * total_num);
+	retval |= 1 << 7;
     }
-    if ( zRMS > RMS_thresh * total_num )
+    if (zRMS > RMS_thresh * total_num)
     {
-        GYRO_LOG("Z-Gyro RMS exceeded threshold, RMS_thresh: %ld \n", RMS_thresh * total_num);
-        retval |= 1 << 8;
+	GYRO_LOG("Z-Gyro RMS exceeded threshold, RMS_thresh: %ld\n", RMS_thresh * total_num);
+	retval |= 1 << 8;
     }
-    if ( xRMS == 0 || yRMS == 0 || zRMS == 0)
-        //If any of the RMS noise value returns zero, then we might have dead gyro or FIFO/register failure
-        retval |= 1 << 9;
+    if (xRMS == 0 || yRMS == 0 || zRMS == 0)
+	/* If any of the RMS noise value returns zero, then we might have dead gyro or FIFO/register failure */
+	retval |= 1 << 9;
 
     return retval;
 
@@ -835,61 +841,61 @@ static int MPU3000_PROCESS_SMT_DATA(struct i2c_client *client, short *data)
 /*----------------------------------------------------------------------------*/
 static int MPU3000_SMTReadSensorData(struct i2c_client *client, s16 *buf, int bufsize)
 {
-    //S16 gyro[MPU3000_AXES_NUM*MPU3000_FIFOSIZE];
+    /* S16 gyro[MPU3000_AXES_NUM*MPU3000_FIFOSIZE]; */
     int res = 0;
     int i;
-    int datalen, total_num= 0;
+    int datalen, total_num = 0;
 
     GYRO_FUN();
 
-    if(sensor_power == false)
+    if (sensor_power == false)
     {
-        MPU3000_SetPowerMode(client, true);
+	MPU3000_SetPowerMode(client, true);
     }
 
-    if(NULL == buf)
+    if (NULL == buf)
     {
-        return -1;
+	return -1;
     }
-    if(NULL == client)
+    if (NULL == client)
     {
-        *buf = 0;
-        return -2;
-    }
-
-    for(i = 0; i < MPU3000_AXES_NUM; i++)
-    {
-        res = MPU3000_FIFOConfig(client, (i+1));
-        if(res)
-        {
-            GYRO_ERR("MPU3000_FIFOConfig error:%d!\n", res);
-            return -3;
-        }
-
-        //putting data in FIFO during the delayed 600ms
-        mdelay(600);
-
-        res = MPU3000_ReadFifoData(client, &(buf[total_num+2]), &datalen);
-        if(res)
-        {
-            if(res == (-3))
-            {
-                buf[1] = (1<< i);
-            }
-            else
-            {
-                GYRO_ERR("MPU3000_ReadData error:%d!\n", res);
-                return -3;
-            }
-        }
-        else
-        {
-            buf[0] = datalen;
-            total_num+=datalen*MPU3000_AXES_NUM;
-        }
+	*buf = 0;
+	return -2;
     }
 
-    GYRO_LOG("gyroscope read data OK, total packet: %d", buf[0] );
+    for (i = 0; i < MPU3000_AXES_NUM; i++)
+    {
+	res = MPU3000_FIFOConfig(client, (i+1));
+	if (res)
+	{
+	    GYRO_ERR("MPU3000_FIFOConfig error:%d!\n", res);
+	    return -3;
+	}
+
+	/* putting data in FIFO during the delayed 600ms */
+	mdelay(600);
+
+	res = MPU3000_ReadFifoData(client, &(buf[total_num+2]), &datalen);
+	if (res)
+	{
+	    if (res == (-3))
+	    {
+                buf[1] = (1 << i);
+	    }
+	    else
+	    {
+		GYRO_ERR("MPU3000_ReadData error:%d!\n", res);
+		return -3;
+	    }
+	}
+	else
+	{
+	    buf[0] = datalen;
+            total_num += datalen*MPU3000_AXES_NUM;
+	}
+    }
+
+    GYRO_LOG("gyroscope read data OK, total packet: %d", buf[0]);
 
     return 0;
 }
@@ -901,15 +907,15 @@ static int MPU3000_ReadChipInfo(struct i2c_client *client, char *buf, int bufsiz
 
     memset(databuf, 0, sizeof(u8)*10);
 
-    if((NULL == buf)||(bufsize<=30))
+    if ((NULL == buf) || (bufsize <= 30))
     {
-        return -1;
+	return -1;
     }
 
-    if(NULL == client)
+    if (NULL == client)
     {
-        *buf = 0;
-        return -2;
+	*buf = 0;
+	return -2;
     }
 
     sprintf(buf, "MPU3000 Chip");
@@ -922,10 +928,10 @@ static ssize_t show_chipinfo_value(struct device_driver *ddri, char *buf)
 {
     struct i2c_client *client = mpu3000_i2c_client;
     char strbuf[MPU3000_BUFSIZE];
-    if(NULL == client)
+    if (NULL == client)
     {
-        GYRO_ERR("i2c client is null!!\n");
-        return 0;
+	GYRO_ERR("i2c client is null!!\n");
+	return 0;
     }
 
     MPU3000_ReadChipInfo(client, strbuf, MPU3000_BUFSIZE);
@@ -937,14 +943,14 @@ static ssize_t show_sensordata_value(struct device_driver *ddri, char *buf)
     struct i2c_client *client = mpu3000_i2c_client;
     char strbuf[MPU3000_BUFSIZE];
 
-    if(NULL == client)
+    if (NULL == client)
     {
-        GYRO_ERR("i2c client is null!!\n");
-        return 0;
+	GYRO_ERR("i2c client is null!!\n");
+	return 0;
     }
 
     MPU3000_ReadGyroData(client, strbuf, MPU3000_BUFSIZE);
-    return snprintf(buf, PAGE_SIZE, "%s\n", strbuf);;
+    return snprintf(buf, PAGE_SIZE, "%s\n", strbuf);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -954,8 +960,8 @@ static ssize_t show_trace_value(struct device_driver *ddri, char *buf)
     struct mpu3000_i2c_data *obj = obj_i2c_data;
     if (obj == NULL)
     {
-        GYRO_ERR("i2c_data obj is null!!\n");
-        return 0;
+	GYRO_ERR("i2c_data obj is null!!\n");
+	return 0;
     }
 
     res = snprintf(buf, PAGE_SIZE, "0x%04X\n", atomic_read(&obj->trace));
@@ -968,17 +974,17 @@ static ssize_t store_trace_value(struct device_driver *ddri, const char *buf, si
     int trace;
     if (obj == NULL)
     {
-        GYRO_ERR("i2c_data obj is null!!\n");
-        return 0;
+	GYRO_ERR("i2c_data obj is null!!\n");
+	return 0;
     }
 
-    if(1 == sscanf(buf, "0x%x", &trace))
+    if (1 == sscanf(buf, "0x%x", &trace))
     {
-        atomic_set(&obj->trace, trace);
+	atomic_set(&obj->trace, trace);
     }
     else
     {
-        GYRO_ERR("invalid content: '%s', length = %d\n", buf, count);
+	GYRO_ERR("invalid content: '%s', length = %d\n", buf, count);
     }
 
     return count;
@@ -990,18 +996,18 @@ static ssize_t show_status_value(struct device_driver *ddri, char *buf)
     struct mpu3000_i2c_data *obj = obj_i2c_data;
     if (obj == NULL)
     {
-        GYRO_ERR("i2c_data obj is null!!\n");
-        return 0;
+	GYRO_ERR("i2c_data obj is null!!\n");
+	return 0;
     }
 
-    if(obj->hw)
+    if (obj->hw)
     {
-        len += snprintf(buf+len, PAGE_SIZE-len, "CUST: %d %d (%d %d)\n",
-                obj->hw->i2c_num, obj->hw->direction, obj->hw->power_id, obj->hw->power_vol);
+	len += snprintf(buf+len, PAGE_SIZE-len, "CUST: %d %d (%d %d)\n",
+		obj->hw->i2c_num, obj->hw->direction, obj->hw->power_id, obj->hw->power_vol);
     }
     else
     {
-        len += snprintf(buf+len, PAGE_SIZE-len, "CUST: NULL\n");
+	len += snprintf(buf+len, PAGE_SIZE-len, "CUST: NULL\n");
     }
     return len;
 }
@@ -1024,34 +1030,34 @@ static int mpu3000_create_attr(struct device_driver *driver)
     int num = (int)(sizeof(MPU3000_attr_list)/sizeof(MPU3000_attr_list[0]));
     if (driver == NULL)
     {
-        return -EINVAL;
+	return -EINVAL;
     }
 
-    for(idx = 0; idx < num; idx++)
+    for (idx = 0; idx < num; idx++)
     {
-        if(0 != (err = driver_create_file(driver, MPU3000_attr_list[idx])))
-        {
-            GYRO_ERR("driver_create_file (%s) = %d\n", MPU3000_attr_list[idx]->attr.name, err);
-            break;
-        }
+	if (0 != (err = driver_create_file(driver, MPU3000_attr_list[idx])))
+	{
+	    GYRO_ERR("driver_create_file (%s) = %d\n", MPU3000_attr_list[idx]->attr.name, err);
+	    break;
+	}
     }
     return err;
 }
 /*----------------------------------------------------------------------------*/
 static int mpu3000_delete_attr(struct device_driver *driver)
 {
-    int idx ,err = 0;
+    int idx , err = 0;
     int num = (int)(sizeof(MPU3000_attr_list)/sizeof(MPU3000_attr_list[0]));
 
-    if(driver == NULL)
+    if (driver == NULL)
     {
-        return -EINVAL;
+	return -EINVAL;
     }
 
 
-    for(idx = 0; idx < num; idx++)
+    for (idx = 0; idx < num; idx++)
     {
-        driver_remove_file(driver, MPU3000_attr_list[idx]);
+	driver_remove_file(driver, MPU3000_attr_list[idx]);
     }
 
 
@@ -1061,9 +1067,9 @@ static int mpu3000_delete_attr(struct device_driver *driver)
 /*----------------------------------------------------------------------------*/
 static int mpu3000_gpio_config(void)
 {
-    //because we donot use EINT ,to support low power
-    // config to GPIO input mode + PD
-    //set   GPIO_MSE_EINT_PIN
+    /* because we donot use EINT ,to support low power */
+    /* config to GPIO input mode + PD */
+    /* set   GPIO_MSE_EINT_PIN */
     mt_set_gpio_mode(GPIO_GYRO_EINT_PIN, GPIO_GYRO_EINT_PIN_M_GPIO);
     mt_set_gpio_dir(GPIO_GYRO_EINT_PIN, GPIO_DIR_IN);
     mt_set_gpio_pull_enable(GPIO_GYRO_EINT_PIN, GPIO_PULL_ENABLE);
@@ -1078,33 +1084,33 @@ static int mpu3000_init_client(struct i2c_client *client, bool enable)
     mpu3000_gpio_config();
 
     res = MPU3000_SetPowerMode(client, true);
-    if(res != MPU3000_SUCCESS)
+    if (res != MPU3000_SUCCESS)
     {
-        return res;
+	return res;
     }
 
 
 
-    // The range should at least be 17.45 rad/s (ie: ~1000 deg/s).
+    /* The range should at least be 17.45 rad/s (ie: ~1000 deg/s). */
     res = MPU3000_SetDataFormat(client, (MPU3000_SYNC_GYROX << MPU3000_EXT_SYNC)|
-                                        (MPU3000_DEFAULT_FS << MPU3000_FS_RANGE)|
-                                        MPU3000_RATE_1K_LPFB_188HZ);
-    if(res != MPU3000_SUCCESS)
+					(MPU3000_DEFAULT_FS << MPU3000_FS_RANGE)|
+					MPU3000_RATE_1K_LPFB_188HZ);
+    if (res != MPU3000_SUCCESS)
     {
-        return res;
+	return res;
     }
 
-    // Set 125HZ sample rate
+    /* Set 125HZ sample rate */
     res = MPU3000_SetSampleRate(client, 125);
-    if(res != MPU3000_SUCCESS )
+    if (res != MPU3000_SUCCESS)
     {
-        return res;
+	return res;
     }
 
     res = MPU3000_SetPowerMode(client, enable);
-    if(res != MPU3000_SUCCESS)
+    if (res != MPU3000_SUCCESS)
     {
-        return res;
+	return res;
     }
 
     GYRO_LOG("mpu3000_init_client OK!\n");
@@ -1117,69 +1123,69 @@ static int mpu3000_init_client(struct i2c_client *client, bool enable)
 }
 
 /*----------------------------------------------------------------------------*/
-int mpu3000_operate(void* self, uint32_t command, void* buff_in, int size_in,
-        void* buff_out, int size_out, int* actualout)
+int mpu3000_operate(void *self, uint32_t command, void *buff_in, int size_in,
+	void *buff_out, int size_out, int *actualout)
 {
     int err = 0;
     int value;
-    struct mpu3000_i2c_data *priv = (struct mpu3000_i2c_data*)self;
-    hwm_sensor_data* gyro_data;
+    struct mpu3000_i2c_data *priv = (struct mpu3000_i2c_data *)self;
+    hwm_sensor_data *gyro_data;
     char buff[MPU3000_BUFSIZE];
 
     switch (command)
     {
-        case SENSOR_DELAY:
-            if((buff_in == NULL) || (size_in < sizeof(int)))
-            {
-                GYRO_ERR("Set delay parameter error!\n");
-                err = -EINVAL;
-            }
-            else
-            {
+	case SENSOR_DELAY:
+	    if ((buff_in == NULL) || (size_in < sizeof(int)))
+	    {
+		GYRO_ERR("Set delay parameter error!\n");
+		err = -EINVAL;
+	    }
+	    else
+	    {
 
-            }
-            break;
+	    }
+	    break;
 
-        case SENSOR_ENABLE:
-            if((buff_in == NULL) || (size_in < sizeof(int)))
-            {
-                GYRO_ERR("Enable gyroscope parameter error!\n");
-                err = -EINVAL;
-            }
-            else
-            {
-                value = *(int *)buff_in;
-                if(((value == 0) && (sensor_power == false)) ||((value == 1) && (sensor_power == true)))
-                {
-                    GYRO_LOG("gyroscope device have updated!\n");
-                }
-                else
-                {
-                    err = MPU3000_SetPowerMode(priv->client, !sensor_power);
-                }
-            }
-            break;
+	case SENSOR_ENABLE:
+	    if ((buff_in == NULL) || (size_in < sizeof(int)))
+	    {
+		GYRO_ERR("Enable gyroscope parameter error!\n");
+		err = -EINVAL;
+	    }
+	    else
+	    {
+		value = *(int *)buff_in;
+                if (((value == 0) && (sensor_power == false)) || ((value == 1) && (sensor_power == true)))
+		{
+		    GYRO_LOG("gyroscope device have updated!\n");
+		}
+		else
+		{
+		    err = MPU3000_SetPowerMode(priv->client, !sensor_power);
+		}
+	    }
+	    break;
 
-        case SENSOR_GET_DATA:
-            if((buff_out == NULL) || (size_out< sizeof(hwm_sensor_data)))
-            {
-                GYRO_ERR("get gyroscope data parameter error!\n");
-                err = -EINVAL;
-            }
-            else
-            {
-                gyro_data = (hwm_sensor_data *)buff_out;
-                MPU3000_ReadGyroData(priv->client, buff, MPU3000_BUFSIZE);
-                sscanf(buff, "%x %x %x", &gyro_data->values[0],
-                                    &gyro_data->values[1], &gyro_data->values[2]);
-                gyro_data->status = SENSOR_STATUS_ACCURACY_MEDIUM;
-                gyro_data->value_divide = DEGREE_TO_RAD;
-            }
-            break;
-        default:
-            GYRO_ERR("gyroscope operate function no this parameter %d!\n", command);
-            err = -1;
-            break;
+	case SENSOR_GET_DATA:
+            if ((buff_out == NULL) || (size_out < sizeof(hwm_sensor_data)))
+	    {
+		GYRO_ERR("get gyroscope data parameter error!\n");
+		err = -EINVAL;
+	    }
+	    else
+	    {
+		gyro_data = (hwm_sensor_data *)buff_out;
+		MPU3000_ReadGyroData(priv->client, buff, MPU3000_BUFSIZE);
+		sscanf(buff, "%x %x %x", &gyro_data->values[0],
+				    &gyro_data->values[1], &gyro_data->values[2]);
+		gyro_data->status = SENSOR_STATUS_ACCURACY_MEDIUM;
+		gyro_data->value_divide = DEGREE_TO_RAD;
+	    }
+	    break;
+	default:
+	    GYRO_ERR("gyroscope operate function no this parameter %d!\n", command);
+	    err = -1;
+	    break;
     }
 
     return err;
@@ -1192,10 +1198,10 @@ static int mpu3000_open(struct inode *inode, struct file *file)
 {
     file->private_data = mpu3000_i2c_client;
 
-    if(file->private_data == NULL)
+    if (file->private_data == NULL)
     {
-        GYRO_ERR("null pointer!!\n");
-        return -EINVAL;
+	GYRO_ERR("null pointer!!\n");
+	return -EINVAL;
     }
     return nonseekable_open(inode, file);
 }
@@ -1206,13 +1212,13 @@ static int mpu3000_release(struct inode *inode, struct file *file)
     return 0;
 }
 /*----------------------------------------------------------------------------*/
-//static int mpu3000_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
-//       unsigned long arg)
+/* static int mpu3000_ioctl(struct inode *inode, struct file *file, unsigned int cmd, */
+/* unsigned long arg) */
 static long mpu3000_unlocked_ioctl(struct file *file, unsigned int cmd,
        unsigned long arg)
 {
-    struct i2c_client *client = (struct i2c_client*)file->private_data;
-    //struct mpu3000_i2c_data *obj = (struct mpu3000_i2c_data*)i2c_get_clientdata(client);
+    struct i2c_client *client = (struct i2c_client *)file->private_data;
+    /* struct mpu3000_i2c_data *obj = (struct mpu3000_i2c_data*)i2c_get_clientdata(client); */
     char strbuf[MPU3000_BUFSIZE] = {0};
     s16 *SMTdata;
     void __user *data;
@@ -1220,131 +1226,131 @@ static long mpu3000_unlocked_ioctl(struct file *file, unsigned int cmd,
     int copy_cnt = 0;
     SENSOR_DATA sensor_data;
     int cali[3];
-    int smtRes=0;
-    //GYRO_FUN();
+    int smtRes = 0;
+    /* GYRO_FUN(); */
 
-    if(_IOC_DIR(cmd) & _IOC_READ)
+    if (_IOC_DIR(cmd) & _IOC_READ)
     {
-        err = !access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd));
+	err = !access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd));
     }
-    else if(_IOC_DIR(cmd) & _IOC_WRITE)
+    else if (_IOC_DIR(cmd) & _IOC_WRITE)
     {
-        err = !access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
-    }
-
-    if(err)
-    {
-        GYRO_ERR("access error: %08X, (%2d, %2d)\n", cmd, _IOC_DIR(cmd), _IOC_SIZE(cmd));
-        return -EFAULT;
+	err = !access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
     }
 
-    switch(cmd)
+    if (err)
     {
-        case GYROSCOPE_IOCTL_INIT:
-            mpu3000_init_client(client, false);
-            break;
+	GYRO_ERR("access error: %08X, (%2d, %2d)\n", cmd, _IOC_DIR(cmd), _IOC_SIZE(cmd));
+	return -EFAULT;
+    }
 
-        case GYROSCOPE_IOCTL_SMT_DATA:
-            data = (void __user *) arg;
-            if(data == NULL)
-            {
-                err = -EINVAL;
-                break;
-            }
+    switch (cmd)
+    {
+	case GYROSCOPE_IOCTL_INIT:
+	    mpu3000_init_client(client, false);
+	    break;
 
-            SMTdata = kzalloc(sizeof(*SMTdata) * 800, GFP_KERNEL);
-            if(SMTdata == NULL)
-            {
-                err = -ENOMEM;
-                break;
-            }
-            memset(SMTdata, 0, sizeof(*SMTdata) * 800);
-            MPU3000_SMTReadSensorData(client, SMTdata, 800);
-            //GYRO_LOG("gyroscope read data from kernel OK: sizeof:%d, strlen:%d, packet:%d!\n",
-                //sizeof(SMTdata), strlen(SMTdata), SMTdata[0]);
-            GYRO_LOG("gyroscope read data from kernel OK: SMTdata[0]:%d, copied packet:%d!\n", SMTdata[0],
-            ((SMTdata[0]*MPU3000_AXES_NUM+2)*sizeof(s16)+1));
+	case GYROSCOPE_IOCTL_SMT_DATA:
+	    data = (void __user *) arg;
+	    if (data == NULL)
+	    {
+		err = -EINVAL;
+		break;
+	    }
 
-            smtRes = MPU3000_PROCESS_SMT_DATA(client,SMTdata);
-            copy_cnt = copy_to_user(data, &smtRes,  sizeof(smtRes));
-            kfree(SMTdata);
-            if(copy_cnt)
-            {
-                err = -EFAULT;
-                GYRO_ERR("copy gyro data to user failed!\n");
-            }
-            GYRO_LOG("copy gyro data to user OK: %d!\n", copy_cnt);
-            break;
+	    SMTdata = kzalloc(sizeof(*SMTdata) * 800, GFP_KERNEL);
+	    if (SMTdata == NULL)
+	    {
+		err = -ENOMEM;
+		break;
+	    }
+	    memset(SMTdata, 0, sizeof(*SMTdata) * 800);
+	    MPU3000_SMTReadSensorData(client, SMTdata, 800);
+	    /* GYRO_LOG("gyroscope read data from kernel OK: sizeof:%d, strlen:%d, packet:%d!\n", */
+		/* sizeof(SMTdata), strlen(SMTdata), SMTdata[0]); */
+	    GYRO_LOG("gyroscope read data from kernel OK: SMTdata[0]:%d, copied packet:%d!\n", SMTdata[0],
+	    ((SMTdata[0]*MPU3000_AXES_NUM+2)*sizeof(s16)+1));
 
-        case GYROSCOPE_IOCTL_READ_SENSORDATA:
-            data = (void __user *) arg;
-            if(data == NULL)
-            {
-                err = -EINVAL;
-                break;
-            }
+            smtRes = MPU3000_PROCESS_SMT_DATA(client, SMTdata);
+	    copy_cnt = copy_to_user(data, &smtRes,  sizeof(smtRes));
+	    kfree(SMTdata);
+	    if (copy_cnt)
+	    {
+		err = -EFAULT;
+		GYRO_ERR("copy gyro data to user failed!\n");
+	    }
+	    GYRO_LOG("copy gyro data to user OK: %d!\n", copy_cnt);
+	    break;
 
-            MPU3000_ReadGyroData(client, strbuf, MPU3000_BUFSIZE);
-            if(copy_to_user(data, strbuf, sizeof(strbuf)))
-            {
-                err = -EFAULT;
-                break;
-            }
-            break;
+	case GYROSCOPE_IOCTL_READ_SENSORDATA:
+	    data = (void __user *) arg;
+	    if (data == NULL)
+	    {
+		err = -EINVAL;
+		break;
+	    }
 
-        case GYROSCOPE_IOCTL_SET_CALI:
-            data = (void __user*)arg;
-            if(data == NULL)
-            {
-                err = -EINVAL;
-                break;
-            }
-            if(copy_from_user(&sensor_data, data, sizeof(sensor_data)))
-            {
-                err = -EFAULT;
-                break;
-            }
+	    MPU3000_ReadGyroData(client, strbuf, MPU3000_BUFSIZE);
+	    if (copy_to_user(data, strbuf, sizeof(strbuf)))
+	    {
+		err = -EFAULT;
+		break;
+	    }
+	    break;
 
-            else
-            {
-                cali[MPU3000_AXIS_X] = sensor_data.x * MPU3000_DEFAULT_LSB / MPU3000_FS_MAX_LSB;
-                cali[MPU3000_AXIS_Y] = sensor_data.y * MPU3000_DEFAULT_LSB / MPU3000_FS_MAX_LSB;
-                cali[MPU3000_AXIS_Z] = sensor_data.z * MPU3000_DEFAULT_LSB / MPU3000_FS_MAX_LSB;
-                err = MPU3000_WriteCalibration(client, cali);
-            }
-            break;
+	case GYROSCOPE_IOCTL_SET_CALI:
+	    data = (void __user *)arg;
+	    if (data == NULL)
+	    {
+		err = -EINVAL;
+		break;
+	    }
+	    if (copy_from_user(&sensor_data, data, sizeof(sensor_data)))
+	    {
+		err = -EFAULT;
+		break;
+	    }
 
-        case GYROSCOPE_IOCTL_CLR_CALI:
-            err = MPU3000_ResetCalibration(client);
-            break;
+	    else
+	    {
+		cali[MPU3000_AXIS_X] = sensor_data.x * MPU3000_DEFAULT_LSB / MPU3000_FS_MAX_LSB;
+		cali[MPU3000_AXIS_Y] = sensor_data.y * MPU3000_DEFAULT_LSB / MPU3000_FS_MAX_LSB;
+		cali[MPU3000_AXIS_Z] = sensor_data.z * MPU3000_DEFAULT_LSB / MPU3000_FS_MAX_LSB;
+		err = MPU3000_WriteCalibration(client, cali);
+	    }
+	    break;
 
-        case GYROSCOPE_IOCTL_GET_CALI:
-            data = (void __user*)arg;
-            if(data == NULL)
-            {
-                err = -EINVAL;
-                break;
-            }
-            err = MPU3000_ReadCalibration(client, cali);
-            if(err)
-            {
-                break;
-            }
+	case GYROSCOPE_IOCTL_CLR_CALI:
+	    err = MPU3000_ResetCalibration(client);
+	    break;
 
-            sensor_data.x = cali[MPU3000_AXIS_X] * MPU3000_FS_MAX_LSB / MPU3000_DEFAULT_LSB;
-            sensor_data.y = cali[MPU3000_AXIS_Y] * MPU3000_FS_MAX_LSB / MPU3000_DEFAULT_LSB;
-            sensor_data.z = cali[MPU3000_AXIS_Z] * MPU3000_FS_MAX_LSB / MPU3000_DEFAULT_LSB;
-            if(copy_to_user(data, &sensor_data, sizeof(sensor_data)))
-            {
-                err = -EFAULT;
-                break;
-            }
-            break;
+	case GYROSCOPE_IOCTL_GET_CALI:
+	    data = (void __user *)arg;
+	    if (data == NULL)
+	    {
+		err = -EINVAL;
+		break;
+	    }
+	    err = MPU3000_ReadCalibration(client, cali);
+	    if (err)
+	    {
+		break;
+	    }
 
-        default:
-            GYRO_ERR("unknown IOCTL: 0x%08x\n", cmd);
-            err = -ENOIOCTLCMD;
-            break;
+	    sensor_data.x = cali[MPU3000_AXIS_X] * MPU3000_FS_MAX_LSB / MPU3000_DEFAULT_LSB;
+	    sensor_data.y = cali[MPU3000_AXIS_Y] * MPU3000_FS_MAX_LSB / MPU3000_DEFAULT_LSB;
+	    sensor_data.z = cali[MPU3000_AXIS_Z] * MPU3000_FS_MAX_LSB / MPU3000_DEFAULT_LSB;
+	    if (copy_to_user(data, &sensor_data, sizeof(sensor_data)))
+	    {
+		err = -EFAULT;
+		break;
+	    }
+	    break;
+
+	default:
+	    GYRO_ERR("unknown IOCTL: 0x%08x\n", cmd);
+	    err = -ENOIOCTLCMD;
+	    break;
     }
     return err;
 }
@@ -1352,7 +1358,7 @@ static long mpu3000_unlocked_ioctl(struct file *file, unsigned int cmd,
 
 /*----------------------------------------------------------------------------*/
 static struct file_operations mpu3000_fops = {
-//    .owner = THIS_MODULE,//modified
+/* .owner = THIS_MODULE,//modified */
     .open = mpu3000_open,
     .release = mpu3000_release,
     .unlocked_ioctl = mpu3000_unlocked_ioctl,
@@ -1372,22 +1378,22 @@ static int mpu3000_suspend(struct i2c_client *client, pm_message_t msg)
     int err;
     GYRO_FUN();
 
-    if(msg.event == PM_EVENT_SUSPEND)
+    if (msg.event == PM_EVENT_SUSPEND)
     {
-        if(obj == NULL)
-        {
-            GYRO_ERR("null pointer!!\n");
-            return -EINVAL;
-        }
-        atomic_set(&obj->suspend, 1);
+	if (obj == NULL)
+	{
+	    GYRO_ERR("null pointer!!\n");
+	    return -EINVAL;
+	}
+	atomic_set(&obj->suspend, 1);
 
-        err = MPU3000_SetPowerMode(client, false);
-        if(err <= 0)
-        {
-            return err;
-        }
+	err = MPU3000_SetPowerMode(client, false);
+	if (err <= 0)
+	{
+	    return err;
+	}
     }
-    return 0;//modified
+    return 0;/* modified */
 }
 /*----------------------------------------------------------------------------*/
 static int mpu3000_resume(struct i2c_client *client)
@@ -1396,18 +1402,18 @@ static int mpu3000_resume(struct i2c_client *client)
     int err;
     GYRO_FUN();
 
-    if(obj == NULL)
+    if (obj == NULL)
     {
-        GYRO_ERR("null pointer!!\n");
-        return -EINVAL;
+	GYRO_ERR("null pointer!!\n");
+	return -EINVAL;
     }
 
     MPU3000_power(obj->hw, 1);
     err = mpu3000_init_client(client, false);
-    if(err)
+    if (err)
     {
-        GYRO_ERR("initialize client fail!!\n");
-        return err;
+	GYRO_ERR("initialize client fail!!\n");
+	return err;
     }
     atomic_set(&obj->suspend, 0);
 
@@ -1424,29 +1430,29 @@ static void mpu3000_early_suspend(struct early_suspend *h)
     u8 databuf[2];
     GYRO_FUN();
 
-    if(obj == NULL)
+    if (obj == NULL)
     {
-        GYRO_ERR("null pointer!!\n");
-        return;
+	GYRO_ERR("null pointer!!\n");
+	return;
     }
     atomic_set(&obj->suspend, 1);
-    for(i=0; i<3; i++) {
-    err = MPU3000_SetPowerMode(obj->client, false);
-        if(err ==0)
-            break;
-        }
-    if(i >=3)
+    for (i = 0; i < 3; i++) {
+	err = MPU3000_SetPowerMode(obj->client, false);
+        if (err == 0)
+	    break;
+	}
+    if (i >= 3)
     {
-        GYRO_ERR("write power control fail!!\n");
-        return;
+	GYRO_ERR("write power control fail!!\n");
+	return;
     }
 
     databuf[0] = MPU3000_REG_PWR_CTL;
     databuf[1] = MPU3000_SLEEP;
     err = i2c_master_send(obj->client, databuf, 0x2);
-    if(err <= 0)
+    if (err <= 0)
     {
-        return;
+	return;
     }
 
     sensor_power = false;
@@ -1461,28 +1467,29 @@ static void mpu3000_late_resume(struct early_suspend *h)
     int i;
     GYRO_FUN();
 
-    if(obj == NULL)
+    if (obj == NULL)
     {
-        GYRO_ERR("null pointer!!\n");
-        return;
+	GYRO_ERR("null pointer!!\n");
+	return;
     }
 
     MPU3000_power(obj->hw, 1);
-    for(i=0; i<3; i++) {
-        err = MPU3000_SetPowerMode(obj->client, false);
-        if(err ==0)
-            break;
-        }
-    if(i >=3)
+    for (i = 0; i < 3; i++) {
+	err = MPU3000_SetPowerMode(obj->client, false);
+        if (err == 0)
+	    break;
+	}
+    if (i >= 3)
     {
-        GYRO_ERR("initialize client fail! err code %d!\n", err);
-        return;
+	GYRO_ERR("initialize client fail! err code %d!\n", err);
+	return;
     }
     atomic_set(&obj->suspend, 0);
 }
 /*----------------------------------------------------------------------------*/
 #endif /*CONFIG_HAS_EARLYSUSPEND*/
-/*----------------------------------------------------------------------------*/
+
+
 static int mpu3050_open_report_data(int open)
 {
     return 0;
@@ -1490,34 +1497,34 @@ static int mpu3050_open_report_data(int open)
 
 static int mpu3050_enable_nodata(int en)
 {
-    int res =0;
+    int res = 0;
     int retry = 0;
-    bool power=false;
+    bool power = false;
 
-    if(1==en)
+    if (1 == en)
     {
-        power=true;
+        power = true;
     }
-    if(0==en)
+    if (0 == en)
     {
-        power =false;
-    }
-
-    for(retry = 0; retry < 3; retry++){
-        res = MPU3000_SetPowerMode(obj_i2c_data->client, power);
-        if(res == 0)
-        {
-            GYRO_LOG("MPU3000_SetPowerMode done\n");
-            break;
-        }
-        GYRO_LOG("MPU3000_SetPowerMode fail\n");
+        power = false;
     }
 
+    for (retry = 0; retry < 3; retry++) {
+	res = MPU3000_SetPowerMode(obj_i2c_data->client, power);
+	if (res == 0)
+	{
+	    GYRO_LOG("MPU3000_SetPowerMode done\n");
+	    break;
+	}
+	GYRO_LOG("MPU3000_SetPowerMode fail\n");
+    }
 
-    if(res != MPU3000_SUCCESS)
+
+    if (res != MPU3000_SUCCESS)
     {
-        GYRO_LOG("MPU3000_SetPowerMode fail!\n");
-        return -1;
+	GYRO_LOG("MPU3000_SetPowerMode fail!\n");
+	return -1;
     }
     GYRO_LOG("mpu3050_enable_nodata OK!\n");
     return 0;
@@ -1529,7 +1536,7 @@ static int mpu3050_set_delay(u64 ns)
     return 0;
 }
 
-static int mpu3050_get_data(int* x ,int* y,int* z, int* status)
+static int mpu3050_get_data(int* x , int* y, int* z, int* status)
 {
     char buff[MPU3000_BUFSIZE];
     MPU3000_ReadGyroData(obj_i2c_data->client, buff, MPU3000_BUFSIZE);
@@ -1538,36 +1545,39 @@ static int mpu3050_get_data(int* x ,int* y,int* z, int* status)
 
     return 0;
 }
+
+
 /*----------------------------------------------------------------------------*/
 static int mpu3000_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
     struct i2c_client *new_client;
     struct mpu3000_i2c_data *obj;
-        struct gyro_control_path ctl={0};
-    struct gyro_data_path data={0};
+    /* struct hwmsen_object sobj; */
+        struct gyro_control_path ctl = {0};
+    struct gyro_data_path data = {0};
     int err = 0;
     GYRO_FUN();
 
-    if(!(obj = kzalloc(sizeof(*obj), GFP_KERNEL)))
+    if (!(obj = kzalloc(sizeof(*obj), GFP_KERNEL)))
     {
-        err = -ENOMEM;
-        goto exit;
+	err = -ENOMEM;
+	goto exit;
     }
 
     memset(obj, 0, sizeof(struct mpu3000_i2c_data));
 
     obj->hw = mpu3050_get_cust_gyro_hw();
     err = hwmsen_get_convert(obj->hw->direction, &obj->cvt);
-    if(err)
+    if (err)
     {
-        GYRO_ERR("invalid direction: %d\n", obj->hw->direction);
-        goto exit;
+	GYRO_ERR("invalid direction: %d\n", obj->hw->direction);
+	goto exit;
     }
 
 
     GYRO_LOG("gyro_default_i2c_addr: %x\n", client->addr);
     GYRO_LOG("gyro_custom_i2c_addr: %x\n", obj->hw->addr);
-    if(0!=obj->hw->addr)
+    if (0 != obj->hw->addr)
     {
       client->addr = obj->hw->addr >> 1;
       GYRO_LOG("gyro_use_i2c_addr: %x\n", client->addr);
@@ -1576,7 +1586,7 @@ static int mpu3000_i2c_probe(struct i2c_client *client, const struct i2c_device_
     obj_i2c_data = obj;
     obj->client = client;
     new_client = obj->client;
-    i2c_set_clientdata(new_client,obj);
+    i2c_set_clientdata(new_client, obj);
 
     atomic_set(&obj->trace, 0);
     atomic_set(&obj->suspend, 0);
@@ -1585,53 +1595,53 @@ static int mpu3000_i2c_probe(struct i2c_client *client, const struct i2c_device_
 
     mpu3000_i2c_client = new_client;
     err = mpu3000_init_client(new_client, false);
-    if(err)
+    if (err)
     {
-        goto exit_init_failed;
+	goto exit_init_failed;
     }
 
 
     err = misc_register(&mpu3000_device);
-    if(err)
+    if (err)
     {
-        GYRO_ERR("mpu3000_device misc register failed!\n");
-        goto exit_misc_device_register_failed;
+	GYRO_ERR("mpu3000_device misc register failed!\n");
+	goto exit_misc_device_register_failed;
     }
 
     err = mpu3000_create_attr(&(mpu3050_init_info.platform_diver_addr->driver));
-    if(err)
+    if (err)
     {
-        GYRO_ERR("mpu3000 create attribute err = %d\n", err);
-        goto exit_create_attr_failed;
+	GYRO_ERR("mpu3000 create attribute err = %d\n", err);
+	goto exit_create_attr_failed;
     }
 
 
-    ctl.open_report_data= mpu3050_open_report_data;
+    ctl.open_report_data = mpu3050_open_report_data;
     ctl.enable_nodata = mpu3050_enable_nodata;
     ctl.set_delay  = mpu3050_set_delay;
     ctl.is_report_input_direct = false;
     ctl.is_support_batch = obj->hw->is_batch_supported;
 
     err = gyro_register_control_path(&ctl);
-    if(err)
+    if (err)
     {
-         GYRO_ERR("register gyro control path err\n");
-        goto exit_kfree;
+	 GYRO_ERR("register gyro control path err\n");
+	goto exit_kfree;
     }
 
     data.get_data = mpu3050_get_data;
     data.vender_div = DEGREE_TO_RAD;
     err = gyro_register_data_path(&data);
-    if(err)
-        {
-           GYRO_ERR("gyro_register_data_path fail = %d\n", err);
-           goto exit_kfree;
-        }
-    err = batch_register_support_info(ID_GYROSCOPE,obj->hw->is_batch_supported);
-    if(err)
+    if (err)
+	{
+	   GYRO_ERR("gyro_register_data_path fail = %d\n", err);
+	   goto exit_kfree;
+	}
+    err = batch_register_support_info(ID_GYROSCOPE, obj->hw->is_batch_supported);
+    if (err)
     {
-        GYRO_ERR("register gyro batch support err = %d\n", err);
-        goto exit_kfree;
+	GYRO_ERR("register gyro batch support err = %d\n", err);
+	goto exit_kfree;
     }
 
 
@@ -1646,51 +1656,51 @@ static int mpu3000_i2c_probe(struct i2c_client *client, const struct i2c_device_
     GYRO_LOG("%s: OK\n", __func__);
     return 0;
 
-    exit_create_attr_failed:
+exit_create_attr_failed:
     misc_deregister(&mpu3000_device);
-    exit_misc_device_register_failed:
-    exit_init_failed:
-    //i2c_detach_client(new_client);
-    exit_kfree:
+exit_misc_device_register_failed:
+exit_init_failed:
+exit_kfree:
     kfree(obj);
-    exit:
+exit:
     mpu3050_init_flag = -1;
     GYRO_ERR("%s: err = %d\n", __func__, err);
     return err;
 }
 
-/*----------------------------------------------------------------------------*/
 static int mpu3000_i2c_remove(struct i2c_client *client)
 {
     int err = 0;
 
     err = mpu3000_delete_attr(&(mpu3050_init_info.platform_diver_addr->driver));
-    if(err)
+    if (err)
     {
-        GYRO_ERR("mpu3000_delete_attr fail: %d\n", err);
+	GYRO_ERR("mpu3000_delete_attr fail: %d\n", err);
     }
 
     err = misc_deregister(&mpu3000_device);
-    if(err)
+    if (err)
     {
-        GYRO_ERR("misc_deregister fail: %d\n", err);
+	GYRO_ERR("misc_deregister fail: %d\n", err);
     }
-
 
     mpu3000_i2c_client = NULL;
     i2c_unregister_device(client);
     kfree(i2c_get_clientdata(client));
     return 0;
 }
-/*----------------------------------------------------------------------------*/
+
+
+
+
 /*----------------------------------------------------------------------------*/
 static int mpu3050_remove(void)
 {
     struct gyro_hw *hw = mpu3050_get_cust_gyro_hw();
-
     GYRO_FUN();
     MPU3000_power(hw, 0);
     i2c_del_driver(&mpu3000_i2c_driver);
+
     return 0;
 }
 
@@ -1699,12 +1709,12 @@ static int mpu3050_local_init(void)
     struct gyro_hw *hw = mpu3050_get_cust_gyro_hw();
 
     MPU3000_power(hw, 1);
-    if(i2c_add_driver(&mpu3000_i2c_driver))
+    if (i2c_add_driver(&mpu3000_i2c_driver))
     {
-        GYRO_ERR("add driver error\n");
-        return -1;
+	GYRO_ERR("add driver error\n");
+	return -1;
     }
-    if(-1 == mpu3050_init_flag)
+    if (-1 == mpu3050_init_flag)
     {
        return -1;
     }
@@ -1713,26 +1723,24 @@ static int mpu3050_local_init(void)
 
 static int update_gyro_data(void)
 {
-    struct gyro_hw_ssb *mpu3050c_gyro_data = NULL;
-    const char *name = "mpu3050c";
-    int err = 0;
-
-    if ((mpu3050c_gyro_data = find_gyro_data(name))) {
-        mpu3050_get_cust_gyro_hw()->addr  = mpu3050c_gyro_data->i2c_addr;
-        mpu3050_get_cust_gyro_hw()->i2c_num   = mpu3050c_gyro_data->i2c_num;
-        mpu3050_get_cust_gyro_hw()->direction = mpu3050c_gyro_data->direction;
-        mpu3050_get_cust_gyro_hw()->firlen    = mpu3050c_gyro_data->firlen;
-        GYRO_LOG("[%s]mpu3050c success update addr=0x%x,i2c_num=%d,direction=%d\n",
-        __func__,mpu3050c_gyro_data->i2c_addr,mpu3050c_gyro_data->i2c_num,mpu3050c_gyro_data->direction);
+    if ((sensors_tuning_data) && (sensors_tuning_data->version_id == 0xabab)) {
+	mpu3050_get_cust_gyro_hw()->addr  = sensors_tuning_data->mpu3050c_gyro_i2c_addr;
+	mpu3050_get_cust_gyro_hw()->i2c_num   = sensors_tuning_data->mpu3050c_gyro_i2c_num;
+	mpu3050_get_cust_gyro_hw()->direction = sensors_tuning_data->mpu3050c_gyro_direction;
+	mpu3050_get_cust_gyro_hw()->firlen    = sensors_tuning_data->mpu3050c_gyro_firlen;
+        GYRO_LOG("[%s]update gyro :addr=%d,num=%d,direction=%d,firlen=%d\n", __func__, mpu3050_get_cust_gyro_hw()->addr, mpu3050_get_cust_gyro_hw()->i2c_num, mpu3050_get_cust_gyro_hw()->direction, mpu3050_get_cust_gyro_hw()->firlen);
     }
-    return err;
+    else
+        GYRO_ERR("[%s]: get tuning data fail\n", __func__);
+
+    return 0;
 }
 static int __init mpu3000_init(void)
 {
     struct gyro_hw *hw = NULL;
     update_gyro_data();
     hw = mpu3050_get_cust_gyro_hw();
-    struct i2c_board_info i2c_mpu3000={ I2C_BOARD_INFO("MPU3000", hw->addr)};
+    struct i2c_board_info i2c_mpu3000 = { I2C_BOARD_INFO("MPU3000", hw->addr)};
     i2c_register_board_info(hw->i2c_num, &i2c_mpu3000, 1);
     gyro_driver_add(&mpu3050_init_info);
 

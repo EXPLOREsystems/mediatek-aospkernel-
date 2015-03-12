@@ -84,6 +84,3 @@ extern MTK_WCN_BOOL wmt_lib_is_quick_ps_support(VOID);
 */
 
 #endif /* _STP_WMT_H_*/
-
-
-

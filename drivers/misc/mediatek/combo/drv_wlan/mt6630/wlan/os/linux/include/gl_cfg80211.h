@@ -60,6 +60,9 @@
 *                              C O N S T A N T S
 ********************************************************************************
 */
+#if CONFIG_NL80211_TESTMODE
+#define NL80211_DRIVER_TESTMODE_VERSION 2
+#endif
 
 /*******************************************************************************
 *                             D A T A   T Y P E S
@@ -76,6 +79,62 @@ typedef struct _NL80211_DRIVER_SET_NFC_PARAMS {
 
 #endif
 
+#if CONFIG_NL80211_TESTMODE
+
+typedef struct _NL80211_DRIVER_GET_STA_STATISTICS_PARAMS {
+	NL80211_DRIVER_TEST_MODE_PARAMS hdr;
+	UINT_32 u4Version;
+	UINT_32 u4Flag;
+	UINT_8 aucMacAddr[MAC_ADDR_LEN];
+} NL80211_DRIVER_GET_STA_STATISTICS_PARAMS, *P_NL80211_DRIVER_GET_STA_STATISTICS_PARAMS;
+
+typedef enum _ENUM_TESTMODE_STA_STATISTICS_ATTR {
+	NL80211_TESTMODE_STA_STATISTICS_INVALID = 0,
+	NL80211_TESTMODE_STA_STATISTICS_VERSION,
+	NL80211_TESTMODE_STA_STATISTICS_MAC,
+	NL80211_TESTMODE_STA_STATISTICS_LINK_SCORE,
+	NL80211_TESTMODE_STA_STATISTICS_FLAG,
+
+	NL80211_TESTMODE_STA_STATISTICS_PER,
+	NL80211_TESTMODE_STA_STATISTICS_RSSI,
+	NL80211_TESTMODE_STA_STATISTICS_PHY_MODE,
+	NL80211_TESTMODE_STA_STATISTICS_TX_RATE,
+
+	NL80211_TESTMODE_STA_STATISTICS_TOTAL_CNT,
+	NL80211_TESTMODE_STA_STATISTICS_THRESHOLD_CNT,
+	NL80211_TESTMODE_STA_STATISTICS_AVG_PROCESS_TIME,
+
+	NL80211_TESTMODE_STA_STATISTICS_FAIL_CNT,
+	NL80211_TESTMODE_STA_STATISTICS_TIMEOUT_CNT,
+	NL80211_TESTMODE_STA_STATISTICS_AVG_AIR_TIME,
+
+	NL80211_TESTMODE_STA_STATISTICS_TC_EMPTY_CNT_ARRAY,
+	NL80211_TESTMODE_STA_STATISTICS_TC_QUE_LEN_ARRAY,
+
+	NL80211_TESTMODE_STA_STATISTICS_TC_AVG_QUE_LEN_ARRAY,
+	NL80211_TESTMODE_STA_STATISTICS_TC_CUR_QUE_LEN_ARRAY,
+
+	NL80211_TESTMODE_STA_STATISTICS_RESERVED_ARRAY,
+
+	NL80211_TESTMODE_STA_STATISTICS_NUM
+} ENUM_TESTMODE_STA_STATISTICS_ATTR;
+#if CFG_AUTO_CHANNEL_SEL_SUPPORT
+typedef struct _NL80211_DRIVER_GET_LTE_PARAMS {
+	NL80211_DRIVER_TEST_MODE_PARAMS hdr;
+	UINT_32 u4Version;
+	UINT_32 u4Flag;
+} NL80211_DRIVER_GET_LTE_PARAMS, *P_NL80211_DRIVER_GET_LTE_PARAMS;
+
+typedef enum _ENUM_TESTMODE_AVAILABLE_CHAN_ATTR {
+	NL80211_TESTMODE_AVAILABLE_CHAN_INVALID = 0,
+	NL80211_TESTMODE_AVAILABLE_CHAN_2G_BASE_1,
+	NL80211_TESTMODE_AVAILABLE_CHAN_5G_BASE_34,
+	NL80211_TESTMODE_AVAILABLE_CHAN_5G_BASE_149,
+	NL80211_TESTMODE_AVAILABLE_CHAN_5G_BASE_184,
+	NL80211_TESTMODE_AVAILABLE_CHAN_NUM,
+} ENUM_TESTMODE_AVAILABLE_CHAN_ATTR;
+#endif
+#endif
 /*******************************************************************************
 *                            P U B L I C   D A T A
 ********************************************************************************
@@ -228,6 +287,23 @@ int mtk_cfg80211_mgmt_tx_cancel_wait(struct wiphy *wiphy,
 				     u64 cookie);
 
 #if CONFIG_NL80211_TESTMODE
+#if CFG_AUTO_CHANNEL_SEL_SUPPORT
+WLAN_STATUS
+wlanoidQueryACSChannelList(IN P_ADAPTER_T prAdapter,
+			   IN PVOID pvQueryBuffer,
+			   IN UINT_32 u4QueryBufferLen, OUT PUINT_32 pu4QueryInfoLen);
+
+int
+mtk_cfg80211_testmode_get_lte_channel(IN struct wiphy *wiphy,
+				      IN void *data, IN int len, IN P_GLUE_INFO_T prGlueInfo);
+#endif
+int
+mtk_cfg80211_testmode_get_sta_statistics(IN struct wiphy *wiphy,
+					 IN void *data, IN int len, IN P_GLUE_INFO_T prGlueInfo);
+
+int
+mtk_cfg80211_testmode_get_scan_done(IN struct wiphy *wiphy,
+				    IN void *data, IN int len, IN P_GLUE_INFO_T prGlueInfo);
 int mtk_cfg80211_testmode_cmd(IN struct wiphy *wiphy, IN void *data, IN int len);
 
 int mtk_cfg80211_testmode_sw_cmd(IN struct wiphy *wiphy, IN void *data, IN int len);

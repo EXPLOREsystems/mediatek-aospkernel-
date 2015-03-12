@@ -163,7 +163,8 @@ INT32 mtk_wcn_cmb_hw_pwr_on(VOID)
 		iRet += wmt_plat_gpio_ctrl(PIN_UART_RX, PIN_STA_OUT_H);
 		break;
 	case STP_SDIO_IF_TX:
-		iRet += wmt_plat_gpio_ctrl(PIN_UART_RX, PIN_STA_IN_NP);
+	iRet += wmt_plat_gpio_ctrl(PIN_UART_RX, PIN_STA_IN_L);
+		/* iRet += wmt_plat_gpio_ctrl(PIN_UART_RX, PIN_STA_IN_NP); */
 		break;
 	default:
 		WMT_ERR_FUNC("not supported common interface\n");
@@ -184,6 +185,15 @@ INT32 mtk_wcn_cmb_hw_pwr_on(VOID)
 	osal_sleep_ms(gPwrSeqTime.onStableTime);
 
 #ifdef MT6630_SW_STRAP_SUPPORT
+	switch (wmt_plat_get_comm_if_type()) {
+	case STP_SDIO_IF_TX:
+		iRet += wmt_plat_gpio_ctrl(PIN_UART_RX, PIN_STA_IN_H);
+		break;
+	default:
+		WMT_ERR_FUNC("not supported common interface\n");
+		break;
+	}
+
 	/*set UART Tx/Rx to UART mode */
 	iRet += wmt_plat_gpio_ctrl(PIN_UART_RX, PIN_STA_MUX);
 #endif
@@ -219,7 +229,8 @@ INT32 mtk_wcn_cmb_hw_rst(VOID)
 		iRet += wmt_plat_gpio_ctrl(PIN_UART_RX, PIN_STA_OUT_H);
 		break;
 	case STP_SDIO_IF_TX:
-		iRet += wmt_plat_gpio_ctrl(PIN_UART_RX, PIN_STA_IN_NP);
+	iRet += wmt_plat_gpio_ctrl(PIN_UART_RX, PIN_STA_IN_L);
+		/* iRet += wmt_plat_gpio_ctrl(PIN_UART_RX, PIN_STA_IN_NP); */
 		break;
 	default:
 		WMT_ERR_FUNC("not supported common interface\n");
@@ -241,6 +252,15 @@ INT32 mtk_wcn_cmb_hw_rst(VOID)
 	osal_sleep_ms(gPwrSeqTime.onStableTime);
 
 #ifdef MT6630_SW_STRAP_SUPPORT
+	switch (wmt_plat_get_comm_if_type()) {
+	case STP_SDIO_IF_TX:
+		iRet += wmt_plat_gpio_ctrl(PIN_UART_RX, PIN_STA_IN_H);
+		break;
+	default:
+		WMT_ERR_FUNC("not supported common interface\n");
+		break;
+	}
+
 	/*set UART Tx/Rx to UART mode */
 	iRet += wmt_plat_gpio_ctrl(PIN_UART_RX, PIN_STA_MUX);
 #endif

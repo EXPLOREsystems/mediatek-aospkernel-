@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/nic/nic_rx.h#1 $
 */
 
@@ -194,14 +208,14 @@
 #define CFG_RX_MAX_BA_TID_NUM          8
 
 #define RX_STATUS_FLAG_MORE_PACKET    BIT(30)
-#define RX_STATUS_CHKSUM_MASK         BITS(0,10)
+#define RX_STATUS_CHKSUM_MASK         BITS(0, 10)
 
 #define RX_RFB_LEN_FIELD_LEN        4
 #define RX_HEADER_OFFSET            2
 
 #define RX_RETURN_INDICATED_RFB_TIMEOUT_SEC      3
 
-#if defined(_HIF_SDIO) && defined (WINDOWS_DDK)
+#if defined(_HIF_SDIO) && defined(WINDOWS_DDK)
 /*! On XP, maximum Tx+Rx Statue <= 64-4(HISR)*/
     #define SDIO_MAXIMUM_RX_LEN_NUM              0 /*!< 0~15 (0: un-limited) */
 #else
@@ -224,7 +238,7 @@ typedef enum _ENUM_RX_STATISTIC_COUNTER_T {
     RX_TYPE_ERR_DROP_COUNT,
     RX_CLASS_ERR_DROP_COUNT,
     RX_DST_NULL_DROP_COUNT,
-    
+
 #if CFG_TCP_IP_CHKSUM_OFFLOAD || CFG_TCP_IP_CHKSUM_OFFLOAD_NDIS_60
     RX_CSUM_TCP_FAILED_COUNT,
     RX_CSUM_UDP_FAILED_COUNT,
@@ -306,7 +320,7 @@ typedef struct _RX_MAILBOX_T {
     UINT_32                 u4RxMailbox[2]; /* for Device-to-Host Mailbox */
 } RX_MAILBOX_T, *P_RX_MAILBOX_T;
 
-typedef WLAN_STATUS (*PROCESS_RX_MGT_FUNCTION)(P_ADAPTER_T, P_SW_RFB_T);
+typedef WLAN_STATUS(*PROCESS_RX_MGT_FUNCTION)(P_ADAPTER_T, P_SW_RFB_T);
 
 /*******************************************************************************
 *                            P U B L I C   D A T A
@@ -323,16 +337,16 @@ typedef WLAN_STATUS (*PROCESS_RX_MGT_FUNCTION)(P_ADAPTER_T, P_SW_RFB_T);
 ********************************************************************************
 */
 #define RX_INC_CNT(prRxCtrl, eCounter)              \
-    {((P_RX_CTRL_T)prRxCtrl)->au8Statistics[eCounter]++;}
+    {((P_RX_CTRL_T)prRxCtrl)->au8Statistics[eCounter]++; }
 
 #define RX_ADD_CNT(prRxCtrl, eCounter, u8Amount)    \
-    {((P_RX_CTRL_T)prRxCtrl)->au8Statistics[eCounter] += (UINT_64)u8Amount;}
+    {((P_RX_CTRL_T)prRxCtrl)->au8Statistics[eCounter] += (UINT_64)u8Amount; }
 
 #define RX_GET_CNT(prRxCtrl, eCounter)              \
     (((P_RX_CTRL_T)prRxCtrl)->au8Statistics[eCounter])
 
 #define RX_RESET_ALL_CNTS(prRxCtrl)                 \
-    {kalMemZero(&prRxCtrl->au8Statistics[0], sizeof(prRxCtrl->au8Statistics));}
+    {kalMemZero(&prRxCtrl->au8Statistics[0], sizeof(prRxCtrl->au8Statistics)); }
 
 #define RX_STATUS_TEST_MORE_FLAG(flag) \
     ((BOOL)((flag & RX_STATUS_FLAG_MORE_PACKET) ? TRUE : FALSE))
@@ -343,47 +357,47 @@ typedef WLAN_STATUS (*PROCESS_RX_MGT_FUNCTION)(P_ADAPTER_T, P_SW_RFB_T);
 */
 
 VOID
-nicRxInitialize (
+nicRxInitialize(
     IN P_ADAPTER_T prAdapter
     );
 
 #if defined(MT5931)
 VOID
-nicRxPostInitialize (
+nicRxPostInitialize(
     IN P_ADAPTER_T prAdapter
     );
 #endif
 
 VOID
-nicRxUninitialize (
+nicRxUninitialize(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-nicRxProcessRFBs (
+nicRxProcessRFBs(
     IN  P_ADAPTER_T prAdapter
     );
 
 #if !CFG_SDIO_INTR_ENHANCE
 VOID
-nicRxReceiveRFBs (
+nicRxReceiveRFBs(
     IN  P_ADAPTER_T prAdapter
     );
 
 WLAN_STATUS
-nicRxReadBuffer (
+nicRxReadBuffer(
     IN P_ADAPTER_T prAdapter,
     IN OUT P_SW_RFB_T prSwRfb
     );
 
 #else
 VOID
-nicRxSDIOReceiveRFBs (
+nicRxSDIOReceiveRFBs(
     IN  P_ADAPTER_T prAdapter
     );
 
 WLAN_STATUS
-nicRxEnhanceReadBuffer (
+nicRxEnhanceReadBuffer(
     IN P_ADAPTER_T prAdapter,
     IN UINT_32 u4DataPort,
     IN UINT_16 u2RxLength,
@@ -394,67 +408,67 @@ nicRxEnhanceReadBuffer (
 
 #if CFG_SDIO_RX_AGG
 VOID
-nicRxSDIOAggReceiveRFBs (
+nicRxSDIOAggReceiveRFBs(
     IN  P_ADAPTER_T prAdapter
     );
 #endif
 
 WLAN_STATUS
-nicRxSetupRFB (
+nicRxSetupRFB(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T  prRfb
     );
 
 VOID
-nicRxReturnRFB (
+nicRxReturnRFB(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T  prRfb
     );
 
 VOID
-nicProcessRxInterrupt (
+nicProcessRxInterrupt(
     IN  P_ADAPTER_T prAdapter
     );
 
 VOID
-nicRxProcessPktWithoutReorder (
+nicRxProcessPktWithoutReorder(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T  prSwRfb
     );
 
 VOID
-nicRxProcessForwardPkt (
+nicRxProcessForwardPkt(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T  prSwRfb
     );
 
 VOID
-nicRxProcessGOBroadcastPkt (
+nicRxProcessGOBroadcastPkt(
     IN P_ADAPTER_T prAdapter,
     IN P_SW_RFB_T  prSwRfb
     );
 
 
 VOID
-nicRxFillRFB (
+nicRxFillRFB(
     IN P_ADAPTER_T    prAdapter,
     IN OUT P_SW_RFB_T prSwRfb
     );
 
 VOID
-nicRxProcessDataPacket (
+nicRxProcessDataPacket(
     IN P_ADAPTER_T    prAdapter,
     IN OUT P_SW_RFB_T prSwRfb
     );
 
 VOID
-nicRxProcessEventPacket (
+nicRxProcessEventPacket(
     IN P_ADAPTER_T    prAdapter,
     IN OUT P_SW_RFB_T prSwRfb
     );
 
 VOID
-nicRxProcessMgmtPacket (
+nicRxProcessMgmtPacket(
     IN P_ADAPTER_T    prAdapter,
     IN OUT P_SW_RFB_T prSwRfb
     );
@@ -468,7 +482,7 @@ nicRxFillChksumStatus(
     );
 
 VOID
-nicRxUpdateCSUMStatistics (
+nicRxUpdateCSUMStatistics(
     IN P_ADAPTER_T prAdapter,
     IN const ENUM_CSUM_RESULT_T aeCSUM[]
     );
@@ -476,26 +490,26 @@ nicRxUpdateCSUMStatistics (
 
 
 VOID
-nicRxQueryStatus (
+nicRxQueryStatus(
     IN P_ADAPTER_T prAdapter,
     IN PUINT_8 pucBuffer,
     OUT PUINT_32 pu4Count
     );
 
 VOID
-nicRxClearStatistics (
+nicRxClearStatistics(
     IN P_ADAPTER_T prAdapter
     );
 
 VOID
-nicRxQueryStatistics (
+nicRxQueryStatistics(
     IN P_ADAPTER_T prAdapter,
     IN PUINT_8 pucBuffer,
     OUT PUINT_32 pu4Count
     );
 
 WLAN_STATUS
-nicRxWaitResponse (
+nicRxWaitResponse(
     IN P_ADAPTER_T  prAdapter,
     IN UINT_8       ucPortIdx,
     OUT PUINT_8     pucRspBuffer,
@@ -504,27 +518,26 @@ nicRxWaitResponse (
     );
 
 VOID
-nicRxEnablePromiscuousMode (
+nicRxEnablePromiscuousMode(
     IN P_ADAPTER_T prAdapter
     );
 
 
 VOID
-nicRxDisablePromiscuousMode (
+nicRxDisablePromiscuousMode(
     IN P_ADAPTER_T prAdapter
     );
 
 
 WLAN_STATUS
-nicRxFlush (
+nicRxFlush(
     IN P_ADAPTER_T  prAdapter
     );
 
 WLAN_STATUS
-nicRxProcessActionFrame (
+nicRxProcessActionFrame(
     IN P_ADAPTER_T  prAdapter,
     IN P_SW_RFB_T   prSwRfb
     );
 
 #endif /* _NIC_RX_H */
-

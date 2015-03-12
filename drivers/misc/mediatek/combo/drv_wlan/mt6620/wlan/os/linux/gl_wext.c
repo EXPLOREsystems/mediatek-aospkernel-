@@ -1822,7 +1822,7 @@ wext_get_scan(IN struct net_device *prNetDev,
 
 	/* kalIndicateStatusAndComplete(prGlueInfo, WLAN_STATUS_SCAN_COMPLETE, NULL, 0); */
 
- error :
+ error:
 	/* free local query buffer */
 	if (prList) {
 		kalMemFree(prList, VIR_MEM_TYPE, u4AllocBufLen);

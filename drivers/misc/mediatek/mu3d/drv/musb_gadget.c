@@ -1349,7 +1349,7 @@ static int musb_gadget_wakeup(struct usb_gadget *gadget)
 	status = 0;
 	os_printk(K_DEBUG, "****************** musb_gadget_wakeup......\n");
 /* mu3d_hal_resume(); */
- done :
+ done:
 	spin_unlock_irqrestore(&musb->lock, flags);
 	return status;
 }

@@ -36,14 +36,14 @@
 
 extern unsigned int gStpDbgLvl;
 
-#define STP_DBG_FUNC(fmt, arg...)    if(gStpDbgLvl >= STP_LOG_DBG){  osal_dbg_print(PFX "%s: "  fmt, __FUNCTION__ ,##arg);}
-#define STP_INFO_FUNC(fmt, arg...)   if(gStpDbgLvl >= STP_LOG_INFO){ osal_dbg_print(PFX "%s:[I] "  fmt, __FUNCTION__ ,##arg);}
-#define STP_WARN_FUNC(fmt, arg...)   if(gStpDbgLvl >= STP_LOG_WARN){ osal_dbg_print(PFX "%s:[W] "  fmt, __FUNCTION__ ,##arg);}
-#define STP_ERR_FUNC(fmt, arg...)    if(gStpDbgLvl >= STP_LOG_ERR){  osal_dbg_print(PFX "%s:[E] "   fmt, __FUNCTION__ ,##arg);}
-#define STP_TRC_FUNC(f)              if(gStpDbgLvl >= STP_LOG_DBG){  osal_dbg_print(PFX "<%s> <%d>\n", __FUNCTION__, __LINE__);}
+#define STP_DBG_FUNC(fmt, arg...)    if (gStpDbgLvl >= STP_LOG_DBG) {  osal_dbg_print(PFX "%s: "  fmt, __func__ , ##arg); }
+#define STP_INFO_FUNC(fmt, arg...)   if (gStpDbgLvl >= STP_LOG_INFO) { osal_dbg_print(PFX "%s:[I] "  fmt, __func__ , ##arg); }
+#define STP_WARN_FUNC(fmt, arg...)   if (gStpDbgLvl >= STP_LOG_WARN) { osal_dbg_print(PFX "%s:[W] "  fmt, __func__ , ##arg); }
+#define STP_ERR_FUNC(fmt, arg...)    if (gStpDbgLvl >= STP_LOG_ERR) {  osal_dbg_print(PFX "%s:[E] "   fmt, __func__ , ##arg); }
+#define STP_TRC_FUNC(f)              if (gStpDbgLvl >= STP_LOG_DBG) {  osal_dbg_print(PFX "<%s> <%d>\n", __func__, __LINE__); }
 
-#define STP_DUMP_PACKET_HEAD(a, b, c)     if(gStpDbgLvl >= STP_LOG_PKHEAD){stp_dump_data(a, b, c);}
-#define STP_TRACE_FUNC(fmt, arg...)        if(gStpDbgLvl >= STP_LOG_DBG){  osal_dbg_print(PFX "%s: "  fmt, __FUNCTION__ ,##arg);}
+#define STP_DUMP_PACKET_HEAD(a, b, c)     if (gStpDbgLvl >= STP_LOG_PKHEAD) {stp_dump_data(a, b, c); }
+#define STP_TRACE_FUNC(fmt, arg...)        if (gStpDbgLvl >= STP_LOG_DBG) {  osal_dbg_print(PFX "%s: "  fmt, __func__ , ##arg); }
 
 #define MTKSTP_UART_FULL_MODE 0x01
 #define MTKSTP_UART_MAND_MODE 0x02
@@ -99,7 +99,7 @@ extern unsigned int gStpDbgLvl;
 *                             D A T A   T Y P E S
 ********************************************************************************
 */
-typedef INT32(*IF_TX)(const UINT8 *data, const UINT32 size, UINT32 *written_size);
+typedef INT32(*IF_TX)(const UINT8 * data, const UINT32 size, UINT32 * written_size);
 /* event/signal */
 typedef INT32(*EVENT_SET)(UINT8 function_type);
 typedef INT32(*EVENT_TX_RESUME)(UINT8 winspace);
@@ -147,16 +147,16 @@ typedef struct {
 } mtkstp_parser_context_struct;
 
 typedef struct {
-    UINT8           txseq;  // last tx pkt's seq + 1
-    UINT8           txack;  // last tx pkt's ack
-    UINT8           rxack;  // last rx pkt's ack
-    UINT8           winspace;   // current sliding window size
-    UINT8           expected_rxseq;  // last rx pkt's seq + 1
+    UINT8           txseq;  /* last tx pkt's seq + 1 */
+    UINT8           txack;  /* last tx pkt's ack */
+    UINT8           rxack;  /* last rx pkt's ack */
+    UINT8           winspace;   /* current sliding window size */
+    UINT8           expected_rxseq;  /* last rx pkt's seq + 1 */
     UINT8           retry_times;
 } mtkstp_sequence_context_struct;
 
 typedef struct {
-    //MTK_WCN_MUTEX           mtx;
+    /* MTK_WCN_MUTEX           mtx; */
     OSAL_UNSLEEPABLE_LOCK  mtx;
     UINT8           buffer[MTKSTP_BUFFER_SIZE];
     UINT32          read_p;
@@ -165,19 +165,19 @@ typedef struct {
 
 typedef struct {
     UINT8  inband_rst_set;
-    UINT32 rx_counter;  // size of current processing pkt in rx_buf[]
-    UINT8  rx_buf[MTKSTP_BUFFER_SIZE];  // input buffer of STP, room for current processing pkt
-    UINT32 tx_read;     // read ptr of tx_buf[]
-    UINT32 tx_write;    // write ptr of tx_buf[]
-    UINT8  tx_buf[MTKSTP_BUFFER_SIZE];  // output buffer of STP
-    UINT32 tx_start_addr[MTKSTP_SEQ_SIZE];  // ptr of each pkt in tx_buf[]
-    UINT32 tx_length[MTKSTP_SEQ_SIZE];      // length of each pkt in tx_buf[]
-    mtkstp_ring_buffer_struct ring[MTKSTP_MAX_TASK_NUM];    // ring buffers for each function driver
-    mtkstp_parser_context_struct parser;        // current rx pkt's content
-    mtkstp_sequence_context_struct sequence;    // state machine's current status
-    //MTK_WCN_MUTEX stp_mutex;
+    UINT32 rx_counter;  /* size of current processing pkt in rx_buf[] */
+    UINT8  rx_buf[MTKSTP_BUFFER_SIZE];  /* input buffer of STP, room for current processing pkt */
+    UINT32 tx_read;     /* read ptr of tx_buf[] */
+    UINT32 tx_write;    /* write ptr of tx_buf[] */
+    UINT8  tx_buf[MTKSTP_BUFFER_SIZE];  /* output buffer of STP */
+    UINT32 tx_start_addr[MTKSTP_SEQ_SIZE];  /* ptr of each pkt in tx_buf[] */
+    UINT32 tx_length[MTKSTP_SEQ_SIZE];      /* length of each pkt in tx_buf[] */
+    mtkstp_ring_buffer_struct ring[MTKSTP_MAX_TASK_NUM];    /* ring buffers for each function driver */
+    mtkstp_parser_context_struct parser;        /* current rx pkt's content */
+    mtkstp_sequence_context_struct sequence;    /* state machine's current status */
+    /* MTK_WCN_MUTEX stp_mutex; */
     OSAL_UNSLEEPABLE_LOCK stp_mutex;
-    //MTK_WCN_TIMER tx_timer; // timer for tx timeout handling
+    /* MTK_WCN_TIMER tx_timer; // timer for tx timeout handling */
     OSAL_TIMER tx_timer;
 
     MTKSTP_PSM_T *psm;
@@ -229,7 +229,7 @@ INT32 stp_send_data_no_ps(UINT8 *buffer, UINT32 length, UINT8 type);
 * RETURNS
 *  INT32    0 = success, others = failure
 *****************************************************************************/
-extern INT32 mtk_wcn_stp_init(const mtkstp_callback *const cb_func);
+extern INT32 mtk_wcn_stp_init(const mtkstp_callback * const cb_func);
 
 /*****************************************************************************
 * FUNCTION

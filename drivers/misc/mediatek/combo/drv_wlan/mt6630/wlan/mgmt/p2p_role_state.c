@@ -76,31 +76,34 @@ p2pRoleStateInit_REQING_CHANNEL(IN P_ADAPTER_T prAdapter,
 }				/* p2pRoleStateInit_REQING_CHANNEL */
 
 VOID
-p2pRoleStateAbort_REQING_CHANNEL(IN P_ADAPTER_T prAdapter,
-				 IN P_BSS_INFO_T prP2pRoleBssInfo,
-				 IN P_P2P_ROLE_FSM_INFO_T prP2pRoleFsmInfo,
-				 IN ENUM_P2P_ROLE_STATE_T eNextState)
+p2pRoleStateAbort_REQING_CHANNEL(
+    IN P_ADAPTER_T prAdapter,
+    IN P_BSS_INFO_T prP2pRoleBssInfo,
+    IN P_P2P_ROLE_FSM_INFO_T prP2pRoleFsmInfo,
+    IN ENUM_P2P_ROLE_STATE_T eNextState
+    )
 {
 
-	do {
-		ASSERT_BREAK((prAdapter != NULL) &&
-			     (prP2pRoleBssInfo != NULL) && (prP2pRoleFsmInfo != NULL));
+    do {
+	ASSERT_BREAK((prAdapter != NULL) &&
+			(prP2pRoleBssInfo != NULL) &&
+			(prP2pRoleFsmInfo != NULL));
 
-		if (eNextState == P2P_ROLE_STATE_IDLE) {
-			if (prP2pRoleBssInfo->eIntendOPMode == OP_MODE_ACCESS_POINT) {
-				p2pFuncStartGO(prAdapter,
-					       prP2pRoleBssInfo,
-					       &(prP2pRoleFsmInfo->rConnReqInfo),
-					       &(prP2pRoleFsmInfo->rChnlReqInfo));
-			} else {
-				p2pFuncReleaseCh(prAdapter, prP2pRoleFsmInfo->ucBssIndex,
-						 &(prP2pRoleFsmInfo->rChnlReqInfo));
-			}
-		}
-	} while (FALSE);
+	if (eNextState == P2P_ROLE_STATE_IDLE) {
+	    if (prP2pRoleBssInfo->eIntendOPMode == OP_MODE_ACCESS_POINT) {
+		p2pFuncStartGO(prAdapter,
+			    prP2pRoleBssInfo,
+			    &(prP2pRoleFsmInfo->rConnReqInfo),
+			    &(prP2pRoleFsmInfo->rChnlReqInfo));
+	    }
+	    else {
+		p2pFuncReleaseCh(prAdapter, prP2pRoleFsmInfo->ucBssIndex, &(prP2pRoleFsmInfo->rChnlReqInfo));
+	    }
+	}
+    } while (FALSE);
 
-	return;
-}				/* p2pRoleStateAbort_REQING_CHANNEL */
+    return;
+} /* p2pRoleStateAbort_REQING_CHANNEL */
 
 VOID
 p2pRoleStateInit_AP_CHNL_DETECTION(IN P_ADAPTER_T prAdapter,
@@ -129,7 +132,6 @@ p2pRoleStateInit_AP_CHNL_DETECTION(IN P_ADAPTER_T prAdapter,
 
 			prScanReqInfo->eScanType = SCAN_TYPE_PASSIVE_SCAN;
 			prScanReqInfo->u2PassiveDewellTime = 50;	/* 50ms for passive channel load detection */
-
 		} else {
 			/* Active scan to shorten scan time. */
 			prScanReqInfo->eScanType = SCAN_TYPE_ACTIVE_SCAN;
@@ -286,5 +288,73 @@ p2pRoleStateAbort_GC_JOIN(IN P_ADAPTER_T prAdapter,
 		p2pFuncReleaseCh(prAdapter, prP2pRoleFsmInfo->ucBssIndex,
 				 &(prP2pRoleFsmInfo->rChnlReqInfo));
 	} while (FALSE);
+	return;
+}
+
+VOID
+p2pRoleStatePrepare_To_REQING_CHANNEL_STATE(
+    IN P_ADAPTER_T prAdapter,
+    IN P_BSS_INFO_T prBssInfo,
+    IN P_P2P_CONNECTION_REQ_INFO_T prConnReqInfo,
+	OUT P_P2P_CHNL_REQ_INFO_T prChnlReqInfo
+    )
+{
+    ENUM_BAND_T         eBand;
+    UINT_8              ucChannel;
+    ENUM_CHNL_EXT_T     eSCO;
+    ENUM_BAND_T         eBandBackup;
+    UINT_8              ucChannelBackup;
+    ENUM_CHNL_EXT_T     eSCOBackup;
+    do {
+	/* P2P BSS info is for temporarily use
+	 * Request a 80MHz channel before starting AP/GO
+	 * to prevent from STA/GC connected too early (before CH abort)
+	 * Therefore, STA/GC Rate will drop during DHCP exchange packets
+	 */
+
+	/* Previous issue:
+	 * Always request 20MHz channel, but carry 40MHz HT cap/80MHz VHT cap,
+	 * then if GC/STA connected before CH abort,
+	 * GO/AP cannot listen to GC/STA's 40MHz/80MHz packets.
+	 */
+
+	eBandBackup = prBssInfo->eBand;
+	ucChannelBackup = prBssInfo->ucPrimaryChannel;
+	eSCOBackup = prBssInfo->eBssSCO;
+
+	prBssInfo->ucPrimaryChannel = prConnReqInfo->rChannelInfo.ucChannelNum;
+	prBssInfo->eBand = prConnReqInfo->rChannelInfo.eBand;
+
+	if (cnmPreferredChannel(prAdapter, &eBand, &ucChannel, &eSCO) &&
+	    eSCO != CHNL_EXT_SCN && ucChannel == prBssInfo->ucPrimaryChannel &&
+	    eBand == prBssInfo->eBand) {
+	    prBssInfo->eBssSCO = eSCO;
+	}
+	else {
+	    prBssInfo->eBssSCO = rlmDecideScoForAP(prAdapter, prBssInfo);
+	}
+
+	ASSERT_BREAK((prAdapter != NULL) && (prConnReqInfo != NULL) && (prChnlReqInfo != NULL));
+	prChnlReqInfo->u8Cookie = 0;
+	prChnlReqInfo->ucReqChnlNum = prConnReqInfo->rChannelInfo.ucChannelNum;
+	prChnlReqInfo->eBand = prConnReqInfo->rChannelInfo.eBand;
+	prChnlReqInfo->eChnlSco = prBssInfo->eBssSCO;
+	prChnlReqInfo->u4MaxInterval = P2P_AP_CHNL_HOLD_TIME_MS;
+	prChnlReqInfo->eChnlReqType = CH_REQ_TYPE_GO_START_BSS;
+
+	if (prBssInfo->eBand == BAND_5G)
+	    prChnlReqInfo->eChannelWidth = CW_80MHZ;
+	else
+	    prChnlReqInfo->eChannelWidth = CW_20_40MHZ;
+
+	prChnlReqInfo->ucCenterFreqS1 = nicGetVhtS1(prBssInfo->ucPrimaryChannel);
+	prChnlReqInfo->ucCenterFreqS2 = 0;
+	DBGLOG(P2P, TRACE, ("p2pRoleStatePrepare_To_REQING_CHANNEL_STATE\n"));
+
+	/* Reset */
+	prBssInfo->ucPrimaryChannel = ucChannelBackup;
+	prBssInfo->eBand = eBandBackup;
+	prBssInfo->eBssSCO = eSCOBackup;
+    } while (FALSE);
 	return;
 }

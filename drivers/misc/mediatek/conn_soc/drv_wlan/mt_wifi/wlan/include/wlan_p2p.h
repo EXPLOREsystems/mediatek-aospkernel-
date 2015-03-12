@@ -1,10 +1,24 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/TRUNK/WiFi_P2P_Driver/include/wlan_p2p.h#3 $
 */
 
 /*! \file   "wlan_p2p.h"
-    \brief This file contains the declairations of Wi-Fi Direct command 
-           processing routines for MediaTek Inc. 802.11 Wireless LAN Adapters.
+    \brief This file contains the declairations of Wi-Fi Direct command
+	   processing routines for MediaTek Inc. 802.11 Wireless LAN Adapters.
 */
 
 
@@ -296,7 +310,7 @@ wlanoidGetSecCheckResponse(
 #endif
 
 WLAN_STATUS
-wlanoidSetNoaParam (
+wlanoidSetNoaParam(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -304,7 +318,7 @@ wlanoidSetNoaParam (
     );
 
 WLAN_STATUS
-wlanoidSetOppPsParam (
+wlanoidSetOppPsParam(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -312,7 +326,7 @@ wlanoidSetOppPsParam (
     );
 
 WLAN_STATUS
-wlanoidSetUApsdParam (
+wlanoidSetUApsdParam(
     IN  P_ADAPTER_T       prAdapter,
     IN  PVOID             pvSetBuffer,
     IN  UINT_32           u4SetBufferLen,
@@ -320,7 +334,7 @@ wlanoidSetUApsdParam (
     );
 
 WLAN_STATUS
-wlanoidQueryP2pPowerSaveProfile (
+wlanoidQueryP2pPowerSaveProfile(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvQueryBuffer,
     IN  UINT_32     u4QueryBufferLen,
@@ -328,7 +342,7 @@ wlanoidQueryP2pPowerSaveProfile (
     );
 
 WLAN_STATUS
-wlanoidSetP2pPowerSaveProfile (
+wlanoidSetP2pPowerSaveProfile(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -336,7 +350,7 @@ wlanoidSetP2pPowerSaveProfile (
     );
 
 WLAN_STATUS
-wlanoidSetP2pSetNetworkAddress (
+wlanoidSetP2pSetNetworkAddress(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvSetBuffer,
     IN  UINT_32     u4SetBufferLen,
@@ -368,7 +382,7 @@ wlanoidSetP2pSupplicantVersion(
     );
 
 WLAN_STATUS
-wlanoidSetP2pWPSmode (
+wlanoidSetP2pWPSmode(
     IN  P_ADAPTER_T prAdapter,
     IN  PVOID       pvQueryBuffer,
     IN  UINT_32     u4QueryBufferLen,
@@ -397,4 +411,3 @@ wlanoidQueryP2pRssi(
 
 #endif
 #endif /* _WLAN_P2P_H */
-

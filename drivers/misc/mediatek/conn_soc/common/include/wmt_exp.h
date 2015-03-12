@@ -1,10 +1,10 @@
 /*
 * Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
 * GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 * See the GNU General Public License for more details.
 *
@@ -27,8 +27,8 @@
 #include "osal.h"
 #include "wmt_plat.h"
 #include "wmt_stp_exp.h"
-//not to reference to internal wmt
-//#include "wmt_core.h"
+/* not to reference to internal wmt */
+/* #include "wmt_core.h" */
 /*******************************************************************************
 *                         C O M P I L E R   F L A G S
 ********************************************************************************
@@ -43,12 +43,12 @@
 #define DFT_TAG         "[WMT-DFT]"
 #endif
 
-#define WMT_LOUD_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_LOUD) { osal_dbg_print(DFT_TAG "[L]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define WMT_INFO_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_INFO) { osal_info_print(DFT_TAG "[I]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define WMT_WARN_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_WARN) { osal_warn_print(DFT_TAG "[W]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define WMT_ERR_FUNC(fmt, arg...)    if (gWmtDbgLvl >= WMT_LOG_ERR) { osal_err_print(DFT_TAG "[E]%s(%d):"  fmt, __FUNCTION__ , __LINE__, ##arg);}
-#define WMT_DBG_FUNC(fmt, arg...)    if (gWmtDbgLvl >= WMT_LOG_DBG) { osal_dbg_print(DFT_TAG "[D]%s:"  fmt, __FUNCTION__ ,##arg);}
-#define WMT_TRC_FUNC(f)              if (gWmtDbgLvl >= WMT_LOG_DBG) { osal_dbg_print(DFT_TAG "<%s> <%d>\n", __FUNCTION__, __LINE__);}
+#define WMT_LOUD_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_LOUD) { osal_dbg_print(DFT_TAG "[L]%s:"  fmt, __func__ , ##arg); }
+#define WMT_INFO_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_INFO) { osal_info_print(DFT_TAG "[I]%s:"  fmt, __func__ , ##arg); }
+#define WMT_WARN_FUNC(fmt, arg...)   if (gWmtDbgLvl >= WMT_LOG_WARN) { osal_warn_print(DFT_TAG "[W]%s:"  fmt, __func__ , ##arg); }
+#define WMT_ERR_FUNC(fmt, arg...)    if (gWmtDbgLvl >= WMT_LOG_ERR) { osal_err_print(DFT_TAG "[E]%s(%d):"  fmt, __func__ , __LINE__, ##arg); }
+#define WMT_DBG_FUNC(fmt, arg...)    if (gWmtDbgLvl >= WMT_LOG_DBG) { osal_dbg_print(DFT_TAG "[D]%s:"  fmt, __func__ , ##arg); }
+#define WMT_TRC_FUNC(f)              if (gWmtDbgLvl >= WMT_LOG_DBG) { osal_dbg_print(DFT_TAG "<%s> <%d>\n", __func__, __LINE__); }
 #endif
 
 /*******************************************************************************
@@ -56,11 +56,11 @@
 ********************************************************************************
 */
 #if 1 /* moved from wmt_lib.h */
-extern UINT32 gWmtDbgLvl ;
+extern UINT32 gWmtDbgLvl;
 #endif
 extern OSAL_BIT_OP_VAR gBtWifiGpsState;
 extern OSAL_BIT_OP_VAR gGpsFmState;
-extern UINT32 gWifiProbed; 
+extern UINT32 gWifiProbed;
 /*******************************************************************************
 *                              C O N S T A N T S
 ********************************************************************************
@@ -91,10 +91,10 @@ typedef enum _ENUM_WMTDRV_TYPE_T {
     WMTDRV_TYPE_MAX
 } ENUM_WMTDRV_TYPE_T, *P_ENUM_WMTDRV_TYPE_T;
 
-// TODO: [ChangeFeature][GeorgeKuo] Reconsider usage of this type
-// TODO: how do we extend for new chip and newer revision?
-// TODO: This way is hard to extend
-typedef enum _ENUM_WMTHWVER_TYPE_T{
+/* TODO: [ChangeFeature][GeorgeKuo] Reconsider usage of this type */
+/* TODO: how do we extend for new chip and newer revision? */
+/* TODO: This way is hard to extend */
+typedef enum _ENUM_WMTHWVER_TYPE_T {
     WMTHWVER_E1 = 0x0,
     WMTHWVER_E2 = 0x1,
     WMTHWVER_E3 = 0x2,
@@ -105,7 +105,7 @@ typedef enum _ENUM_WMTHWVER_TYPE_T{
     WMTHWVER_INVALID = 0xff
 } ENUM_WMTHWVER_TYPE_T, *P_ENUM_WMTHWVER_TYPE_T;
 
-typedef enum _ENUM_WMTDSNS_TYPE_T{
+typedef enum _ENUM_WMTDSNS_TYPE_T {
     WMTDSNS_FM_DISABLE = 0,
     WMTDSNS_FM_ENABLE = 1,
     WMTDSNS_FM_GPS_DISABLE = 2,
@@ -113,20 +113,20 @@ typedef enum _ENUM_WMTDSNS_TYPE_T{
     WMTDSNS_MAX
 } ENUM_WMTDSNS_TYPE_T, *P_ENUM_WMTDSNS_TYPE_T;
 
-typedef enum _ENUM_WMTTHERM_TYPE_T{
+typedef enum _ENUM_WMTTHERM_TYPE_T {
     WMTTHERM_ZERO = 0,
     WMTTHERM_ENABLE = WMTTHERM_ZERO + 1,
     WMTTHERM_READ = WMTTHERM_ENABLE + 1,
     WMTTHERM_DISABLE = WMTTHERM_READ + 1,
     WMTTHERM_MAX
-}ENUM_WMTTHERM_TYPE_T, *P_ENUM_WMTTHERM_TYPE_T;
+} ENUM_WMTTHERM_TYPE_T, *P_ENUM_WMTTHERM_TYPE_T;
 
 typedef enum _ENUM_WMTMSG_TYPE_T {
     WMTMSG_TYPE_POWER_ON = 0,
     WMTMSG_TYPE_POWER_OFF = 1,
     WMTMSG_TYPE_RESET = 2,
-    WMTMSG_TYPE_STP_RDY= 3,
-    WMTMSG_TYPE_HW_FUNC_ON= 4,
+    WMTMSG_TYPE_STP_RDY = 3,
+    WMTMSG_TYPE_HW_FUNC_ON = 4,
     WMTMSG_TYPE_MAX
 } ENUM_WMTMSG_TYPE_T, *P_ENUM_WMTMSG_TYPE_T;
 
@@ -135,40 +135,39 @@ typedef void (*PF_WMT_CB)(
     ENUM_WMTDRV_TYPE_T, /* Destination driver type */
     ENUM_WMTMSG_TYPE_T, /* Message type */
     VOID *, /* READ-ONLY buffer. Buffer is allocated and freed by WMT_drv. Client
-            can't touch this buffer after this function return. */
+	    can't touch this buffer after this function return. */
     UINT32 /* Buffer size in unit of byte */
 );
 
-typedef enum _SDIO_PS_OP{
+typedef enum _SDIO_PS_OP {
     OWN_SET = 0,
     OWN_CLR = 1,
     OWN_STATE = 2,
 } SDIO_PS_OP;
 
 
-typedef INT32 (*PF_WMT_SDIO_PSOP)(SDIO_PS_OP);
+typedef INT32(*PF_WMT_SDIO_PSOP)(SDIO_PS_OP);
 
 
-typedef enum _ENUM_WMTCHIN_TYPE_T{
+typedef enum _ENUM_WMTCHIN_TYPE_T {
    WMTCHIN_CHIPID = 0x0,
    WMTCHIN_HWVER = WMTCHIN_CHIPID + 1,
    WMTCHIN_MAPPINGHWVER = WMTCHIN_HWVER + 1,
    WMTCHIN_FWVER = WMTCHIN_MAPPINGHWVER + 1,
    WMTCHIN_MAX,
-   
-}ENUM_WMT_CHIPINFO_TYPE_T, *P_ENUM_WMT_CHIPINFO_TYPE_T;
+
+} ENUM_WMT_CHIPINFO_TYPE_T, *P_ENUM_WMT_CHIPINFO_TYPE_T;
 
 #endif
 
-typedef enum _ENUM_WMTRSTMSG_TYPE_T{
+typedef enum _ENUM_WMTRSTMSG_TYPE_T {
     WMTRSTMSG_RESET_START = 0x0,
     WMTRSTMSG_RESET_END = 0x1,
-    WMTRSTMSG_RESET_END_FAIL = 0x2,
     WMTRSTMSG_RESET_MAX,
     WMTRSTMSG_RESET_INVALID = 0xff
 } ENUM_WMTRSTMSG_TYPE_T, *P_ENUM_WMTRSTMSG_TYPE_T;
 
-typedef enum _ENUM_BT_GPS_ONOFF_STATE_T{
+typedef enum _ENUM_BT_GPS_ONOFF_STATE_T {
     WMT_BT_ON = 0,
     WMT_GPS_ON = 1,
     WMT_WIFI_ON = 2,
@@ -198,12 +197,12 @@ typedef INT32(*wmt_wlan_remove_cb)(VOID);
 typedef INT32(*wmt_wlan_bus_cnt_get_cb)(VOID);
 typedef INT32(*wmt_wlan_bus_cnt_clr_cb)(VOID);
 
-typedef struct _MTK_WCN_WMT_WLAN_CB_INFO{
+typedef struct _MTK_WCN_WMT_WLAN_CB_INFO {
 	wmt_wlan_probe_cb wlan_probe_cb;
 	wmt_wlan_remove_cb wlan_remove_cb;
 	wmt_wlan_bus_cnt_get_cb wlan_bus_cnt_get_cb;
 	wmt_wlan_bus_cnt_clr_cb wlan_bus_cnt_clr_cb;
-}MTK_WCN_WMT_WLAN_CB_INFO,*P_MTK_WCN_WMT_WLAN_CB_INFO;
+} MTK_WCN_WMT_WLAN_CB_INFO, *P_MTK_WCN_WMT_WLAN_CB_INFO;
 
 extern INT32 mtk_wcn_wmt_wlan_reg(P_MTK_WCN_WMT_WLAN_CB_INFO pWmtWlanCbInfo);
 extern INT32 mtk_wcn_wmt_wlan_unreg(VOID);
@@ -232,38 +231,38 @@ extern wmt_wlan_bus_cnt_clr_cb mtk_wcn_wlan_bus_tx_cnt_clr;
 #define WMT_EXP_HID_API_EXPORT 0
 
 extern MTK_WCN_BOOL
-mtk_wcn_wmt_func_off (
+mtk_wcn_wmt_func_off(
     ENUM_WMTDRV_TYPE_T type
     );
 
 extern MTK_WCN_BOOL
-mtk_wcn_wmt_func_on (
+mtk_wcn_wmt_func_on(
     ENUM_WMTDRV_TYPE_T type
     );
 
-extern MTK_WCN_BOOL mtk_wcn_wmt_dsns_ctrl (
+extern MTK_WCN_BOOL mtk_wcn_wmt_dsns_ctrl(
     ENUM_WMTDSNS_TYPE_T eType
     );
 
-extern MTK_WCN_BOOL mtk_wcn_wmt_assert (ENUM_WMTDRV_TYPE_T type,
+extern MTK_WCN_BOOL mtk_wcn_wmt_assert(ENUM_WMTDRV_TYPE_T type,
     UINT32 reason
     );
 
-extern INT32 mtk_wcn_wmt_msgcb_reg (
+extern INT32 mtk_wcn_wmt_msgcb_reg(
     ENUM_WMTDRV_TYPE_T eType,
     PF_WMT_CB pCb
     );
 
-extern INT32 mtk_wcn_wmt_msgcb_unreg (
+extern INT32 mtk_wcn_wmt_msgcb_unreg(
     ENUM_WMTDRV_TYPE_T eType
     );
 
 extern INT32
-mtk_wcn_stp_wmt_sdio_op_reg (
+mtk_wcn_stp_wmt_sdio_op_reg(
     PF_WMT_SDIO_PSOP own_cb
     );
 
-extern INT32 
+extern INT32
 mtk_wcn_stp_wmt_sdio_host_awake(
     VOID
     );
@@ -274,18 +273,18 @@ read thermal sensor function: thermal value
 
 */
 extern INT8
-mtk_wcn_wmt_therm_ctrl (
+mtk_wcn_wmt_therm_ctrl(
     ENUM_WMTTHERM_TYPE_T eType
     );
 
 extern ENUM_WMTHWVER_TYPE_T
-mtk_wcn_wmt_hwver_get (VOID);
+mtk_wcn_wmt_hwver_get(VOID);
 
 #else
 #define WMT_EXP_HID_API_EXPORT 1
 #endif
 
-extern INT32 wmt_lib_set_aif (
+extern INT32 wmt_lib_set_aif(
     CMB_STUB_AIF_X aif,
     MTK_WCN_BOOL share
     ); /* set AUDIO interface options */
@@ -293,7 +292,7 @@ extern VOID
 wmt_lib_ps_irq_cb(VOID);
 
 extern VOID
-mtk_wcn_wmt_func_ctrl_for_plat (UINT32 on,
+mtk_wcn_wmt_func_ctrl_for_plat(UINT32 on,
     ENUM_WMTDRV_TYPE_T type);
 
 extern INT32 mtk_wcn_wmt_system_state_reset(VOID);
@@ -309,10 +308,3 @@ extern CHAR mtk_wcn_wmt_co_clock_flag_get(VOID);
 */
 
 #endif /* _WMT_EXP_H_ */
-
-
-
-
-
-
-

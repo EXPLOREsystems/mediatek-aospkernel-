@@ -123,17 +123,14 @@ static VOID mt5931_ehpi_reg_init(VOID);
 
 static VOID mt5931_ehpi_reg_uninit(VOID);
 
-static void busSetIrq(void
-    );
+static void busSetIrq(void);
 
-static void busFreeIrq(void
-    );
+static void busFreeIrq(void);
 
 static irqreturn_t glEhpiInterruptHandler(int irq, void *dev_id);
 
 #if DBG
-static void initTrig(void
-    );
+static void initTrig(void);
 #endif
 
 /*******************************************************************************
@@ -157,8 +154,8 @@ WLAN_STATUS glRegisterBus(probe_card pfProbe, remove_card pfRemove)
 	ASSERT(pfProbe);
 	ASSERT(pfRemove);
 
-	printk(KERN_INFO "mtk_sdio: MediaTek eHPI WLAN driver\n");
-	printk(KERN_INFO "mtk_sdio: Copyright MediaTek Inc.\n");
+	pr_info("mtk_sdio: MediaTek eHPI WLAN driver\n");
+	pr_info("mtk_sdio: Copyright MediaTek Inc.\n");
 
 	if (pfProbe(NULL) != WLAN_STATUS_SUCCESS) {
 		pfRemove();
@@ -199,7 +196,7 @@ VOID glUnregisterBus(remove_card pfRemove)
 * \return (none)
 */
 /*----------------------------------------------------------------------------*/
-VOID glSetHifInfo(P_GLUE_INFO_T prGlueInfo, UINT_32 u4Cookie)
+VOID glSetHifInfo(P_GLUE_INFO_T prGlueInfo, ULONG ulCookie)
 {
 	P_GL_HIF_INFO_T prHif = NULL;
 	ASSERT(prGlueInfo);
@@ -320,9 +317,9 @@ INT_32 glBusSetIrq(PVOID pvData, PVOID pfnIsr, PVOID pvCookie)
 #endif
 
 	if (i4Status < 0) {
-		printk("request_irq(%d) failed\n", pDev->irq);
+		pr_debug("request_irq(%d) failed\n", pDev->irq);
 	} else {
-		printk(KERN_INFO "request_irq(%d) success with dev_id(%x)\n", pDev->irq,
+		pr_info("request_irq(%d) success with dev_id(%x)\n", pDev->irq,
 		       (unsigned int)pvCookie);
 	}
 
@@ -345,7 +342,7 @@ VOID glBusFreeIrq(PVOID pvData, PVOID pvCookie)
 	struct net_device *prDev = (struct net_device *)pvData;
 
 	if (!prDev) {
-		printk(KERN_INFO "Invalid net_device context.\n");
+		pr_info("Invalid net_device context.\n");
 		return;
 	}
 
@@ -470,7 +467,7 @@ static VOID collibri_ehpi_reg_init(VOID)
 	u4RegValue |= EHPI_CONFIG;
 	MSC2 = u4RegValue;
 
-	printk(KERN_INFO "EHPI new MSC2:0x%08x\n", MSC2);
+	pr_info("EHPI new MSC2:0x%08x\n", MSC2);
 
 	return;
 }
@@ -512,7 +509,7 @@ static VOID mt5931_ehpi_reg_init(VOID)
 	    request_mem_region((unsigned long)MEM_MAPPED_ADDR, (unsigned long)MEM_MAPPED_LEN,
 			       (char *)MODULE_PREFIX);
 	if (!reso) {
-		printk(KERN_ERR "request_mem_region(0x%08X) failed.\n", MEM_MAPPED_ADDR);
+		pr_err("request_mem_region(0x%08X) failed.\n", MEM_MAPPED_ADDR);
 		return;
 	}
 
@@ -520,7 +517,7 @@ static VOID mt5931_ehpi_reg_init(VOID)
 	mt5931_mcr_base = ioremap_nocache(MEM_MAPPED_ADDR, MEM_MAPPED_LEN);
 	if (!(mt5931_mcr_base)) {
 		release_mem_region(MEM_MAPPED_ADDR, MEM_MAPPED_LEN);
-		printk(KERN_ERR "ioremap_nocache(0x%08X) failed.\n", MEM_MAPPED_ADDR);
+		pr_err("ioremap_nocache(0x%08X) failed.\n", MEM_MAPPED_ADDR);
 		return;
 	}
 
@@ -559,20 +556,18 @@ static irqreturn_t glEhpiInterruptHandler(int irq, void *dev_id)
 
 	ASSERT(prGlueInfo);
 
-	if (!prGlueInfo) {
+	if (!prGlueInfo)
 		return IRQ_HANDLED;
-	}
 
 	/* 1. Running for ISR */
 	wlanISR(prGlueInfo->prAdapter, TRUE);
 
 	/* 1.1 Halt flag Checking */
-	if (prGlueInfo->u4Flag & GLUE_FLAG_HALT) {
+	if (prGlueInfo->ulFlag & GLUE_FLAG_HALT)
 		return IRQ_HANDLED;
-	}
 
 	/* 2. Flag marking for interrupt */
-	set_bit(GLUE_FLAG_INT_BIT, &prGlueInfo->u4Flag);
+	set_bit(GLUE_FLAG_INT_BIT, &prGlueInfo->ulFlag);
 
 	/* 3. wake up tx service thread */
 	wake_up_interruptible(&prGlueInfo->waitq);

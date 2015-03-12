@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/os/linux/hif/sdio/include/hif.h#1 $
 */
 
@@ -57,13 +71,7 @@ typedef enum _MTK_WCN_HIF_PDMA_BURST_LEN {
 
 
 /* reference to MT6572_AP_P_DMA_Spec.doc */
-#ifdef CONFIG_OF
-/*for MT6752*/
-#define AP_DMA_HIF_BASE             0x11000080
-#else
-/*for MT6572/82/92*/
 #define AP_DMA_HIF_BASE             0x11000180
-#endif
 
 #define AP_DMA_HIF_0_INT_FLAG       (0x0000)
 #define AP_DMA_HIF_0_INT_EN         (0x0004)
@@ -101,16 +109,16 @@ typedef enum _MTK_WCN_HIF_PDMA_BURST_LEN {
 #define ADH_CR_FLUSH                BIT(0)
 
 /* AP_DMA_HIF_0_CON */
-#define ADH_CR_BURST_LEN            BITS(16,17)
+#define ADH_CR_BURST_LEN            BITS(16, 17)
 #define ADH_CR_BURST_LEN_OFFSET     16
-#define ADH_CR_SLOW_CNT             BITS(5,14)
+#define ADH_CR_SLOW_CNT             BITS(5, 14)
 #define ADH_CR_SLOW_EN              BIT(2)
 #define ADH_CR_FIX_EN               BIT(1)
 #define ADH_CR_FIX_EN_OFFSET        1
 #define ADH_CR_DIR                  BIT(0)
 
 /* AP_DMA_HIF_0_LEN */
-#define ADH_CR_LEN                  BITS(0,19)
+#define ADH_CR_LEN                  BITS(0, 19)
 
 
 

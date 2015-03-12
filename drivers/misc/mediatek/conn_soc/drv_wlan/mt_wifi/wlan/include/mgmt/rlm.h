@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/mgmt/rlm.h#2 $
 */
 
@@ -180,7 +194,7 @@
 ********************************************************************************
 */
 #define ELEM_EXT_CAP_DEFAULT_VAL \
-        (ELEM_EXT_CAP_20_40_COEXIST_SUPPORT /*| ELEM_EXT_CAP_PSMP_CAP*/)
+	(ELEM_EXT_CAP_20_40_COEXIST_SUPPORT /*| ELEM_EXT_CAP_PSMP_CAP*/)
 
 
 #if CFG_SUPPORT_RX_STBC
@@ -204,18 +218,18 @@
 #endif
 
 #define HT_CAP_INFO_DEFAULT_VAL \
-        (HT_CAP_INFO_SUP_CHNL_WIDTH | FIELD_HT_CAP_INFO_HT_GF | \
-         FIELD_HT_CAP_INFO_SGI_20M | FIELD_HT_CAP_INFO_SGI_40M | \
-         FIELD_HT_CAP_INFO_RX_STBC | HT_CAP_INFO_DSSS_CCK_IN_40M)
+	(HT_CAP_INFO_SUP_CHNL_WIDTH | FIELD_HT_CAP_INFO_HT_GF | \
+	 FIELD_HT_CAP_INFO_SGI_20M | FIELD_HT_CAP_INFO_SGI_40M | \
+	 FIELD_HT_CAP_INFO_RX_STBC | HT_CAP_INFO_DSSS_CCK_IN_40M)
 
 
 
 #define AMPDU_PARAM_DEFAULT_VAL \
-        (AMPDU_PARAM_MAX_AMPDU_LEN_64K | AMPDU_PARAM_MSS_NO_RESTRICIT)
+	(AMPDU_PARAM_MAX_AMPDU_LEN_64K | AMPDU_PARAM_MSS_NO_RESTRICIT)
 
 
 #define SUP_MCS_TX_DEFAULT_VAL \
-        SUP_MCS_TX_SET_DEFINED   /* TX defined and TX/RX equal (TBD) */
+	SUP_MCS_TX_SET_DEFINED   /* TX defined and TX/RX equal (TBD) */
 
 #if CFG_SUPPORT_MFB
     #define FIELD_HT_EXT_CAP_MFB    HT_EXT_CAP_MCS_FEEDBACK_BOTH
@@ -236,9 +250,9 @@
 #endif
 
 #define HT_EXT_CAP_DEFAULT_VAL \
-        (HT_EXT_CAP_PCO | HT_EXT_CAP_PCO_TRANS_TIME_NONE | \
-         FIELD_HT_EXT_CAP_MFB | FIELD_HT_EXT_CAP_HTC | \
-         FIELD_HT_EXT_CAP_RDR)
+	(HT_EXT_CAP_PCO | HT_EXT_CAP_PCO_TRANS_TIME_NONE | \
+	 FIELD_HT_EXT_CAP_MFB | FIELD_HT_EXT_CAP_HTC | \
+	 FIELD_HT_EXT_CAP_RDR)
 
 #define TX_BEAMFORMING_CAP_DEFAULT_VAL              0
 #define ASEL_CAP_DEFAULT_VAL                        0
@@ -272,24 +286,24 @@
  * Note: Ad-hoc mode of AIS is not included now. (TBD)
  */
 #define RLM_NET_PARAM_VALID(_prBssInfo) \
-        (IS_BSS_ACTIVE(_prBssInfo) && \
-         ((_prBssInfo)->eConnectionState == PARAM_MEDIA_STATE_CONNECTED || \
-          (_prBssInfo)->eCurrentOPMode == OP_MODE_ACCESS_POINT || \
-          (_prBssInfo)->eCurrentOPMode == OP_MODE_IBSS || \
-          RLM_NET_IS_BOW(_prBssInfo)) \
-        )
+	(IS_BSS_ACTIVE(_prBssInfo) && \
+	 ((_prBssInfo)->eConnectionState == PARAM_MEDIA_STATE_CONNECTED || \
+	  (_prBssInfo)->eCurrentOPMode == OP_MODE_ACCESS_POINT || \
+	  (_prBssInfo)->eCurrentOPMode == OP_MODE_IBSS || \
+	  RLM_NET_IS_BOW(_prBssInfo)) \
+	)
 
 #define RLM_NET_IS_11N(_prBssInfo) \
-        ((_prBssInfo)->ucPhyTypeSet & PHY_TYPE_SET_802_11N)
+	((_prBssInfo)->ucPhyTypeSet & PHY_TYPE_SET_802_11N)
 #define RLM_NET_IS_11GN(_prBssInfo) \
-        ((_prBssInfo)->ucPhyTypeSet & PHY_TYPE_SET_802_11GN)
+	((_prBssInfo)->ucPhyTypeSet & PHY_TYPE_SET_802_11GN)
 
 
 /* This macro is used to sweep all 3 networks */
 #define RLM_NET_FOR_EACH(_ucNetIdx) \
     for ((_ucNetIdx) = 0; \
-         (_ucNetIdx) < NETWORK_TYPE_INDEX_NUM; \
-         (_ucNetIdx)++)
+	 (_ucNetIdx) < NETWORK_TYPE_INDEX_NUM; \
+	 (_ucNetIdx)++)
 
 /* This macro is used to sweep all networks excluding BOW */
 #if CFG_ENABLE_BT_OVER_WIFI
@@ -297,12 +311,12 @@
      *       rlmStuctureCheck().
      */
     #define RLM_NET_FOR_EACH_NO_BOW(_ucNetIdx) \
-        for ((_ucNetIdx) = 0; \
-             (_ucNetIdx) < NETWORK_TYPE_BOW_INDEX; \
-             (_ucNetIdx)++)
+	for ((_ucNetIdx) = 0; \
+	     (_ucNetIdx) < NETWORK_TYPE_BOW_INDEX; \
+	     (_ucNetIdx)++)
 
     #define RLM_NET_IS_BOW(_prBssInfo) \
-            ((_prBssInfo)->ucNetTypeIndex == NETWORK_TYPE_BOW_INDEX)
+	    ((_prBssInfo)->ucNetTypeIndex == NETWORK_TYPE_BOW_INDEX)
 
 #else
     #define RLM_NET_FOR_EACH_NO_BOW(_ucNetIdx)  RLM_NET_FOR_EACH(_ucNetIdx)
@@ -327,53 +341,53 @@
 ********************************************************************************
 */
 VOID
-rlmFsmEventInit (
+rlmFsmEventInit(
     P_ADAPTER_T     prAdapter
     );
 
 VOID
-rlmFsmEventUninit (
+rlmFsmEventUninit(
     P_ADAPTER_T     prAdapter
     );
 
 VOID
-rlmReqGenerateHtCapIE (
+rlmReqGenerateHtCapIE(
     P_ADAPTER_T     prAdapter,
     P_MSDU_INFO_T   prMsduInfo
     );
 
 VOID
-rlmReqGenerateExtCapIE (
+rlmReqGenerateExtCapIE(
     P_ADAPTER_T     prAdapter,
     P_MSDU_INFO_T   prMsduInfo
     );
 
 VOID
-rlmRspGenerateHtCapIE (
+rlmRspGenerateHtCapIE(
     P_ADAPTER_T     prAdapter,
     P_MSDU_INFO_T   prMsduInfo
     );
 
 VOID
-rlmRspGenerateExtCapIE (
+rlmRspGenerateExtCapIE(
     P_ADAPTER_T     prAdapter,
     P_MSDU_INFO_T   prMsduInfo
     );
 
 VOID
-rlmRspGenerateHtOpIE (
+rlmRspGenerateHtOpIE(
     P_ADAPTER_T     prAdapter,
     P_MSDU_INFO_T   prMsduInfo
     );
 
 VOID
-rlmRspGenerateErpIE (
+rlmRspGenerateErpIE(
     P_ADAPTER_T     prAdapter,
     P_MSDU_INFO_T   prMsduInfo
     );
 
 VOID
-rlmProcessBcn (
+rlmProcessBcn(
     P_ADAPTER_T prAdapter,
     P_SW_RFB_T  prSwRfb,
     PUINT_8     pucIE,
@@ -381,7 +395,7 @@ rlmProcessBcn (
     );
 
 VOID
-rlmProcessAssocRsp (
+rlmProcessAssocRsp(
     P_ADAPTER_T prAdapter,
     P_SW_RFB_T  prSwRfb,
     PUINT_8     pucIE,
@@ -389,25 +403,25 @@ rlmProcessAssocRsp (
     );
 
 VOID
-rlmFillSyncCmdParam (
+rlmFillSyncCmdParam(
     P_CMD_SET_BSS_RLM_PARAM_T   prCmdBody,
     P_BSS_INFO_T                prBssInfo
     );
 
 VOID
-rlmSyncOperationParams (
+rlmSyncOperationParams(
     P_ADAPTER_T         prAdapter,
     P_BSS_INFO_T        prBssInfo
     );
 
 VOID
-rlmBssInitForAPandIbss (
+rlmBssInitForAPandIbss(
     P_ADAPTER_T     prAdapter,
     P_BSS_INFO_T    prBssInfo
     );
 
 VOID
-rlmProcessAssocReq (
+rlmProcessAssocReq(
     P_ADAPTER_T prAdapter,
     P_SW_RFB_T  prSwRfb,
     PUINT_8     pucIE,
@@ -415,43 +429,23 @@ rlmProcessAssocReq (
     );
 
 VOID
-rlmBssAborted (
+rlmBssAborted(
     P_ADAPTER_T     prAdapter,
     P_BSS_INFO_T    prBssInfo
     );
 
-/* ++ TDLS */
-UINT32
-rlmFillHtCapIEByParams (
-	BOOLEAN				fg40mAllowed,
-	BOOLEAN				fgShortGIDisabled,
-	UINT_8				u8SupportRxSgi20,
-	UINT_8				u8SupportRxSgi40,
-	UINT_8				u8SupportRxGf,
-	UINT_8				u8SupportRxSTBC,
-	ENUM_OP_MODE_T		eCurrentOPMode,
-    UINT_8				*pOutBuf
-    );
-
-UINT32
-rlmFillHtOpIeBody(
-	P_BSS_INFO_T    prBssInfo,
-	UINT_8			*pFme
-	);
-/* -- TDLS */
-
-#if CFG_SUPPORT_DFS // Add by Enlai
+#if CFG_SUPPORT_DFS /* Add by Enlai */
 VOID
 rlmProcessSpecMgtAction(
-        P_ADAPTER_T prAdapter,
-        P_SW_RFB_T  prSwRfb
-        );
+	P_ADAPTER_T prAdapter,
+	P_SW_RFB_T  prSwRfb
+	);
 
 VOID
 rlmProcessChannelSwitchIE(
-        P_ADAPTER_T prAdapter,
-        P_IE_CHANNEL_SWITCH_T  prChannelSwitchIE
-        );
+	P_ADAPTER_T prAdapter,
+	P_IE_CHANNEL_SWITCH_T  prChannelSwitchIE
+	);
 #endif
 
 /*******************************************************************************
@@ -461,17 +455,17 @@ rlmProcessChannelSwitchIE(
 
 #ifndef _lint
 __KAL_INLINE__ VOID
-rlmDataTypeCheck (
+rlmDataTypeCheck(
     VOID
     )
 {
 #if CFG_ENABLE_BT_OVER_WIFI
     DATA_STRUC_INSPECTING_ASSERT(
-        NETWORK_TYPE_AIS_INDEX < NETWORK_TYPE_BOW_INDEX);
+	NETWORK_TYPE_AIS_INDEX < NETWORK_TYPE_BOW_INDEX);
 
     #if CFG_ENABLE_WIFI_DIRECT
-        DATA_STRUC_INSPECTING_ASSERT(
-            NETWORK_TYPE_P2P_INDEX < NETWORK_TYPE_BOW_INDEX);
+	DATA_STRUC_INSPECTING_ASSERT(
+	    NETWORK_TYPE_P2P_INDEX < NETWORK_TYPE_BOW_INDEX);
     #endif
 #endif
 
@@ -480,5 +474,3 @@ rlmDataTypeCheck (
 #endif /* _lint */
 
 #endif /* _RLM_H */
-
-

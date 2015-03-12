@@ -1,15 +1,29 @@
+/*
+* Copyright (C) 2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #ifdef pr_fmt
 #undef pr_fmt
 #endif
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
+#include <linux/version.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/printk.h>
 #include <linux/types.h>
 #include <linux/kobject.h>
 #include "mach/mtk_thermal_monitor.h"
-#include <mach/system.h>
 
 #define MAX_NUM_INSTANCE_MTK_COOLER_SHUTDOWN  3
 
@@ -35,8 +49,16 @@
 #define mtk_cooler_shutdown_dprintk(fmt, args...)
 #endif
 
+extern struct proc_dir_entry *mtk_thermal_get_proc_drv_therm_dir_entry(void);
+
+typedef struct _sd_state {
+	unsigned long state;
+	int sd_cnt;
+} sd_state;
+
 static struct thermal_cooling_device *cl_shutdown_dev[MAX_NUM_INSTANCE_MTK_COOLER_SHUTDOWN] = { 0 };
-static unsigned long cl_shutdown_state[MAX_NUM_INSTANCE_MTK_COOLER_SHUTDOWN] = { 0 };
+/* static unsigned long cl_shutdown_state[MAX_NUM_INSTANCE_MTK_COOLER_SHUTDOWN] = { 0 }; */
+static sd_state cl_sd_state[MAX_NUM_INSTANCE_MTK_COOLER_SHUTDOWN];
 
 #if defined(MTK_COOLER_SHUTDOWN_SIGNAL)
 
@@ -46,8 +68,12 @@ static unsigned int mtk_cl_sd_rst;
 static struct task_struct g_task;
 static struct task_struct *pg_task = &g_task;
 
+static int sd_debouncet = 1;
+/* static int sd_cnt = 0; */
+static int sd_happened;
+
 static ssize_t _mtk_cl_sd_rst_write(struct file *filp, const char __user *buf, size_t len,
-				    loff_t *data)
+					loff_t *data)
 {
 	int ret = 0;
 	char tmp[MAX_LEN] = { 0 };
@@ -65,9 +91,12 @@ static ssize_t _mtk_cl_sd_rst_write(struct file *filp, const char __user *buf, s
 	if (1 == mtk_cl_sd_rst) {
 		int i;
 		for (i = MAX_NUM_INSTANCE_MTK_COOLER_SHUTDOWN; i-- > 0;) {
-			cl_shutdown_state[i] = 0;
+			cl_sd_state[i].state = 0;
+			cl_sd_state[i].sd_cnt = 0;
 		}
 		mtk_cl_sd_rst = 0;
+		sd_happened = 0;
+		/* sd_cnt = 0; */
 	}
 	mtk_cooler_shutdown_dprintk("%s %s = %d\n", __func__, tmp, mtk_cl_sd_rst);
 
@@ -98,7 +127,7 @@ static const struct file_operations _cl_sd_rst_fops = {
 };
 
 static ssize_t _mtk_cl_sd_pid_write(struct file *filp, const char __user *buf, size_t len,
-				    loff_t *data)
+					loff_t *data)
 {
 	int ret = 0;
 	char tmp[MAX_LEN] = { 0 };
@@ -140,6 +169,57 @@ static const struct file_operations _cl_sd_pid_fops = {
 	.read = seq_read,
 	.llseek = seq_lseek,
 	.write = _mtk_cl_sd_pid_write,
+	.release = single_release,
+};
+
+static ssize_t _mtk_cl_sd_debouncet_write(struct file *filp, const char __user *buf, size_t len, loff_t *data)
+{
+	char desc[MAX_LEN] = {0};
+	int tmp_dbt = -1;
+
+	/* write data to the buffer */
+	if (copy_from_user(desc, buf, len)) {
+		return -EFAULT;
+	}
+
+	if (sscanf(desc, "%d", &tmp_dbt) == 1)
+	{
+		if (tmp_dbt >= 0 && tmp_dbt <= 5)
+			sd_debouncet = tmp_dbt;
+		else
+			mtk_cooler_shutdown_dprintk("[%s] oo range %s = %d\n", __func__, desc, sd_debouncet);
+	}
+	else
+		mtk_cooler_shutdown_dprintk("[%s] bad arg %s = %d\n", __func__, desc, sd_debouncet);
+
+	mtk_cooler_shutdown_dprintk("[%s] %s = %d\n", __func__, desc, sd_debouncet);
+
+	return len;
+}
+
+static int _mtk_cl_sd_debouncet_read(struct seq_file *m, void *v)
+{
+	seq_printf(m, "%d\n", sd_debouncet);
+	mtk_cooler_shutdown_dprintk("[%s] %d\n", __func__, sd_debouncet);
+
+	return 0;
+}
+
+static int _mtk_cl_sd_debouncet_open(struct inode *inode, struct file *file)
+{
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0)
+	return single_open(file, _mtk_cl_sd_debouncet_read, PDE_DATA(inode));
+#else
+	return single_open(file, _mtk_cl_sd_debouncet_read, PDE(inode)->data);
+#endif
+}
+
+static const struct file_operations _cl_sd_debouncet_fops = {
+	.owner = THIS_MODULE,
+	.open = _mtk_cl_sd_debouncet_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.write = _mtk_cl_sd_debouncet_write,
 	.release = single_release,
 };
 
@@ -185,24 +265,43 @@ static int mtk_cl_shutdown_get_max_state(struct thermal_cooling_device *cdev, un
 
 static int mtk_cl_shutdown_get_cur_state(struct thermal_cooling_device *cdev, unsigned long *state)
 {
-	*state = *((unsigned long *)cdev->devdata);
+	/* *state = *((unsigned long *)cdev->devdata); */
+	sd_state *cl_state = (sd_state *) cdev->devdata;
+	if (state)
+		*state = cl_state->state;
 	/* mtk_cooler_shutdown_dprintk("mtk_cl_shutdown_get_cur_state() %s %d\n", cdev->type, *state); */
 	return 0;
 }
 
 static int mtk_cl_shutdown_set_cur_state(struct thermal_cooling_device *cdev, unsigned long state)
 {
+	sd_state *cl_state = (sd_state *) cdev->devdata;
 #if defined(MTK_COOLER_SHUTDOWN_SIGNAL)
 	volatile unsigned long original_state;
 #endif
 	/* mtk_cooler_shutdown_dprintk("mtk_cl_shutdown_set_cur_state() %s %d\n", cdev->type, state); */
+	if (!cl_state)
+		return -1;
+
 #if defined(MTK_COOLER_SHUTDOWN_SIGNAL)
-	original_state = *((unsigned long *)cdev->devdata);
+	original_state = cl_state->state;
 #endif
 
-	*((unsigned long *)cdev->devdata) = state;
+	cl_state->state = state;
 
-	if (1 == state) {
+	if (0 == state)
+	{
+		if (cl_state->sd_cnt > 0)
+			cl_state->sd_cnt--;
+		else
+			;
+	}
+	else if (1 == state)
+	{
+		cl_state->sd_cnt++;
+	}
+
+	if (sd_debouncet == cl_state->sd_cnt) {
 #if defined(MTK_COOLER_SHUTDOWN_UEVENT)
 		{
 			/* send uevent to notify current call must be dropped */
@@ -214,10 +313,11 @@ static int mtk_cl_shutdown_set_cur_state(struct thermal_cooling_device *cdev, un
 #endif
 
 #if defined(MTK_COOLER_SHUTDOWN_SIGNAL)
-		if (0 == original_state)	/* make this an edge trigger instead of level trigger */
+		if (0 == sd_happened) /* make this an edge trigger instead of level trigger */
 		{
 			/* send signal to target process */
 			_mtk_cl_sd_send_signal();
+			sd_happened = 1;
 		}
 #endif
 	}
@@ -242,7 +342,7 @@ static int mtk_cooler_shutdown_register_ltf(void)
 		sprintf(temp, "mtk-cl-shutdown%02d", i);
 		cl_shutdown_dev[i] = mtk_thermal_cooling_device_register(temp,
 									 (void *)
-									 &cl_shutdown_state[i],
+									 &cl_sd_state[i],
 									 &mtk_cl_shutdown_ops);
 	}
 
@@ -258,7 +358,8 @@ static void mtk_cooler_shutdown_unregister_ltf(void)
 		if (cl_shutdown_dev[i]) {
 			mtk_thermal_cooling_device_unregister(cl_shutdown_dev[i]);
 			cl_shutdown_dev[i] = NULL;
-			cl_shutdown_state[i] = 0;
+			cl_sd_state[i].state = 0;
+			cl_sd_state[i].sd_cnt = 0;
 		}
 	}
 }
@@ -271,30 +372,28 @@ static int __init mtk_cooler_shutdown_init(void)
 
 	for (i = MAX_NUM_INSTANCE_MTK_COOLER_SHUTDOWN; i-- > 0;) {
 		cl_shutdown_dev[i] = NULL;
-		cl_shutdown_state[i] = 0;
+		cl_sd_state[i].state = 0;
+		cl_sd_state[i].sd_cnt = 0;
 	}
 
 	mtk_cooler_shutdown_dprintk("init\n");
 
 #if defined(MTK_COOLER_SHUTDOWN_SIGNAL)
 	{
-		struct proc_dir_entry *entry;
+		struct proc_dir_entry *entry = NULL;
+		struct proc_dir_entry *dir_entry = mtk_thermal_get_proc_drv_therm_dir_entry();
 
-#if 0
-		entry = create_proc_entry("driver/mtk_cl_sd_pid", S_IRUGO | S_IWUSR | S_IWGRP, NULL);
-		if (NULL != entry) {
-			entry->read_proc = _mtk_cl_sd_pid_read;
-			entry->write_proc = _mtk_cl_sd_pid_write;
-            entry->gid = 1000;
+		if (!dir_entry) {
+			mtk_cooler_shutdown_dprintk("%s mkdir /proc/driver/thermal failed\n", __func__);
+			return 0;
 		}
-#endif
 
 		entry =
-		    proc_create("driver/mtk_cl_sd_pid", S_IRUGO | S_IWUSR | S_IWGRP, NULL,
+			proc_create("clsd_pid", S_IRUGO | S_IWUSR | S_IWGRP, dir_entry,
 				&_cl_sd_pid_fops);
 		if (!entry) {
-			mtk_cooler_shutdown_dprintk("%s driver/mtk_cl_sd_pid creation failed\n",
-						    __func__);
+			mtk_cooler_shutdown_dprintk("%s clsd_pid creation failed\n",
+							__func__);
 		} else {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0)
 			proc_set_user(entry, 0, 1000);
@@ -302,25 +401,27 @@ static int __init mtk_cooler_shutdown_init(void)
 			entry->gid = 1000;
 #endif
 		}
-	}
 
-	{
-		struct proc_dir_entry *entry;
-
-#if 0
 		entry =
-		    create_proc_entry("driver/mtk_cl_sd_rst", S_IRUGO | S_IWUSR | S_IWGRP, NULL);
-		if (NULL != entry) {
-			entry->write_proc = _mtk_cl_sd_rst_write;
-			entry->gid = 1000;
-		}
-#endif
-		entry =
-		    proc_create("driver/mtk_cl_sd_rst", S_IRUGO | S_IWUSR | S_IWGRP, NULL,
+			proc_create("clsd_rst", S_IRUGO | S_IWUSR | S_IWGRP, dir_entry,
 				&_cl_sd_rst_fops);
 		if (!entry) {
-			mtk_cooler_shutdown_dprintk("%s driver/mtk_cl_sd_rst creation failed\n",
-						    __func__);
+			mtk_cooler_shutdown_dprintk("%s clsd_rst creation failed\n",
+							__func__);
+		} else {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0)
+			proc_set_user(entry, 0, 1000);
+#else
+			entry->gid = 1000;
+#endif
+		}
+
+		entry =
+			proc_create("clsd_dbt", S_IRUGO | S_IWUSR | S_IWGRP, dir_entry,
+				&_cl_sd_debouncet_fops);
+		if (!entry) {
+			mtk_cooler_shutdown_dprintk("%s clsd_dbt creation failed\n",
+							__func__);
 		} else {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0)
 			proc_set_user(entry, 0, 1000);
@@ -337,7 +438,7 @@ static int __init mtk_cooler_shutdown_init(void)
 
 	return 0;
 
- err_unreg:
+err_unreg:
 	mtk_cooler_shutdown_unregister_ltf();
 	return err;
 }
@@ -345,7 +446,6 @@ static int __init mtk_cooler_shutdown_init(void)
 static void __exit mtk_cooler_shutdown_exit(void)
 {
 	mtk_cooler_shutdown_dprintk("exit\n");
-
 	mtk_cooler_shutdown_unregister_ltf();
 }
 module_init(mtk_cooler_shutdown_init);

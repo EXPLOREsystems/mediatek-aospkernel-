@@ -10,41 +10,41 @@
 #include <linux/perf_event.h>
 #include "gator.h"
 
-// gator_events_armvX.c is used for Linux 2.6.x
+/* gator_events_armvX.c is used for Linux 2.6.x */
 #if GATOR_PERF_PMU_SUPPORT
 
 extern bool event_based_sampling;
 
-// Maximum number of per-core counters - currently reserves enough space for two full hardware PMUs for big.LITTLE
+/* Maximum number of per-core counters - currently reserves enough space for two full hardware PMUs for big.LITTLE */
 #define CNTMAX 16
 #define CCI_400 4
-// Maximum number of uncore counters
-// + 1 for the cci-400 cycles counter
+/* Maximum number of uncore counters */
+/* + 1 for the cci-400 cycles counter */
 #define UCCNT (CCI_400 + 1)
 
-// A gator_attr is needed for every counter
+/* A gator_attr is needed for every counter */
 struct gator_attr {
-	// Set once in gator_events_perf_pmu_*_init - the name of the event in the gatorfs
+	/* Set once in gator_events_perf_pmu_*_init - the name of the event in the gatorfs */
 	char name[40];
-	// Exposed in gatorfs - set by gatord to enable this counter
+	/* Exposed in gatorfs - set by gatord to enable this counter */
 	unsigned long enabled;
-	// Set once in gator_events_perf_pmu_*_init - the perf type to use, see perf_type_id in the perf_event.h header file.
+	/* Set once in gator_events_perf_pmu_*_init - the perf type to use, see perf_type_id in the perf_event.h header file. */
 	unsigned long type;
-	// Exposed in gatorfs - set by gatord to select the event to collect
+	/* Exposed in gatorfs - set by gatord to select the event to collect */
 	unsigned long event;
-	// Exposed in gatorfs - set by gatord with the sample period to use and enable EBS for this counter
+	/* Exposed in gatorfs - set by gatord with the sample period to use and enable EBS for this counter */
 	unsigned long count;
-	// Exposed as read only in gatorfs - set once in __attr_init as the key to use in the APC data
+	/* Exposed as read only in gatorfs - set once in __attr_init as the key to use in the APC data */
 	unsigned long key;
 };
 
-// Per-core counter attributes
+/* Per-core counter attributes */
 static struct gator_attr attrs[CNTMAX];
-// Number of initialized per-core counters
+/* Number of initialized per-core counters */
 static int attr_count;
-// Uncore counter attributes
+/* Uncore counter attributes */
 static struct gator_attr uc_attrs[UCCNT];
-// Number of initialized uncore counters
+/* Number of initialized uncore counters */
 static int uc_attr_count;
 
 struct gator_event {
@@ -115,7 +115,7 @@ static void dummy_handler(struct perf_event *event, int unused, struct perf_samp
 static void dummy_handler(struct perf_event *event, struct perf_sample_data *data, struct pt_regs *regs)
 #endif
 {
-// Required as perf_event_create_kernel_counter() requires an overflow handler, even though all we do is poll
+/* Required as perf_event_create_kernel_counter() requires an overflow handler, even though all we do is poll */
 }
 
 static int gator_events_perf_pmu_read(int **buffer);
@@ -230,7 +230,7 @@ static int __start(struct gator_attr *const attr, struct gator_event *const even
 	u32 size = sizeof(struct perf_event_attr);
 
 	event->pevent = NULL;
-	if (!attr->enabled) {	// Skip disabled counters
+	if (!attr->enabled) {	/* Skip disabled counters */
 		return 0;
 	}
 
@@ -459,7 +459,7 @@ int gator_events_perf_pmu_init(void)
 	for (type = PERF_TYPE_MAX; type < 0x20; ++type) {
 		pea.type = type;
 
-		// A particular PMU may work on some but not all cores, so try on each core
+		/* A particular PMU may work on some but not all cores, so try on each core */
 		pe = NULL;
 		for_each_present_cpu(cpu) {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 1, 0)
@@ -471,7 +471,7 @@ int gator_events_perf_pmu_init(void)
 				break;
 			}
 		}
-		// Assume that valid PMUs are contiguous
+		/* Assume that valid PMUs are contiguous */
 		if (IS_ERR(pe)) {
 			break;
 		}
@@ -483,7 +483,7 @@ int gator_events_perf_pmu_init(void)
 				found_cpu = true;
 				gator_events_perf_pmu_cpu_init(gator_cpu, type);
 			}
-			// Initialize gator_attrs for dynamic PMUs here
+			/* Initialize gator_attrs for dynamic PMUs here */
 		}
 
 		perf_event_release_kernel(pe);
@@ -497,7 +497,7 @@ int gator_events_perf_pmu_init(void)
 		gator_events_perf_pmu_cpu_init(gator_cpu, PERF_TYPE_RAW);
 	}
 
-	// Initialize gator_attrs for non-dynamic PMUs here
+	/* Initialize gator_attrs for non-dynamic PMUs here */
 
 	if (attr_count > CNTMAX) {
 		pr_err("gator: Too many perf counters\n");

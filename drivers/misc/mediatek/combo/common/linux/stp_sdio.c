@@ -254,7 +254,7 @@ UINT32 gStpSdioDbgLvl = STPSDIO_LOG_INFO;
 
 #define STPSDIO_HINT_FUNC(fmt, arg...)	\
 	do {	\
-		pr_notice(DFT_TAG "[I]%s:"	fmt, __func__ , ##arg); \
+		pr_debug(DFT_TAG "[I]%s:"	fmt, __func__ , ##arg); \
 	} while (0)
 
 #define STPSDIO_INFO_FUNC(fmt, arg...)	\
@@ -436,7 +436,7 @@ static INT32 stp_sdio_do_own_clr(int wait)
 		goto out;
 	}
 
-	retry = 10;
+    retry = 40;
 	do {
 		ret = mtk_wcn_hif_sdio_readl(clt_ctx, CHLPCR, &chlcpr_value);
 		if (ret) {
@@ -445,11 +445,12 @@ static INT32 stp_sdio_do_own_clr(int wait)
 			goto out;
 		}
 
-		udelay(delay_us);
+		/* udelay(delay_us); */
 		if ((chlcpr_value & C_FW_COM_DRV_OWN) == C_FW_COM_DRV_OWN) {
 			/* 4 <2> handle ownership back interrupt */
 			STPSDIO_DBG_FUNC("firmware ownback is polled!(%d)\n",
 					 CLR_OWN_RETRY - retry);
+			udelay(2000);
 			break;
 		} else {
 			STPSDIO_DBG_FUNC
@@ -2012,7 +2013,7 @@ using CMD52 write instead of CMD53 write for CCIR, CHLPCR, CSDIOCSR */
 			if (!(chlcpr_value & C_FW_INT_EN_SET)) {
 				STPSDIO_DBG_FUNC("disable COM IRQ okay (0x%x)\n", chlcpr_value);
 				p_info->irq_pending = 1;
-
+		mtk_wcn_stp_wmt_sdio_host_awake();
 				/*inform stp_sdio thread to to rx/tx job */
 				STPSDIO_DBG_FUNC("signal stp_tx_rx\n");
 				osal_trigger_event(&gp_info->tx_rx_event);

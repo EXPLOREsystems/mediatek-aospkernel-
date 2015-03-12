@@ -1606,7 +1606,7 @@ fm_s32 fm_rds_tx(struct fm *fm, struct fm_rds_tx_parm *parm)
 /* memcpy(fm_cxt->txcxt.ps, parm->ps,sizeof(parm->ps)); */
 /* memcpy(fm_cxt->txcxt.other_rds, parm->other_rds,sizeof(parm->other_rds)); */
 /* fm_cxt->txcxt.other_rds_cnt = parm->other_rds_cnt; */
- out :
+ out:
 	return ret;
 }
 
@@ -1947,7 +1947,7 @@ fm_s32 fm_soft_mute_tune(struct fm *fm, struct fm_softmute_tune_t *parm)
 		ret = -EPERM;
 	}
 /* fm_low_ops.bi.mute(fm_false); */
- out :
+ out:
 	WCN_DBG(FM_NTC | MAIN, "-%s()\n", __func__);
 	FM_UNLOCK(fm_ops_lock);
 

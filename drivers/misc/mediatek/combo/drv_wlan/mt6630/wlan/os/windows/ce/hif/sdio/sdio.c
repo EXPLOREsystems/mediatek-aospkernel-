@@ -1149,7 +1149,7 @@ SD_API_STATUS sdioSetupCardFeature(P_GL_HIF_INFO_T pDevice)
 				 SD_INFO_REGISTER_RCA, &pDevice->RCA, sizeof(pDevice->RCA));
 
 	if (!SD_API_SUCCESS(status)) {
-		DBGLOG(INIT, ERROR, ("MT6620 NDIS: Failed to query RCA ! 0x%08X \n", status));
+		DBGLOG(INIT, ERROR, ("MT6620 NDIS: Failed to query RCA ! 0x%08X\n", status));
 		return status;
 	}
 	DBGLOG(INIT, TRACE, ("MT6620 NDIS: RCA: 0x%04X\n", pDevice->RCA));
@@ -1159,7 +1159,7 @@ SD_API_STATUS sdioSetupCardFeature(P_GL_HIF_INFO_T pDevice)
 				 SD_INFO_CARD_INTERFACE, &cardInterface, sizeof(cardInterface));
 
 	if (!SD_API_SUCCESS(status)) {
-		DBGLOG(INIT, ERROR, ("MT6620 NDIS: Failed to query interface ! 0x%08X \n",
+		DBGLOG(INIT, ERROR, ("MT6620 NDIS: Failed to query interface ! 0x%08X\n",
 				     status));
 		return status;
 	}
@@ -1241,7 +1241,7 @@ SD_API_STATUS sdioSetupCardFeature(P_GL_HIF_INFO_T pDevice)
 
 	if (!SD_API_SUCCESS(status)) {
 		DBGLOG(INIT, ERROR,
-		       ("MT6620 NDIS: Failed to query SDIO info ! 0x%08X \n", status));
+		       ("MT6620 NDIS: Failed to query SDIO info ! 0x%08X\n", status));
 		return status;
 	}
 
@@ -1404,7 +1404,7 @@ sdioSetBlockSize(IN PVOID pvAdapter,
 				  SD_IO_FUNCTION_SET_BLOCK_SIZE, &u4blocksize, sizeof(u4blocksize));
 	if (!SD_API_SUCCESS(status)) {
 		DbgPrintZo(SDCARD_ZONE_ERROR,
-			   (TEXT("IPN2128 NDIS: Failed to set Block Length ! 0x%08X \n"), status));
+			   (TEXT("IPN2128 NDIS: Failed to set Block Length ! 0x%08X\n"), status));
 		KdPrint(("sdiosetBlockSize set to %d failed\n", u4blocksize));
 
 		return FALSE;

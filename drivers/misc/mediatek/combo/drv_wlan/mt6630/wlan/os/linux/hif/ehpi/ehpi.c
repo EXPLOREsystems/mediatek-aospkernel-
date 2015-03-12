@@ -176,9 +176,8 @@ kalDevPortRead(IN P_GLUE_INFO_T prGlueInfo,
 	GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_EHPI_BUS);
 
 	/* 1. indicate correct length to HIFSYS if larger than 4-bytes */
-	if (u2Len > 4) {
+	if (u2Len > 4)
 		kalDevRegWrite_impl(prGlueInfo, MCR_EHTCR, ALIGN_4(u2Len));
-	}
 
 	/* 2. address cycle */
 #if EHPI16
@@ -208,9 +207,8 @@ kalDevPortRead(IN P_GLUE_INFO_T prGlueInfo,
 	}
 
 	/* 4. restore length to 4 if necessary */
-	if (u2Len > 4) {
+	if (u2Len > 4)
 		kalDevRegWrite_impl(prGlueInfo, MCR_EHTCR, 4);
-	}
 
 	/* 5. release spin lock */
 	GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_EHPI_BUS);
@@ -246,9 +244,8 @@ kalDevPortWrite(P_GLUE_INFO_T prGlueInfo,
 	GLUE_ACQUIRE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_EHPI_BUS);
 
 	/* 1. indicate correct length to HIFSYS if larger than 4-bytes */
-	if (u2Len > 4) {
+	if (u2Len > 4)
 		kalDevRegWrite_impl(prGlueInfo, MCR_EHTCR, ALIGN_4(u2Len));
-	}
 
 	/* 2. address cycle */
 #if EHPI16
@@ -276,9 +273,8 @@ kalDevPortWrite(P_GLUE_INFO_T prGlueInfo,
 	}
 
 	/* 4. restore length to 4 if necessary */
-	if (u2Len > 4) {
+	if (u2Len > 4)
 		kalDevRegWrite_impl(prGlueInfo, MCR_EHTCR, 4);
-	}
 
 	/* 5. release spin lock */
 	GLUE_RELEASE_SPIN_LOCK(prGlueInfo, SPIN_LOCK_EHPI_BUS);

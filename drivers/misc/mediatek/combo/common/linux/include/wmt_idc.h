@@ -6,7 +6,7 @@
 #include "osal_typedef.h"
 #include "osal.h"
 
-#if WMT_PLAT_ALPS
+#if CFG_WMT_LTE_COEX_HANDLING
 #include "conn_md_exp.h"
 
 
@@ -49,22 +49,22 @@ extern UINT32 wmt_idc_msg_to_lte_handing_for_test(UINT8 *p_buf, UINT32 len);
 
 #else
 
-INT32 wmt_idc_init(VOID)
+__weak INT32 wmt_idc_init(VOID)
 {
 	return 0;
 }
 
-INT32 wmt_idc_deinit(VOID)
+__weak INT32 wmt_idc_deinit(VOID)
 {
 	return 0;
 }
 
-INT32 wmt_idc_msg_to_lte_handing(VOID)
+__weak INT32 wmt_idc_msg_to_lte_handing(VOID)
 {
 	return 0;
 }
 
-UINT32 wmt_idc_msg_to_lte_handing_for_test(UINT8 *p_buf, UINT32 len)
+__weak UINT32 wmt_idc_msg_to_lte_handing_for_test(UINT8 *p_buf, UINT32 len)
 {
 	return 0;
 }

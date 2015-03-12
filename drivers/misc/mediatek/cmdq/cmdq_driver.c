@@ -1,17 +1,3 @@
-/*
-* Copyright (C) 2011-2014 MediaTek Inc.
-*
-* This program is free software: you can redistribute it and/or modify it under the terms of the
-* GNU General Public License version 2 as published by the Free Software Foundation.
-*
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with this program.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "cmdq_driver.h"
 #include "cmdq_struct.h"
 #include "cmdq_core.h"
@@ -183,9 +169,8 @@ static int cmdq_driver_create_reg_address_buffer(cmdqCommandStruct *pCommand)
 
 	if (0 != pCommand->debugRegDump) {
 		/* get kernel dump request count */
-		status =
-		    cmdqCoreDebugRegDumpBegin(pCommand->debugRegDump, &kernelRegCount,
-					      &kernelRegAddr);
+		status = cmdqCoreDebugRegDumpBegin(pCommand->debugRegDump,
+						   &kernelRegCount, &kernelRegAddr);
 		if (0 != status) {
 			CMDQ_ERR
 			    ("cmdqCoreDebugRegDumpBegin returns %d, ignore kernel reg dump request\n",
@@ -381,7 +366,6 @@ static long cmdq_ioctl(struct file *pFile, unsigned int code, unsigned long para
 		kfree(command.regValue.regValues);
 
 		if (command.readAddress.count > 0) {
-			CMDQ_ERR("readAddress.count:%d\n", command.readAddress.count);
 			cmdq_driver_process_read_address_request(&command.readAddress);
 		}
 		break;
@@ -793,6 +777,7 @@ static struct platform_driver gCmdqDriver = {
 #endif
 		   }
 };
+
 
 static int __init cmdq_init(void)
 {

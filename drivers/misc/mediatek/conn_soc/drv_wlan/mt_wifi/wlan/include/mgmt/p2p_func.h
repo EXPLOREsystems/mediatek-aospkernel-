@@ -1,3 +1,17 @@
+/*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #ifndef _P2P_FUNC_H
 #define _P2P_FUNC_H
 
@@ -58,7 +72,7 @@ p2pFuncRetryJOIN(
     );
 
 VOID
-p2pFuncUpdateBssInfoForJOIN (
+p2pFuncUpdateBssInfoForJOIN(
     IN P_ADAPTER_T prAdapter,
     IN P_BSS_DESC_T prBssDesc,
     IN P_STA_RECORD_T prStaRec,
@@ -206,7 +220,7 @@ p2pFuncProcessP2pProbeRsp(
     IN P_MSDU_INFO_T prMgmtTxMsdu
     );
 
-#if 0 //LINUX_VERSION_CODE >= KERNEL_VERSION(3, 2, 0)
+#if 0 /* LINUX_VERSION_CODE >= KERNEL_VERSION(3, 2, 0) */
 UINT_32
 p2pFuncCalculateExtra_IELenForBeacon(
     IN P_ADAPTER_T prAdapter,

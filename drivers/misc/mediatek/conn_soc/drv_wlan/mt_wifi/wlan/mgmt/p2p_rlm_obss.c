@@ -1,10 +1,24 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: @(#) gl_p2p_cfg80211.c@@
 */
 
 /*! \file   gl_p2p_cfg80211.c
     \brief  Main routines of Linux driver interface for Wi-Fi Direct
-            using cfg80211 interface
+	    using cfg80211 interface
 
     This file contains the main routines of Linux driver for MediaTek Inc. 802.11
     Wireless LAN Adapters.
@@ -63,14 +77,14 @@
 
 
 static UINT_8
-rlmObssChnlLevelIn2G4 (
+rlmObssChnlLevelIn2G4(
     P_BSS_INFO_T        prBssInfo,
     UINT_8              ucPriChannel,
     ENUM_CHNL_EXT_T     eExtend
     );
 
 static UINT_8
-rlmObssChnlLevelIn5G (
+rlmObssChnlLevelIn5G(
     P_BSS_INFO_T        prBssInfo,
     UINT_8              ucPriChannel,
     ENUM_CHNL_EXT_T     eExtend
@@ -93,7 +107,7 @@ rlmObssChnlLevelIn5G (
 */
 /*----------------------------------------------------------------------------*/
 UINT_8
-rlmObssChnlLevel (
+rlmObssChnlLevel(
     P_BSS_INFO_T        prBssInfo,
     ENUM_BAND_T         eBand,
     UINT_8              ucPriChannel,
@@ -105,23 +119,23 @@ rlmObssChnlLevel (
     ASSERT(prBssInfo);
 
     if (eBand == BAND_2G4) {
-        ucChannelLevel = rlmObssChnlLevelIn2G4(prBssInfo, ucPriChannel,eExtend);
+        ucChannelLevel = rlmObssChnlLevelIn2G4(prBssInfo, ucPriChannel, eExtend);
 
-        /* (TBD) If concurrent networks permit different channel, extra
-         *       channel judgement should be added. Please refer to
-         *       previous version of this file.
-         */
+	/* (TBD) If concurrent networks permit different channel, extra
+	 *       channel judgement should be added. Please refer to
+	 *       previous version of this file.
+	 */
     }
     else if (eBand == BAND_5G) {
-        ucChannelLevel = rlmObssChnlLevelIn5G(prBssInfo, ucPriChannel,eExtend);
+        ucChannelLevel = rlmObssChnlLevelIn5G(prBssInfo, ucPriChannel, eExtend);
 
-        /* (TBD) If concurrent networks permit different channel, extra
-         *       channel judgement should be added. Please refer to
-         *       previous version of this file.
-         */
+	/* (TBD) If concurrent networks permit different channel, extra
+	 *       channel judgement should be added. Please refer to
+	 *       previous version of this file.
+	 */
     }
     else {
-        ucChannelLevel = CHNL_LEVEL0;
+	ucChannelLevel = CHNL_LEVEL0;
     }
 
     return ucChannelLevel;
@@ -137,7 +151,7 @@ rlmObssChnlLevel (
 */
 /*----------------------------------------------------------------------------*/
 static UINT_8
-rlmObssChnlLevelIn2G4 (
+rlmObssChnlLevelIn2G4(
     P_BSS_INFO_T        prBssInfo,
     UINT_8              ucPriChannel,
     ENUM_CHNL_EXT_T     eExtend
@@ -153,75 +167,75 @@ rlmObssChnlLevelIn2G4 (
 
     /* Calculate center channel for 2.4G band */
     if (eExtend == CHNL_EXT_SCA) {
-        ucCenterChannel = ucPriChannel + 2;
-        ucSecChannel = ucPriChannel + 4;
+	ucCenterChannel = ucPriChannel + 2;
+	ucSecChannel = ucPriChannel + 4;
     }
     else if (eExtend == CHNL_EXT_SCB) {
-        ucCenterChannel = ucPriChannel - 2;
-        ucSecChannel = ucPriChannel - 4;
+	ucCenterChannel = ucPriChannel - 2;
+	ucSecChannel = ucPriChannel - 4;
     }
     else {
-        return CHNL_LEVEL0;
+	return CHNL_LEVEL0;
     }
     ASSERT(ucCenterChannel >= 1 && ucCenterChannel <= 14);
 
     /* Calculated low/upper channels in affected freq range */
     ucAffectedChnl_L = (ucCenterChannel <= AFFECTED_CHNL_OFFSET) ?
-        1 : (ucCenterChannel - AFFECTED_CHNL_OFFSET);
+	1 : (ucCenterChannel - AFFECTED_CHNL_OFFSET);
 
     ucAffectedChnl_H = (ucCenterChannel >= (14 - AFFECTED_CHNL_OFFSET)) ?
-        14 : (ucCenterChannel + AFFECTED_CHNL_OFFSET);
+	14 : (ucCenterChannel + AFFECTED_CHNL_OFFSET);
 
 
     /* Check intolerant (Non-HT) channel list */
     ASSERT(prBssInfo->auc2G_NonHtChnlList[0] <= CHNL_LIST_SZ_2G);
     for (i = 1; i <= prBssInfo->auc2G_NonHtChnlList[0] &&
-         i <= CHNL_LIST_SZ_2G; i++) {
-        if ((prBssInfo->auc2G_NonHtChnlList[i] >= ucAffectedChnl_L &&
-             prBssInfo->auc2G_NonHtChnlList[i] <= ucAffectedChnl_H) &&
-            prBssInfo->auc2G_NonHtChnlList[i] != ucPriChannel) {
+	 i <= CHNL_LIST_SZ_2G; i++) {
+	if ((prBssInfo->auc2G_NonHtChnlList[i] >= ucAffectedChnl_L &&
+	     prBssInfo->auc2G_NonHtChnlList[i] <= ucAffectedChnl_H) &&
+	    prBssInfo->auc2G_NonHtChnlList[i] != ucPriChannel) {
 
-            ucChannelLevel = CHNL_LEVEL0;
-            goto L_2G4_level_end;
-        }
+	    ucChannelLevel = CHNL_LEVEL0;
+	    goto L_2G4_level_end;
+	}
     }
 
     /* Check 20M BW request channel list */
     ASSERT(prBssInfo->auc2G_20mReqChnlList[0] <= CHNL_LIST_SZ_2G);
     for (i = 1; i <= prBssInfo->auc2G_20mReqChnlList[0] &&
-         i <= CHNL_LIST_SZ_2G; i++) {
-        if ((prBssInfo->auc2G_20mReqChnlList[i] >= ucAffectedChnl_L &&
-             prBssInfo->auc2G_20mReqChnlList[i] <= ucAffectedChnl_H)) {
+	 i <= CHNL_LIST_SZ_2G; i++) {
+	if ((prBssInfo->auc2G_20mReqChnlList[i] >= ucAffectedChnl_L &&
+	     prBssInfo->auc2G_20mReqChnlList[i] <= ucAffectedChnl_H)) {
 
-            ucChannelLevel = CHNL_LEVEL0;
-            goto L_2G4_level_end;
-        }
+	    ucChannelLevel = CHNL_LEVEL0;
+	    goto L_2G4_level_end;
+	}
     }
 
     /* Check 2.4G primary channel list */
     ASSERT(prBssInfo->auc2G_PriChnlList[0] <= CHNL_LIST_SZ_2G);
     for (i = 1; i <= prBssInfo->auc2G_PriChnlList[0] &&
-         i <= CHNL_LIST_SZ_2G; i++) {
-        if ((prBssInfo->auc2G_PriChnlList[i] >= ucAffectedChnl_L &&
-             prBssInfo->auc2G_PriChnlList[i] <= ucAffectedChnl_H) &&
-            prBssInfo->auc2G_PriChnlList[i] != ucPriChannel) {
+	 i <= CHNL_LIST_SZ_2G; i++) {
+	if ((prBssInfo->auc2G_PriChnlList[i] >= ucAffectedChnl_L &&
+	     prBssInfo->auc2G_PriChnlList[i] <= ucAffectedChnl_H) &&
+	    prBssInfo->auc2G_PriChnlList[i] != ucPriChannel) {
 
-            ucChannelLevel = CHNL_LEVEL0;
-            goto L_2G4_level_end;
-        }
+	    ucChannelLevel = CHNL_LEVEL0;
+	    goto L_2G4_level_end;
+	}
     }
 
     /* Check 2.4G secondary channel list */
     ASSERT(prBssInfo->auc2G_SecChnlList[0] <= CHNL_LIST_SZ_2G);
     for (i = 1; i <= prBssInfo->auc2G_SecChnlList[0] &&
-         i <= CHNL_LIST_SZ_2G; i++) {
-        if ((prBssInfo->auc2G_SecChnlList[i] >= ucAffectedChnl_L &&
-             prBssInfo->auc2G_SecChnlList[i] <= ucAffectedChnl_H) &&
-            prBssInfo->auc2G_SecChnlList[i] != ucSecChannel) {
+	 i <= CHNL_LIST_SZ_2G; i++) {
+	if ((prBssInfo->auc2G_SecChnlList[i] >= ucAffectedChnl_L &&
+	     prBssInfo->auc2G_SecChnlList[i] <= ucAffectedChnl_H) &&
+	    prBssInfo->auc2G_SecChnlList[i] != ucSecChannel) {
 
-            ucChannelLevel = CHNL_LEVEL0;
-            goto L_2G4_level_end;
-        }
+	    ucChannelLevel = CHNL_LEVEL0;
+	    goto L_2G4_level_end;
+	}
     }
 
 L_2G4_level_end:
@@ -239,7 +253,7 @@ L_2G4_level_end:
 */
 /*----------------------------------------------------------------------------*/
 static UINT_8
-rlmObssChnlLevelIn5G (
+rlmObssChnlLevelIn5G(
     P_BSS_INFO_T        prBssInfo,
     UINT_8              ucPriChannel,
     ENUM_CHNL_EXT_T     eExtend
@@ -254,53 +268,53 @@ rlmObssChnlLevelIn5G (
 
     /* Calculate center channel for 2.4G band */
     if (eExtend == CHNL_EXT_SCA) {
-        ucSecChannel = ucPriChannel + 4;
+	ucSecChannel = ucPriChannel + 4;
     }
     else if (eExtend == CHNL_EXT_SCB) {
-        ucSecChannel = ucPriChannel - 4;
+	ucSecChannel = ucPriChannel - 4;
     }
     else {
-        return CHNL_LEVEL0;
+	return CHNL_LEVEL0;
     }
     ASSERT(ucSecChannel >= 36);
 
     /* Check 5G primary channel list */
     ASSERT(prBssInfo->auc5G_PriChnlList[0] <= CHNL_LIST_SZ_5G);
     for (i = 1; i <= prBssInfo->auc5G_PriChnlList[0] &&
-         i <= CHNL_LIST_SZ_5G; i++) {
-        if (prBssInfo->auc5G_PriChnlList[i] == ucSecChannel) {
+	 i <= CHNL_LIST_SZ_5G; i++) {
+	if (prBssInfo->auc5G_PriChnlList[i] == ucSecChannel) {
 
-            ucChannelLevel = CHNL_LEVEL0;
-            goto L_5G_level_end;
-        }
-        else if (prBssInfo->auc5G_PriChnlList[i] == ucPriChannel) {
-            ucChannelLevel = CHNL_LEVEL1;
-        }
+	    ucChannelLevel = CHNL_LEVEL0;
+	    goto L_5G_level_end;
+	}
+	else if (prBssInfo->auc5G_PriChnlList[i] == ucPriChannel) {
+	    ucChannelLevel = CHNL_LEVEL1;
+	}
     }
 
     /* Check non-HT channel list */
     ASSERT(prBssInfo->auc5G_NonHtChnlList[0] <= CHNL_LIST_SZ_5G);
     for (i = 1; i <= prBssInfo->auc5G_NonHtChnlList[0] &&
-         i <= CHNL_LIST_SZ_5G; i++) {
-        if (prBssInfo->auc5G_NonHtChnlList[i] == ucSecChannel) {
+	 i <= CHNL_LIST_SZ_5G; i++) {
+	if (prBssInfo->auc5G_NonHtChnlList[i] == ucSecChannel) {
 
-            ucChannelLevel = CHNL_LEVEL0;
-            goto L_5G_level_end;
-        }
-        else if (prBssInfo->auc5G_NonHtChnlList[i] == ucPriChannel) {
-            ucChannelLevel = CHNL_LEVEL1;
-        }
+	    ucChannelLevel = CHNL_LEVEL0;
+	    goto L_5G_level_end;
+	}
+	else if (prBssInfo->auc5G_NonHtChnlList[i] == ucPriChannel) {
+	    ucChannelLevel = CHNL_LEVEL1;
+	}
     }
 
     /* Check secondary channel list */
     ASSERT(prBssInfo->auc5G_SecChnlList[0] <= CHNL_LIST_SZ_5G);
     for (i = 1; i <= prBssInfo->auc5G_SecChnlList[0] &&
-         i <= CHNL_LIST_SZ_5G; i++) {
-        if (prBssInfo->auc5G_SecChnlList[i] == ucPriChannel) {
+	 i <= CHNL_LIST_SZ_5G; i++) {
+	if (prBssInfo->auc5G_SecChnlList[i] == ucPriChannel) {
 
-            ucChannelLevel = CHNL_LEVEL0;
-            goto L_5G_level_end;
-        }
+	    ucChannelLevel = CHNL_LEVEL0;
+	    goto L_5G_level_end;
+	}
     }
 
 L_5G_level_end:
@@ -318,7 +332,7 @@ L_5G_level_end:
 */
 /*----------------------------------------------------------------------------*/
 VOID
-rlmObssScanExemptionRsp (
+rlmObssScanExemptionRsp(
     P_ADAPTER_T         prAdapter,
     P_BSS_INFO_T        prBssInfo,
     P_SW_RFB_T          prSwRfb
@@ -330,9 +344,9 @@ rlmObssScanExemptionRsp (
     /* To do: need an algorithm to do judgement. Now always reject request */
 
     prMsduInfo = (P_MSDU_INFO_T)
-                 cnmMgtPktAlloc(prAdapter, PUBLIC_ACTION_MAX_LEN);
+		 cnmMgtPktAlloc(prAdapter, PUBLIC_ACTION_MAX_LEN);
     if (prMsduInfo == NULL) {
-        return;
+	return;
     }
 
     DBGLOG(RLM, INFO, ("Send 20/40 coexistence rsp frame!\n"));
@@ -341,7 +355,7 @@ rlmObssScanExemptionRsp (
 
     prTxFrame->u2FrameCtrl = MAC_FRAME_ACTION;
     COPY_MAC_ADDR(prTxFrame->aucDestAddr,
-        ((P_ACTION_20_40_COEXIST_FRAME) prSwRfb->pvHeader)->aucSrcAddr);
+	((P_ACTION_20_40_COEXIST_FRAME) prSwRfb->pvHeader)->aucSrcAddr);
     COPY_MAC_ADDR(prTxFrame->aucSrcAddr, prBssInfo->aucOwnMacAddr);
     COPY_MAC_ADDR(prTxFrame->aucBSSID, prBssInfo->aucBSSID);
 
@@ -356,7 +370,7 @@ rlmObssScanExemptionRsp (
     ASSERT((WLAN_MAC_HEADER_LEN + 5) <= PUBLIC_ACTION_MAX_LEN);
 
     prMsduInfo->ucPacketType = HIF_TX_PACKET_TYPE_MGMT;
-    prMsduInfo->ucStaRecIndex =prSwRfb->ucStaRecIdx;
+    prMsduInfo->ucStaRecIndex = prSwRfb->ucStaRecIdx;
     prMsduInfo->ucNetworkType = prBssInfo->ucNetTypeIndex;
     prMsduInfo->ucMacHeaderLength = WLAN_MAC_MGMT_HEADER_LEN;
     prMsduInfo->fgIs802_1x = FALSE;
@@ -369,6 +383,3 @@ rlmObssScanExemptionRsp (
     /* Send them to HW queue */
     nicTxEnqueueMsdu(prAdapter, prMsduInfo);
 }
-
-
-

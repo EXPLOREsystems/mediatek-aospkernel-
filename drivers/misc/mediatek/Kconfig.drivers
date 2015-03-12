@@ -1,7 +1,7 @@
 menu "Drivers Configurations"
 menuconfig MTK_LDVT
 	bool "LDVT"
-	depends on ARCH_MT6589 || ARCH_MT6582 || ARCH_MT6595
+	depends on ARCH_MT6589 || ARCH_MT2601 || ARCH_MT6595
 	default n
 	---help---
 	  Say Y here for supporting LDVT
@@ -151,7 +151,7 @@ config MTK_LTE_SUPPORT
 	  This option enables LTE support
 
 # Frame Buffer Related
-menuconfig MTK_FB 
+menuconfig MTK_FB
 	bool "MediaTek Framebuffer Driver"
 	depends on FB
 	select FB_CFB_FILLRECT
@@ -176,39 +176,37 @@ config MTK_FB_SUPPORT_ASSERTION_LAYER
 config MTK_DITHERING_SUPPORT
 	bool "MTK_DITHERING_SUPPORT"
 	help
-	  To control whether enable or disable LCD controller dithering
-	  feature. If choose yes,  LCD controller would do dithering to
-	  avoid contour effect, but side effect is that dithering mechanism
-	  will make some noises
+	   To control whether enable or disable LCD controller dithering
+	   feature. If choose yes,  LCD controller would do dithering to
+	   avoid contour effect, but side effect is that dithering mechanism
+	   will make some noises
 
-config LCM_HEIGHT
-	string "LCM_HEIGHT"
-	default "1920"
+config MTK_LCM_PHYSICAL_ROTATION
+	string "MTK_LCM_PHYSICAL_ROTATION"
+	default "0"
 	help
-	  To set LCM resolution height size 
+	   To set the angle between dimension of UI layout and LCM scan
+	   direction
 
 config LCM_WIDTH
-	string "LCM_WIDTH"
-	default "1080"
+	string "LCM resolution width"
+	default "480"
 	help
-	  To set LCM resolution width size
+	   To set LCM resolution width size
+
+config LCM_HEIGHT
+	string "LCM resolution height"
+	default "800"
+	help
+	   To set LCM resolution height size
 
 config MTK_TVOUT_SUPPORT
 	bool "MTK_TVOUT_SUPPORT"
 	help
-	  To control whether enable or disable TV-out feature. If choose
-	  yes, video or image on your phone can be demonstrated on TV via
-	  TV-out cable. Also, this feature can help user to get more fun
-	  when playing some games.
-
-
-# TODO check what's MT6516_EVB_BOARD
-config MTK_FB_EVB_USE_HVGA_LCM # FB_MT6516_EVB_USE_HVGA_LCM
-	bool "Use MagnaChip TA7601 HVGA LCM on EVB"
-	depends on FB_MT6516 && MT6516_EVB_BOARD
-	default n
-	---help---
-	  Use MagnaChip TA7601 HVGA LCM on EVB
+	   To control whether enable or disable TV-out feature. If choose
+	   yes, video or image on your phone can be demonstrated on TV via
+	   TV-out cable. Also, this feature can help user to get more fun
+	   when playing some games.
 
 menuconfig GPS
 	tristate "GPS drivers"
@@ -882,6 +880,36 @@ config MTK_WD_KICKER
 	---help---
 	Watch dog kicker is a module in the kernel for kicking the watch dog
 
+config KICK_SPM_WDT # SW WORKAROUND
+        tristate "Kick SPM Watchdog"
+        default n
+        ---help---
+        SW workaround to kick SPM WDT instaed of RGU WDT
+
+# Keypad
+config ONEKEY_REBOOT_NORMAL_MODE
+        bool "Long press reboot by Powerkey only on normal mode"
+        default n
+
+config TWOKEY_REBOOT_NORMAL_MODE
+        bool "Long press reboot by Powerkey + other key on normal mode"
+        default n
+
+config ONEKEY_REBOOT_OTHER_MODE
+        bool "Long press reboot by Powerkey only on other mode"
+        default n
+
+config TWOKEY_REBOOT_OTHER_MODE
+        bool "Long press reboot by Powerkey + other key on other mode"
+        default n
+
+config KPD_PMIC_LPRST_TD
+        int "Long press reboot timeout period"
+        range 0 3
+        default "1"
+        ---help---
+        0->8s, 1->11s, 2->14s, 3->5s
+
 # Wireless
 menuconfig MT592X
 	tristate "MediaTek MT592x driver support"
@@ -1250,30 +1278,3 @@ config NAND_OTP_SUPPORT
 	  Select Y here to enable NAND OTP function support
 
 
-
-#
-# LENS
-#
-
-config MTK_LENS_DUMMYLENS_SUPPORT
-       bool "Dummy Lens Driver"
-       default n
-
-config MTK_LENS_DW9714AF_SUPPORT
-       bool "DW9714AF Lens Driver"
-       default n
-
-config MTK_LENS_FM50AF_SUPPORT
-       bool "FM50AF Lens Driver"
-       default n
-config MTK_LENS_GAF001AF_SUPPORT
-       bool "GAF001AF Lens Driver"
-       default n
-
-config MTK_LENS_GAF002AF_SUPPORT
-       bool "GAF002AF Lens Driver"
-       default n
-
-config MTK_LENS_GAF008AF_SUPPORT
-       bool "GAF008AF Lens Driver"
-       default n

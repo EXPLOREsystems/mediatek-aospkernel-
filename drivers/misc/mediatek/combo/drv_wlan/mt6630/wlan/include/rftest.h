@@ -1,5 +1,5 @@
 /*
-** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/rftest.h#1 $
+** Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/rftest.h#1
 */
 
 /*! \file   "rftest.h"
@@ -7,59 +7,6 @@
 
 */
 
-
-
-/*
-** $Log: rftest.h $
-**
-** 04 08 2014 eason.tsai
-** [ALPS01070904] [Need Patch] [Volunteer Patch]
-** add for BLBIST dump index
-**
-** 08 20 2013 eason.tsai
-** [BORA00002255] [MT6630 Wi-Fi][Driver] develop
-** Icap function
-**
-** 09 17 2012 cm.chang
-** [BORA00002149] [MT6630 Wi-Fi] Initial software development
-** Duplicate source from MT6620 v2.3 driver branch
-** (Davinci label: MT6620_WIFI_Driver_V2_3_120913_1942_As_MT6630_Base)
- *
- * 12 20 2011 cp.wu
- * [WCXRP00001144] [MT6620 Wi-Fi][Driver][Firmware] Add RF_FUNC_ID for exposing device and related version information
- * add driver implementations for RF_AT_FUNCID_FW_INFO & RF_AT_FUNCID_DRV_INFO
- * to expose version information
- *
- * 08 04 2010 cp.wu
- * NULL
- * add an extra parameter to rftestQueryATInfo 'cause it's necessary to pass u4FuncData for query request.
- *
- * 07 08 2010 cp.wu
- *
- * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
- *
- * 06 06 2010 kevin.huang
- * [WPD00003832][MT6620 5931] Create driver base
- * [MT6620 5931] Create driver base
- *
- * 04 14 2010 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP
- * information buffer for query oid/ioctl is now buffered in prCmdInfo
- *  *  *  * instead of glue-layer variable to improve multiple oid/ioctl capability
- *
- * 12 30 2009 cp.wu
- * [WPD00001943]Create WiFi test driver framework on WinXP
- * 1) According to CMD/EVENT documentation v0.8,
- *  *  *  *  *  *  * OID_CUSTOM_TEST_RX_STATUS & OID_CUSTOM_TEST_TX_STATUS is no longer used,
- *  *  *  *  *  *  * and result is retrieved by get ATInfo instead
- *  *  *  *  *  *  * 2) add 4 counter for recording aggregation statistics
-**  \main\maintrunk.MT6620WiFiDriver_Prj\2 2009-12-08 17:35:11 GMT mtk02752
-**  * comment out RF test which is not supported on MT6620
-**  + API decalre for rftest
-**  \main\maintrunk.MT6620WiFiDriver_Prj\1 2009-12-08 11:29:07 GMT mtk02752
-**  definitions for RF test mode
-**
-*/
 #ifndef _RFTEST_H
 #define _RFTEST_H
 
@@ -111,7 +58,7 @@
 
 #define RF_AT_PARAM_TX_PKTLEN_BYTE_DEFAULT  1024
 #define RF_AT_PARAM_TX_PKTLEN_BYTE_MAX  \
-    ((UINT_16)(RF_AT_PARAM_TX_80211HDR_BYTE_MAX + RF_AT_PARAM_TX_80211PAYLOAD_BYTE_MAX))
+	((UINT_16)(RF_AT_PARAM_TX_80211HDR_BYTE_MAX + RF_AT_PARAM_TX_80211PAYLOAD_BYTE_MAX))
 
 /* Packet Count */
 #define RF_AT_PARAM_TX_PKTCNT_DEFAULT    1000
@@ -267,6 +214,9 @@ typedef enum _ENUM_RF_AT_COMMAND_T {
 	RF_AT_COMMAND_DPD_CAL,
 	RF_AT_COMMAND_CW,
 	RF_AT_COMMAND_ICAP,
+	RF_AT_COMMAND_RDD,
+	RF_AT_COMMAND_CH_SWITCH_FOR_ICAP,
+	RF_AT_COMMAND_RESET_DUMP_NAME,
 	RF_AT_COMMAND_NUM
 } ENUM_RF_AT_COMMAND_T;
 

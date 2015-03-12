@@ -354,7 +354,7 @@ BOOLEAN glRegisterAmpc(IN P_GLUE_INFO_T prGlueInfo)
  fail_cdev_add:
 		kfifo_free(&(prGlueInfo->rBowInfo.rKfifo));
 /* kfifo_free(prGlueInfo->rBowInfo.prKfifo); */
- fail_kfifo_alloc :
+ fail_kfifo_alloc:
 		unregister_chrdev_region(prGlueInfo->rBowInfo.u4DeviceNumber, 1);
 		return FALSE;
 	}

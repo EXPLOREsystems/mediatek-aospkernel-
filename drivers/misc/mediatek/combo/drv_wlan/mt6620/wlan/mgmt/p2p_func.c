@@ -6,7 +6,7 @@
 
 
 APPEND_VAR_ATTRI_ENTRY_T txAssocRspAttributesTable[] = {
-	{(P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_STATUS), NULL, p2pFuncAppendAttriStatusForAssocRsp}	/* 0 */* / Status */
+	{(P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_STATUS), NULL, p2pFuncAppendAttriStatusForAssocRsp}	/* 0 */*/ Status * /
 	, {(P2P_ATTRI_HDR_LEN + P2P_ATTRI_MAX_LEN_EXT_LISTEN_TIMING), NULL, p2pFuncAppendAttriExtListenTiming}	/* 8 */
 };
 
@@ -2154,7 +2154,7 @@ p2pFuncParseBeaconContent(IN P_ADAPTER_T prAdapter,
 				prP2pBssInfo->ucAllSupportedRatesLen +=
 				    EXT_SUP_RATES_IE(pucIE)->ucLength;
 				break;
-			case ELEM_ID_HT_OP:	/* 61 */* * V */// TODO: */
+			case ELEM_ID_HT_OP:	/* 61 */**V *
 				{
 #if 1
 					DBGLOG(P2P, TRACE,
@@ -2785,7 +2785,7 @@ P_MSDU_INFO_T p2pFuncProcessP2pProbeRsp(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO
 				{
 					UINT_8 ucOuiType = 0;
 					UINT_16 u2SubTypeVersion = 0;
-#if!CFG_SUPPORT_WFD
+#if !CFG_SUPPORT_WFD
 
 
 					if (rsnParseCheckForWFAInfoElem

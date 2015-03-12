@@ -31,7 +31,7 @@
 #define INFO_TASK_INDX      (6)
 #define MTKSTP_MAX_TASK_NUM (7)
 
-#define MTKSTP_BUFFER_SIZE  (16384) //Size of RX Queue
+#define MTKSTP_BUFFER_SIZE  (16384) /* Size of RX Queue */
 
 
 
@@ -54,7 +54,7 @@
 ********************************************************************************
 */
 typedef void (*MTK_WCN_STP_EVENT_CB)(void);
-typedef INT32(*MTK_WCN_STP_IF_TX)(const UINT8 *data, const UINT32 size, UINT32 *written_size);
+typedef INT32(*MTK_WCN_STP_IF_TX)(const UINT8 * data, const UINT32 size, UINT32 * written_size);
 /* export for HIF driver */
 typedef void (*MTK_WCN_STP_IF_RX)(const UINT8 *data, INT32 size);
 
@@ -212,16 +212,3 @@ extern int mtk_wcn_stp_register_if_rx(MTK_WCN_STP_IF_RX func);
 */
 
 #endif /* _WMT_EXP_H_ */
-
-
-
-
-
-
-
-
-
-
-
-
-

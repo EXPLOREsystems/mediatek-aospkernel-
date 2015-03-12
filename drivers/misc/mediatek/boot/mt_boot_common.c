@@ -37,24 +37,19 @@ BOOTMODE g_boot_mode __nosavedata = UNKNOWN_BOOT;
 boot_reason_t g_boot_reason __nosavedata = BR_UNKNOWN;
 
 #ifdef CONFIG_OF
-struct tag_bootmode {
-	u32 size;
-	u32 tag;
-	u32 bootmode;
-};
 static atomic_t g_boot_init = ATOMIC_INIT(BOOT_UNINIT);
 static int __init dt_get_boot_common(unsigned long node, const char *uname, int depth, void *data)
 {
-	struct tag_bootmode *tags = NULL;
+	struct tag *tags = NULL;
 	char *ptr = NULL, *br_ptr = NULL;
 
 	if (depth != 1 || (strcmp(uname, "chosen") != 0 && strcmp(uname, "chosen@0") != 0))
 		return 0;
 
-	tags = (struct tag_bootmode *)of_get_flat_dt_prop(node, "atag,boot", NULL);
+	tags = (struct tag *)of_get_flat_dt_prop(node, "atag,boot", NULL);
 
 	if (tags)
-		g_boot_mode = tags->bootmode;
+		g_boot_mode = tags->u.boot.bootmode;
 	else
 		pr_warn("'atag,boot' is not found\n");
 

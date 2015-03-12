@@ -86,6 +86,7 @@ struct msdc_ioctl {
 #define MSDC_REINIT_SDCARD            _IOW('r', 9, int)
 
 #define MSDC_SD30_MODE_SWITCH               (10)
+#define MSDC_ERASE_SELECTED_AREA            (0x20)
 #define MSDC_CARD_DUNM_FUNC                 (0xff)
 
 typedef enum {

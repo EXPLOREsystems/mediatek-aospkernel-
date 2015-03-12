@@ -354,6 +354,8 @@ VOID nicSDIOInit(IN P_ADAPTER_T prAdapter);
 VOID nicSDIOReadIntStatus(IN P_ADAPTER_T prAdapter, OUT PUINT_32 pu4IntStatus);
 #endif
 
+VOID nicPmTriggerDriverOwn(IN P_ADAPTER_T prAdapter);
+
 BOOLEAN nicpmSetDriverOwn(IN P_ADAPTER_T prAdapter);
 
 VOID nicpmSetFWOwn(IN P_ADAPTER_T prAdapter, IN BOOLEAN fgEnableGlobalInt);
@@ -361,6 +363,7 @@ VOID nicpmSetFWOwn(IN P_ADAPTER_T prAdapter, IN BOOLEAN fgEnableGlobalInt);
 BOOLEAN nicpmSetAcpiPowerD0(IN P_ADAPTER_T prAdapter);
 
 BOOLEAN nicpmSetAcpiPowerD3(IN P_ADAPTER_T prAdapter);
+
 
 #if defined(_HIF_SPI)
 void nicRestoreSpiDefMode(IN P_ADAPTER_T prAdapter);
@@ -401,6 +404,9 @@ nicMediaJoinFailure(IN P_ADAPTER_T prAdapter, IN UINT_8 ucBssIndex, IN WLAN_STAT
 UINT_32 nicChannelNum2Freq(IN UINT_32 u4ChannelNum);
 
 UINT_32 nicFreq2ChannelNum(IN UINT_32 u4FreqInKHz);
+
+UINT_8 nicGetVhtS1(IN UINT_8 ucPrimaryChannel);
+
 
 /* firmware command wrapper */
     /* NETWORK (WIFISYS) */
@@ -461,6 +467,8 @@ VOID nicUninitMGMT(IN P_ADAPTER_T prAdapter);
 WLAN_STATUS
 nicConfigPowerSaveProfile(IN P_ADAPTER_T prAdapter,
 			  UINT_8 ucBssIndex, PARAM_POWER_MODE ePwrMode, BOOLEAN fgEnCmdEvent);
+
+WLAN_STATUS nicEnterCtiaMode(IN P_ADAPTER_T prAdapter, BOOLEAN fgEnterCtia, BOOLEAN fgEnCmdEvent);
 
 /*----------------------------------------------------------------------------*/
 /* Scan Result Processing                                                     */

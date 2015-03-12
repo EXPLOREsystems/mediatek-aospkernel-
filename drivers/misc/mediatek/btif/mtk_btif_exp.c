@@ -8,7 +8,7 @@
 
 /*---------------------------------Function----------------------------------*/
 
-p_mtk_btif btif_exp_srh_id(unsigned long u_id)
+p_mtk_btif btif_exp_srh_id(unsigned int u_id)
 {
 	int index = 0;
 	p_mtk_btif p_btif = NULL;
@@ -23,7 +23,7 @@ p_mtk_btif btif_exp_srh_id(unsigned long u_id)
 			if (u_id == p_user->u_id) {
 				p_btif = p_user->p_btif;
 				BTIF_DBG_FUNC
-				    ("BTIF's user id(0x%p), p_btif(0x%p)\n",
+				    ("BTIF's user id(0x%08x), p_btif(0x%08x)\n",
 				     p_user->u_id, p_btif);
 				break;
 			}
@@ -31,7 +31,7 @@ p_mtk_btif btif_exp_srh_id(unsigned long u_id)
 	}
 	if (NULL == p_btif) {
 		BTIF_INFO_FUNC
-		    ("no btif structure found for BTIF's user id(0x%lx)\n",
+		    ("no btif structure found for BTIF's user id(0x%08x)\n",
 		     u_id);
 	}
 	return p_btif;
@@ -58,7 +58,7 @@ p_mtk_btif btif_exp_srh_id(unsigned long u_id)
 *       including read/write/dpidle_ctrl/rx_cb_retister
 *       this user id is only an identifier used for owner identification
 *****************************************************************************/
-const int mtk_wcn_btif_open(char *p_owner, unsigned long *p_id)
+const int mtk_wcn_btif_open(char *p_owner, unsigned int *p_id)
 {
 	int i_ret = -1;
 	unsigned int index = 0;
@@ -67,13 +67,13 @@ const int mtk_wcn_btif_open(char *p_owner, unsigned long *p_id)
 	struct list_head *p_user_list = &(p_btif->user_list);
 
 	BTIF_DBG_FUNC("++");
-	BTIF_INFO_FUNC("p_btif(0x%p)\n", p_btif);
+	BTIF_INFO_FUNC("p_btif(0x%08x)\n", p_btif);
 
 	BTIF_MUTEX_LOCK(&(p_btif->ops_mtx));
 	if ((NULL == p_owner) || (NULL == p_id)) {
 		if (p_id)
 			*p_id = 0;
-		BTIF_ERR_FUNC("parameter invalid, p_owner(0x%p), p_id(0x%p)\n",
+		BTIF_ERR_FUNC("parameter invalid, p_owner(0x%x), p_id(0x%d)\n",
 			      p_owner, p_id);
 		BTIF_MUTEX_UNLOCK(&(p_btif->ops_mtx));
 		return E_BTIF_INVAL_PARAM;
@@ -86,7 +86,7 @@ const int mtk_wcn_btif_open(char *p_owner, unsigned long *p_id)
 		BTIF_ERR_FUNC("BTIF's user list is not empty\n");
 		list_for_each(pos, p_user_list) {
 			p_user = container_of(pos, mtk_btif_user, entry);
-			BTIF_INFO_FUNC("BTIF's user id(0x%lx), name(%s)\n",
+			BTIF_INFO_FUNC("BTIF's user id(0x%08x), name(%s)\n",
 				       p_user->u_id, p_user->u_name);
 		}
 /*leave p_id alone*/
@@ -99,7 +99,7 @@ const int mtk_wcn_btif_open(char *p_owner, unsigned long *p_id)
 		INIT_LIST_HEAD(&(p_new_user->entry));
 		p_new_user->enable = false;
 		p_new_user->p_btif = p_btif;
-		p_new_user->u_id = (unsigned long)p_new_user;
+		p_new_user->u_id = (unsigned int)p_new_user;
 		strncpy(p_new_user->u_name, p_owner, BTIF_USER_NAME_MAX_LEN);
 		BTIF_INFO_FUNC("owner name:%s, recorded name:%s\n",
 			       p_owner, p_new_user->u_name);
@@ -128,7 +128,6 @@ const int mtk_wcn_btif_open(char *p_owner, unsigned long *p_id)
 	BTIF_DBG_FUNC("--");
 	return i_ret;
 }
-
 EXPORT_SYMBOL(mtk_wcn_btif_open);
 
 
@@ -145,7 +144,7 @@ EXPORT_SYMBOL(mtk_wcn_btif_open);
 *          others = fail,
 *          for detailed information, please see ENUM_BTIF_OP_ERROR_CODE
 *****************************************************************************/
-int mtk_wcn_btif_close(unsigned long u_id)
+int mtk_wcn_btif_close(unsigned int u_id)
 {
 	int i_ret = -1;
 	p_mtk_btif p_btif = NULL;
@@ -167,7 +166,7 @@ int mtk_wcn_btif_close(unsigned long u_id)
 
 		if (p_user->u_id == u_id) {
 			BTIF_INFO_FUNC
-			    ("user who's id is 0x%lx deleted from user list\n",
+			    ("user who's id is 0x%08x deleted from user list\n",
 			     u_id);
 			list_del(pos);
 			vfree(p_user);
@@ -182,7 +181,6 @@ int mtk_wcn_btif_close(unsigned long u_id)
 	BTIF_DBG_FUNC("--");
 	return 0;
 }
-
 EXPORT_SYMBOL(mtk_wcn_btif_close);
 
 
@@ -220,7 +218,7 @@ EXPORT_SYMBOL(mtk_wcn_btif_close);
 *        E_BTIF_INVAL_PARAM will be returned if parameter is not valid
 
 *****************************************************************************/
-int mtk_wcn_btif_write(unsigned long u_id,
+int mtk_wcn_btif_write(unsigned int u_id,
 		       const unsigned char *p_buf, unsigned int len)
 {
 	int i_ret = -1;
@@ -233,7 +231,7 @@ int mtk_wcn_btif_write(unsigned long u_id,
 		return E_BTIF_INVAL_PARAM;
 	}
 	if (NULL == p_buf) {
-		BTIF_ERR_FUNC("invalid p_buf (0x%p)\n", p_buf);
+		BTIF_ERR_FUNC("invalid p_buf (0x%08x)\n", p_buf);
 		return E_BTIF_INVAL_PARAM;
 	}
 	if ((0 == len) || (BTIF_MAX_LEN_PER_PKT < len)) {
@@ -245,7 +243,6 @@ int mtk_wcn_btif_write(unsigned long u_id,
 	BTIF_DBG_FUNC("--, i_ret:%d\n", i_ret);
 	return i_ret;
 }
-
 EXPORT_SYMBOL(mtk_wcn_btif_write);
 
 
@@ -262,7 +259,7 @@ EXPORT_SYMBOL(mtk_wcn_btif_write);
 *  int   positive: data length read from BTIF;
 *        negative: please see ENUM_BTIF_OP_ERROR_CODE
 *****************************************************************************/
-int mtk_wcn_btif_read(unsigned long u_id,
+int mtk_wcn_btif_read(unsigned int u_id,
 		      unsigned char *p_buf, unsigned int max_len)
 {
 	return 0;
@@ -279,7 +276,7 @@ int mtk_wcn_btif_read(unsigned long u_id,
 * RETURNS
 *  int          always return 0
 *****************************************************************************/
-int mtk_wcn_btif_dpidle_ctrl(unsigned long u_id, ENUM_BTIF_DPIDLE_CTRL en_flag)
+int mtk_wcn_btif_dpidle_ctrl(unsigned int u_id, ENUM_BTIF_DPIDLE_CTRL en_flag)
 {
 	int i_ret = -1;
 	p_mtk_btif p_btif = NULL;
@@ -313,7 +310,7 @@ EXPORT_SYMBOL(mtk_wcn_btif_dpidle_ctrl);
 *           others = fail, for detailed information,
 *           please see ENUM_BTIF_OP_ERROR_CODE
 *****************************************************************************/
-int mtk_wcn_btif_rx_cb_register(unsigned long u_id, MTK_WCN_BTIF_RX_CB rx_cb)
+int mtk_wcn_btif_rx_cb_register(unsigned int u_id, MTK_WCN_BTIF_RX_CB rx_cb)
 {
 	int i_ret = -1;
 	p_mtk_btif p_btif = NULL;
@@ -341,7 +338,7 @@ EXPORT_SYMBOL(mtk_wcn_btif_rx_cb_register);
 * RETURNS
 *  int          0 = succeed; others = fail, for detailed information, please see ENUM_BTIF_OP_ERROR_CODE
 *****************************************************************************/
-int mtk_wcn_btif_wakeup_consys(unsigned long u_id)
+int mtk_wcn_btif_wakeup_consys(unsigned int u_id)
 {
 	int i_ret = -1;
 	p_mtk_btif p_btif = NULL;
@@ -379,7 +376,7 @@ EXPORT_SYMBOL(mtk_wcn_btif_wakeup_consys);
 *  int          0 = succeed;
 *  others = fail, for detailed information, please see ENUM_BTIF_OP_ERROR_CODE
 *****************************************************************************/
-int mtk_wcn_btif_loopback_ctrl(unsigned long u_id, ENUM_BTIF_LPBK_MODE enable)
+int mtk_wcn_btif_loopback_ctrl(unsigned int u_id, ENUM_BTIF_LPBK_MODE enable)
 {
 	int i_ret = -1;
 	p_mtk_btif p_btif = NULL;
@@ -412,7 +409,7 @@ EXPORT_SYMBOL(mtk_wcn_btif_loopback_ctrl);
 * RETURNS
 *  int          0 = succeed; others = fail, for detailed information, please see ENUM_BTIF_OP_ERROR_CODE
 *****************************************************************************/
-int mtk_wcn_btif_dbg_ctrl(unsigned long u_id, ENUM_BTIF_DBG_ID flag)
+int mtk_wcn_btif_dbg_ctrl(unsigned int u_id, ENUM_BTIF_DBG_ID flag)
 {
 	int i_ret = -1;
 	p_mtk_btif p_btif = NULL;
@@ -516,7 +513,7 @@ int btif_write_no_id(const unsigned char *p_buf, unsigned int len)
 	BTIF_DBG_FUNC("++");
 
 	if (NULL == p_buf) {
-		BTIF_ERR_FUNC("invalid p_buf (0x%p)\n", p_buf);
+		BTIF_ERR_FUNC("invalid p_buf (0x%08x)\n", p_buf);
 		return E_BTIF_INVAL_PARAM;
 	}
 	if ((0 == len) || (BTIF_MAX_LEN_PER_PKT < len)) {

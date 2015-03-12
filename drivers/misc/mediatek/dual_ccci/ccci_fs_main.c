@@ -1,17 +1,3 @@
-/*
-* Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
-* GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with this program.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
-
 /*****************************************************************************
  *
  * Filename:
@@ -48,9 +34,9 @@
 
 extern unsigned long long lg_ch_tx_debug_enable[];
 extern unsigned long long lg_ch_rx_debug_enable[];
-//enable fs_tx or fs_rx log
-unsigned int fs_tx_debug_enable[MAX_MD_NUM] = {0}; 
-unsigned int fs_rx_debug_enable[MAX_MD_NUM] = {0}; 
+/* enable fs_tx or fs_rx log */
+unsigned int fs_tx_debug_enable[MAX_MD_NUM] = {0};
+unsigned int fs_rx_debug_enable[MAX_MD_NUM] = {0};
 
 typedef struct _fs_ctl_block
 {
@@ -66,26 +52,26 @@ typedef struct _fs_ctl_block
 	struct wake_lock	fs_wake_lock;
 	char                fs_wakelock_name[16];
 	int					fs_smem_size;
-}fs_ctl_block_t;
+} fs_ctl_block_t;
 
 static fs_ctl_block_t	*fs_ctl_block[MAX_MD_NUM];
 
 
-//  will be called when modem sends us something.
-//  we will then copy it to the tty's buffer.
-//  this is essentially the "read" fops.
+/* will be called when modem sends us something. */
+/* we will then copy it to the tty's buffer. */
+/* this is essentially the "read" fops. */
 static void ccci_fs_callback(void *private)
 {
 	unsigned long			flag;
-	logic_channel_info_t	*ch_info = (logic_channel_info_t*)private;
+	logic_channel_info_t	*ch_info = (logic_channel_info_t *)private;
 	ccci_msg_t				msg;
 	fs_ctl_block_t			*ctl_b = (fs_ctl_block_t *)ch_info->m_owner;
 
-	spin_lock_irqsave(&ctl_b->fs_spinlock,flag);
-	while(get_logic_ch_data(ch_info, &msg)){
+	spin_lock_irqsave(&ctl_b->fs_spinlock, flag);
+	while (get_logic_ch_data(ch_info, &msg)) {
 		if (msg.channel == CCCI_FS_RX) {
-			if(fs_rx_debug_enable[ctl_b->fs_md_id]){
-				CCCI_DBG_MSG(ctl_b->fs_md_id, "fs ", "fs_callback: %08X  %08X  %08X\n", 
+			if (fs_rx_debug_enable[ctl_b->fs_md_id]) {
+				CCCI_DBG_MSG(ctl_b->fs_md_id, "fs ", "fs_callback: %08X  %08X  %08X\n",
 							msg.data0, msg.data1, msg.reserved);
 			}
 
@@ -93,11 +79,11 @@ static void ccci_fs_callback(void *private)
 				wake_up_interruptible(&ctl_b->fs_waitq);
 				wake_lock_timeout(&ctl_b->fs_wake_lock, HZ/2);
 			} else {
-				CCCI_DBG_MSG(ctl_b->fs_md_id, "fs ", "[Error]Unable to put new request into fifo\n");    
+				CCCI_DBG_MSG(ctl_b->fs_md_id, "fs ", "[Error]Unable to put new request into fifo\n");
 			}
 		}
 	}
-	spin_unlock_irqrestore(&ctl_b->fs_spinlock,flag);
+	spin_unlock_irqrestore(&ctl_b->fs_spinlock, flag);
 }
 
 
@@ -107,7 +93,7 @@ static int ccci_fs_get_index(int md_id)
 	unsigned long	flag;
 	fs_ctl_block_t	*ctl_b;
 
-	if(unlikely(fs_ctl_block[md_id] == NULL)) {
+	if (unlikely(fs_ctl_block[md_id] == NULL)) {
 		CCCI_MSG_INF(md_id, "fs ", "fs_get_index: fata error, fs_ctl_b is NULL\n");
 		return -EPERM;
 	}
@@ -116,22 +102,22 @@ static int ccci_fs_get_index(int md_id)
 	CCCI_FS_MSG(md_id, "get_fs_index++\n");
 
 	if (wait_event_interruptible(ctl_b->fs_waitq, kfifo_len(&ctl_b->fs_fifo) != 0) != 0) {
-		if(fs_rx_debug_enable[md_id])
+		if (fs_rx_debug_enable[md_id])
 			CCCI_MSG_INF(md_id, "fs ", "fs_get_index: Interrupted by syscall.signal_pend\n");
 		return -ERESTARTSYS;
 	}
 
-	spin_lock_irqsave(&ctl_b->fs_spinlock,flag);
+	spin_lock_irqsave(&ctl_b->fs_spinlock, flag);
 	if (kfifo_out(&ctl_b->fs_fifo, (unsigned char *) &ret, sizeof(int)) != sizeof(int)) {
-		spin_unlock_irqrestore(&ctl_b->fs_spinlock,flag);
+		spin_unlock_irqrestore(&ctl_b->fs_spinlock, flag);
 		CCCI_MSG_INF(md_id, "fs ", "get fs index fail from fifo\n");
 		return -EFAULT;
 	}
 
-	spin_unlock_irqrestore(&ctl_b->fs_spinlock,flag);
+	spin_unlock_irqrestore(&ctl_b->fs_spinlock, flag);
 
-	if(fs_rx_debug_enable[md_id])
-		CCCI_MSG_INF(md_id, "fs ", "fs_index=%d \n", ret);
+	if (fs_rx_debug_enable[md_id])
+		CCCI_MSG_INF(md_id, "fs ", "fs_index=%d\n", ret);
 
 	CCCI_FS_MSG(md_id, "get_fs_index--\n");
 	return ret;
@@ -149,12 +135,12 @@ static int ccci_fs_send(int md_id, unsigned long arg)
 
 	CCCI_FS_MSG(md_id, "ccci_fs_send++\n");
 
-	if(unlikely(fs_ctl_block[md_id] == NULL)) {
+	if (unlikely(fs_ctl_block[md_id] == NULL)) {
 		CCCI_MSG_INF(md_id, "fs ", "fs_get_index: fatal error, fs_ctl_b is NULL\n");
 		return -EPERM;
 	}
 	ctl_b = fs_ctl_block[md_id];
-    
+
 	argp = (void __user *) arg;
 	if (copy_from_user((void *) &message, argp, sizeof(fs_stream_msg_t))) {
 		CCCI_MSG_INF(md_id, "fs ", "ccci_fs_send: copy_from_user fail!\n");
@@ -166,36 +152,36 @@ static int ccci_fs_send(int md_id, unsigned long arg)
 	msg.channel = CCCI_FS_TX;
 	msg.reserved = message.index;
 
-	if(fs_tx_debug_enable[md_id]) {
-		CCCI_MSG_INF(md_id, "fs ", "fs_send: %08X %08X %08X\n", 
+	if (fs_tx_debug_enable[md_id]) {
+		CCCI_MSG_INF(md_id, "fs ", "fs_send: %08X %08X %08X\n",
 			msg.data0, msg.data1, msg.reserved);
 	}
 
 	mb();
-	do{
+	do {
 		ret = ccci_message_send(md_id, &msg, 1);
-		if(ret == sizeof(ccci_msg_t))
+		if (ret == sizeof(ccci_msg_t))
 			break;
 
-		if(ret == -CCCI_ERR_CCIF_NO_PHYSICAL_CHANNEL) {
+		if (ret == -CCCI_ERR_CCIF_NO_PHYSICAL_CHANNEL) {
 			xmit_retry++;
 			msleep(10);
-			if( (xmit_retry&0xF) == 0) {
+			if ((xmit_retry&0xF) == 0) {
 				CCCI_MSG_INF(md_id, "fs ", "fs_chr has retried %d times\n", xmit_retry);
 			}
-		}else{
+		} else{
 			break;
 		}
-	}while(1);
-	
-	if(ret != sizeof(ccci_msg_t)) {
-		CCCI_MSG_INF(md_id, "fs ", "ccci_fs_send fail <ret=%d>: %08X, %08X, %08X\n", 
+	} while (1);
+
+	if (ret != sizeof(ccci_msg_t)) {
+		CCCI_MSG_INF(md_id, "fs ", "ccci_fs_send fail <ret=%d>: %08X, %08X, %08X\n",
 			ret, msg.data0, msg.data1, msg.reserved);
 		return ret;
 	}
 
 	CCCI_FS_MSG(md_id, "ccci_fs_send--\n");
-    
+
 	return 0;
 }
 
@@ -206,7 +192,7 @@ static int ccci_fs_mmap(struct file *file, struct vm_area_struct *vma)
 	fs_ctl_block_t	*ctl_b;
 	int				md_id;
 
-	ctl_b =(fs_ctl_block_t *)file->private_data;
+	ctl_b = (fs_ctl_block_t *)file->private_data;
 	md_id = ctl_b->fs_md_id;
 
 	CCCI_FS_MSG(md_id, "mmap++\n");
@@ -229,9 +215,9 @@ static int ccci_fs_mmap(struct file *file, struct vm_area_struct *vma)
 	vma->vm_pgoff  = off >> PAGE_SHIFT;
 	vma->vm_flags |= VM_IO;
 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-    
+
 	CCCI_FS_MSG(md_id, "mmap--\n");
-    
+
 	return remap_pfn_range(vma, vma->vm_start, off >> PAGE_SHIFT, vma->vm_end - vma->vm_start, vma->vm_page_prot);
 }
 
@@ -242,10 +228,10 @@ static long ccci_fs_ioctl(struct file *file, unsigned int cmd, unsigned long arg
 	int				md_id;
 	fs_ctl_block_t	*ctl_b;
 
-	ctl_b =(fs_ctl_block_t *)file->private_data;
+	ctl_b = (fs_ctl_block_t *)file->private_data;
 	md_id = ctl_b->fs_md_id;
 
-	switch(cmd)
+	switch (cmd)
 	{
 		case CCCI_FS_IOCTL_GET_INDEX:
 			ret = ccci_fs_get_index(md_id);
@@ -264,7 +250,7 @@ static long ccci_fs_ioctl(struct file *file, unsigned int cmd, unsigned long arg
 	return ret;
 }
 
-// clear kfifo invalid data which may not be processed before close operation
+/* clear kfifo invalid data which may not be processed before close operation */
 void ccci_fs_resetfifo(int md_id)
 {
 	fs_ctl_block_t *ctl_b = fs_ctl_block[md_id];
@@ -272,7 +258,7 @@ void ccci_fs_resetfifo(int md_id)
 
 	CCCI_MSG("ccci_fs_resetfifo\n");
 
-	// Reset FS KFIFO
+	/* Reset FS KFIFO */
 	spin_lock_irqsave(&ctl_b->fs_spinlock, flag);
 	kfifo_reset(&ctl_b->fs_fifo);
 	spin_unlock_irqrestore(&ctl_b->fs_spinlock, flag);
@@ -288,17 +274,17 @@ static int ccci_fs_open(struct inode *inode, struct file *file)
 
 	major = imajor(inode);
 	md_id = get_md_id_by_dev_major(major);
-	if(md_id < 0) {
+	if (md_id < 0) {
 		CCCI_MSG("FS open fail: invalid major id:%d\n", major);
 		return -1;
 	}
 	CCCI_MSG_INF(md_id, "fs ", "FS open by %s\n", current->comm);
 
 	ctl_b = fs_ctl_block[md_id];
-	file->private_data=ctl_b;
-	nonseekable_open(inode,file);
+	file->private_data = ctl_b;
+	nonseekable_open(inode, file);
 
-	// modem reset registration.
+	/* modem reset registration. */
 	ctl_b->reset_handle = ccci_reset_register(md_id, "CCCI_FS");
 	ASSERT(ctl_b->reset_handle >= 0);
 
@@ -311,11 +297,11 @@ static int ccci_fs_release(struct inode *inode, struct file *file)
 	int				md_id;
 	int				major;
 	fs_ctl_block_t	*ctl_b;
-	// unsigned long   flag;
+	unsigned long   flag;
 
 	major = imajor(inode);
 	md_id = get_md_id_by_dev_major(major);
-	if(md_id < 0) {
+	if (md_id < 0) {
 		CCCI_MSG("FS release fail: invalid major id:%d\n", major);
 		return -1;
 	}
@@ -326,11 +312,11 @@ static int ccci_fs_release(struct inode *inode, struct file *file)
 	memset(ctl_b->fs_buffers, 0, ctl_b->fs_smem_size);
 	ccci_user_ready_to_reset(md_id, ctl_b->reset_handle);
 
-	// CR: 1260702
-	// clear kfifo invalid data which may not be processed before close operation
-	// spin_lock_irqsave(&ctl_b->fs_spinlock,flag);
-	// kfifo_reset(&ctl_b->fs_fifo);
-	// spin_unlock_irqrestore(&ctl_b->fs_spinlock,flag);
+	/* CR: 1260702 */
+	/* clear kfifo invalid data which may not be processed before close operation */
+	/* spin_lock_irqsave(&ctl_b->fs_spinlock,flag); */
+	/* kfifo_reset(&ctl_b->fs_fifo); */
+	/* spin_unlock_irqrestore(&ctl_b->fs_spinlock,flag); */
 
 	return 0;
 }
@@ -341,25 +327,25 @@ static int ccci_fs_start(int md_id)
 	fs_ctl_block_t	*ctl_b;
 	unsigned long	flag;
 
-	if(unlikely(fs_ctl_block[md_id] == NULL)) {
+	if (unlikely(fs_ctl_block[md_id] == NULL)) {
 		CCCI_MSG_INF(md_id, "fs ", "ccci_fs_start: fatal error, fs_ctl_b is NULL\n");
 		return -CCCI_ERR_FATAL_ERR;
 	}
 	ctl_b = fs_ctl_block[md_id];
 
-	if ( 0 != kfifo_alloc(&ctl_b->fs_fifo,sizeof(unsigned) * CCCI_FS_MAX_BUFFERS, GFP_KERNEL)) {
-		CCCI_MSG_INF(md_id, "fs ", "ccci_fs_start: kfifo alloc fail \n");
+	if (0 != kfifo_alloc(&ctl_b->fs_fifo, sizeof(unsigned) * CCCI_FS_MAX_BUFFERS, GFP_KERNEL)) {
+		CCCI_MSG_INF(md_id, "fs ", "ccci_fs_start: kfifo alloc fail\n");
 		return -CCCI_ERR_ALLOCATE_MEMORY_FAIL;
 	}
 
-	// Reset FS KFIFO
-	spin_lock_irqsave(&ctl_b->fs_spinlock,flag);
+	/* Reset FS KFIFO */
+	spin_lock_irqsave(&ctl_b->fs_spinlock, flag);
 	kfifo_reset(&ctl_b->fs_fifo);
-	spin_unlock_irqrestore(&ctl_b->fs_spinlock,flag);
-	
+	spin_unlock_irqrestore(&ctl_b->fs_spinlock, flag);
 
-	// modem related channel registration.
-	ASSERT(ccci_fs_base_req(md_id, (int*)&ctl_b->fs_buffers, &ctl_b->fs_buffers_phys_addr, \
+
+	/* modem related channel registration. */
+	ASSERT(ccci_fs_base_req(md_id, (int *)&ctl_b->fs_buffers, &ctl_b->fs_buffers_phys_addr, \
 										&ctl_b->fs_smem_size) == 0);
 
 	ASSERT(register_to_logic_ch(md_id, CCCI_FS_RX, ccci_fs_callback, ctl_b) == 0);
@@ -372,7 +358,7 @@ static void ccci_fs_stop(int md_id)
 {
 	fs_ctl_block_t	*ctl_b;
 
-	if(unlikely(fs_ctl_block[md_id] == NULL)) {
+	if (unlikely(fs_ctl_block[md_id] == NULL)) {
 		CCCI_MSG_INF(md_id, "fs ", "ccci_fs_stop: fatal error, fs_ctl_b is NULL\n");
 		return;
 	}
@@ -386,7 +372,7 @@ static void ccci_fs_stop(int md_id)
 }
 
 
-static struct file_operations fs_fops = 
+static struct file_operations fs_fops =
 {
 	.owner   = THIS_MODULE,
 	.unlocked_ioctl = ccci_fs_ioctl,
@@ -403,26 +389,26 @@ int __init ccci_fs_init(int md_id)
 	fs_ctl_block_t	*ctl_b;
 
 	ret = get_dev_id_by_md_id(md_id, "fs", &major, &minor);
-	if(ret<0) {
+	if (ret < 0) {
 		CCCI_MSG("ccci_fs_init: get md device number failed(%d)\n", ret);
 		return ret;
 	}
-	// Allocate fs ctrl struct memory
+	/* Allocate fs ctrl struct memory */
 	ctl_b = (fs_ctl_block_t *)kmalloc(sizeof(fs_ctl_block_t), GFP_KERNEL);
-	if(ctl_b == NULL)
+	if (ctl_b == NULL)
 		return -CCCI_ERR_GET_MEM_FAIL;
 	memset(ctl_b, 0, sizeof(fs_ctl_block_t));
 
 	fs_ctl_block[md_id] = ctl_b;
 
-	// Init ctl_b
+	/* Init ctl_b */
 	ctl_b->fs_md_id = md_id;
 	spin_lock_init(&ctl_b->fs_spinlock);
 	init_waitqueue_head(&ctl_b->fs_waitq);
 	ctl_b->fs_dev_num = MKDEV(major, minor);
-	snprintf(ctl_b->fs_wakelock_name, sizeof(ctl_b->fs_wakelock_name), "ccci%d_fs", (md_id+1));	
-	wake_lock_init(&ctl_b->fs_wake_lock, WAKE_LOCK_SUSPEND, ctl_b->fs_wakelock_name); 
-	
+	snprintf(ctl_b->fs_wakelock_name, sizeof(ctl_b->fs_wakelock_name), "ccci%d_fs", (md_id+1));
+	wake_lock_init(&ctl_b->fs_wake_lock, WAKE_LOCK_SUSPEND, ctl_b->fs_wakelock_name);
+
 	ret = register_chrdev_region(ctl_b->fs_dev_num, 1, ctl_b->fs_wakelock_name);
 	if (ret) {
 		CCCI_MSG_INF(md_id, "fs ", "ccci_fs_init: Register char device failed(%d)\n", ret);
@@ -436,7 +422,7 @@ int __init ccci_fs_init(int md_id)
 	ret = cdev_add(&ctl_b->fs_cdev, ctl_b->fs_dev_num, 1);
 	if (ret) {
 		CCCI_MSG_INF(md_id, "fs ", "cdev_add fail(%d)\n", ret);
-		unregister_chrdev_region(ctl_b->fs_dev_num, 1);        
+		unregister_chrdev_region(ctl_b->fs_dev_num, 1);
 		goto _REG_CHR_REGION_FAIL;
 	}
 
@@ -451,7 +437,7 @@ int __init ccci_fs_init(int md_id)
 	return 0;
 _CCCI_FS_START_FAIL:
 	cdev_del(&ctl_b->fs_cdev);
-	unregister_chrdev_region(ctl_b->fs_dev_num, 1); 
+	unregister_chrdev_region(ctl_b->fs_dev_num, 1);
 
 _REG_CHR_REGION_FAIL:
 	kfree(ctl_b);
@@ -465,7 +451,7 @@ void __exit ccci_fs_exit(int md_id)
 {
 	fs_ctl_block_t	*ctl_b = fs_ctl_block[md_id];
 
-	if(unlikely(ctl_b == NULL)) {
+	if (unlikely(ctl_b == NULL)) {
 		CCCI_MSG_INF(md_id, "fs ", "ccci_fs_exit: fs_ctl_b is NULL\n");
 		return;
 	}

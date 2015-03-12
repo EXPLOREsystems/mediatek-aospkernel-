@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/HS2_DEV_SW/MT6620_WIFI_DRIVER_V2_1_HS_2_0/include/mgmt/hs20.h#2 $
 */
 
@@ -32,7 +46,7 @@
 ********************************************************************************
 */
 #define BSSID_POOL_MAX_SIZE             8
-#define HS20_SIGMA_SCAN_RESULT_TIMEOUT  30  //sec
+#define HS20_SIGMA_SCAN_RESULT_TIMEOUT  30  /* sec */
 
 /*******************************************************************************
 *                             D A T A   T Y P E S
@@ -63,14 +77,14 @@ struct _HS20_INFO_T {
     UINT_8                  ucHotspotConfig;
 
     /*Roaming Consortium Information*/
-    //PARAM_HS20_ROAMING_CONSORTIUM_INFO rRCInfo;
+    /* PARAM_HS20_ROAMING_CONSORTIUM_INFO rRCInfo; */
 
     /*Hotspot 2.0 dummy AP Info*/
 
     /*Time Advertisement Information*/
-    //UINT_32                 u4UTCOffsetTime;
-    //UINT_8                  aucTimeZone[ELEM_MAX_LEN_TIME_ZONE];
-    //UINT_8                  ucLenTimeZone;
+    /* UINT_32                 u4UTCOffsetTime; */
+    /* UINT_8                  aucTimeZone[ELEM_MAX_LEN_TIME_ZONE]; */
+    /* UINT_8                  ucLenTimeZone; */
 
     /* For SIGMA Test */
     /* BSSID Pool */
@@ -99,18 +113,18 @@ struct _HS20_INFO_T {
 /*For GTK Frame Filter*/
 #if DBG
     #define FREE_IPV4_NETWORK_ADDR_LIST(_prAddrList)    \
-        {   \
-            UINT_32 u4Size = OFFSET_OF(IPV4_NETWORK_ADDRESS_LIST, arNetAddr) +  \
-                                (((_prAddrList)->ucAddrCount) * sizeof(IPV4_NETWORK_ADDRESS));  \
-            kalMemFree((_prAddrList), VIR_MEM_TYPE, u4Size);    \
-            (_prAddrList) = NULL;   \
-        }
+	{   \
+	    UINT_32 u4Size = OFFSET_OF(IPV4_NETWORK_ADDRESS_LIST, arNetAddr) +  \
+				(((_prAddrList)->ucAddrCount) * sizeof(IPV4_NETWORK_ADDRESS));  \
+	    kalMemFree((_prAddrList), VIR_MEM_TYPE, u4Size);    \
+	    (_prAddrList) = NULL;   \
+	}
 #else
     #define FREE_IPV4_NETWORK_ADDR_LIST(_prAddrList)    \
-        {   \
-            kalMemFree((_prAddrList), VIR_MEM_TYPE, 0);    \
-            (_prAddrList) = NULL;   \
-        }
+	{   \
+	    kalMemFree((_prAddrList), VIR_MEM_TYPE, 0);    \
+	    (_prAddrList) = NULL;   \
+	}
 #endif
 
 /*******************************************************************************
@@ -119,25 +133,25 @@ struct _HS20_INFO_T {
 */
 
 VOID
-hs20GenerateInterworkingIE (
+hs20GenerateInterworkingIE(
     IN P_ADAPTER_T     prAdapter,
     OUT P_MSDU_INFO_T   prMsduInfo
     );
 
 VOID
-hs20GenerateRoamingConsortiumIE (
+hs20GenerateRoamingConsortiumIE(
     IN P_ADAPTER_T     prAdapter,
     OUT P_MSDU_INFO_T   prMsduInfo
     );
 
 VOID
-hs20GenerateHS20IE (
+hs20GenerateHS20IE(
     IN P_ADAPTER_T     prAdapter,
     OUT P_MSDU_INFO_T   prMsduInfo
     );
 
 VOID
-hs20FillExtCapIE (
+hs20FillExtCapIE(
     P_ADAPTER_T     prAdapter,
     P_BSS_INFO_T    prBssInfo,
     P_MSDU_INFO_T   prMsduInfo
@@ -156,13 +170,13 @@ hs20FillHS20IE(
     );
 
 UINT_32
-hs20CalculateHS20RelatedIEForProbeReq (
+hs20CalculateHS20RelatedIEForProbeReq(
     IN P_ADAPTER_T          prAdapter,
     IN PUINT_8              pucTargetBSSID
     );
 
 WLAN_STATUS
-hs20GenerateHS20RelatedIEForProbeReq (
+hs20GenerateHS20RelatedIEForProbeReq(
     IN P_ADAPTER_T          prAdapter,
     IN PUINT_8              pucTargetBSSID,
     OUT PUINT_8             prIE
@@ -203,7 +217,7 @@ hs20IsFrameFilterEnabled(
     );
 
 WLAN_STATUS
-hs20SetBssidPool (
+hs20SetBssidPool(
     IN P_ADAPTER_T                  prAdapter,
     IN PVOID                        pvBuffer,
     IN ENUM_NETWORK_TYPE_INDEX_T    eNetTypeIdx
@@ -212,4 +226,3 @@ hs20SetBssidPool (
 
 #endif
 #endif
-

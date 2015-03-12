@@ -232,7 +232,6 @@ scanP2pSearchDesc(IN P_ADAPTER_T prAdapter, IN P_P2P_CONNECTION_REQ_INFO_T prCon
 				       ("Checking SSID:%s, length:%d\n", prBssDesc->aucSSID,
 					prBssDesc->ucSSIDLen));
 				DBGLOG(P2P, TRACE, ("Ignore mismatch SSID, (But BSSID match).\n"));
-				ASSERT(FALSE);
 				continue;
 			}
 

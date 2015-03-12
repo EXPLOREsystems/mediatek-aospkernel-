@@ -10,11 +10,9 @@
 #include <linux/list.h>
 #include <linux/dma-mapping.h>
 #include <linux/vmalloc.h>
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,9,0))
 #include <linux/sched.h>
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 9, 0))
 #include <linux/sched/rt.h>
-#else
-#include <linux/sched.h>
 #endif
 #include <linux/kthread.h>
 #include <linux/workqueue.h>
@@ -23,7 +21,6 @@
 #include <linux/uaccess.h>
 #include <linux/string.h>
 #include <linux/time.h>		/* gettimeofday */
-#include <asm-generic/bug.h>
 
 #include "hal_btif_pub.h"
 #include "hal_btif_dma_pub.h"
@@ -179,7 +176,7 @@ typedef struct _mtk_btif_ {
 	bool enable;		/*BTIF module enable flag */
 	bool lpbk_flag;		/*BTIF module enable flag */
 #if 0
-	unsigned long base;	/* BTIF controller base address */
+	unsigned int base;	/* BTIF controller base address */
 #endif
 
 	ENUM_BTIF_STATE state;	/*BTIF state mechanism */
@@ -271,7 +268,7 @@ typedef struct _mtk_btif_user_ {
 	struct list_head entry;	/*btif_user's bi-direction list table */
 	/*BTIF's user, static allocation */
 	char u_name[BTIF_USER_NAME_MAX_LEN];
-	unsigned long u_id;
+	unsigned int u_id;
 	p_mtk_btif p_btif;
 } mtk_btif_user, *p_mtk_btif_user;
 
@@ -307,14 +304,14 @@ typedef struct _mtk_btif_user_ {
 if (mutex_lock_killable(x)) {\
 	BTIF_ERR_FUNC("mutex_lock_killable return failed\n");\
 	return E_BTIF_INTR; \
-}\
+} \
 } while (0)
 
 #define BTIF_MUTEX_LOCK_RET_NONE(x) do { \
 if (mutex_lock_killable(x)) {\
 	BTIF_ERR_FUNC("mutex_lock_killable return failed\n");\
-	return ; \
-}\
+	return; \
+} \
 } while (0)
 
 #define BTIF_MUTEX_UNLOCK(x) mutex_unlock(x)

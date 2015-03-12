@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/TRUNK/WiFi_P2P_Driver/include/nic/p2p_nic_cmd_event.h#1 $
 */
 
@@ -53,7 +67,7 @@
 
 
 typedef struct _EVENT_P2P_DEV_DISCOVER_RESULT_T {
-//    UINT_8                          aucCommunicateAddr[MAC_ADDR_LEN];  // Deprecated.
+/* UINT_8                          aucCommunicateAddr[MAC_ADDR_LEN];  // Deprecated. */
     UINT_8                          aucDeviceAddr[MAC_ADDR_LEN]; /* Device Address. */
     UINT_8                          aucInterfaceAddr[MAC_ADDR_LEN]; /* Device Address. */
     UINT_8                         ucDeviceCapabilityBitmap;
@@ -67,7 +81,7 @@ typedef struct _EVENT_P2P_DEV_DISCOVER_RESULT_T {
     PUINT_8 pucIeBuf;
     UINT_16 u2IELength;
     UINT_8                          aucBSSID[MAC_ADDR_LEN];
-    // TODO: Service Information or PasswordID valid?
+    /* TODO: Service Information or PasswordID valid? */
 } EVENT_P2P_DEV_DISCOVER_RESULT_T, *P_EVENT_P2P_DEV_DISCOVER_RESULT_T;
 
 #endif

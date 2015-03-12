@@ -1257,11 +1257,11 @@ void u3d_ep0_idle(void)
 	Request->wIndex = (word[1] & 0x000000FF) | (word[1] & 0x0000FF00);
 	Request->wLength = ((word[1] & 0x00FF0000) >> 16) | ((word[1] & 0xFF000000) >> 16);
 
-	os_printk(K_INFO, "Request->bmRequestType :  %x \n", Request->bmRequestType);
-	os_printk(K_INFO, "Request->bRequest :  %x \n", Request->bRequest);
-	os_printk(K_INFO, "Request->wValue :  %x \n", Request->wValue);
-	os_printk(K_INFO, "Request->wIndex :  %x \n", Request->wIndex);
-	os_printk(K_INFO, "Request->wLength :  %x \n", Request->wLength);
+	os_printk(K_INFO, "Request->bmRequestType :  %x\n", Request->bmRequestType);
+	os_printk(K_INFO, "Request->bRequest :  %x\n", Request->bRequest);
+	os_printk(K_INFO, "Request->wValue :  %x\n", Request->wValue);
+	os_printk(K_INFO, "Request->wIndex :  %x\n", Request->wIndex);
+	os_printk(K_INFO, "Request->wLength :  %x\n", Request->wLength);
 
 
 	if (os_readl(U3D_EPISR) & SETUPENDISR)	/* SETUPEND */
@@ -1388,7 +1388,7 @@ void u3d_ep0_idle(void)
 			req->needZLP = 0;
 		}
 
-		os_printk(K_DEBUG, "g_u3d_req[0].count:  %x \n", g_u3d_req[0].count);
+		os_printk(K_DEBUG, "g_u3d_req[0].count:  %x\n", g_u3d_req[0].count);
 	} else if (Request->bmRequestType == 0x0040) {
 		g_ep0_state = EP0_RX;
 		req->buf = g_loopback_buffer[1];
@@ -1542,12 +1542,12 @@ void u3d_dma_handler(DEV_INT32 DMAIntSts)
 			Request->wIndex = *(ptr1 + 4) | (*(ptr1 + 5) << 8);
 			Request->wLength = *(ptr1 + 6) | (*(ptr1 + 7) << 8);
 
-			os_printk(K_INFO, "Request->bmRequestType :  %x \n",
+			os_printk(K_INFO, "Request->bmRequestType :  %x\n",
 				  Request->bmRequestType);
 			os_printk(K_INFO, "Request->bRequest :	%x\n", Request->bRequest);
-			os_printk(K_INFO, "Request->wValue :  %x \n", Request->wValue);
-			os_printk(K_INFO, "Request->wIndex :  %x \n", Request->wIndex);
-			os_printk(K_INFO, "Request->wLength :  %x \n", Request->wLength);
+			os_printk(K_INFO, "Request->wValue :  %x\n", Request->wValue);
+			os_printk(K_INFO, "Request->wIndex :  %x\n", Request->wIndex);
+			os_printk(K_INFO, "Request->wLength :  %x\n", Request->wLength);
 
 
 			if (os_readl(U3D_EPISR) & SETUPENDISR)	/* SETUPEND */
@@ -1697,7 +1697,7 @@ void u3d_dma_handler(DEV_INT32 DMAIntSts)
 				os_printk(K_INFO, "mapping : 0x%x\n", mapping);
 				req->dma_adr = mapping;
 
-				os_printk(K_DEBUG, "g_u3d_req[0].count:  %x \n",
+				os_printk(K_DEBUG, "g_u3d_req[0].count:  %x\n",
 					  g_u3d_req[0].count);
 			} else if (Request->bmRequestType == 0x0040) {
 

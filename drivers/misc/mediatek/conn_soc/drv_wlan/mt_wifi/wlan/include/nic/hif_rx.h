@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/nic/hif_rx.h#1 $
 */
 
@@ -17,24 +31,24 @@
  * Use LINK LIST operation to process SCAN result
  *
  * 07 16 2010 yarco.yang
- * 
+ *
  * 1. Support BSS Absence/Presence Event
  * 2. Support STA change PS mode Event
  * 3. Support BMC forwarding for AP mode.
  *
  * 07 08 2010 cp.wu
- * 
+ *
  * [WPD00003833] [MT6620 and MT5931] Driver migration - move to new repository.
  *
  * 06 14 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * follow-ups for HIF_RX_HEADER_T update:
- * 1) add TCL 
+ * 1) add TCL
  * 2) add RCPI
  * 3) add ChannelNumber
  *
  * 06 11 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * 1) migrate assoc.c.
  * 2) add ucTxSeqNum for tracking frames which needs TX-DONE awareness
  * 3) add configuration options for CNM_MEM and RSN modules
@@ -42,11 +56,11 @@
  * 5) eliminate rPacketInfo of MSDU_INFO_T
  *
  * 06 09 2010 cp.wu
- * [WPD00003833][MT6620 and MT5931] Driver migration 
+ * [WPD00003833][MT6620 and MT5931] Driver migration
  * add necessary changes to driver data paths.
  *
  * 06 06 2010 kevin.huang
- * [WPD00003832][MT6620 5931] Create driver base 
+ * [WPD00003832][MT6620 5931] Create driver base
  * [MT6620 5931] Create driver base
 **  \main\maintrunk.MT6620WiFiDriver_Prj\10 2009-12-10 16:44:00 GMT mtk02752
 **  code clean
@@ -87,25 +101,25 @@
 ********************************************************************************
 */
 /*! HIF_RX_HEADER_T */
-// DW 0, Byte 1
-#define HIF_RX_HDR_PACKET_TYPE_MASK      BITS(0,1)
+/* DW 0, Byte 1 */
+#define HIF_RX_HDR_PACKET_TYPE_MASK      BITS(0, 1)
 
-// DW 1, Byte 0
-#define HIF_RX_HDR_HEADER_LEN            BITS(2,7)
+/* DW 1, Byte 0 */
+#define HIF_RX_HDR_HEADER_LEN            BITS(2, 7)
 #define HIF_RX_HDR_HEADER_LEN_OFFSET     2
-#define HIF_RX_HDR_HEADER_OFFSET_MASK    BITS(0,1)
+#define HIF_RX_HDR_HEADER_OFFSET_MASK    BITS(0, 1)
 
-// DW 1, Byte 1
+/* DW 1, Byte 1 */
 #define HIF_RX_HDR_80211_HEADER_FORMAT   BIT(0)
 #define HIF_RX_HDR_DO_REORDER            BIT(1)
 #define HIF_RX_HDR_PAL                   BIT(2)
 #define HIF_RX_HDR_TCL                   BIT(3)
-#define HIF_RX_HDR_NETWORK_IDX_MASK      BITS(4,7)
+#define HIF_RX_HDR_NETWORK_IDX_MASK      BITS(4, 7)
 #define HIF_RX_HDR_NETWORK_IDX_OFFSET    4
 
-// DW 1, Byte 2, 3
-#define HIF_RX_HDR_SEQ_NO_MASK           BITS(0,11)
-#define HIF_RX_HDR_TID_MASK              BITS(12,14)
+/* DW 1, Byte 2, 3 */
+#define HIF_RX_HDR_SEQ_NO_MASK           BITS(0, 11)
+#define HIF_RX_HDR_TID_MASK              BITS(12, 14)
 #define HIF_RX_HDR_TID_OFFSET            12
 #define HIF_RX_HDR_BAR_FRAME             BIT(15)
 
@@ -119,7 +133,7 @@
 
 #define HIF_RX_HW_APPENDED_LEN              4
 
-// For DW 2, Byte 3 - ucHwChannelNum
+/* For DW 2, Byte 3 - ucHwChannelNum */
 #define HW_CHNL_NUM_MAX_2G4                 14
 #define HW_CHNL_NUM_MAX_4G_5G               (255 - HW_CHNL_NUM_MAX_2G4)
 
@@ -183,17 +197,17 @@ typedef enum _ENUM_HIF_RX_PKT_TYPE_T {
 #define HIF_RX_HDR_GET_SN(_prHifRxHdr) \
     (((_prHifRxHdr)->u2SeqNoTid) & HIF_RX_HDR_SEQ_NO_MASK)
 #define HIF_RX_HDR_GET_BAR_FLAG(_prHifRxHdr) \
-    (((((_prHifRxHdr)->u2SeqNoTid) & HIF_RX_HDR_BAR_FRAME)? TRUE: FALSE))
+    (((((_prHifRxHdr)->u2SeqNoTid) & HIF_RX_HDR_BAR_FRAME) ? TRUE : FALSE))
 
 
 #define HIF_RX_HDR_GET_CHNL_NUM(_prHifRxHdr) \
-    ( ( ((_prHifRxHdr)->ucHwChannelNum) > HW_CHNL_NUM_MAX_4G_5G ) ? \
-      ( ((_prHifRxHdr)->ucHwChannelNum) - HW_CHNL_NUM_MAX_4G_5G ) : \
-      ((_prHifRxHdr)->ucHwChannelNum) )
+    (( ((_prHifRxHdr)->ucHwChannelNum) > HW_CHNL_NUM_MAX_4G_5G) ? \
+      (((_prHifRxHdr)->ucHwChannelNum) - HW_CHNL_NUM_MAX_4G_5G) : \
+      ((_prHifRxHdr)->ucHwChannelNum))
 
 /* To do: support more bands other than 2.4G and 5G */
 #define HIF_RX_HDR_GET_RF_BAND(_prHifRxHdr) \
-    ( ( ((_prHifRxHdr)->ucHwChannelNum) <= HW_CHNL_NUM_MAX_2G4 ) ? \
+    (( ((_prHifRxHdr)->ucHwChannelNum) <= HW_CHNL_NUM_MAX_2G4) ? \
       BAND_2G4 : BAND_5G)
 
 /*******************************************************************************
@@ -201,7 +215,7 @@ typedef enum _ENUM_HIF_RX_PKT_TYPE_T {
 ********************************************************************************
 */
 __KAL_INLINE__ VOID
-hifDataTypeCheck (
+hifDataTypeCheck(
     VOID
     );
 
@@ -215,7 +229,7 @@ hifDataTypeCheck (
  * We'll need this for porting driver to different RTOS.
  */
 __KAL_INLINE__ VOID
-hifDataTypeCheck (
+hifDataTypeCheck(
     VOID
     )
 {

@@ -544,7 +544,7 @@ wlanoidSetAddP2PKey(IN P_ADAPTER_T prAdapter,
 							     rCmdKey.ucAlgorithmId, rCmdKey.ucKeyId,
 							     prStaRec->ucCurrentGtkId, BIT(0));
 				prStaRec->ucBMCWlanIndex = rCmdKey.ucWlanIndex;
-				ASSERT(prStaRec->ucBMCWlanIndex < WTBL_SIZE)
+				ASSERT(prStaRec->ucBMCWlanIndex < WTBL_SIZE);
 			} else {	/* Exist this case ? */
 				ASSERT(FALSE);
 				/* prCmdKey->ucWlanIndex = secPrivacySeekForBcEntry(prAdapter, prBssInfo->ucBssIndex, */
@@ -736,8 +736,8 @@ wlanoidSetP2pNetworkAddress(IN P_ADAPTER_T prAdapter,
 			u4IpAddressCount++;
 		}
 
-		prNetworkAddress = (P_PARAM_NETWORK_ADDRESS) ((UINT_32) prNetworkAddress +
-							      (UINT_32) (prNetworkAddress->
+		prNetworkAddress = (P_PARAM_NETWORK_ADDRESS) ((ULONG) prNetworkAddress +
+							      (ULONG) (prNetworkAddress->
 									 u2AddressLength +
 									 OFFSET_OF
 									 (PARAM_NETWORK_ADDRESS,
@@ -769,8 +769,8 @@ wlanoidSetP2pNetworkAddress(IN P_ADAPTER_T prAdapter,
 			j++;
 		}
 
-		prNetworkAddress = (P_PARAM_NETWORK_ADDRESS) ((UINT_32) prNetworkAddress +
-							      (UINT_32) (prNetworkAddress->
+		prNetworkAddress = (P_PARAM_NETWORK_ADDRESS) ((ULONG) prNetworkAddress +
+							      (ULONG) (prNetworkAddress->
 									 u2AddressLength +
 									 OFFSET_OF
 									 (PARAM_NETWORK_ADDRESS,
@@ -943,8 +943,8 @@ wlanoidSetP2pSetNetworkAddress(IN P_ADAPTER_T prAdapter,
 			u4IpAddressCount++;
 		}
 
-		prNetworkAddress = (P_PARAM_NETWORK_ADDRESS) ((UINT_32) prNetworkAddress +
-							      (UINT_32) (prNetworkAddress->
+		prNetworkAddress = (P_PARAM_NETWORK_ADDRESS) ((ULONG) prNetworkAddress +
+							      (ULONG) (prNetworkAddress->
 									 u2AddressLength +
 									 OFFSET_OF
 									 (PARAM_NETWORK_ADDRESS,
@@ -990,8 +990,8 @@ wlanoidSetP2pSetNetworkAddress(IN P_ADAPTER_T prAdapter,
 				       (UINT_8) pucBuf[1], (UINT_8) pucBuf[2], (UINT_8) pucBuf[3]);
 			}
 
-			prNetworkAddress = (P_PARAM_NETWORK_ADDRESS) ((UINT_32) prNetworkAddress +
-								      (UINT_32) (prNetworkAddress->
+			prNetworkAddress = (P_PARAM_NETWORK_ADDRESS) ((ULONG) prNetworkAddress +
+								      (ULONG) (prNetworkAddress->
 										 u2AddressLength +
 										 OFFSET_OF
 										 (PARAM_NETWORK_ADDRESS,
@@ -1219,7 +1219,8 @@ wlanoidGetP2PSDRequest(IN P_ADAPTER_T prAdapter,
 
 	DBGLOG(P2P, TRACE, ("Get Service Discovery Request\n"));
 #if 0
-	if ((ucVersionNum = p2pFuncGetVersionNumOfSD(prAdapter)) == 0) {
+    ucVersionNum = p2pFuncGetVersionNumOfSD(prAdapter);
+	if (ucVersionNum == 0) {
 		P_PARAM_P2P_GET_SD_REQUEST prP2pGetSdReq =
 		    (P_PARAM_P2P_GET_SD_REQUEST) pvQueryBuffer;
 
@@ -1315,7 +1316,8 @@ wlanoidGetP2PSDResponse(IN P_ADAPTER_T prAdapter,
 	DBGLOG(P2P, TRACE, ("Get Service Discovery Response\n"));
 
 #if 0
-	if ((ucVersionNum = p2pFuncGetVersionNumOfSD(prAdapter)) == 0) {
+    ucVersionNum = p2pFuncGetVersionNumOfSD(prAdapter);
+	if (ucVersionNum == 0) {
 		P_PARAM_P2P_GET_SD_RESPONSE prP2pGetSdRsp = (P_PARAM_P2P_GET_SD_RESPONSE) NULL;
 
 		prP2pGetSdRsp = (P_PARAM_P2P_GET_SD_REQUEST) pvQueryBuffer;

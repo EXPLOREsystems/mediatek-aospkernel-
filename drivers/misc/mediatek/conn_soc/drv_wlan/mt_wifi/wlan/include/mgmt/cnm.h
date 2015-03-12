@@ -1,4 +1,18 @@
 /*
+* Copyright (C) 2011-2014 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 ** $Id: //Department/DaVinci/BRANCHES/MT6620_WIFI_DRIVER_V2_3/include/mgmt/cnm.h#1 $
 */
 
@@ -200,35 +214,35 @@ typedef struct _DEVICE_TYPE_T {
 ********************************************************************************
 */
 VOID
-cnmInit (
+cnmInit(
     P_ADAPTER_T prAdapter
     );
 
 VOID
-cnmUninit (
+cnmUninit(
     P_ADAPTER_T     prAdapter
     );
 
 VOID
-cnmChMngrRequestPrivilege (
+cnmChMngrRequestPrivilege(
     P_ADAPTER_T prAdapter,
     P_MSG_HDR_T prMsgHdr
     );
 
 VOID
-cnmChMngrAbortPrivilege (
+cnmChMngrAbortPrivilege(
     P_ADAPTER_T prAdapter,
     P_MSG_HDR_T prMsgHdr
     );
 
 VOID
-cnmChMngrHandleChEvent (
+cnmChMngrHandleChEvent(
     P_ADAPTER_T     prAdapter,
     P_WIFI_EVENT_T  prEvent
     );
 
 BOOLEAN
-cnmPreferredChannel (
+cnmPreferredChannel(
     P_ADAPTER_T         prAdapter,
     P_ENUM_BAND_T       prBand,
     PUINT_8             pucPrimaryChannel,
@@ -236,34 +250,34 @@ cnmPreferredChannel (
     );
 
 BOOLEAN
-cnmAisInfraChannelFixed (
+cnmAisInfraChannelFixed(
     P_ADAPTER_T         prAdapter,
     P_ENUM_BAND_T       prBand,
     PUINT_8             pucPrimaryChannel
     );
 
 VOID
-cnmAisInfraConnectNotify (
+cnmAisInfraConnectNotify(
     P_ADAPTER_T         prAdapter
     );
 
 BOOLEAN
-cnmAisIbssIsPermitted (
+cnmAisIbssIsPermitted(
     P_ADAPTER_T     prAdapter
     );
 
 BOOLEAN
-cnmP2PIsPermitted (
+cnmP2PIsPermitted(
     P_ADAPTER_T     prAdapter
     );
 
 BOOLEAN
-cnmBowIsPermitted (
+cnmBowIsPermitted(
     P_ADAPTER_T     prAdapter
     );
 
 BOOLEAN
-cnmBss40mBwPermitted (
+cnmBss40mBwPermitted(
     P_ADAPTER_T                 prAdapter,
     ENUM_NETWORK_TYPE_INDEX_T   eNetTypeIdx
     );
@@ -279,45 +293,43 @@ cnmBss40mBwPermitted (
  * to simply handling effort in some functions.
  */
 __KAL_INLINE__ VOID
-cnmMsgDataTypeCheck (
+cnmMsgDataTypeCheck(
     VOID
     )
 {
     DATA_STRUC_INSPECTING_ASSERT(
-        OFFSET_OF(MSG_CH_GRANT_T,rMsgHdr) == 0);
+        OFFSET_OF(MSG_CH_GRANT_T, rMsgHdr) == 0);
 
     DATA_STRUC_INSPECTING_ASSERT(
-        OFFSET_OF(MSG_CH_GRANT_T,rMsgHdr) ==
-        OFFSET_OF(MSG_CH_RECOVER_T,rMsgHdr));
+        OFFSET_OF(MSG_CH_GRANT_T, rMsgHdr) ==
+        OFFSET_OF(MSG_CH_RECOVER_T, rMsgHdr));
 
     DATA_STRUC_INSPECTING_ASSERT(
-        OFFSET_OF(MSG_CH_GRANT_T,ucNetTypeIndex) ==
-        OFFSET_OF(MSG_CH_RECOVER_T,ucNetTypeIndex));
+        OFFSET_OF(MSG_CH_GRANT_T, ucNetTypeIndex) ==
+        OFFSET_OF(MSG_CH_RECOVER_T, ucNetTypeIndex));
 
     DATA_STRUC_INSPECTING_ASSERT(
-        OFFSET_OF(MSG_CH_GRANT_T,ucTokenID) ==
-        OFFSET_OF(MSG_CH_RECOVER_T,ucTokenID));
+        OFFSET_OF(MSG_CH_GRANT_T, ucTokenID) ==
+        OFFSET_OF(MSG_CH_RECOVER_T, ucTokenID));
 
     DATA_STRUC_INSPECTING_ASSERT(
-        OFFSET_OF(MSG_CH_GRANT_T,ucPrimaryChannel) ==
-        OFFSET_OF(MSG_CH_RECOVER_T,ucPrimaryChannel));
+        OFFSET_OF(MSG_CH_GRANT_T, ucPrimaryChannel) ==
+        OFFSET_OF(MSG_CH_RECOVER_T, ucPrimaryChannel));
 
     DATA_STRUC_INSPECTING_ASSERT(
-        OFFSET_OF(MSG_CH_GRANT_T,eRfSco) ==
-        OFFSET_OF(MSG_CH_RECOVER_T,eRfSco));
+        OFFSET_OF(MSG_CH_GRANT_T, eRfSco) ==
+        OFFSET_OF(MSG_CH_RECOVER_T, eRfSco));
 
     DATA_STRUC_INSPECTING_ASSERT(
-        OFFSET_OF(MSG_CH_GRANT_T,eRfBand) ==
-        OFFSET_OF(MSG_CH_RECOVER_T,eRfBand));
+        OFFSET_OF(MSG_CH_GRANT_T, eRfBand) ==
+        OFFSET_OF(MSG_CH_RECOVER_T, eRfBand));
 
     DATA_STRUC_INSPECTING_ASSERT(
-        OFFSET_OF(MSG_CH_GRANT_T,eReqType) ==
-        OFFSET_OF(MSG_CH_RECOVER_T,eReqType));
+        OFFSET_OF(MSG_CH_GRANT_T, eReqType) ==
+        OFFSET_OF(MSG_CH_RECOVER_T, eReqType));
 
     return;
 }
 #endif /* _lint */
 
 #endif /* _CNM_H */
-
-

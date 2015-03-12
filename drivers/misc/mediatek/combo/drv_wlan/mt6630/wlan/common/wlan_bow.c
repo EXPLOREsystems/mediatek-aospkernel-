@@ -352,11 +352,6 @@
 
 #if CFG_ENABLE_BT_OVER_WIFI
 
-#if CFG_BOW_TEST
-extern UINT_32 g_arBowRevPalPacketTime[32];
-#endif
-
-
 /******************************************************************************
 *                              C O N S T A N T S
 *******************************************************************************
@@ -586,19 +581,15 @@ WLAN_STATUS bowCmdGetMacStatus(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND prCmd
 	memcpy(prMacStatus->aucMacAddr, prAdapter->rWifiVar.aucDeviceAddress, PARAM_MAC_ADDR_LEN);
 
 	if (cnmPreferredChannel(prAdapter, &eBand, &ucPrimaryChannel, &eBssSCO)) {
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT, ("bowCmdGetMacStatus, Get preferred channel.\n"));
-#endif
 
 		prMacStatus->ucNumOfChannel = 1;
 		prMacStatus->arChannelList[0].ucChannelBand = eBand;
 		prMacStatus->arChannelList[0].ucChannelNum = ucPrimaryChannel;
 	} else {
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT,
 		       ("bowCmdGetMacStatus, Get channel list. Current number of channel, %d.\n",
 			ucNumOfChannel));
-#endif
 
 		rlmDomainGetChnlList(prAdapter, BAND_2G4, MAX_BOW_NUMBER_OF_CHANNEL_2G4,
 				     &ucNumOfChannel, aucChannelList);
@@ -634,7 +625,6 @@ WLAN_STATUS bowCmdGetMacStatus(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND prCmd
 		}
 	}
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT,
 	       ("ucNumOfChannel, eBand, aucChannelList, %x, %x, %x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x.\n",
 		ucNumOfChannel, aucChannelList[0].eBand, aucChannelList[0].ucChannelNum,
@@ -684,7 +674,6 @@ WLAN_STATUS bowCmdGetMacStatus(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND prCmd
 			    prMacStatus->aucMacAddr[2],
 			    prMacStatus->aucMacAddr[3],
 			    prMacStatus->aucMacAddr[4], prMacStatus->aucMacAddr[5]));
-#endif
 
 	kalIndicateBOWEvent(prAdapter->prGlueInfo, prEvent);
 
@@ -788,7 +777,7 @@ WLAN_STATUS bowCmdSetupConnection(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND pr
 	if (prBowSetupConnection->ucPAL_Capabilities > 0) {
 		prBowFsmInfo->fgSupportQoS = TRUE;
 	}
-#if CFG_BOW_TEST
+
 	DBGLOG(BOW, EVENT, ("bowCmdSetupConnection.\n"));
 	DBGLOG(BOW, EVENT,
 	       ("rCmdBtOverWifi Channel Number - 0x%x.\n", rCmdBtOverWifi.ucChannelNum));
@@ -807,7 +796,6 @@ WLAN_STATUS bowCmdSetupConnection(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND pr
 	DBGLOG(BOW, EVENT,
 	       ("rCmdBtOverWifi PAL capability - 0x%x.\n", rCmdBtOverWifi.PAL_Capabilities));
 	DBGLOG(BOW, EVENT, ("rCmdBtOverWifi Max Tx power - 0x%x.\n", rCmdBtOverWifi.cMaxTxPower));
-#endif
 
 	/* 3 <4> Get a free BOW entry, mark as Valid, fill in Peer MAC address, LinkCount += 1, state == Starting. */
 	if (!bowGetBowTableFreeEntry(prAdapter, &ucBowTableIdx)) {
@@ -830,31 +818,27 @@ WLAN_STATUS bowCmdSetupConnection(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND pr
 
 	GLUE_INC_REF_CNT(g_u4LinkCount);
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT, ("bowStarting, g_u4LinkCount, %x.\n", g_u4LinkCount));
-#endif
 
 	if (g_u4LinkCount == 1) {
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT, ("bowStarting, cnmTimerInitTimer.\n"));
 		DBGLOG(BOW, EVENT,
 		       ("prBowFsmInfo->u2BeaconInterval, %d.\n", prBowFsmInfo->u2BeaconInterval));
-#endif
+
 		cnmTimerInitTimer(prAdapter,
 				  &prBowFsmInfo->rStartingBeaconTimer,
-				  (PFN_MGMT_TIMEOUT_FUNC) bowSendBeacon, (UINT_32) NULL);
+				  (PFN_MGMT_TIMEOUT_FUNC) bowSendBeacon, (ULONG) NULL);
 
 		cnmTimerInitTimer(prAdapter,
 				  &prBowFsmInfo->rChGrantedTimer,
-				  (PFN_MGMT_TIMEOUT_FUNC) bowChGrantedTimeout, (UINT_32) NULL);
+				  (PFN_MGMT_TIMEOUT_FUNC) bowChGrantedTimeout, (ULONG) NULL);
 
 		/* Reset Global Variable */
 		g_u4Beaconing = 0;
 
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT, ("bowCmdSetupConnection, g_u4LinkCount, %x.\n", g_u4LinkCount));
 		DBGLOG(BOW, EVENT, ("kalInitBowDevice, bow0\n"));
-#endif
+
 #if CFG_BOW_SEPARATE_DATA_PATH
 		kalInitBowDevice(prAdapter->prGlueInfo, BOWDEVNAME);
 #endif
@@ -903,9 +887,8 @@ WLAN_STATUS bowCmdDestroyConnection(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND 
 	P_BOW_DESTROY_CONNECTION prBowDestroyConnection;
 	CMD_BT_OVER_WIFI rCmdBtOverWifi;
 	P_BOW_FSM_INFO_T prBowFsmInfo;
-#if CFG_BOW_TEST
+
 	UINT_8 ucIdx;
-#endif
 
 	ASSERT(prAdapter);
 
@@ -925,12 +908,10 @@ WLAN_STATUS bowCmdDestroyConnection(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND 
 	prBowDestroyConnection = (P_BOW_DESTROY_CONNECTION) &(prCmd->aucPayload[0]);
 
 	if (!bowCheckBowTableIfVaild(prAdapter, prBowDestroyConnection->aucPeerAddress)) {
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT, ("bowCmdDestroyConnection, bowCheckIfVaild, not accepted.\n"));
-#endif
 		return WLAN_STATUS_NOT_ACCEPTED;
 	}
-#if CFG_BOW_TEST
+
 	DBGLOG(BOW, EVENT,
 	       ("bowCmdDestroyConnection, destroy Peer address - %x:%x:%x:%x:%x:%x.\n",
 		prBowDestroyConnection->aucPeerAddress[0],
@@ -939,27 +920,23 @@ WLAN_STATUS bowCmdDestroyConnection(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND 
 		prBowDestroyConnection->aucPeerAddress[3],
 		prBowDestroyConnection->aucPeerAddress[4],
 		prBowDestroyConnection->aucPeerAddress[5]));
-#endif
 
 	/* fill CMD_BT_OVER_WIFI */
 	rCmdBtOverWifi.ucAction = 2;
 	COPY_MAC_ADDR(rCmdBtOverWifi.rPeerAddr, prBowDestroyConnection->aucPeerAddress);
 	COPY_MAC_ADDR(prBowFsmInfo->aucPeerAddress, prBowDestroyConnection->aucPeerAddress);
-#if CFG_BOW_TEST
+
 	DBGLOG(BOW, EVENT,
 	       ("bowCmdDestroyConnection, rCmdBtOverWifi.rPeerAddr - %x:%x:%x:%x:%x:%x.\n",
 		rCmdBtOverWifi.rPeerAddr[0], rCmdBtOverWifi.rPeerAddr[1],
 		rCmdBtOverWifi.rPeerAddr[2], rCmdBtOverWifi.rPeerAddr[3],
 		rCmdBtOverWifi.rPeerAddr[4], rCmdBtOverWifi.rPeerAddr[5]));
-#endif
 
-#if CFG_BOW_TEST
 	for (ucIdx = 0; ucIdx < 11; ucIdx++) {
 		DBGLOG(BOW, EVENT,
 		       ("BoW receiving PAL packet delta time vs packet number -- %d ms vs %x.\n",
 			ucIdx, g_arBowRevPalPacketTime[ucIdx]));
 	}
-#endif
 
 	wlanbowCmdEventSetStatus(prAdapter, prCmd, BOWCMD_STATUS_SUCCESS);
 
@@ -1010,7 +987,6 @@ WLAN_STATUS bowCmdSetPTK(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND prCmd)
 
 	prBowSetPTK = (P_BOW_SET_PTK) &(prCmd->aucPayload[0]);
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT, ("prBowSetPTK->aucPeerAddress, %x:%x:%x:%x:%x:%x.\n",
 			    prBowSetPTK->aucPeerAddress[0],
 			    prBowSetPTK->aucPeerAddress[1],
@@ -1021,7 +997,6 @@ WLAN_STATUS bowCmdSetPTK(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND prCmd)
 	DBGLOG(BOW, EVENT,
 	       ("rCmdKey.ucIsAuthenticator, %x.\n",
 		kalGetBowRole(prAdapter->prGlueInfo, prBowSetPTK->aucPeerAddress)));
-#endif
 
 	if (!bowCheckBowTableIfVaild(prAdapter, prBowSetPTK->aucPeerAddress)) {
 		wlanbowCmdEventSetStatus(prAdapter, prCmd, BOWCMD_STATUS_UNACCEPTED);
@@ -1051,7 +1026,6 @@ WLAN_STATUS bowCmdSetPTK(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND prCmd)
 	prStaRec = cnmGetStaRecByAddress(prAdapter, prBowFsmInfo->ucBssIndex, prBowSetPTK->aucPeerAddress);	/* BT Over Wi-Fi */
 	rCmdKey.ucWlanIndex = prStaRec->ucWlanIndex;
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT,
 	       ("prBowSetPTK->aucTemporalKey, %x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x.\n",
 		prBowSetPTK->aucTemporalKey[0], prBowSetPTK->aucTemporalKey[1],
@@ -1071,7 +1045,6 @@ WLAN_STATUS bowCmdSetPTK(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND prCmd)
 		rCmdKey.aucKeyMaterial[9], rCmdKey.aucKeyMaterial[10], rCmdKey.aucKeyMaterial[11],
 		rCmdKey.aucKeyMaterial[12], rCmdKey.aucKeyMaterial[13], rCmdKey.aucKeyMaterial[14],
 		rCmdKey.aucKeyMaterial[15]));
-#endif
 
 	return wlanoidSendSetQueryBowCmd(prAdapter,
 					 CMD_ID_ADD_REMOVE_KEY,
@@ -1195,9 +1168,7 @@ WLAN_STATUS bowCmdShortRangeMode(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND prC
 
 	ASSERT(prAdapter);
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT, ("bowCmdShortRangeMode.\n"));
-#endif
 
 	prBowShortRangeMode = (P_BOW_SHORT_RANGE_MODE) &(prCmd->aucPayload[0]);
 
@@ -1218,7 +1189,7 @@ WLAN_STATUS bowCmdShortRangeMode(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND prC
 		return WLAN_STATUS_NOT_ACCEPTED;
 	}
 
-#if CFG_BOW_TEST
+
 	DBGLOG(BOW, EVENT, ("prBowShortRangeMode->aucPeerAddress, %x:%x:%x:%x:%x:%x.\n",
 			    prBowShortRangeMode->aucPeerAddress[0],
 			    prBowShortRangeMode->aucPeerAddress[1],
@@ -1226,7 +1197,6 @@ WLAN_STATUS bowCmdShortRangeMode(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND prC
 			    prBowShortRangeMode->aucPeerAddress[3],
 			    prBowShortRangeMode->aucPeerAddress[4],
 			    prBowShortRangeMode->aucPeerAddress[5]));
-#endif
 
 	rTxPwrParam.cTxPwr2G4Cck = (prBowShortRangeMode->cTxPower << 1);
 
@@ -1271,9 +1241,7 @@ WLAN_STATUS bowCmdShortRangeMode(IN P_ADAPTER_T prAdapter, IN P_AMPC_COMMAND prC
 	rTxPwrParam.cTxPwr5GHT40_MCS7 = (prBowShortRangeMode->cTxPower << 1);
 
 	if (nicUpdateTxPower(prAdapter, &rTxPwrParam) == WLAN_STATUS_SUCCESS) {
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT, ("bowCmdShortRangeMode, %x.\n", WLAN_STATUS_SUCCESS));
-#endif
 		wlanbowCmdEventSetStatus(prAdapter, prCmd, BOWCMD_STATUS_SUCCESS);
 		return WLAN_STATUS_SUCCESS;
 	} else {
@@ -1428,7 +1396,6 @@ wlanbowCmdEventLinkConnected(IN P_ADAPTER_T prAdapter,
 	prBowLinkConnected->rChannel.ucChannelBand = prBssInfo->eBand;
 	COPY_MAC_ADDR(prBowLinkConnected->aucPeerAddress, prBowFsmInfo->aucPeerAddress);
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT, ("prEvent->rHeader.ucEventId, 0x%x\n", prEvent->rHeader.ucEventId));
 	DBGLOG(BOW, EVENT, ("prEvent->rHeader.ucSeqNumber, 0x%x\n", prEvent->rHeader.ucSeqNumber));
 	DBGLOG(BOW, EVENT,
@@ -1450,7 +1417,6 @@ wlanbowCmdEventLinkConnected(IN P_ADAPTER_T prAdapter,
 		prBowLinkConnected->aucPeerAddress[2], prBowLinkConnected->aucPeerAddress[3],
 		prBowLinkConnected->aucPeerAddress[4], prBowLinkConnected->aucPeerAddress[5]));
 	DBGLOG(BOW, EVENT, ("wlanbowCmdEventLinkConnected, g_u4LinkCount, %x.\n", g_u4LinkCount));
-#endif
 
 	/*Indicate Event to PAL */
 	kalIndicateBOWEvent(prAdapter->prGlueInfo, prEvent);
@@ -1529,7 +1495,6 @@ wlanbowCmdEventLinkDisconnected(IN P_ADAPTER_T prAdapter,
 	prBowLinkDisconnected->ucReason = 0x0;
 	COPY_MAC_ADDR(prBowLinkDisconnected->aucPeerAddress, prBowFsmInfo->aucPeerAddress);
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT, ("prEvent->rHeader.ucEventId, 0x%x\n", prEvent->rHeader.ucEventId));
 	DBGLOG(BOW, EVENT, ("prEvent->rHeader.ucSeqNumber, 0x%x\n", prEvent->rHeader.ucSeqNumber));
 	DBGLOG(BOW, EVENT,
@@ -1550,7 +1515,6 @@ wlanbowCmdEventLinkDisconnected(IN P_ADAPTER_T prAdapter,
 
 	DBGLOG(BOW, EVENT,
 	       ("wlanbowCmdEventLinkDisconnected, g_u4LinkCount, %x.\n", g_u4LinkCount));
-#endif
 
 	/*Indicate BoW event to PAL */
 #if 0
@@ -1577,15 +1541,11 @@ wlanbowCmdEventLinkDisconnected(IN P_ADAPTER_T prAdapter,
 	if (eFsmState == BOW_DEVICE_STATE_CONNECTED &&
 	    (prBowFsmInfo->prTargetStaRec->ucStaState == STA_STATE_3)) {
 		fgSendDeauth = TRUE;
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT,
 		       ("wlanbowCmdEventLinkDisconnected, bowGetBowTableState, %x.\n",
 			bowGetBowTableState(prAdapter, prBowLinkDisconnected->aucPeerAddress)));
-#endif
-		authSendDeauthFrame(prAdapter,
-				    prBowFsmInfo->prTargetStaRec,
-				    (P_SW_RFB_T) NULL,
-				    REASON_CODE_DEAUTH_LEAVING_BSS,
+		authSendDeauthFrame(prAdapter, NULL, prBowFsmInfo->prTargetStaRec,
+				    (P_SW_RFB_T) NULL, REASON_CODE_DEAUTH_LEAVING_BSS,
 				    (PFN_TX_DONE_HANDLER) bowDisconnectLink);
 	}
 #endif
@@ -1847,7 +1807,6 @@ VOID bowStopping(IN P_ADAPTER_T prAdapter)
 	prBowFsmInfo = &(prAdapter->rWifiVar.rBowFsmInfo);
 	prBowBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, prBowFsmInfo->ucBssIndex);
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT, ("bowStoping.\n"));
 	DBGLOG(BOW, EVENT, ("bowStoping, SSID %s.\n", prBowBssInfo->aucSSID));
 	DBGLOG(BOW, EVENT, ("bowStoping, prBowBssInfo->aucBSSID, %x:%x:%x:%x:%x:%x.\n",
@@ -1873,8 +1832,7 @@ VOID bowStopping(IN P_ADAPTER_T prAdapter)
 		prBowFsmInfo->aucPeerAddress[0], prBowFsmInfo->aucPeerAddress[1],
 		prBowFsmInfo->aucPeerAddress[2], prBowFsmInfo->aucPeerAddress[3],
 		prBowFsmInfo->aucPeerAddress[4], prBowFsmInfo->aucPeerAddress[5]));
-	kalPrint("BoW Stoping,[%d,%d]\n", g_u4LinkCount, g_u4Beaconing);
-#endif
+	DBGLOG(BOW, EVENT, ("BoW Stoping,[%d,%d]\n", g_u4LinkCount, g_u4Beaconing));
 
 	if (g_u4LinkCount == 0) {
 		/*Stop beaconing */
@@ -1907,10 +1865,8 @@ VOID bowStarting(IN P_ADAPTER_T prAdapter)
 	prBowFsmInfo = &(prAdapter->rWifiVar.rBowFsmInfo);
 
 	if (g_u4LinkCount == 1) {
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT, ("BoW Starting.\n"));
 		DBGLOG(BOW, EVENT, ("BoW channel granted.\n"));
-#endif
 
 		/* 3 <1> Update BSS_INFO_T per Network Basis */
 		/* 4 <1.1> Setup Operation Mode */
@@ -1923,7 +1879,6 @@ VOID bowStarting(IN P_ADAPTER_T prAdapter)
 		prBssInfo->ucSSIDLen = BOW_SSID_LEN;
 		bowAssignSsid(prBssInfo->aucSSID, prBssInfo->aucOwnMacAddr);
 
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT, ("SSID %s.\n", prBssInfo->aucSSID));
 		DBGLOG(BOW, EVENT, ("prBssInfo->aucBSSID, %x:%x:%x:%x:%x:%x.\n",
 				    prBssInfo->aucBSSID[0],
@@ -1944,7 +1899,6 @@ VOID bowStarting(IN P_ADAPTER_T prAdapter)
 				    prAdapter->rWifiVar.aucDeviceAddress[3],
 				    prAdapter->rWifiVar.aucDeviceAddress[4],
 				    prAdapter->rWifiVar.aucDeviceAddress[5]));
-#endif
 
 		/* 4 <1.3> Clear current AP's STA_RECORD_T and current AID */
 		prBssInfo->prStaRecOfAP = (P_STA_RECORD_T) NULL;
@@ -1984,8 +1938,8 @@ VOID bowStarting(IN P_ADAPTER_T prAdapter)
 			prBssInfo->u2OperationalRateSet = RATE_SET_ERP;
 			prBssInfo->ucNonHTBasicPhyType = PHY_TYPE_ERP_INDEX;
 		} else {
-			/* prBssInfo->ucPhyTypeSet = PHY_TYPE_SET_802_11BG; */
-			/* prBssInfo->ucConfigAdHocAPMode = AP_MODE_MIXED_11BG; */
+			/* prBssInfo->ucPhyTypeSet = PHY_TYPE_SET_802_11BG; */ /* Depend on eBand */
+			/* prBssInfo->ucConfigAdHocAPMode = AP_MODE_MIXED_11BG; */ /* Depend on eCurrentOPMode and ucPhyTypeSet */
 			prBssInfo->ucPhyTypeSet = PHY_TYPE_SET_802_11A;	/* Depend on eBand */
 			prBssInfo->ucConfigAdHocAPMode = AP_MODE_11A;	/* Depend on eCurrentOPMode and ucPhyTypeSet */
 
@@ -2021,13 +1975,11 @@ VOID bowStarting(IN P_ADAPTER_T prAdapter)
 
 		/* 3 <3> Set MAC HW */
 
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT,
 		       ("prBowFsmInfo->aucPeerAddress, %x:%x:%x:%x:%x:%x.\n",
 			prBowFsmInfo->aucPeerAddress[0], prBowFsmInfo->aucPeerAddress[1],
 			prBowFsmInfo->aucPeerAddress[2], prBowFsmInfo->aucPeerAddress[3],
 			prBowFsmInfo->aucPeerAddress[4], prBowFsmInfo->aucPeerAddress[5]));
-#endif
 
 		/* 4 <3.1> use command packets to inform firmware */
 		rlmBssInitForAPandIbss(prAdapter, prBssInfo);
@@ -2061,10 +2013,8 @@ VOID bowStarting(IN P_ADAPTER_T prAdapter)
 	/*Update BoW Table */
 	bowSetBowTableState(prAdapter, prBowFsmInfo->aucPeerAddress, BOW_DEVICE_STATE_STARTING);
 
-#if CFG_BOW_TEST
-	kalPrint("BoW Starting,[%d,%d]\n", g_u4LinkCount, g_u4Beaconing);
+	DBGLOG(BOW, EVENT, ("BoW Starting,[%d,%d]\n", g_u4LinkCount, g_u4Beaconing));
 	DBGLOG(BOW, EVENT, ("bowStarting, g_u4LinkCount, %x.\n", g_u4LinkCount));
-#endif
 
 	/*Start beaconing */
 	if (g_u4Beaconing < 1) {
@@ -2076,9 +2026,7 @@ VOID bowStarting(IN P_ADAPTER_T prAdapter)
 #if 0
 	/*Responder: Start to scan Initiator */
 	if (prBowFsmInfo->ucRole == BOW_RESPONDER) {
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT, ("bowStarting responder, start scan result searching.\n"));
-#endif
 		cnmTimerStopTimer(prAdapter, &prBowFsmInfo->rChGrantedTimer);
 		bowReleaseCh(prAdapter);
 		bowResponderScan(prAdapter);
@@ -2156,7 +2104,7 @@ bowValidateProbeReq(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb, OUT PUINT_3
 	prBowFsmInfo = &(prAdapter->rWifiVar.rBowFsmInfo);
 	prBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, prBowFsmInfo->ucBssIndex);
 
-#if 0				/* CFG_BOW_TEST */
+#if 0
 	DBGLOG(BOW, EVENT, ("bowValidateProbeReq.\n"));
 #endif
 
@@ -2164,7 +2112,7 @@ bowValidateProbeReq(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb, OUT PUINT_3
 	prMgtHdr = (P_WLAN_MAC_MGMT_HEADER_T) prSwRfb->pvHeader;
 
 	u2IELength = prSwRfb->u2PacketLen - prSwRfb->u2HeaderLen;
-	pucIE = (PUINT_8) ((UINT_32) prSwRfb->pvHeader + prSwRfb->u2HeaderLen);
+	pucIE = (PUINT_8) (((ULONG) prSwRfb->pvHeader) + prSwRfb->u2HeaderLen);
 
 	IE_FOR_EACH(pucIE, u2IELength, u2Offset) {
 		if (ELEM_ID_SSID == IE_ID(pucIE)) {
@@ -2219,7 +2167,7 @@ bowValidateProbeReq(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb, OUT PUINT_3
 * @return (none)
 */
 /*----------------------------------------------------------------------------*/
-VOID bowSendBeacon(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Param)
+VOID bowSendBeacon(IN P_ADAPTER_T prAdapter, IN ULONG ulParamPtr)
 {
 	P_BOW_FSM_INFO_T prBowFsmInfo;
 
@@ -2231,12 +2179,9 @@ VOID bowSendBeacon(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Param)
 		bssSendBeaconProbeResponse(prAdapter, prBowFsmInfo->ucBssIndex, NULL, 0);
 		cnmTimerStartTimer(prAdapter, &prBowFsmInfo->rStartingBeaconTimer,
 				   prBowFsmInfo->u2BeaconInterval);
+	} else {
+		DBGLOG(BOW, EVENT, ("BoW Send Beacon,[%d,%d]\n", g_u4LinkCount, g_u4Beaconing));
 	}
-#if CFG_BOW_TEST
-	else {
-		kalPrint("BoW Send Beacon,[%d,%d]\n", g_u4LinkCount, g_u4Beaconing);
-	}
-#endif
 }
 
 
@@ -2260,10 +2205,8 @@ VOID bowResponderScan(IN P_ADAPTER_T prAdapter)
 	prBowFsmInfo = &(prAdapter->rWifiVar.rBowFsmInfo);
 	prBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, prBowFsmInfo->ucBssIndex);
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT, ("bowResponderScan.\n"));
-	kalPrint("BOW SCAN [REQ:%d]\n", prBowFsmInfo->ucSeqNumOfScanReq + 1);
-#endif
+	DBGLOG(BOW, EVENT, ("BOW SCAN [REQ:%d]\n", prBowFsmInfo->ucSeqNumOfScanReq + 1));
 
 	prScanReqMsg =
 	    (P_MSG_SCN_SCAN_REQ) cnmMemAlloc(prAdapter, RAM_TYPE_MSG, sizeof(MSG_SCN_SCAN_REQ));
@@ -2299,7 +2242,9 @@ VOID bowResponderScan(IN P_ADAPTER_T prAdapter)
 
 	/*Change state to SCANNING */
 	bowSetBowTableState(prAdapter, prBowFsmInfo->aucPeerAddress, BOW_DEVICE_STATE_SCANNING);
-	/* prBowFsmInfo->fgTryScan = FALSE; */  /* Will enable background sleep for infrastructure */
+
+	/* prBowFsmInfo->fgTryScan = FALSE; */ /* Will enable background sleep for infrastructure */
+
 	return;
 }
 
@@ -2338,15 +2283,11 @@ VOID bowResponderScanDone(IN P_ADAPTER_T prAdapter, IN P_MSG_HDR_T prMsgHdr)
 
 	cnmMemFree(prAdapter, prMsgHdr);
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT, ("bowResponderScanDone.\n"));
-	kalPrint("BOW SCAN [DONE:%d]\n", ucSeqNumOfCompMsg);
-#endif
+	DBGLOG(BOW, EVENT, ("BOW SCAN [DONE:%d]\n", ucSeqNumOfCompMsg));
 
 	if (eScanStatus == SCAN_STATUS_CANCELLED) {
-#if CFG_BOW_TEST
-		kalPrint("BOW SCAN [CANCELLED:%d]\n", ucSeqNumOfCompMsg);
-#endif
+		DBGLOG(BOW, EVENT, ("BOW SCAN [CANCELLED:%d]\n", ucSeqNumOfCompMsg));
 		if (eFsmState == BOW_DEVICE_STATE_DISCONNECTING) {
 			wlanoidSendSetQueryBowCmd(prAdapter,
 						  CMD_ID_CMD_BT_OVER_WIFI,
@@ -2366,21 +2307,20 @@ VOID bowResponderScanDone(IN P_ADAPTER_T prAdapter, IN P_MSG_HDR_T prMsgHdr)
 	} else {
 		prConnSettings->fgIsScanReqIssued = FALSE;
 		prBssDesc = scanSearchBssDescByBssid(prAdapter, prBowFsmInfo->aucPeerAddress);
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT, ("End scan result searching.\n"));
-#endif
+		DBGLOG(BOW, EVENT,
+		       ("prBowFsmInfo->aucPeerAddress: [" MACSTR "]\n",
+			MAC2STR(prBowFsmInfo->aucPeerAddress)));
 
 		/*Initiator is FOUND */
-		if (prBssDesc != NULL)	/* (prBssDesc->aucBSSID != NULL)) */
-		{
-#if CFG_BOW_TEST
+		if (prBssDesc != NULL) {	/* (prBssDesc->aucBSSID != NULL)) */
 			DBGLOG(BOW, EVENT,
 			       ("Search Bow Peer address - %x:%x:%x:%x:%x:%x.\n",
 				prBssDesc->aucBSSID[0], prBssDesc->aucBSSID[1],
 				prBssDesc->aucBSSID[2], prBssDesc->aucBSSID[3],
 				prBssDesc->aucBSSID[4], prBssDesc->aucBSSID[5]));
 			DBGLOG(BOW, EVENT, ("Starting to join initiator.\n"));
-#endif
+
 			/*Set target BssDesc */
 			prBowFsmInfo->prTargetBssDesc = prBssDesc;
 			/*Request channel to do JOIN */
@@ -2433,19 +2373,19 @@ VOID bowResponderCancelScan(IN P_ADAPTER_T prAdapter, IN BOOLEAN fgIsChannelExte
 		prBowFsmInfo = &(prAdapter->rWifiVar.rBowFsmInfo);
 
 		if (TRUE) {
-#if CFG_BOW_TEST
-			kalPrint("BOW SCAN [CANCEL:%d]\n", prBowFsmInfo->ucSeqNumOfScanReq);
-#endif
+			DBGLOG(BOW, EVENT,
+			       ("BOW SCAN [CANCEL:%d]\n", prBowFsmInfo->ucSeqNumOfScanReq));
+
 			/* There is a channel privilege on hand. */
 
-			DBGLOG(P2P, TRACE, ("BOW Cancel Scan\n"));
+			DBGLOG(BOW, TRACE, ("BOW Cancel Scan\n"));
 
 			prScanCancel =
 			    (P_MSG_SCN_SCAN_CANCEL) cnmMemAlloc(prAdapter, RAM_TYPE_MSG,
 								sizeof(MSG_SCN_SCAN_CANCEL));
 			if (!prScanCancel) {
 				/* Buffer not enough, can not cancel scan request. */
-				DBGLOG(P2P, TRACE, ("Buffer not enough, can not cancel scan.\n"));
+				DBGLOG(BOW, TRACE, ("Buffer not enough, can not cancel scan.\n"));
 				ASSERT(FALSE);
 				break;
 			}
@@ -2528,10 +2468,8 @@ VOID bowResponderJoin(IN P_ADAPTER_T prAdapter, IN P_BSS_DESC_T prBssDesc)
 	if (prBssDesc->ucSSIDLen) {
 		COPY_SSID(prConnSettings->aucSSID,
 			  prConnSettings->ucSSIDLen, prBssDesc->aucSSID, prBssDesc->ucSSIDLen);
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT, ("bowResponderJoin, SSID %s.\n", prBssDesc->aucSSID));
 		DBGLOG(BOW, EVENT, ("bowResponderJoin, SSID %s.\n", prConnSettings->aucSSID));
-#endif
 	}
 	/* 4 <6> Send a Msg to trigger SAA to start JOIN process. */
 	prJoinReqMsg =
@@ -2548,10 +2486,8 @@ VOID bowResponderJoin(IN P_ADAPTER_T prAdapter, IN P_BSS_DESC_T prBssDesc)
 
 	prBssInfo->prStaRecOfAP = prStaRec;
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT, ("prStaRec->eStaType, %x.\n", prStaRec->eStaType));
-	printk("BoW trigger SAA [" MACSTR "]\n", MAC2STR(prStaRec->aucMacAddr));
-#endif
+	DBGLOG(BOW, EVENT, ("BoW trigger SAA [" MACSTR "]\n", MAC2STR(prStaRec->aucMacAddr)));
 
 	mboxSendMsg(prAdapter, MBOX_ID_0, (P_MSG_HDR_T) prJoinReqMsg, MSG_SEND_METHOD_BUF);
 
@@ -2590,14 +2526,12 @@ VOID bowFsmRunEventJoinComplete(IN P_ADAPTER_T prAdapter, IN P_MSG_HDR_T prMsgHd
 	prJoinCompMsg = (P_MSG_JOIN_COMP_T) prMsgHdr;
 	prStaRec = prJoinCompMsg->prStaRec;
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT, ("Start bowfsmRunEventJoinComplete.\n"));
 	DBGLOG(BOW, EVENT, ("bowfsmRunEventJoinComplete ptr check\n"));
 	DBGLOG(BOW, EVENT, ("prMsgHdr %x\n", prMsgHdr));
 	DBGLOG(BOW, EVENT, ("prAdapter %x\n", prAdapter));
 	DBGLOG(BOW, EVENT, ("prBowFsmInfo %x\n", prBowFsmInfo));
 	DBGLOG(BOW, EVENT, ("prStaRec %x\n", prStaRec));
-#endif
 
 	ASSERT(prStaRec);
 	ASSERT(prBowFsmInfo);
@@ -2652,15 +2586,12 @@ VOID bowFsmRunEventJoinComplete(IN P_ADAPTER_T prAdapter, IN P_MSG_HDR_T prMsgHd
 
 			/* 4 <1.3> Update BSS_INFO_T */
 			nicUpdateBss(prAdapter, prBowBssInfo->ucBssIndex);
-#if CFG_BOW_TEST
 			DBGLOG(BOW, EVENT, ("Finish bowUpdateBssInfoForJOIN.\n"));
-#endif
+
 			/* 4 <1.4> Activate current AP's STA_RECORD_T in Driver. */
 			cnmStaRecChangeState(prAdapter, prStaRec, STA_STATE_3);
 
-#if CFG_BOW_TEST
 			DBGLOG(BOW, EVENT, ("bowFsmRunEventJoinComplete, qmActivateStaRec.\n"));
-#endif
 
 			/* 4 <1.7> Set the Next State of BOW  FSM */
 			wlanoidSendSetQueryBowCmd(prAdapter,
@@ -2683,10 +2614,8 @@ VOID bowFsmRunEventJoinComplete(IN P_ADAPTER_T prAdapter, IN P_MSG_HDR_T prMsgHd
 						  wlanbowCmdEventLinkDisconnected,
 						  wlanbowCmdTimeoutHandler, 0, NULL, 0);
 #endif
-#if CFG_BOW_TEST
 			DBGLOG(BOW, EVENT, ("Start bowfsmRunEventJoinComplete -- Join failed.\n"));
-			printk("BoW trigger SAA REJOIN\n");
-#endif
+			DBGLOG(BOW, EVENT, ("BoW trigger SAA REJOIN\n"));
 		}
 	}
 
@@ -2830,14 +2759,12 @@ VOID bowRunEventAAATxFail(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T prStaRec)
 	ASSERT(prAdapter);
 	ASSERT(prStaRec);
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT, ("bowRunEventAAATxFail , bssRemoveStaRecFromClientList.\n"));
-	printk("BoW AAA TxFail, target state %d\n", prStaRec->ucStaState + 1);
-#endif
+	DBGLOG(BOW, EVENT, ("BoW AAA TxFail, target state %d\n", prStaRec->ucStaState + 1));
 
 	prBowFsmInfo = &(prAdapter->rWifiVar.rBowFsmInfo);
 	prBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, prBowFsmInfo->ucBssIndex);
-	bssRemoveStaRecFromClientList(prAdapter, prBssInfo, prStaRec);
+	bssRemoveClient(prAdapter, prBssInfo, prStaRec);
 
 	return;
 #endif
@@ -2864,10 +2791,8 @@ WLAN_STATUS bowRunEventAAAComplete(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T p
 	prBowFsmInfo = &(prAdapter->rWifiVar.rBowFsmInfo);
 	prBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, prBowFsmInfo->ucBssIndex);
 
-#if CFG_BOW_TEST
-	DBGLOG(BOW, EVENT, ("bowRunEventAAAComplete, cnmStaRecChangeState, STA_STATE_3.\n"));
-	printk("BoW AAA complete [" MACSTR "]\n", MAC2STR(prStaRec->aucMacAddr));
-#endif
+	DBGLOG(BOW, STATE, ("bowRunEventAAAComplete, cnmStaRecChangeState, STA_STATE_3.\n"));
+	DBGLOG(BOW, EVENT, ("BoW AAA complete [" MACSTR "]\n", MAC2STR(prStaRec->aucMacAddr)));
 
 	/*Update BssInfo to connected */
 	bowChangeMediaState(prBssInfo, PARAM_MEDIA_STATE_CONNECTED);
@@ -3003,7 +2928,11 @@ bowDisconnectLink(IN P_ADAPTER_T prAdapter,
 		kalPrint("bowStopping\n");
 		/*Restore TxPower from Short range mode */
 #if CFG_SUPPORT_NVRAM && 0
-		wlanLoadManufactureData(prAdapter, kalGetConfiguration(prAdapter->prGlueInfo));
+		if (kalIsConfigurationExist(prAdapter->prGlueInfo) == TRUE) {
+			wlanLoadManufactureData(prAdapter, kalGetConfiguration(prAdapter->prGlueInfo));
+		} else {
+			DBGLOG(REQ, WARN, ("%s: load manufacture data fail\n", __func__));
+		}
 #endif
 		/*Uninit BoW Interface */
 #if CFG_BOW_SEPARATE_DATA_PATH
@@ -3049,7 +2978,6 @@ bowValidateAssocReq(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb, OUT PUINT_1
 	prAssocReqFrame = (P_WLAN_ASSOC_REQ_FRAME_T) prSwRfb->pvHeader;
 	*pu2StatusCode = STATUS_CODE_REQ_DECLINED;
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT,
 	       ("bowValidateAssocReq, prBowFsmInfo->aucPeerAddress, %x:%x:%x:%x:%x:%x.\n",
 		prBowFsmInfo->aucPeerAddress[0], prBowFsmInfo->aucPeerAddress[1],
@@ -3060,13 +2988,11 @@ bowValidateAssocReq(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb, OUT PUINT_1
 		prAssocReqFrame->aucSrcAddr[0], prAssocReqFrame->aucSrcAddr[1],
 		prAssocReqFrame->aucSrcAddr[2], prAssocReqFrame->aucSrcAddr[3],
 		prAssocReqFrame->aucSrcAddr[4], prAssocReqFrame->aucSrcAddr[5]));
-#endif
 
 	/*Assoc Accept */
 	while (EQUAL_MAC_ADDR(prAssocReqFrame->aucSrcAddr, prBowFsmInfo->aucPeerAddress)) {
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT, ("bowValidateAssocReq, return wlanbowCmdEventLinkConnected.\n"));
-#endif
+
 		/*Update StaRec */
 		prStaRec = cnmGetStaRecByAddress(prAdapter,
 						 prBowFsmInfo->ucBssIndex,
@@ -3160,7 +3086,6 @@ bowValidateAuth(IN P_ADAPTER_T prAdapter,
 
 	prAuthFrame = (P_WLAN_AUTH_FRAME_T) prSwRfb->pvHeader;
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT, ("bowValidateAuth, prBowFsmInfo->aucPeerAddress, %x:%x:%x:%x:%x:%x.\n",
 			    prBowFsmInfo->aucPeerAddress[0],
 			    prBowFsmInfo->aucPeerAddress[1],
@@ -3173,14 +3098,11 @@ bowValidateAuth(IN P_ADAPTER_T prAdapter,
 			    prAuthFrame->aucSrcAddr[2],
 			    prAuthFrame->aucSrcAddr[3],
 			    prAuthFrame->aucSrcAddr[4], prAuthFrame->aucSrcAddr[5]));
-#endif
 
 	prStaRec = cnmGetStaRecByAddress(prAdapter,
 					 prBowFsmInfo->ucBssIndex, prAuthFrame->aucSrcAddr);
 	if (!prStaRec) {
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT, ("bowValidateAuth, cnmStaRecAlloc.\n"));
-#endif
 		prStaRec = cnmStaRecAlloc(prAdapter,
 					  STA_TYPE_BOW_CLIENT,
 					  prBowFsmInfo->ucBssIndex, prAuthFrame->aucSrcAddr);
@@ -3195,26 +3117,20 @@ bowValidateAuth(IN P_ADAPTER_T prAdapter,
 
 		/* NOTE(Kevin): Better to change state here, not at TX Done */
 		cnmStaRecChangeState(prAdapter, prStaRec, STA_STATE_1);
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT, ("bowValidateAuth, cnmStaRecChangeState.\n"));
-#endif
 	} else {
 		prSwRfb->ucStaRecIdx = prStaRec->ucIndex;
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT,
 		       ("bowValidateAuth, prStaRec->ucIndex, %x.\n", prStaRec->ucIndex));
-#endif
-		bssRemoveStaRecFromClientList(prAdapter, prBowBssInfo, prStaRec);
+		bssRemoveClient(prAdapter, prBowBssInfo, prStaRec);
 	}
 
 	if (EQUAL_MAC_ADDR(prAuthFrame->aucSrcAddr, prBowFsmInfo->aucPeerAddress)) {
-
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT,
 		       ("bowValidateAuth, prStaRec->eStaType, %x.\n", prStaRec->eStaType));
 		DBGLOG(BOW, EVENT,
 		       ("bowValidateAuth, prStaRec->ucBssIndex, %x.\n", prStaRec->ucBssIndex));
-#endif
+
 		/* Update Station Record - Status/Reason Code */
 		prStaRec->u2StatusCode = STATUS_CODE_SUCCESSFUL;
 		prStaRec->ucJoinFailureCount = 0;
@@ -3234,9 +3150,7 @@ bowValidateAuth(IN P_ADAPTER_T prAdapter,
 		}
 	}
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT, ("bowValidateAuth,  fgReplyAuth, %x.\n", fgReplyAuth));
-#endif
 	return fgReplyAuth;
 
 #else
@@ -3276,9 +3190,7 @@ VOID bowRunEventChGrant(IN P_ADAPTER_T prAdapter, IN P_MSG_HDR_T prMsgHdr)
 	cnmMemFree(prAdapter, prMsgHdr);
 	prBowFsmInfo->fgIsChannelGranted = TRUE;
 
-#if CFG_BOW_TEST
 	DBGLOG(BOW, EVENT, ("Entering bowRunEventChGrant.\n"));
-#endif
 
 	eFsmState = bowGetBowTableState(prAdapter, prBowFsmInfo->aucPeerAddress);
 
@@ -3287,12 +3199,10 @@ VOID bowRunEventChGrant(IN P_ADAPTER_T prAdapter, IN P_MSG_HDR_T prMsgHdr)
 	    (prBowFsmInfo->ucSeqNumOfChReq != ucTokenID) ||
 	    (eFsmState == BOW_DEVICE_STATE_DISCONNECTED) ||
 	    (eFsmState == BOW_DEVICE_STATE_DISCONNECTING)) {
-#if CFG_BOW_TEST
-		printk("BoW Channel [GIVE UP:%d]\n", ucTokenID);
-		printk("[Requested:%d][ucSeqNumOfChReq:%d][eFsmState:%d]\n",
-		       prBowFsmInfo->fgIsChannelRequested, prBowFsmInfo->ucSeqNumOfChReq,
-		       eFsmState);
-#endif
+		DBGLOG(BOW, EVENT, ("BoW Channel [GIVE UP:%d]\n", ucTokenID));
+		DBGLOG(BOW, EVENT, ("[Requested:%d][ucSeqNumOfChReq:%d][eFsmState:%d]\n",
+				    prBowFsmInfo->fgIsChannelRequested,
+				    prBowFsmInfo->ucSeqNumOfChReq, eFsmState));
 		bowReleaseCh(prAdapter);
 		return;
 	}
@@ -3312,9 +3222,7 @@ VOID bowRunEventChGrant(IN P_ADAPTER_T prAdapter, IN P_MSG_HDR_T prMsgHdr)
 
 	/* 3.2 set local variable to indicate join timer is ticking */
 
-#if CFG_BOW_TEST
-	printk("BoW Channel [GRANTED:%d].\n", ucTokenID);
-#endif
+	DBGLOG(BOW, EVENT, ("BoW Channel [GRANTED:%d].\n", ucTokenID));
 
 	if (eFsmState == BOW_DEVICE_STATE_ACQUIRING_CHANNEL) {
 		bowStarting(prAdapter);
@@ -3355,10 +3263,10 @@ VOID bowRequestCh(IN P_ADAPTER_T prAdapter)
 
 	if (prBowFsmInfo->fgIsChannelGranted == FALSE) {
 
-#if CFG_BOW_TEST
-		printk("BoW channel [REQUEST:%d], %d, %d.\n", prBowFsmInfo->ucSeqNumOfChReq + 1,
-		       prBowFsmInfo->ucPrimaryChannel, prBowFsmInfo->eBand);
-#endif
+		DBGLOG(BOW, EVENT, ("BoW channel [REQUEST:%d], %d, %d.\n",
+				    prBowFsmInfo->ucSeqNumOfChReq + 1,
+				    prBowFsmInfo->ucPrimaryChannel, prBowFsmInfo->eBand));
+
 		prMsgChReq =
 		    (P_MSG_CH_REQ_T) cnmMemAlloc(prAdapter, RAM_TYPE_MSG, sizeof(MSG_CH_REQ_T));
 
@@ -3414,10 +3322,9 @@ VOID bowReleaseCh(IN P_ADAPTER_T prAdapter)
 
 	if (prBowFsmInfo->fgIsChannelGranted != FALSE
 	    || prBowFsmInfo->fgIsChannelRequested != FALSE) {
-#if CFG_BOW_TEST
-		printk("BoW channel [RELEASE:%d] %d, %d.\n", prBowFsmInfo->ucSeqNumOfChReq,
-		       prBowFsmInfo->ucPrimaryChannel, prBowFsmInfo->eBand);
-#endif
+		DBGLOG(BOW, EVENT,
+		       ("BoW channel [RELEASE:%d] %d, %d.\n", prBowFsmInfo->ucSeqNumOfChReq,
+			prBowFsmInfo->ucPrimaryChannel, prBowFsmInfo->eBand));
 
 		prBowFsmInfo->fgIsChannelRequested = FALSE;
 		prBowFsmInfo->fgIsChannelGranted = FALSE;
@@ -3450,7 +3357,7 @@ VOID bowReleaseCh(IN P_ADAPTER_T prAdapter)
 * @return (none)
 */
 /*----------------------------------------------------------------------------*/
-VOID bowChGrantedTimeout(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Param)
+VOID bowChGrantedTimeout(IN P_ADAPTER_T prAdapter, IN ULONG ulParamPtr)
 {
 	P_BOW_FSM_INFO_T prBowFsmInfo;
 	ENUM_BOW_DEVICE_STATE eFsmState;
@@ -3459,9 +3366,8 @@ VOID bowChGrantedTimeout(IN P_ADAPTER_T prAdapter, IN UINT_32 u4Param)
 
 	prBowFsmInfo = &(prAdapter->rWifiVar.rBowFsmInfo);
 
-#if CFG_BOW_TEST
-	printk("BoW Channel [TIMEOUT]\n");
-#endif
+	DBGLOG(BOW, EVENT, ("BoW Channel [TIMEOUT]\n"));
+
 #if 1
 	/* bowReleaseCh(prAdapter); */
 	eFsmState = bowGetBowTableState(prAdapter, prBowFsmInfo->aucPeerAddress);
@@ -3493,8 +3399,6 @@ BOOLEAN bowNotifyAllLinkDisconnected(IN P_ADAPTER_T prAdapter)
 		if (arBowTable[ucBowTableIdx].fgIsValid) {
 			COPY_MAC_ADDR(prAdapter->rWifiVar.rBowFsmInfo.aucPeerAddress,
 				      arBowTable[ucBowTableIdx].aucPeerAddress);
-
-#if CFG_BOW_TEST
 			DBGLOG(BOW, EVENT,
 			       ("bowNotifyAllLinkDisconnected, arBowTable[%x].aucPeerAddress, %x:%x:%x:%x:%x:%x.\n",
 				ucBowTableIdx, arBowTable[ucBowTableIdx].aucPeerAddress[0],
@@ -3506,7 +3410,6 @@ BOOLEAN bowNotifyAllLinkDisconnected(IN P_ADAPTER_T prAdapter)
 			DBGLOG(BOW, EVENT,
 			       ("bowNotifyAllLinkDisconnected, arBowTable[%x].fgIsValid, %x.\n",
 				ucBowTableIdx, arBowTable[ucBowTableIdx].fgIsValid));
-#endif
 #if 1
 			wlanoidSendSetQueryBowCmd(prAdapter,
 						  CMD_ID_CMD_BT_OVER_WIFI,
@@ -3556,7 +3459,6 @@ BOOLEAN bowCheckBowTableIfVaild(IN P_ADAPTER_T prAdapter, IN UINT_8 aucPeerAddre
 		if (arBowTable[idx].fgIsValid &&
 		    EQUAL_MAC_ADDR(arBowTable[idx].aucPeerAddress, aucPeerAddress)) {
 
-#if CFG_BOW_TEST
 			DBGLOG(BOW, EVENT,
 			       ("kalCheckBowifVaild, aucPeerAddress %x, %x:%x:%x:%x:%x:%x.\n", idx,
 				aucPeerAddress[0], aucPeerAddress[1], aucPeerAddress[2],
@@ -3575,7 +3477,6 @@ BOOLEAN bowCheckBowTableIfVaild(IN P_ADAPTER_T prAdapter, IN UINT_8 aucPeerAddre
 			       ("kalCheckBowifVaild, arBowTable[idx].fgIsValid, %x, %x.\n", idx,
 				arBowTable[idx].fgIsValid));
 
-#endif
 			KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_BOW_TABLE);
 			return TRUE;
 		}
@@ -3594,12 +3495,10 @@ bowGetBowTableContent(IN P_ADAPTER_T prAdapter,
 
 	if (arBowTable[ucBowTableIdx].fgIsValid) {
 
-#if CFG_BOW_TEST
 		DBGLOG(BOW, EVENT,
 		       ("bowGetBowTableContent, arBowTable[idx].fgIsValid, %x, %x.\n",
 			ucBowTableIdx, arBowTable[ucBowTableIdx].fgIsValid));
-		printk("GET State [%d]\n", arBowTable[ucBowTableIdx].eState);
-#endif
+		DBGLOG(BOW, EVENT, ("GET State [%d]\n", arBowTable[ucBowTableIdx].eState));
 		prBowTable = &(arBowTable[ucBowTableIdx]);
 		KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_BOW_TABLE);
 
@@ -3629,12 +3528,10 @@ bowSetBowTableContent(IN P_ADAPTER_T prAdapter,
 	kalSetBowState(prAdapter->prGlueInfo, prBowTable->eState, prBowTable->aucPeerAddress);
 	/* kalSetBowRole(prAdapter->prGlueInfo, prBowTable->ucRole, prBowTable->aucPeerAddress); */
 
-#if CFG_BOW_TEST
-	printk("SET State [%d]\n", arBowTable[ucBowTableIdx].eState);
+	DBGLOG(BOW, EVENT, ("SET State [%d]\n", arBowTable[ucBowTableIdx].eState));
 	DBGLOG(BOW, EVENT,
 	       ("kalCheckBowifVaild, arBowTable[ucBowTableIdx].fgIsValid, %x, %x.\n", ucBowTableIdx,
 		arBowTable[ucBowTableIdx].fgIsValid));
-#endif
 
 	return TRUE;
 
@@ -3654,7 +3551,6 @@ bowGetBowTableEntryByPeerAddress(IN P_ADAPTER_T prAdapter,
 		if (arBowTable[idx].fgIsValid &&
 		    EQUAL_MAC_ADDR(arBowTable[idx].aucPeerAddress, aucPeerAddress)) {
 
-#if CFG_BOW_TEST
 			DBGLOG(BOW, EVENT,
 			       ("kalCheckBowifVaild, aucPeerAddress %x, %x:%x:%x:%x:%x:%x.\n", idx,
 				aucPeerAddress[0], aucPeerAddress[1], aucPeerAddress[2],
@@ -3670,7 +3566,6 @@ bowGetBowTableEntryByPeerAddress(IN P_ADAPTER_T prAdapter,
 			DBGLOG(BOW, EVENT,
 			       ("kalCheckBowifVaild, arBowTable[idx].fgIsValid, %x, %x.\n", idx,
 				arBowTable[idx].fgIsValid));
-#endif
 			KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_BOW_TABLE);
 
 			*pucBowTableIdx = idx;
@@ -3694,11 +3589,9 @@ BOOLEAN bowGetBowTableFreeEntry(IN P_ADAPTER_T prAdapter, OUT PUINT_8 pucBowTabl
 
 	for (idx = 0; idx < CFG_BOW_PHYSICAL_LINK_NUM; idx++) {
 		if (!arBowTable[idx].fgIsValid) {
-#if CFG_BOW_TEST
 			DBGLOG(BOW, EVENT,
 			       ("bowGetBowTableFreeEntry, arBowTable[idx].fgIsValid, %x, %x.\n",
 				idx, arBowTable[idx].fgIsValid));
-#endif
 			*pucBowTableIdx = idx;
 			arBowTable[idx].fgIsValid = TRUE;
 
@@ -3725,7 +3618,6 @@ ENUM_BOW_DEVICE_STATE bowGetBowTableState(IN P_ADAPTER_T prAdapter, IN UINT_8 au
 	for (idx = 0; idx < CFG_BOW_PHYSICAL_LINK_NUM; idx++) {
 		if (arBowTable[idx].fgIsValid &&
 		    EQUAL_MAC_ADDR(arBowTable[idx].aucPeerAddress, aucPeerAddress)) {
-#if CFG_BOW_TEST
 			DBGLOG(BOW, EVENT,
 			       ("bowGetState, aucPeerAddress %x, %x:%x:%x:%x:%x:%x.\n", idx,
 				aucPeerAddress[0], aucPeerAddress[1], aucPeerAddress[2],
@@ -3744,8 +3636,7 @@ ENUM_BOW_DEVICE_STATE bowGetBowTableState(IN P_ADAPTER_T prAdapter, IN UINT_8 au
 			DBGLOG(BOW, EVENT,
 			       ("bowGetState, arBowTable[idx].eState;, %x, %x.\n", idx,
 				arBowTable[idx].eState));
-			printk("GET State [%d]\n", arBowTable[idx].eState);
-#endif
+			DBGLOG(BOW, EVENT, ("GET State [%d]\n", arBowTable[idx].eState));
 
 			KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_BOW_TABLE);
 
@@ -3770,9 +3661,8 @@ bowSetBowTableState(IN P_ADAPTER_T prAdapter,
 		KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_BOW_TABLE);
 
 		arBowTable[ucBowTableIdx].eState = eState;
-#if CFG_BOW_TEST
-		printk("SET State [%d]\n", eState);
-#endif
+		DBGLOG(BOW, EVENT, ("SET State [%d]\n", eState));
+
 		KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_BOW_TABLE);
 
 		kalSetBowState(prAdapter->prGlueInfo, eState, aucPeerAddress);

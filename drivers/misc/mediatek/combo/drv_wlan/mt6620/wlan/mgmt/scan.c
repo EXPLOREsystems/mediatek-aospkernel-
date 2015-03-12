@@ -1516,7 +1516,7 @@ P_BSS_DESC_T scanAddToBssDesc(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb)
 		/* @TODO: add rule to identify BOW beacons */
 #endif
 
-	default :
+	default:
 		return NULL;
 	}
 

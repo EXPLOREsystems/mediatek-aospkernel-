@@ -1,17 +1,3 @@
-/*
-* Copyright (C) 2011-2014 MediaTek Inc.
-*
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
-* GNU General Public License version 2 as published by the Free Software Foundation.
-*
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with this program.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #ifndef _KD_FLASHLIGHT_H
 #define _KD_FLASHLIGHT_H
 
@@ -155,9 +141,6 @@ typedef enum {
 #define FLASH_IOC_GET_MAIN2_PART_ID		_IOR(FLASHLIGHT_MAGIC, 165, int)
 #define FLASH_IOC_GET_PART_ID		_IOR(FLASHLIGHT_MAGIC, 166, int)
 
-#define FLASH_IOC_SET_MAIN_PART_ID               _IOR(FLASHLIGHT_MAGIC, 167, int)
-#define FLASH_IOC_SET_SUB_PART_ID               _IOR(FLASHLIGHT_MAGIC, 168, int)
-#define FLASH_IOC_SET_MAIN2_PART_ID               _IOR(FLASHLIGHT_MAGIC, 169, int)
 
 #define FLASH_IOC_HAS_LOW_POWER_DETECT _IOR(FLASHLIGHT_MAGIC, 170, int)
 #define FLASH_IOC_LOW_POWER_DETECT_START _IOR(FLASHLIGHT_MAGIC, 175, int)

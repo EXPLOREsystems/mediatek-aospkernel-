@@ -1,17 +1,3 @@
-/*
-* Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
-* GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with this program.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
-
 /*****************************************************************************
  *
  * Filename:
@@ -45,7 +31,7 @@ typedef struct
     unsigned length;
     unsigned index;
 } fs_stream_msg_t;
-  
+
 
 typedef struct
 {
@@ -55,4 +41,4 @@ typedef struct
 
 #define CCCI_FS_SMEM_SIZE (sizeof(fs_stream_buffer_t) * CCCI_FS_MAX_BUFFERS)
 
-#endif // __CCCI_FS_H__
+#endif /* __CCCI_FS_H__ */

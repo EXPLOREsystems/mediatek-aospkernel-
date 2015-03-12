@@ -126,14 +126,14 @@
 *                             D A T A   T Y P E S
 ********************************************************************************
 */
-typedef VOID(*PFN_MGMT_TIMEOUT_FUNC) (P_ADAPTER_T, UINT_32);
+typedef VOID(*PFN_MGMT_TIMEOUT_FUNC) (P_ADAPTER_T, ULONG);
 
 typedef struct _TIMER_T {
 	LINK_ENTRY_T rLinkEntry;
 	OS_SYSTIME rExpiredSysTime;
 	UINT_16 u2Minutes;
 	UINT_16 u2Reserved;
-	UINT_32 u4Data;
+	ULONG	ulDataPtr;
 	PFN_MGMT_TIMEOUT_FUNC pfMgmtTimeOutFunc;
 } TIMER_T, *P_TIMER_T;
 
@@ -187,7 +187,7 @@ typedef struct _TIMER_T {
 /* The macros to convert TU & & OS system time, round up by 0.5 */
 #define TU_TO_SYSTIME(_tu)                  MSEC_TO_SYSTIME(TU_TO_MSEC(_tu))
 #define SYSTIME_TO_TU(_systime)             \
-    ((SYSTIME_TO_USEC(_systime) + ((USEC_PER_TU / 2) - 1)) / USEC_PER_TU)
+	((SYSTIME_TO_USEC(_systime) + ((USEC_PER_TU / 2) - 1)) / USEC_PER_TU)
 
 
 /* The macros to convert OS system time & microsecond */
@@ -198,7 +198,7 @@ typedef struct _TIMER_T {
 #define GET_CURRENT_SYSTIME(_systime_p)     {*(_systime_p) = kalGetTimeTick(); }
 
 /* The macro to copy the system time */
-#define COPY_SYSTIME(_destTime, _srcTime)   (_destTime) = (_srcTime)
+#define COPY_SYSTIME(_destTime, _srcTime)   {(_destTime) = (_srcTime); }
 
 /* The macro to get the system time difference between t1 and t2 (t1 - t2) */
 /* #define GET_SYSTIME_DIFFERENCE(_time1, _time2, _diffTime) \
@@ -210,7 +210,7 @@ typedef struct _TIMER_T {
 
 /* The macro to check for the timeout */
 #define CHECK_FOR_TIMEOUT(_currentTime, _timeoutStartingTime, _timeout) \
-    CHECK_FOR_EXPIRATION((_currentTime), ((_timeoutStartingTime) + (_timeout)))
+	CHECK_FOR_EXPIRATION((_currentTime), ((_timeoutStartingTime) + (_timeout)))
 
 								   /* The macro to set the expiration time with a specified timeout *//* Watch out for round up. */
 #define SET_EXPIRATION_TIME(_expirationTime, _timeout) \
@@ -220,7 +220,7 @@ typedef struct _TIMER_T {
 	}
 
 #define timerRenewTimer(adapter, tmr, interval) \
-        timerStartTimer(adapter, tmr, interval, (tmr)->function, (tmr)->data)
+	timerStartTimer(adapter, tmr, interval, (tmr)->function, (tmr)->data)
 
 #define MGMT_INIT_TIMER(_adapter_p, _timer, _callbackFunc) \
 	timerInitTimer(_adapter_p, &(_timer), (UINT_32)(_callbackFunc))
@@ -236,7 +236,7 @@ VOID cnmTimerDestroy(IN P_ADAPTER_T prAdapter);
 
 VOID
 cnmTimerInitTimer(IN P_ADAPTER_T prAdapter,
-		  IN P_TIMER_T prTimer, IN PFN_MGMT_TIMEOUT_FUNC pfFunc, IN UINT_32 u4Data);
+		  IN P_TIMER_T prTimer, IN PFN_MGMT_TIMEOUT_FUNC pfFunc, IN ULONG ulDataPtr);
 
 VOID cnmTimerStopTimer(IN P_ADAPTER_T prAdapter, IN P_TIMER_T prTimer);
 
@@ -248,7 +248,7 @@ VOID cnmTimerDoTimeOutCheck(IN P_ADAPTER_T prAdapter);
 *                              F U N C T I O N S
 ********************************************************************************
 */
-__KAL_INLINE__ INT_32 timerPendingTimer(IN P_TIMER_T prTimer)
+static __KAL_INLINE__ INT_32 timerPendingTimer(IN P_TIMER_T prTimer)
 {
 	ASSERT(prTimer);
 

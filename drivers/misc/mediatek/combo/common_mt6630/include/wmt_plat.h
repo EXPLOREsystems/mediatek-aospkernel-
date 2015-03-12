@@ -112,7 +112,7 @@ typedef enum _ENUM_WL_OP_ {
     WL_OP_MAX
 } ENUM_WL_OP, *P_ENUM_WL_OP;
 
-typedef VOID (*irq_cb)(VOID);
+typedef VOID(*irq_cb)(VOID);
 typedef INT32(*device_audio_if_cb)(CMB_STUB_AIF_X aif, MTK_WCN_BOOL share);
 
 
@@ -205,4 +205,3 @@ wmt_plat_merge_if_flag_get(VOID);
 */
 
 #endif /* _WMT_PLAT_H_ */
-

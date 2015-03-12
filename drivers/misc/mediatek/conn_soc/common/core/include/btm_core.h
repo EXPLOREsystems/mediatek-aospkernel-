@@ -1,10 +1,10 @@
 /*
 * Copyright (C) 2011-2014 MediaTek Inc.
-* 
-* This program is free software: you can redistribute it and/or modify it under the terms of the 
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
 * GNU General Public License version 2 as published by the Free Software Foundation.
-* 
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 * See the GNU General Public License for more details.
 *
@@ -39,7 +39,7 @@
 ********************************************************************************
 */
 #define STP_BTM_OPERATION_FAIL    (-1)
-#define STP_BTM_OPERATION_SUCCESS (0) 
+#define STP_BTM_OPERATION_SUCCESS (0)
 
 #define STP_BTM_OP_BUF_SIZE (64)
 
@@ -94,10 +94,10 @@ typedef struct mtk_stp_btm
     OSAL_OP_Q    rFreeOpQ; /* free op queue */
     OSAL_OP_Q    rActiveOpQ; /* active op queue */
     OSAL_OP      arQue[STP_BTM_OP_BUF_SIZE]; /* real op instances */
-    
+
     /*wmt_notify*/
-    INT32 (*wmt_notify)(MTKSTP_BTM_WMT_OP_T);
-}MTKSTP_BTM_T;
+    INT32(*wmt_notify)(MTKSTP_BTM_WMT_OP_T);
+} MTKSTP_BTM_T;
 
 
 /*******************************************************************************
@@ -122,7 +122,7 @@ INT32 stp_btm_notify_coredump_timeout_wq(MTKSTP_BTM_T *stp_btm);
 INT32 stp_btm_notify_wmt_dmp_wq(MTKSTP_BTM_T *stp_btm);
 INT32 stp_btm_deinit(MTKSTP_BTM_T *stp_btm);
 INT32 stp_btm_reset_btm_wq(MTKSTP_BTM_T *stp_btm);
-INT32 stp_notify_btm_poll_cpupcr(MTKSTP_BTM_T *stp_btm,UINT32 times, UINT32 sleep);
+INT32 stp_notify_btm_poll_cpupcr(MTKSTP_BTM_T *stp_btm, UINT32 times, UINT32 sleep);
 INT32 stp_notify_btm_poll_cpupcr_ctrl(UINT32 en);
 INT32 stp_btm_notify_wmt_trace_wq(MTKSTP_BTM_T *stp_btm);
 INT32 stp_notify_btm_do_fw_assert_via_emi(MTKSTP_BTM_T *stp_btm);

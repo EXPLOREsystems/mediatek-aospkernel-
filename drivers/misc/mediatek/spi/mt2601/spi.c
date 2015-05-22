@@ -866,7 +866,7 @@ static irqreturn_t mt_spi_interrupt(int irq, void *dev_id)
 
 	chip_config = (struct mt_chip_conf *)msg->state;
 	mode = chip_config->com_mod;
-/* /*clear the interrupt status bits by reading the register*/ */
+/* clear the interrupt status bits by reading the register*/
 /* reg_val = spi_readl(ms,SPI_STATUS0_REG); */
 /* SPI_DBG("xfer:0x%p interrupt status:%x\n",xfer,reg_val & 0x3); */
 /* printk(KERN_ALERT"xfer:0x%p interrupt status:%x\n",xfer,reg_val & 0x3); */

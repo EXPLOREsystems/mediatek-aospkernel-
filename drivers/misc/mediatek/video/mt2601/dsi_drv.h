@@ -25,11 +25,11 @@ extern "C" {
 
 /* --------------------------------------------------------------------------- */
 
-#define DSI_CHECK_RET(expr)             \
-    do {                                \
-	DSI_STATUS ret = (expr);        \
-	ASSERT(DSI_STATUS_OK == ret);   \
-    } while (0)
+#define DSI_CHECK_RET(expr) \
+	do { \
+		DSI_STATUS ret = (expr); \
+		ASSERT(DSI_STATUS_OK == ret); \
+	} while (0)
 
 /* --------------------------------------------------------------------------- */
 
@@ -42,7 +42,6 @@ extern "C" {
 #define DSI_GERNERIC_SHORT_PACKET_ID_2 0x23
 #define DSI_GERNERIC_LONG_PACKET_ID 0x29
 #define DSI_GERNERIC_READ_LONG_PACKET_ID 0x14
-
 
 #define DSI_WMEM_CONTI (0x3C)
 #define DSI_RMEM_CONTI (0x3E)
@@ -64,111 +63,90 @@ extern "C" {
 
 /* --------------------------------------------------------------------------- */
 
-typedef enum
-{
-    DSI_STATUS_OK = 0,
-    DSI_STATUS_ERROR,
+typedef enum {
+	DSI_STATUS_OK = 0,
+	DSI_STATUS_ERROR,
 } DSI_STATUS;
 
-
-typedef enum
-{
-    SHORT_PACKET_RW = 0,
-    FB_WRITE = 1,
-    LONG_PACKET_W = 2,
-    FB_READ = 3,
+typedef enum {
+	SHORT_PACKET_RW = 0,
+	FB_WRITE = 1,
+	LONG_PACKET_W = 2,
+	FB_READ = 3,
 } DSI_INS_TYPE;
 
-
-typedef enum
-{
-    DISABLE_BTA = 0,
-    ENABLE_BTA = 1,
+typedef enum {
+	DISABLE_BTA = 0,
+	ENABLE_BTA = 1,
 } DSI_CMDQ_BTA;
 
-
-typedef enum
-{
-    LOW_POWER = 0,
-    HIGH_SPEED = 1,
+typedef enum {
+	LOW_POWER = 0,
+	HIGH_SPEED = 1,
 } DSI_CMDQ_HS;
 
-
-typedef enum
-{
-    CL_8BITS = 0,
-    CL_16BITS = 1,
+typedef enum {
+	CL_8BITS = 0,
+	CL_16BITS = 1,
 } DSI_CMDQ_CL;
 
-
-typedef enum
-{
-    DISABLE_TE = 0,
-    ENABLE_TE = 1,
+typedef enum {
+	DISABLE_TE = 0,
+	ENABLE_TE = 1,
 } DSI_CMDQ_TE;
 
-
-typedef enum
-{
-    DISABLE_RPT = 0,
-    ENABLE_RPT = 1,
+typedef enum {
+	DISABLE_RPT = 0,
+	ENABLE_RPT = 1,
 } DSI_CMDQ_RPT;
 
-
-typedef struct
-{
-    unsigned type:2;
-    unsigned BTA:1;
-    unsigned HS:1;
-    unsigned CL:1;
-    unsigned TE:1;
-    unsigned Rsv:1;
-    unsigned RPT:1;
+typedef struct {
+	unsigned type:2;
+	unsigned BTA:1;
+	unsigned HS:1;
+	unsigned CL:1;
+	unsigned TE:1;
+	unsigned Rsv:1;
+	unsigned RPT:1;
 } DSI_CMDQ_CONFG, *PDSI_CMDQ_CONFIG;
 
-
-typedef struct
-{
-    unsigned CONFG:8;
-    unsigned Data_ID:8;
-    unsigned Data0:8;
-    unsigned Data1:8;
+typedef struct {
+	unsigned CONFG:8;
+	unsigned Data_ID:8;
+	unsigned Data0:8;
+	unsigned Data1:8;
 } DSI_T0_INS, *PDSI_T0_INS;
 
-typedef struct
-{
-    unsigned CONFG:8;
-    unsigned Data_ID:8;
-    unsigned mem_start0:8;
-    unsigned mem_start1:8;
+typedef struct {
+	unsigned CONFG:8;
+	unsigned Data_ID:8;
+	unsigned mem_start0:8;
+	unsigned mem_start1:8;
 } DSI_T1_INS, *PDSI_T1_INS;
 
-typedef struct
-{
-    unsigned CONFG:8;
-    unsigned Data_ID:8;
-    unsigned WC16:16;
-    unsigned int *pdata;
+typedef struct {
+	unsigned CONFG:8;
+	unsigned Data_ID:8;
+	unsigned WC16:16;
+	unsigned int *pdata;
 } DSI_T2_INS, *PDSI_T2_INS;
 
-typedef struct
-{
-    unsigned CONFG:8;
-    unsigned Data_ID:8;
-    unsigned mem_start0:8;
-    unsigned mem_start1:8;
+typedef struct {
+	unsigned CONFG:8;
+	unsigned Data_ID:8;
+	unsigned mem_start0:8;
+	unsigned mem_start1:8;
 } DSI_T3_INS, *PDSI_T3_INS;
 
-typedef struct
-{
-    UINT16 CLK;
-    UINT8  TXDIV0;
-    UINT8  TXDIV1;
-    UINT32 SDM_PCW;
-    UINT8  SSC_PH_INIT;
-    UINT16 SSC_PRD;
-    UINT16 SSC_DELTA1;
-    UINT16 SSC_DELTA;
+typedef struct {
+	UINT16 CLK;
+	UINT8 TXDIV0;
+	UINT8 TXDIV1;
+	UINT32 SDM_PCW;
+	UINT8 SSC_PH_INIT;
+	UINT16 SSC_PRD;
+	UINT16 SSC_DELTA1;
+	UINT16 SSC_DELTA;
 } DSI_PLL_CONFIG;
 
 DSI_STATUS DSI_Init(BOOL isDsiPoweredOn);
@@ -198,10 +176,9 @@ void DSI_WaitTE(void);
 void DSI_InitVSYNC(unsigned int vsync_interval);
 
 DSI_STATUS DSI_EnableInterrupt(DISP_INTERRUPT_EVENTS eventID);
-DSI_STATUS DSI_SetInterruptCallback(void (*pCB)(DISP_INTERRUPT_EVENTS eventID));
+DSI_STATUS DSI_SetInterruptCallback(void (*pCB) (DISP_INTERRUPT_EVENTS eventID));
 
 DSI_STATUS DSI_handle_TE(void);
-
 
 DSI_STATUS DSI_Write_T0_INS(DSI_T0_INS *t0);
 DSI_STATUS DSI_Write_T1_INS(DSI_T1_INS *t1);
@@ -209,19 +186,18 @@ DSI_STATUS DSI_Write_T2_INS(DSI_T2_INS *t2);
 DSI_STATUS DSI_Write_T3_INS(DSI_T3_INS *t3);
 
 DSI_STATUS DSI_TXRX_Control(bool cksm_en,
-				  bool ecc_en,
-				  unsigned char lane_num,
-				  unsigned char vc_num,
-				  bool null_packet_en,
-				  bool err_correction_en,
-				  bool dis_eotp_en,
-				  unsigned int  max_return_size);
+			    bool ecc_en,
+			    unsigned char lane_num,
+			    unsigned char vc_num,
+			    bool null_packet_en,
+			    bool err_correction_en,
+			    bool dis_eotp_en,
+			    unsigned int max_return_size);
 
 DSI_STATUS DSI_PS_Control(unsigned int ps_type, unsigned int vact_line, unsigned int ps_wc);
 
-
 /* void init_mipi_pll(void); */
-void DSI_Set_VM_CMD(LCM_PARAMS * lcm_params);
+void DSI_Set_VM_CMD(LCM_PARAMS *lcm_params);
 
 void DSI_Config_VDO_Timing(LCM_PARAMS *lcm_params);
 
@@ -293,5 +269,4 @@ UINT32 fbconfig_dsi_dcs_read_lcm_reg_v2(UINT8 cmd, UINT8 type, UINT8 *buffer, UI
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __DSI_DRV_H__ */
+#endif				/* __DSI_DRV_H__ */

@@ -15,7 +15,6 @@
 #ifndef __DDP_AAL_H__
 #define __DDP_AAL_H__
 
-
 #define PWM_DUTY_LEVEL      1024
 #define PWM_DUTY_STEP       1
 #define PWM_DUTY_MAX        1023
@@ -30,31 +29,29 @@
 #define LUMA_CURVE_STEP     32
 #define LUMA_CURVE_MAX      511
 
-
-enum
-{
-    ENUM_FUNC_NONE = 0,
-    ENUM_FUNC_GAMMA = 0x1,
-    ENUM_FUNC_AAL = 0x2,
-    ENUM_FUNC_BLS = 0x4,
+enum {
+	ENUM_FUNC_NONE = 0,
+	ENUM_FUNC_GAMMA = 0x1,
+	ENUM_FUNC_AAL = 0x2,
+	ENUM_FUNC_BLS = 0x4,
 };
 
 typedef struct {
-    unsigned long histogram[LUMA_HIST_BIN];
-    unsigned long BLSHist[BLS_HIST_BIN];
-    unsigned long ChromHist;
+	unsigned long histogram[LUMA_HIST_BIN];
+	unsigned long BLSHist[BLS_HIST_BIN];
+	unsigned long ChromHist;
 } DISP_AAL_STATISTICS;
 
 typedef struct {
-    unsigned long lumaCurve[LUMA_CURVE_POINT];
-    unsigned long pwmDuty;
+	unsigned long lumaCurve[LUMA_CURVE_POINT];
+	unsigned long pwmDuty;
 
-    /* for BLS */
-    unsigned long setting;
-    unsigned long maxClrLimit;
-    unsigned long maxClrDistThd;
-    unsigned long preDistLimit;
-    unsigned long preDistThd;
+	/* for BLS */
+	unsigned long setting;
+	unsigned long maxClrLimit;
+	unsigned long maxClrDistThd;
+	unsigned long preDistLimit;
+	unsigned long preDistThd;
 } DISP_AAL_PARAM;
 
 /* IOCTL , for AAL service to wait vsync and get latest histogram */

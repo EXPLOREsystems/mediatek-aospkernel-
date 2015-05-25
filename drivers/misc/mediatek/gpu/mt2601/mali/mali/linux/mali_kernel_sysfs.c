@@ -151,29 +151,6 @@ static const struct file_operations proc_dbginfo_operations = {
     .release = single_release,
 };
 
-static int proc_deblocking_show(struct seq_file *m, void *v)
-{
-    extern int DISP_AllFenceInc(void);
-
-    DISP_AllFenceInc();
-
-    seq_puts(m, "done");
-
-    return 0;
-}
-
-static int proc_deblocking_open(struct inode *inode, struct file *file)
-{
-    return single_open(file, proc_deblocking_show, NULL);
-}
-
-static const struct file_operations proc_deblocking_operations = {
-    .open    = proc_deblocking_open,
-    .read    = seq_read,
-    .llseek  = seq_lseek,
-    .release = single_release,
-};
-
 static void proc_mali_register(void)
 {
     mali_pentry = proc_mkdir("mali", NULL);
@@ -185,7 +162,6 @@ static void proc_mali_register(void)
     proc_create("memory_usage", 0, mali_pentry, &proc_memoryusage_operations);
     proc_create("utilization", 0, mali_pentry, &proc_utilization_operations);
     proc_create("dbginfo", 0, mali_pentry, &proc_dbginfo_operations);
-    proc_create("deblocking", 0, mali_pentry, &proc_deblocking_operations);
 }
 
 
@@ -197,7 +173,6 @@ static void proc_mali_unregister(void)
     remove_proc_entry("memory_usage", mali_pentry);
     remove_proc_entry("utilization", mali_pentry);
     remove_proc_entry("dbginfo", mali_pentry);
-    remove_proc_entry("deblocking", mali_pentry);
     remove_proc_entry("mali", NULL);
     mali_pentry = NULL;
 }

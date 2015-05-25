@@ -21,14 +21,13 @@
  * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __FBCONFIG_KDEBUG_H
-#define __FBCONFIG_KDEBUG_H
+#ifndef __FBCONFIG_KDEBUG_H__
+#define __FBCONFIG_KDEBUG_H__
 void ConfigPara_Init(void);
 void ConfigPara_Deinit(void);
 int fb_config_execute_cmd(void);
 int fbconfig_get_esd_check_exec(void);
 BOOL get_fbconfig_start_lcm_config(void);
-
 
 /* *****************debug for fbconfig tool in kernel part************* */
 #define MAX_INSTRUCTION 35
@@ -45,7 +44,6 @@ typedef struct CONFIG_RECORD {
 	int ins_num;
 	int ins_array[MAX_INSTRUCTION];
 } CONFIG_RECORD;
-
 
 typedef enum {
 	HS_PRPR = 0,
@@ -123,9 +121,13 @@ typedef struct {
 	void (*set_continuous_clock) (int enable);
 	int (*set_spread_frequency) (unsigned int clk);
 	int (*set_get_misc) (const char *name, void *parameter);
-
 } FBCONFIG_DISP_IF;
+
+typedef struct _property {
+	unsigned int dual_port:1;
+	unsigned int reserved:31;
+} misc_property;
 
 FBCONFIG_DISP_IF *disphal_fbconfig_get_def_if(void);
 
-#endif				/* __FBCONFIG_KDEBUG_H */
+#endif				/* __FBCONFIG_KDEBUG_H__ */

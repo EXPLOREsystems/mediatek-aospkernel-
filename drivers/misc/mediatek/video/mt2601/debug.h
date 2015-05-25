@@ -21,13 +21,11 @@
  * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __MTKFB_DEBUG_H
-#define __MTKFB_DEBUG_H
-
+#ifndef __MTKFB_DEBUG_H__
+#define __MTKFB_DEBUG_H__
 
 /* global debug macro for DISP */
 #define DISP_DRV_DBG
-
 
 extern size_t disp_drv_dbg_log;
 extern size_t disp_drv_dbg_info_log;
@@ -39,52 +37,59 @@ extern size_t mtkfb_dbg_fence_log;
 extern size_t mtkfb_dbg_func_log;
 extern size_t mtkfb_dbg_ioctl_log;
 
-
 #define DISP_DRV_WRAN(fmt, arg...) \
-    do { \
-	if (disp_drv_dbg_log) pr_warn("[DISP] "fmt, ##arg); \
-    } while (0)
+	do { \
+		if (disp_drv_dbg_log) \
+			pr_warn("[DISP] "fmt, ##arg); \
+	} while (0)
 
 #define DISP_DRV_INFO(fmt, arg...) \
-    do { \
-	if (disp_drv_dbg_info_log) printk("[DISP] "fmt, ##arg); \
-    } while (0)
+	do { \
+		if (disp_drv_dbg_info_log) \
+			pr_warn("[DISP] "fmt, ##arg); \
+	} while (0)
 
 #define DISP_DRV_FUNC() \
-    do { \
-	if (disp_drv_dbg_func_log) printk("[DISP]""[Func]%s\n", __func__); \
-    } while (0)
+	do { \
+		if (disp_drv_dbg_func_log) \
+			pr_warn("[DISP]""[Func]%s\n", __func__); \
+	} while (0)
 
 #define DISP_DRV_UPD(fmt, arg...) \
-    do { \
-	if (disp_drv_dbg_upd_log) printk("[DISP] "fmt, ##arg); \
-    } while (0)
+	do { \
+		if (disp_drv_dbg_upd_log) \
+			pr_warn("[DISP] "fmt, ##arg); \
+	} while (0)
 
 #define MTKFB_WRAN(fmt, arg...) \
-    do { \
-	if (mtkfb_dbg_log) pr_warn("[MTKFB] "fmt, ##arg); \
-    } while (0)
+	do { \
+		if (mtkfb_dbg_log) \
+			pr_warn("[MTKFB] "fmt, ##arg); \
+	} while (0)
 
 #define MTKFB_INFO(fmt, arg...) \
-    do { \
-	if (mtkfb_dbg_info_log) printk("[MTKFB] "fmt, ##arg); \
-    } while (0)
+	do { \
+		if (mtkfb_dbg_info_log) \
+			pr_warn("[MTKFB] "fmt, ##arg); \
+	} while (0)
 
 #define MTKFB_FENCE(fmt, arg...) \
-    do { \
-	if (mtkfb_dbg_fence_log) printk("[MTKFB] "fmt, ##arg); \
-    } while (0)
+	do { \
+		if (mtkfb_dbg_fence_log) \
+			pr_warn("[MTKFB] "fmt, ##arg); \
+	} while (0)
 
 #define MTKFB_FUNC() \
-    do { \
-	if (mtkfb_dbg_func_log) printk("[MTKFB]""[Func]%s\n", __func__); \
-    } while (0)
+	do { \
+		if (mtkfb_dbg_func_log) \
+			pr_warn("[MTKFB]""[Func]%s\n", __func__); \
+	} while (0)
 
 #define MTKFB_IOCTL(fmt, arg...) \
-    do { \
-	if (mtkfb_dbg_ioctl_log) printk("[MTKFB] "fmt, ##arg); \
-    } while (0)
-
+	do { \
+		if (mtkfb_dbg_ioctl_log) \
+			pr_warn("[MTKFB] "fmt, ##arg); \
+	} while (0)
 
 void DBG_Init(void);
 void DBG_Deinit(void);
@@ -94,76 +99,75 @@ void DBG_OnTeDelayDone(void);
 void DBG_OnLcdDone(void);
 
 #include <linux/mmprofile.h>
-extern struct MTKFB_MMP_Events_t
-{
-    MMP_Event MTKFB;
-    MMP_Event CreateSyncTimeline;
-    MMP_Event PanDisplay;
-    MMP_Event SetOverlayLayer;
-    MMP_Event SetVideoLayers;
-    MMP_Event SetMultipleLayers;
-    MMP_Event CreateSyncFence;
-    MMP_Event IncSyncTimeline;
-    MMP_Event SignalSyncFence;
+extern struct MTKFB_MMP_Events_t {
+	MMP_Event MTKFB;
+	MMP_Event CreateSyncTimeline;
+	MMP_Event PanDisplay;
+	MMP_Event SetOverlayLayer;
+	MMP_Event SetVideoLayers;
+	MMP_Event SetMultipleLayers;
+	MMP_Event CreateSyncFence;
+	MMP_Event IncSyncTimeline;
+	MMP_Event SignalSyncFence;
 
-    /* Multiple Display */
-    MMP_Event SessionMgr;
-    MMP_Event GetDispInfo;
-    MMP_Event CreateSession;
-    MMP_Event DestroySession;
-    MMP_Event TriggerSession;
-    MMP_Event PrepareInput;
-    MMP_Event PrepareOutput;
-    MMP_Event SetInput;
-    MMP_Event SetOutput;
+	/* Multiple Display */
+	MMP_Event SessionMgr;
+	MMP_Event GetDispInfo;
+	MMP_Event CreateSession;
+	MMP_Event DestroySession;
+	MMP_Event TriggerSession;
+	MMP_Event PrepareInput;
+	MMP_Event PrepareOutput;
+	MMP_Event SetInput;
+	MMP_Event SetOutput;
 
-    MMP_Event JobQue;
-    MMP_Event deque;
-    MMP_Event enque;
-    MMP_Event acquire;
-    MMP_Event release;
-    MMP_Event query;
-    MMP_Event recycle;
+	MMP_Event JobQue;
+	MMP_Event deque;
+	MMP_Event enque;
+	MMP_Event acquire;
+	MMP_Event release;
+	MMP_Event query;
+	MMP_Event recycle;
 
-    MMP_Event BufQue;
-    MMP_Event deque_buf;
-    MMP_Event enque_buf;
-    MMP_Event acquire_buf;
-    MMP_Event release_buf;
-    MMP_Event request_buf;
+	MMP_Event BufQue;
+	MMP_Event deque_buf;
+	MMP_Event enque_buf;
+	MMP_Event acquire_buf;
+	MMP_Event release_buf;
+	MMP_Event request_buf;
 
-    MMP_Event UpdateScreenImpl;
-    MMP_Event VSync;
-    MMP_Event UpdateConfig;
-    MMP_Event ConfigOVL;
-    MMP_Event ConfigWDMA;
-    MMP_Event ConfigAAL;
-    MMP_Event ConfigMemOut;
-    MMP_Event ScreenUpdate;
-    MMP_Event CaptureFramebuffer;
-    MMP_Event TrigOverlayOut;
-    MMP_Event RegUpdate;
-    MMP_Event OverlayOutDone;
-    MMP_Event SwitchMode;
-    MMP_Event BypassOVL;
-    MMP_Event UsingBufIdx[2][4];
-    MMP_Event MaxCleanIdx[4];
+	MMP_Event UpdateScreenImpl;
+	MMP_Event VSync;
+	MMP_Event UpdateConfig;
+	MMP_Event ConfigOVL;
+	MMP_Event ConfigWDMA;
+	MMP_Event ConfigAAL;
+	MMP_Event ConfigMemOut;
+	MMP_Event ScreenUpdate;
+	MMP_Event CaptureFramebuffer;
+	MMP_Event TrigOverlayOut;
+	MMP_Event RegUpdate;
+	MMP_Event OverlayOutDone;
+	MMP_Event SwitchMode;
+	MMP_Event BypassOVL;
+	MMP_Event UsingBufIdx[2][4];
+	MMP_Event MaxCleanIdx[4];
 
-    MMP_Event EarlySuspend;
-    MMP_Event DispDone;
-    MMP_Event DSICmd;
-    MMP_Event DSIIRQ;
-    MMP_Event EsdCheck;
-    MMP_Event WaitVSync;
-    MMP_Event LayerDump;
-    MMP_Event Layer[4];
-    MMP_Event OvlDump;
-    MMP_Event FBDump;
-    MMP_Event DSIRead;
-    MMP_Event GetLayerInfo;
-    MMP_Event LayerInfo[4];
-    MMP_Event IOCtrl;
-    MMP_Event Debug;
+	MMP_Event EarlySuspend;
+	MMP_Event DispDone;
+	MMP_Event DSICmd;
+	MMP_Event DSIIRQ;
+	MMP_Event EsdCheck;
+	MMP_Event WaitVSync;
+	MMP_Event LayerDump;
+	MMP_Event Layer[4];
+	MMP_Event OvlDump;
+	MMP_Event FBDump;
+	MMP_Event DSIRead;
+	MMP_Event GetLayerInfo;
+	MMP_Event LayerInfo[4];
+	MMP_Event IOCtrl;
+	MMP_Event Debug;
 } MTKFB_MMP_Events;
 
 #ifdef MTKFB_DBG
@@ -181,60 +185,61 @@ static spinlock_t dbg_spinlock = SPIN_LOCK_UNLOCKED;
 
 static inline void dbg_print(int level, const char *fmt, ...)
 {
-    if (level <= MTKFB_DBG) {
-	if (!MAX_DBG_MESSAGES || dbg_cnt < MAX_DBG_MESSAGES) {
-	    va_list args;
-	    int    ind = dbg_indent;
-	    unsigned long flags;
+	if (level <= MTKFB_DBG) {
+		if (!MAX_DBG_MESSAGES || dbg_cnt < MAX_DBG_MESSAGES) {
+			va_list args;
+			int ind = dbg_indent;
+			unsigned long flags;
 
-	    spin_lock_irqsave(&dbg_spinlock, flags);
-	    dbg_cnt++;
-	    if (ind > MAX_DBG_INDENT_LEVEL)
-		ind = MAX_DBG_INDENT_LEVEL;
+			spin_lock_irqsave(&dbg_spinlock, flags);
+			dbg_cnt++;
+			if (ind > MAX_DBG_INDENT_LEVEL)
+				ind = MAX_DBG_INDENT_LEVEL;
 
-	    printk("[DBG] %*s", ind * DBG_INDENT_SIZE, "");
-	    va_start(args, fmt);
-	    vsnprintf(dbg_buf, sizeof(dbg_buf), fmt, args);
-	    printk("[DBG] "dbg_buf);
-	    va_end(args);
-	    spin_unlock_irqrestore(&dbg_spinlock, flags);
+			pr_warn("[DBG] %*s", ind * DBG_INDENT_SIZE, "");
+			va_start(args, fmt);
+			vsnprintf(dbg_buf, sizeof(dbg_buf), fmt, args);
+			pr_warn("[DBG] " dbg_buf);
+			va_end(args);
+			spin_unlock_irqrestore(&dbg_spinlock, flags);
+		}
 	}
-    }
 }
 
 #define DBGPRINT    dbg_print
 
-#define DBGENTER(level)    do { \
-	dbg_print(level, "%s: Enter\n", __func__); \
-	dbg_indent++; \
-    } while (0)
+#define DBGENTER(level) \
+	do { \
+		dbg_print(level, "%s: Enter\n", __func__); \
+		dbg_indent++; \
+	} while (0)
 
-#define DBGLEAVE(level)    do { \
-	dbg_indent--; \
-	dbg_print(level, "%s: Leave\n", __func__); \
-    } while (0)
+#define DBGLEAVE(level) \
+	do { \
+		dbg_indent--; \
+		dbg_print(level, "%s: Leave\n", __func__); \
+	} while (0)
 
 /* Debug Macros */
 
 #define MTKFB_DBG_EVT_NONE    0x00000000
-#define MTKFB_DBG_EVT_FUNC    0x00000001  /* Function Entry     */
-#define MTKFB_DBG_EVT_ARGU    0x00000002  /* Function Arguments */
-#define MTKFB_DBG_EVT_INFO    0x00000003  /* Information        */
+#define MTKFB_DBG_EVT_FUNC    0x00000001	/* Function Entry     */
+#define MTKFB_DBG_EVT_ARGU    0x00000002	/* Function Arguments */
+#define MTKFB_DBG_EVT_INFO    0x00000003	/* Information        */
 
 #define MTKFB_DBG_EVT_MASK    (MTKFB_DBG_EVT_NONE)
 
-#define MSG(evt, fmt, args...)                              \
-    do {                                                    \
-	if ((MTKFB_DBG_EVT_##evt) & MTKFB_DBG_EVT_MASK) {   \
-	    printk("[DBG] "fmt, ##args);                  \
-	}                                                   \
-    } while (0)
+#define MSG(evt, fmt, args...) \
+	do { \
+		if ((MTKFB_DBG_EVT_##evt) & MTKFB_DBG_EVT_MASK) { \
+			pr_warn("[DBG] "fmt, ##args); \
+		} \
+	} while (0)
 
 #define MSG_FUNC_ENTER(f)   MSG(FUNC, "<FB_ENTER>: %s\n", __func__)
 #define MSG_FUNC_LEAVE(f)   MSG(FUNC, "<FB_LEAVE>: %s\n", __func__)
 
-
-#else    /* MTKFB_DBG */
+#else				/* MTKFB_DBG */
 
 #define DBGPRINT(level, format, ...)
 #define DBGENTER(level)
@@ -246,6 +251,6 @@ static inline void dbg_print(int level, const char *fmt, ...)
 #define MSG_FUNC_ENTER()
 #define MSG_FUNC_LEAVE()
 
-#endif    /* MTKFB_DBG */
+#endif				/* MTKFB_DBG */
 
-#endif /* __MTKFB_DEBUG_H */
+#endif				/* __MTKFB_DEBUG_H__ */

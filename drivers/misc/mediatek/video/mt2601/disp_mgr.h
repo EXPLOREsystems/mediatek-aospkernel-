@@ -12,40 +12,38 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __DISP_MGR_H
-#define __DISP_MGR_H
+#ifndef __DISP_MGR_H__
+#define __DISP_MGR_H__
 
-#define MAX_INPUT_CONFIG		4
+#define MAX_INPUT_CONFIG	4
 #define MAX_QUEUE_BUFFER_COUNT	3
-#define UNKNOWN_GROUP_ID		0xff
+#define UNKNOWN_GROUP_ID	0xff
 
 typedef unsigned int UINT;
 typedef unsigned char BOOL;
 
-#define MAKE_DISP_SESSION(mode, type, dev) (UINT)((mode) << 24 | (type)<<16 | (dev))
-#define DISP_SESSION_MODE(id) (((id)>>24)&0xff)
 #define DISP_SESSION_TYPE(id) (((id)>>16)&0xff)
 #define DISP_SESSION_DEV(id) ((id)&0xff)
 
-/* /============================================================================= */
+/* ============================================================================= */
 /* forward declarations of external structures */
 /* NOTICE: this is the INPUT PARAMETERS directly from its CLIENT */
-/* /=========================== */
+/* =========================== */
 struct disp_session_config_t;
 struct disp_session_input_config_t;
 struct disp_session_output_config_t;
 
-/* /============================================================================= */
+/* ============================================================================= */
 /* structure declarations */
-/* /=========================== */
+/* =========================== */
 typedef enum {
-   DCP_STATUS_OK = 0,
+	DCP_STATUS_OK = 0,
 
-   DCP_STATUS_NOT_IMPLEMENTED,
-   DCP_STATUS_ALREADY_EXIST,
-   DCP_STATUS_DONT_EXIST,
-   DCP_STATUS_INVALID_PARAM,
-   DCP_STATUS_ERROR,
+	DCP_STATUS_NOT_IMPLEMENTED,
+	DCP_STATUS_ALREADY_EXIST,
+	DCP_STATUS_DONT_EXIST,
+	DCP_STATUS_INVALID_PARAM,
+	DCP_STATUS_ERROR,
 } DCP_STATUS;
 
 typedef enum {
@@ -107,16 +105,16 @@ typedef struct disp_job_t {
 	JOB_STATUS status;
 	/* belongs to which session */
 	UINT group_id;
-	input_config  input[MAX_INPUT_CONFIG];
+	input_config input[MAX_INPUT_CONFIG];
 	output_config output;
 } disp_job;
 
-/* /============================================================================= */
+/* ============================================================================= */
 /* function declarations */
-/* /=========================== */
+/* =========================== */
 
-/* /----------------------------------------------------------------------------- */
-/* /implementation has dependency of Interface file(Ex. mtkfb.h) @{ */
+/* ----------------------------------------------------------------------------- */
+/* implementation has dependency of Interface file(Ex. mtkfb.h) @{ */
 /**
  * create a new display session if it does not exist
  */
@@ -133,7 +131,7 @@ DCP_STATUS disp_set_session_input(struct disp_session_input_config_t *input);
  * set OVL-WDMA output buffer for a specified display session
  */
 DCP_STATUS disp_set_session_output(struct disp_session_output_config_t *input);
-/* /@} */
+/* @} */
 
 /**
  * Dequeue an active job for given session, return existing or create a new one
@@ -151,7 +149,6 @@ disp_job *disp_deque_job(UINT gid);
  * Note, return DCP_STATUS_OK if success, or DCP_STATUS_DONT_EXIST
  */
 DCP_STATUS disp_enque_job(UINT gid);
-
 
 /**
  * Get a jobs from Job Queue list to be processed.
@@ -191,6 +188,14 @@ disp_job *disp_recycle_job(BOOL all);
  * Note, return DCP_STATUS_OK if success, or DCP_STATUS_DONT_EXIST
  */
 DCP_STATUS disp_cancel_job(UINT gid);
+
+/**
+ * Check if there's any job in the todo queue of the given session
+ * @gid: specify which session
+ *
+ * Note, return DCP_STATUS_OK if found one or more job(s), or DCP_STATUS_DONT_EXIST
+ */
+DCP_STATUS disp_check_todo_job(UINT gid);
 
 /**
  * Initialize buffer queue for a given block buffers.
@@ -244,6 +249,4 @@ void disp_release_buffer(disp_buffer_queue *que);
  */
 UINT disp_request_buffer(disp_buffer_queue *que);
 
-
-
-#endif /* __DISP_MGR_H */
+#endif				/* __DISP_MGR_H__ */

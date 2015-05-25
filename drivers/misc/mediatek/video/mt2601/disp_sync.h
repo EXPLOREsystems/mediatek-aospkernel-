@@ -12,10 +12,9 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __DISP_SYNC_H
-#define __DISP_SYNC_H
+#ifndef __DISP_SYNC_H__
+#define __DISP_SYNC_H__
 
-#include <linux/xlog.h>
 #include <linux/aee.h>
 
 #define DISP_INVALID_FENCE_FD        -1
@@ -26,62 +25,63 @@ typedef unsigned int UINT;
 typedef unsigned char BOOL;
 /* #define NULL                       0x0 */
 
-
 #ifndef ASSERT
-#define ASSERT(expr, fmt, arg...)    \
-    do {                            \
-	if (!(expr)) aee_kernel_warning("[DISP DRV] ASSERT FAILED(%s:%d):"fmt, __func__, __LINE__, ##arg); \
-    } while (0)
+#define ASSERT(expr, fmt, arg...) \
+	do { \
+		if (!(expr)) \
+			aee_kernel_warning("[DISP DRV] ASSERT FAILED(%s:%d):"fmt, __func__, __LINE__, ##arg); \
+	} while (0)
 #endif
 
-#define AEE_WARNING(tag, fmt, arg...)										   \
-    do {																	   \
-	aee_kernel_warning_api(__FILE__, __LINE__, DB_OPT_MMPROFILE_BUFFER, tag, fmt, ##arg);\
-    } while (0)
+#define AEE_WARNING(tag, fmt, arg...) \
+	do { \
+		aee_kernel_warning_api(__FILE__, __LINE__, DB_OPT_MMPROFILE_BUFFER, tag, fmt, ##arg); \
+	} while (0)
 
-#define XLOG_INFO(fmt, arg...)                                                    \
-    do {                                                                       \
-	if (log_on)printk("[DISP/SYNC]"fmt, ##arg);   \
-    } while (0)
-#define XLOG_DBG(fmt, arg...)                                                     \
-    do {                                                                       \
-	if (log_on)printk("[DISP/SYNC]"fmt, ##arg);  \
-    } while (0)
-#define XLOG_WARN(fmt, arg...)                                                    \
-    do {                                                                        \
-	pr_warn("[DISP/SYNC] "fmt, ##arg);             \
-    } while (0)
-#define XLOG_ERR(fmt, arg...)                                                    \
-    do {                                                                        \
-	pr_warn("[DISP/SYNC] "fmt, ##arg);             \
-    } while (0)
+#define XLOG_INFO(fmt, arg...) \
+	do { \
+		if (log_on) \
+			pr_warn("[DISP/SYNC]"fmt, ##arg); \
+	} while (0)
+#define XLOG_DBG(fmt, arg...) \
+	do { \
+		if (log_on) \
+			pr_warn("[DISP/SYNC]"fmt, ##arg); \
+	} while (0)
+#define XLOG_WARN(fmt, arg...) \
+	do { \
+		pr_warn("[DISP/SYNC] "fmt, ##arg); \
+	} while (0)
+#define XLOG_ERR(fmt, arg...) \
+	do { \
+		pr_err("[DISP/SYNC] "fmt, ##arg); \
+	} while (0)
 
-/* /============================================================================= */
+/* ============================================================================= */
 /* forward declarations of external structures */
 /* NOTICE: this is the INPUT PARAMETERS directly from its CLIENT */
-/* /=========================== */
+/* =========================== */
 struct ion_client;
 struct ion_handle;
 struct disp_buffer_info_t;
 struct fb_overlay_buffer;
 
-/* /============================================================================= */
+/* ============================================================================= */
 /* structure declarations */
-/* /=========================== */
+/* =========================== */
 typedef enum {
-   SYNC_STATUS_OK = 0,
+	SYNC_STATUS_OK = 0,
 
-   SYNC_STATUS_NOT_IMPLEMENTED,
-   SYNC_STATUS_ALREADY_SET,
-   SYNC_STATUS_INVALID_PARAM,
-   SYNC_STATUS_ERROR,
+	SYNC_STATUS_NOT_IMPLEMENTED,
+	SYNC_STATUS_ALREADY_SET,
+	SYNC_STATUS_INVALID_PARAM,
+	SYNC_STATUS_ERROR,
 } SYNC_STATUS;
 
-
-/* /============================================================================= */
+/* ============================================================================= */
 /* function declarations */
-/* /=========================== */
-SYNC_STATUS disp_sync_ion_alloc_buffer (struct ion_client *client, int ion_fd, UINT * mva, struct ion_handle **hnd);
+/* =========================== */
+SYNC_STATUS disp_sync_ion_alloc_buffer(struct ion_client *client, int ion_fd, UINT *mva, struct ion_handle **hnd);
 void disp_sync_ion_cache_flush(struct ion_client *client, struct ion_handle *handle);
 
 /**
@@ -93,7 +93,7 @@ void disp_sync_release_buffer(UINT session, UINT layer);
 /**
  * Update timeline index, all fences behind this will be released later.
  * @layer:		specify which timeline
- * @cur_idx:	fence index to be signaled
+ * @cur_idx:		fence index to be signaled
  */
 int disp_sync_inc_timeline(UINT session, UINT layer, UINT cur_idx);
 
@@ -143,8 +143,10 @@ UINT disp_sync_get_last_signaled(UINT session, UINT layer);
 void disp_sync_release(UINT session, UINT layer);
 SYNC_STATUS disp_sync_init(UINT session);
 SYNC_STATUS disp_sync_deinit(UINT session);
+SYNC_STATUS disp_sync_cleanup(void);
 
 int disp_sync_present_fence_inc(UINT session);
-int _ioctl_prepare_present_fence(unsigned long arg);
+int disp_sync_prepare_present_fence(unsigned long arg);
+void disp_sync_set_present_fence(unsigned int present_fence);
 
-#endif /* __DISP_SYNC_H */
+#endif				/* __DISP_SYNC_H__ */

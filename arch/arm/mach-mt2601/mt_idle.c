@@ -300,7 +300,6 @@ static unsigned int dpidle_condition_mask[NR_GRPS] = {
 	0x0,
 
 	/* CG_CTRL0 */
-	PWM_MM_SW_CG_BIT |
 	    CAM_MM_SW_CG_BIT |
 	    MFG_MM_SW_CG_BIT |
 	    SPM_52M_SW_CG_BIT |
@@ -346,7 +345,6 @@ static unsigned int dpidle_condition_mask[NR_GRPS] = {
 	    MDP_RSZ1_SW_CG_BIT |
 	    MDP_RSZ0_SW_CG_BIT |
 	    MDP_RDMA_SW_CG_BIT |
-	    MDP_BLS_26M_SW_CG_BIT |
 	    MM_CAM_SW_CG_BIT |
 	    MM_SENINF_SW_CG_BIT |
 	    MM_CAMTG_SW_CG_BIT |

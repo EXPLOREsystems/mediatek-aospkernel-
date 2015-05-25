@@ -40,19 +40,18 @@
 
 #include "mtkfb_vsync.h"
 
-#include <linux/xlog.h>
-
-
 static size_t mtkfb_vsync_on;
 #define MTKFB_VSYNC_LOG(fmt, arg...) \
-    do { \
-	if (mtkfb_vsync_on) pr_warn("[MTKFB_VSYNC]"fmt, ##arg); \
-    } while (0)
+	do { \
+		if (mtkfb_vsync_on) \
+			pr_warn("[MTKFB_VSYNC]"fmt, ##arg); \
+	} while (0)
 
 #define MTKFB_VSYNC_FUNC()    \
-    do { \
-	if (mtkfb_vsync_on) pr_warn("[MTKFB_VSYNC][Func]%s\n", __func__); \
-    } while (0)
+	do { \
+		if (mtkfb_vsync_on) \
+			pr_warn("[MTKFB_VSYNC][Func]%s\n", __func__); \
+	} while (0)
 
 static dev_t mtkfb_vsync_devno;
 static struct cdev *mtkfb_vsync_cdev;
@@ -65,180 +64,179 @@ extern void mtkfb_disable_non_fb_layer(void);
 
 void mtkfb_vsync_log_enable(int enable)
 {
-    mtkfb_vsync_on = enable;
-    MTKFB_VSYNC_LOG("mtkfb_vsync log %s\n", enable?"enabled":"disabled");
+	mtkfb_vsync_on = enable;
+	MTKFB_VSYNC_LOG("mtkfb_vsync log %s\n", enable ? "enabled" : "disabled");
 }
 
 static int mtkfb_vsync_open(struct inode *inode, struct file *file)
 {
-    printk("[MTKFB_VSYNC] driver open\n");
-    return 0;
+	MTKFB_VSYNC_LOG("[MTKFB_VSYNC] driver open\n");
+
+	return 0;
 }
 
 static ssize_t mtkfb_vsync_read(struct file *file, char __user *data, size_t len, loff_t *ppos)
 {
-    printk("[MTKFB_VSYNC] driver read\n");
-    return 0;
+	MTKFB_VSYNC_LOG("[MTKFB_VSYNC] driver read\n");
+
+	return 0;
 }
 
 static int mtkfb_vsync_release(struct inode *inode, struct file *file)
 {
-    printk("[MTKFB_VSYNC] driver release\n");
-    printk("[MTKFB_VSYNC] reset overlay engine\n");
-    mtkfb_disable_non_fb_layer();
-    return 0;
+	MTKFB_VSYNC_LOG("[MTKFB_VSYNC] driver release\n");
+	MTKFB_VSYNC_LOG("[MTKFB_VSYNC] reset overlay engine\n");
+	mtkfb_disable_non_fb_layer();
+
+	return 0;
 }
 
-static int mtkfb_vsync_flush(struct file *a_pstFile , fl_owner_t a_id)
+static int mtkfb_vsync_flush(struct file *a_pstFile, fl_owner_t a_id)
 {
-    /* To Do : error handling here */
-    return 0;
+	/* To Do : error handling here */
+	return 0;
 }
 
 static long mtkfb_vsync_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
-    int ret = 0;
-    MTKFB_VSYNC_FUNC();
-    switch (cmd)
-    {
+	int ret = 0;
+	MTKFB_VSYNC_FUNC();
+	switch (cmd) {
 	case MTKFB_VSYNC_IOCTL:
-	{
-	    MTKFB_VSYNC_LOG("[MTKFB_VSYNC]: enter MTKFB_VSYNC_IOCTL %d\n", (unsigned int)arg);
+		MTKFB_VSYNC_LOG("[MTKFB_VSYNC]: enter MTKFB_VSYNC_IOCTL %d\n", (unsigned int)arg);
 
-	    if (arg == MTKFB_VSYNC_SOURCE_HDMI)
-	    {
-		MTKFB_VSYNC_LOG("[MTKFB_VSYNC]: NS leave MTKFB_VSYNC_IOCTL, %d\n", __LINE__);
-		ret = -EFAULT;
+		if (arg == MTKFB_VSYNC_SOURCE_HDMI) {
+			MTKFB_VSYNC_LOG("[MTKFB_VSYNC]: NS leave MTKFB_VSYNC_IOCTL, %d\n", __LINE__);
+			ret = -EFAULT;
+			return ret;
+		}
 
-		return ret;
-	    }
-
-	    if (down_interruptible(&mtkfb_vsync_sem)) {
-		 pr_err("[mtkfb_vsync_ioctl] can't get semaphore,%d\n", __LINE__);
-		msleep(20);
-		 return ret;
-	    }
-	    mtkfb_waitVsync();
-	    up(&mtkfb_vsync_sem);
-	    MTKFB_VSYNC_LOG("[MTKFB_VSYNC]: leave MTKFB_VSYNC_IOCTL\n");
+		if (down_interruptible(&mtkfb_vsync_sem)) {
+			pr_err("[mtkfb_vsync_ioctl] can't get semaphore,%d\n", __LINE__);
+			msleep(20);
+			return ret;
+		}
+		mtkfb_waitVsync();
+		up(&mtkfb_vsync_sem);
+		MTKFB_VSYNC_LOG("[MTKFB_VSYNC]: leave MTKFB_VSYNC_IOCTL\n");
+		break;
 	}
-	break;
-    }
-    return ret;
+
+	return ret;
 }
 
-
-static struct file_operations mtkfb_vsync_fops = {
-    .owner          = THIS_MODULE,
-    .unlocked_ioctl = mtkfb_vsync_unlocked_ioctl,
-    .open           = mtkfb_vsync_open,
-    .release        = mtkfb_vsync_release,
-    .flush          = mtkfb_vsync_flush,
-    .read           = mtkfb_vsync_read,
+static const struct file_operations mtkfb_vsync_fops = {
+	.owner = THIS_MODULE,
+	.unlocked_ioctl = mtkfb_vsync_unlocked_ioctl,
+	.open = mtkfb_vsync_open,
+	.release = mtkfb_vsync_release,
+	.flush = mtkfb_vsync_flush,
+	.read = mtkfb_vsync_read,
 };
 
 static int mtkfb_vsync_probe(struct platform_device *pdev)
 {
-    struct class_device;
-    struct class_device *class_dev = NULL;
+	struct class_device;
+	struct class_device *class_dev = NULL;
 
-    printk("\n=== MTKFB_VSYNC probe ===\n");
+	MTKFB_VSYNC_LOG("\n=== MTKFB_VSYNC probe ===\n");
 
-    if (alloc_chrdev_region(&mtkfb_vsync_devno, 0, 1, MTKFB_VSYNC_DEVNAME))
-    {
-	pr_err("[MTKFB_VSYNC] can't get device major number...\n");
-	return -EFAULT;
-    }
+	if (alloc_chrdev_region(&mtkfb_vsync_devno, 0, 1, MTKFB_VSYNC_DEVNAME)) {
+		pr_err("[MTKFB_VSYNC] can't get device major number...\n");
+		return -EFAULT;
+	}
 
-    printk("get device major number (%d)\n", mtkfb_vsync_devno);
+	MTKFB_VSYNC_LOG("get device major number (%d)\n", mtkfb_vsync_devno);
 
-    mtkfb_vsync_cdev = cdev_alloc();
-    mtkfb_vsync_cdev->owner = THIS_MODULE;
-    mtkfb_vsync_cdev->ops = &mtkfb_vsync_fops;
+	mtkfb_vsync_cdev = cdev_alloc();
+	mtkfb_vsync_cdev->owner = THIS_MODULE;
+	mtkfb_vsync_cdev->ops = &mtkfb_vsync_fops;
 
-    cdev_add(mtkfb_vsync_cdev, mtkfb_vsync_devno, 1);
+	cdev_add(mtkfb_vsync_cdev, mtkfb_vsync_devno, 1);
 
-    mtkfb_vsync_class = class_create(THIS_MODULE, MTKFB_VSYNC_DEVNAME);
-    class_dev = (struct class_device *)device_create(mtkfb_vsync_class, NULL, mtkfb_vsync_devno, NULL, MTKFB_VSYNC_DEVNAME);
+	mtkfb_vsync_class = class_create(THIS_MODULE, MTKFB_VSYNC_DEVNAME);
+	class_dev = (struct class_device *)device_create(mtkfb_vsync_class, NULL, mtkfb_vsync_devno, NULL, MTKFB_VSYNC_DEVNAME);
 
-    printk("[MTKFB_VSYNC] probe is done\n");
-    return 0;
+	MTKFB_VSYNC_LOG("[MTKFB_VSYNC] probe is done\n");
+
+	return 0;
 }
 
 static int mtkfb_vsync_remove(struct platform_device *pdev)
 {
-    printk("[MTKFB_VSYNC] device remove\n");
-    return 0;
+	MTKFB_VSYNC_LOG("[MTKFB_VSYNC] device remove\n");
+
+	return 0;
 }
 
 static void mtkfb_vsync_shutdown(struct platform_device *pdev)
 {
-    printk("mtkfb_vsync device shutdown\n");
+	MTKFB_VSYNC_LOG("mtkfb_vsync device shutdown\n");
 }
 
 static struct platform_driver mtkfb_vsync_driver = {
-    .probe        = mtkfb_vsync_probe,
-    .remove        = mtkfb_vsync_remove,
-    .shutdown    = mtkfb_vsync_shutdown,
-    .suspend    = NULL,
-    .resume        = NULL,
-    .driver     = {
-	.name = MTKFB_VSYNC_DEVNAME,
-    },
+	.probe = mtkfb_vsync_probe,
+	.remove = mtkfb_vsync_remove,
+	.shutdown = mtkfb_vsync_shutdown,
+	.suspend = NULL,
+	.resume = NULL,
+	.driver = {
+		   .name = MTKFB_VSYNC_DEVNAME,
+		   },
 };
 
 static void mtkfb_vsync_device_release(struct device *dev)
 {
 }
 
-static u64 mtkfb_vsync_dmamask = ~(u32)0;
+static u64 mtkfb_vsync_dmamask = ~(u32) 0;
 
 static struct platform_device mtkfb_vsync_device = {
-    .name     = MTKFB_VSYNC_DEVNAME,
-    .id      = 0,
-    .dev     = {
-	.release = mtkfb_vsync_device_release,
-	.dma_mask = &mtkfb_vsync_dmamask,
-	.coherent_dma_mask = 0xffffffff,
-    },
-    .num_resources = 0,
+	.name = MTKFB_VSYNC_DEVNAME,
+	.id = 0,
+	.dev = {
+		.release = mtkfb_vsync_device_release,
+		.dma_mask = &mtkfb_vsync_dmamask,
+		.coherent_dma_mask = 0xffffffff,
+		},
+	.num_resources = 0,
 };
 
 static int __init mtkfb_vsync_init(void)
 {
-    printk("[MTKFB_VSYNC] initializeing driver...\n");
+	MTKFB_VSYNC_LOG("[MTKFB_VSYNC] initializeing driver...\n");
 
-    if (platform_device_register(&mtkfb_vsync_device))
-    {
-	pr_err("[MTKFB_VSYNC] failed to register device\n");
-	return -ENODEV;
-    }
+	if (platform_device_register(&mtkfb_vsync_device)) {
+		pr_err("[MTKFB_VSYNC] failed to register device\n");
+		return -ENODEV;
+	}
 
-    if (platform_driver_register(&mtkfb_vsync_driver))
-    {
-	pr_err("[MTKFB_VSYNC] failed to register driver\n");
-	platform_device_unregister(&mtkfb_vsync_device);
-	return -ENODEV;
-    }
+	if (platform_driver_register(&mtkfb_vsync_driver)) {
+		pr_err("[MTKFB_VSYNC] failed to register driver\n");
+		platform_device_unregister(&mtkfb_vsync_device);
+		return -ENODEV;
+	}
 
-    return 0;
+	return 0;
 }
 
 static void __exit mtkfb_vsync_exit(void)
 {
-    cdev_del(mtkfb_vsync_cdev);
-    unregister_chrdev_region(mtkfb_vsync_devno, 1);
+	cdev_del(mtkfb_vsync_cdev);
+	unregister_chrdev_region(mtkfb_vsync_devno, 1);
 
-    platform_driver_unregister(&mtkfb_vsync_driver);
-    platform_device_unregister(&mtkfb_vsync_device);
+	platform_driver_unregister(&mtkfb_vsync_driver);
+	platform_device_unregister(&mtkfb_vsync_device);
 
-    device_destroy(mtkfb_vsync_class, mtkfb_vsync_devno);
-    class_destroy(mtkfb_vsync_class);
+	device_destroy(mtkfb_vsync_class, mtkfb_vsync_devno);
+	class_destroy(mtkfb_vsync_class);
 
-    printk("[MTKFB_VSYNC] exit driver...\n");
+	MTKFB_VSYNC_LOG("[MTKFB_VSYNC] exit driver...\n");
 }
+
 module_init(mtkfb_vsync_init);
 module_exit(mtkfb_vsync_exit);
 
 MODULE_DESCRIPTION("MediaTek FB VSYNC Driver");
 MODULE_AUTHOR("Zaikuo Wang <Zaikuo.Wang@mediatek.com>");
+MODULE_LICENSE("GPL");

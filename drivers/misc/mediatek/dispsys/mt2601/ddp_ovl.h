@@ -21,7 +21,6 @@
 #define OVL_MAX_HEIGHT 1920
 #define OVL_LAYER_NUM  4
 
-
 /* initialize overlay module */
 int OVLInit(void);
 
@@ -36,8 +35,8 @@ int OVLReset(void);
 
 /* set region of interest */
 int OVLROI(unsigned int bgW,
-	       unsigned int bgH,      /* region size */
-	       unsigned int bgColor); /* border color */
+	   unsigned int bgH,	/* region size */
+	   unsigned int bgColor);	/* border color */
 
 /* switch layer on/off */
 int OVLLayerSwitch(unsigned layer, bool en);
@@ -47,19 +46,19 @@ int OVLLayerConfig(unsigned layer,
 		   enum OVL_LAYER_SOURCE source,
 		   DpColorFormat format,
 		   unsigned int addr,
-		   unsigned int src_x,     /* ROI x offset */
-		   unsigned int src_y,     /* ROI y offset */
-		   unsigned int src_w,     /* ROI width */
-		   unsigned int src_h,     /* ROI height */
+		   unsigned int src_x,	/* ROI x offset */
+		   unsigned int src_y,	/* ROI y offset */
+		   unsigned int src_w,	/* ROI width */
+		   unsigned int src_h,	/* ROI height */
 		   unsigned int src_pitch,
-		   unsigned int dst_x,     /* ROI x offset */
-		   unsigned int dst_y,     /* ROI y offset */
-		   unsigned int dst_w,     /* ROT width */
-		   unsigned int dst_h,     /* ROI height */
+		   unsigned int dst_x,	/* ROI x offset */
+		   unsigned int dst_y,	/* ROI y offset */
+		   unsigned int dst_w,	/* ROT width */
+		   unsigned int dst_h,	/* ROI height */
 		   bool keyEn,
 		   unsigned int key,
 		   bool aen,
-		   unsigned char alpha);   /* trancparency */
+		   unsigned char alpha);	/* trancparency */
 
 int OVL3DConfig(unsigned int layer_id,
 		unsigned int en_3d,
@@ -69,6 +68,8 @@ int OVL3DConfig(unsigned int layer_id,
 void OVLLayerTdshpEn(unsigned layer, bool en);
 
 void OVLEnableIrq(unsigned int value);
+
+void OVLGetInfo(OVL_CONFIG_STRUCT *pOvlInfo);
 
 /* --------------------------------------------------------------------------------------- */
 /* --------------------------------------------------------------------------------------- */
@@ -411,6 +412,5 @@ void OVLEnableIrq(unsigned int value);
 
 #define RDMA3_DBG_FLD_CUR_Y3                                   REG_FLD(16, 16)
 #define RDMA3_DBG_FLD_CUR_X3                                   REG_FLD(16, 0)
-
 
 #endif

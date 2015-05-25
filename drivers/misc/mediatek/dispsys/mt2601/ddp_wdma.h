@@ -22,8 +22,8 @@
 #define WDMA_MAX_HEIGHT 1080
 
 enum WDMA_INPUT_FORMAT {
-    WDMA_INPUT_FORMAT_ARGB = 0x00,      /* from overlay */
-    WDMA_INPUT_FORMAT_YUV444 = 0x01,    /* from direct link */
+	WDMA_INPUT_FORMAT_ARGB = 0x00,	/* from overlay */
+	WDMA_INPUT_FORMAT_YUV444 = 0x01,	/* from direct link */
 };
 
 /* initialize module */
@@ -47,24 +47,24 @@ int WDMAConfig(unsigned idx,
 	       unsigned clipY,
 	       unsigned clipWidth,
 	       unsigned clipHeight,
-	       DpColorFormat  out_formt,
+	       DpColorFormat out_formt,
 	       unsigned dstAddress,
 	       unsigned dstWidth,
 	       bool useSpecifiedAlpha,
-	       unsigned char alpha);                            /* alpha */
+	       unsigned char alpha);	/* alpha */
 
 void WDMAWait(unsigned idx);
 
 void WDMASlowMode(unsigned int idx,
-			  unsigned int enable,
-			  unsigned int level,
-			  unsigned int cnt,
-			  unsigned int threadhold);
+		  unsigned int enable,
+		  unsigned int level,
+		  unsigned int cnt,
+		  unsigned int threadhold);
 
 enum WDMA_OUTPUT_FORMAT wdma_fmt_convert(DpColorFormat fmt);
 void WDMAConfigAddress(unsigned int idx, unsigned int addr);
 
-/* /---------------------------------------------------------- */
+/* ---------------------------------------------------------- */
 #define WDMA_INTEN_FLD_Frame_Underrun                          REG_FLD(1, 1)
 #define WDMA_INTEN_FLD_Frame_Complete                          REG_FLD(1, 0)
 
@@ -80,9 +80,10 @@ void WDMAConfigAddress(unsigned int idx, unsigned int addr);
 #define WDMA_SMI_CON_FLD_Slow_Enable                           REG_FLD(1, 4)
 #define WDMA_SMI_CON_FLD_Threshold                             REG_FLD(4, 0)
 
-#define WDMA_CFG_FLD_ERR_DIF_EN                                REG_FLD(1, 25)
-#define WDMA_CFG_FLD_DITHER_EN                                 REG_FLD(1, 24)
+#define WDMA_CFG_FLD_INT_MTX_SEL                               REG_FLD(4, 24)
 #define WDMA_CFG_FLD_DNSP_SEL                                  REG_FLD(1, 15)
+#define WDMA_CFG_FLD_EXT_MTX_EN                                REG_FLD(1, 13)
+#define WDMA_CFG_FLD_CT_EN                                     REG_FLD(1, 11)
 #define WDMA_CFG_FLD_UV_SWAP                                   REG_FLD(1, 10)
 #define WDMA_CFG_FLD_RGB_SWAP                                  REG_FLD(1, 9)
 #define WDMA_CFG_FLD_BYTE_SWAP                                 REG_FLD(1, 8)
@@ -109,7 +110,6 @@ void WDMAConfigAddress(unsigned int idx, unsigned int addr);
 #define WDMA_ALPHA_FLD_A_Value                                 REG_FLD(8, 0)
 
 #define WDMA_BUF_ADDR_FLD_Buf_Address                          REG_FLD(32, 0)
-
 
 #define WDMA_STA_FLD_Status                                    REG_FLD(32, 0)
 
@@ -162,6 +162,5 @@ void WDMAConfigAddress(unsigned int idx, unsigned int addr);
 #define WDMA_EXEC_DBG_FLD_WDMA_STA_EXEC                        REG_FLD(32, 0)
 
 #define WDMA_CLIP_DBG_FLD_WDMA_STA_CLIP                        REG_FLD(32, 0)
-
 
 #endif

@@ -28,34 +28,31 @@
 /* --------------------------------------------------------------------------- */
 
 #define REG_FLD(width, shift) \
-    ((unsigned int)((((width) & 0xFF) << 16) | ((shift) & 0xFF)))
+	((unsigned int)((((width) & 0xFF) << 16) | ((shift) & 0xFF)))
 
 #define REG_FLD_WIDTH(field) \
-    ((unsigned int)(((field) >> 16) & 0xFF))
+	((unsigned int)(((field) >> 16) & 0xFF))
 
 #define REG_FLD_SHIFT(field) \
-    ((unsigned int)((field) & 0xFF))
+	((unsigned int)((field) & 0xFF))
 
 #define REG_FLD_MASK(field) \
-    (((unsigned int)(1 << REG_FLD_WIDTH(field)) - 1) << REG_FLD_SHIFT(field))
+	(((unsigned int)(1 << REG_FLD_WIDTH(field)) - 1) << REG_FLD_SHIFT(field))
 
 #define REG_FLD_VAL(field, val) \
-    (((val) << REG_FLD_SHIFT(field)) & REG_FLD_MASK(field))
+	(((val) << REG_FLD_SHIFT(field)) & REG_FLD_MASK(field))
 
 #define REG_FLD_GET(field, reg32) \
-    (((reg32) & REG_FLD_MASK(field)) >> REG_FLD_SHIFT(field))
+	(((reg32) & REG_FLD_MASK(field)) >> REG_FLD_SHIFT(field))
 
-#define REG_FLD_SET(field, reg32, val)                  \
-    do {                                                \
-	(reg32) = (((reg32) & ~REG_FLD_MASK(field)) |   \
-		   REG_FLD_VAL((field), (val)));        \
-    } while (0)
+#define REG_FLD_SET(field, reg32, val) \
+	do { \
+		(reg32) = (((reg32) & ~REG_FLD_MASK(field)) | \
+		REG_FLD_VAL((field), (val))); \
+	} while (0)
 
 #define DISP_REG_GET(reg32) (*(volatile unsigned int*)(reg32))
-#define DISP_REG_GET_FIELD(field, reg32) \
-    do { \
-	((*(volatile unsigned int*)(reg32) & REG_FLD_MASK(field)) >> REG_FLD_SHIFT(field)) \
-    } while (0)
+#define DISP_REG_GET_FIELD(field, reg32) ((*(volatile unsigned int*)(reg32) & REG_FLD_MASK(field)) >> REG_FLD_SHIFT(field))
 
 #define DISP_REG_SET(reg32, val) mt65xx_reg_sync_writel(val, (volatile unsigned int *)(reg32))
 void DISP_REG_SET_FIELD(unsigned long field, unsigned long reg32, unsigned long val);
@@ -98,7 +95,6 @@ void DISP_REG_SET_FIELD(unsigned long field, unsigned long reg32, unsigned long 
 #define DISP_REG_CMDQ_THRx_OBSERVED_EVENTS0_CLR(idx)     (DISPSYS_CMDQ_BASE + 0x148 + 0x80*idx)
 #define DISP_REG_CMDQ_THRx_OBSERVED_EVENTS1_CLR(idx)     (DISPSYS_CMDQ_BASE + 0x14c + 0x80*idx)
 #define DISP_REG_CMDQ_THRx_INSTN_TIMEOUT_CYCLES(idx)     (DISPSYS_CMDQ_BASE + 0x150 + 0x80*idx)
-
 
 /* ----------------------------------------------------------------- */
 /* Config */
@@ -157,7 +153,6 @@ void DISP_REG_SET_FIELD(unsigned long field, unsigned long reg32, unsigned long 
 #define DISP_REG_CONFIG_DL_READY0                 (MMSYS_CONFIG_BASE + 0x868)
 #define DISP_REG_CONFIG_DL_READY1                 (MMSYS_CONFIG_BASE + 0x86C)
 
-
 /* ----------------------------------------------------------------- */
 /* Mutex */
 #define DISP_REG_CONFIG_MUTEX_INTEN               (MM_MUTEX_BASE + 0x000)
@@ -210,7 +205,6 @@ void DISP_REG_SET_FIELD(unsigned long field, unsigned long reg32, unsigned long 
 #define DISP_REG_CONFIG_MUTEX7_MOD                (MM_MUTEX_BASE + 0x10C)
 #define DISP_REG_CONFIG_MUTEX7_SOF                (MM_MUTEX_BASE + 0x110)
 #define DISP_REG_CONFIG_MUTEX_DEBUG_OUT_SEL       (MM_MUTEX_BASE + 0x200)
-
 
 /* ----------------------------------------------------------------- */
 /* OVL */
@@ -322,7 +316,6 @@ void DISP_REG_SET_FIELD(unsigned long field, unsigned long reg32, unsigned long 
 #define DISP_REG_OVL_RDMA2_DBG                    (DISP_OVL_BASE + 0x254)
 #define DISP_REG_OVL_RDMA3_DBG                    (DISP_OVL_BASE + 0x258)
 
-
 /* ----------------------------------------------------------------- */
 /* RDMA */
 #define DISP_REG_RDMA_INT_ENABLE                  (DISP_RDMA_BASE + 0x000)
@@ -356,7 +349,6 @@ void DISP_REG_SET_FIELD(unsigned long field, unsigned long reg32, unsigned long 
 #define DISP_REG_RDMA_CF_POST_ADD2                (DISP_RDMA_BASE + 0x08C)
 #define DISP_REG_RDMA_DUMMY                       (DISP_RDMA_BASE + 0x090)
 #define DISP_REG_RDMA_DEBUG_OUT_SEL               (DISP_RDMA_BASE + 0x094)
-
 
 /* ----------------------------------------------------------------- */
 /* WDMA */
@@ -393,7 +385,6 @@ void DISP_REG_SET_FIELD(unsigned long field, unsigned long reg32, unsigned long 
 #define DISP_REG_WDMA_FLOW_CTRL_DBG               (DISP_WDMA_BASE + 0x0A0)
 #define DISP_REG_WDMA_EXEC_DBG                    (DISP_WDMA_BASE + 0x0A4)
 #define DISP_REG_WDMA_CLIP_DBG                    (DISP_WDMA_BASE + 0x0A8)
-
 
 /* ----------------------------------------------------------------- */
 /* COLOR */
@@ -475,7 +466,6 @@ void DISP_REG_SET_FIELD(unsigned long field, unsigned long reg32, unsigned long 
 #define DISP_REG_COLOR_CM1_EN                     (DISP_COLOR_BASE + 0xF60)
 #define DISP_REG_COLOR_CM2_EN                     (DISP_COLOR_BASE + 0xFA0)
 #define DISP_REG_COLOR_R0_CRC                     (DISP_COLOR_BASE + 0xFF0)
-
 
 /* ----------------------------------------------------------------- */
 /* BLS */

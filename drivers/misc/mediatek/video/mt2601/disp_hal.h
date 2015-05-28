@@ -20,58 +20,53 @@
 #include "lcm_drv.h"
 #include "fbconfig_kdebug.h"
 
-
 /* Forward declarations */
 struct resource;
 struct mutex;
 struct device;
 
-typedef enum
-{
-   DISP_STATUS_OK = 0,
+typedef enum {
+	DISP_STATUS_OK = 0,
 
-   DISP_STATUS_NOT_IMPLEMENTED,
-   DISP_STATUS_ALREADY_SET,
-   DISP_STATUS_ERROR,
+	DISP_STATUS_NOT_IMPLEMENTED,
+	DISP_STATUS_ALREADY_SET,
+	DISP_STATUS_ERROR,
 } DISP_STATUS;
 
-
 typedef enum {
-   DISP_STATE_IDLE = 0,
-   DISP_STATE_BUSY,
+	DISP_STATE_IDLE = 0,
+	DISP_STATE_BUSY,
 } DISP_STATE;
-
 
 #define MAKE_PANEL_COLOR_FORMAT(R, G, B) ((R << 16) | (G << 8) | B)
 #define PANEL_COLOR_FORMAT_TO_BPP(x) ((x&0xff) + ((x>>8)&0xff) + ((x>>16)&0xff))
 
 typedef enum {
-    PANEL_COLOR_FORMAT_RGB332 = MAKE_PANEL_COLOR_FORMAT(3, 3, 2),
-    PANEL_COLOR_FORMAT_RGB444 = MAKE_PANEL_COLOR_FORMAT(4, 4, 4),
-    PANEL_COLOR_FORMAT_RGB565 = MAKE_PANEL_COLOR_FORMAT(5, 6, 5),
-    PANEL_COLOR_FORMAT_RGB666 = MAKE_PANEL_COLOR_FORMAT(6, 6, 6),
-    PANEL_COLOR_FORMAT_RGB888 = MAKE_PANEL_COLOR_FORMAT(8, 8, 8),
+	PANEL_COLOR_FORMAT_RGB332 = MAKE_PANEL_COLOR_FORMAT(3, 3, 2),
+	PANEL_COLOR_FORMAT_RGB444 = MAKE_PANEL_COLOR_FORMAT(4, 4, 4),
+	PANEL_COLOR_FORMAT_RGB565 = MAKE_PANEL_COLOR_FORMAT(5, 6, 5),
+	PANEL_COLOR_FORMAT_RGB666 = MAKE_PANEL_COLOR_FORMAT(6, 6, 6),
+	PANEL_COLOR_FORMAT_RGB888 = MAKE_PANEL_COLOR_FORMAT(8, 8, 8),
 } PANEL_COLOR_FORMAT;
 
-typedef struct
-{
-    DISP_STATUS(*init)(UINT32 fbVA, UINT32 fbPA, BOOL isLcmInited);
-    DISP_STATUS(*enable_power)(BOOL enable);
-    DISP_STATUS(*update_screen)(BOOL isMuextLocked);
+typedef struct {
+	DISP_STATUS(*init) (UINT32 fbVA, UINT32 fbPA, BOOL isLcmInited);
+	DISP_STATUS(*enable_power) (BOOL enable);
+	DISP_STATUS(*update_screen) (BOOL isMuextLocked);
 
-    UINT32(*get_working_buffer_size)(void);
-    UINT32(*get_working_buffer_bpp)(void);
-    PANEL_COLOR_FORMAT(*get_panel_color_format)(void);
-    void (*init_te_control)(void);
-    UINT32(*get_dithering_bpp)(void);
+	UINT32(*get_working_buffer_size) (void);
+	UINT32(*get_working_buffer_bpp) (void);
+	PANEL_COLOR_FORMAT(*get_panel_color_format) (void);
+	void (*init_te_control) (void);
+	 UINT32(*get_dithering_bpp) (void);
 
-    DISP_STATUS(*capture_framebuffer)(unsigned int pvbuf, unsigned int bpp);
+	 DISP_STATUS(*capture_framebuffer) (unsigned int pvbuf, unsigned int bpp);
 
-    void (*esd_reset)(void);
-    BOOL(*esd_check)(void);
+	void (*esd_reset) (void);
+	 BOOL(*esd_check) (void);
 } DISP_IF_DRIVER;
 
-typedef void (*DISPHAL_EVENT_HANDLER)(void *params);
+typedef void (*DISPHAL_EVENT_HANDLER) (void *params);
 
 int disphal_process_dbg_opt(const char *opt);
 const DISP_IF_DRIVER *disphal_get_if_driver(void);

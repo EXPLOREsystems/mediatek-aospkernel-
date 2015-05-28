@@ -1,8 +1,21 @@
-#ifndef __MTKFB_H
-#define __MTKFB_H
+/*
+* Copyright (C) 2011-2015 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#ifndef __MTKFB_H__
+#define __MTKFB_H__
 
 #include "mtkfb_info.h"
-
 
 /**NOTICE:
  * Must be consistent with bionic/libc/kernel/linux/common/mtkfb.h
@@ -50,8 +63,8 @@
 #define MTKFB_GET_DEFAULT_UPDATESPEED          MTK_IOR(17, unsigned long)
 #define MTKFB_GET_CURR_UPDATESPEED             MTK_IOR(18, unsigned long)
 #define MTKFB_CHANGE_UPDATESPEED               MTK_IOW(19, unsigned long)	/* for EM, not called change writecycle because DPI change pll ckl */
-#define MTKFB_GET_INTERFACE_TYPE               MTK_IOR(20, unsigned long)	/* /0 DBI, 1 DPI, 2 MIPI */
-#define MTKFB_GET_POWERSTATE                   MTK_IOR(21, unsigned long)	/* /0: power off  1: power on */
+#define MTKFB_GET_INTERFACE_TYPE               MTK_IOR(20, unsigned long)	/* 0 DBI, 1 DPI, 2 MIPI */
+#define MTKFB_GET_POWERSTATE                   MTK_IOR(21, unsigned long)	/* 0: power off  1: power on */
 #define MTKFB_GET_DISPLAY_IF_INFORMATION       MTK_IOR(22, mtk_dispif_info_t)
 #define MTKFB_AEE_LAYER_EXIST                  MTK_IOR(23, unsigned long)	/* called before SET_OVERLAY each time, if true, hwc will not use FB_LAYER again */
 #define MTKFB_GET_OVERLAY_LAYER_INFO           MTK_IOR(24, struct fb_overlay_layer_info)
@@ -69,7 +82,7 @@
 #define MTKFB_ERROR_INDEX_UPDATE_TIMEOUT_AEE   MTK_IO(104)
 
 /* Extension FB active option */
-#define FB_ACTIVATE_NO_UPDATE  512       /* Skip frame update */
+#define FB_ACTIVATE_NO_UPDATE  512	/* Skip frame update */
 
 /* ---------------------------------------------------------------------- */
 
@@ -119,12 +132,10 @@ typedef enum {
 	MTK_FB_ORIENTATION_270 = 3,
 } MTK_FB_ORIENTATION;
 
-
 typedef enum {
 	MTK_FB_TV_SYSTEM_NTSC = 0,
 	MTK_FB_TV_SYSTEM_PAL = 1,
 } MTK_FB_TV_SYSTEM;
-
 
 typedef enum {
 	MTK_FB_TV_FMT_RGB565 = 0,
@@ -137,7 +148,7 @@ typedef enum {
 	LAYER_NORMAL_BUFFER = 0,
 	LAYER_SECURE_BUFFER = 1,
 	LAYER_PROTECTED_BUFFER = 2,
-	LAYER_SECURE_BUFFER_WITH_ALIGN = 0x10001, /* the higher 16 bits =1 for adding 64 bytes alignment */
+	LAYER_SECURE_BUFFER_WITH_ALIGN = 0x10001,	/* the higher 16 bits =1 for adding 64 bytes alignment */
 } MTK_FB_OVL_LAYER_SECURE_MODE;
 
 typedef struct _disp_dfo_item {
@@ -148,7 +159,7 @@ typedef struct _disp_dfo_item {
 /* -------------------------------------------------------------------------- */
 struct fb_slt_catpure {
 	MTK_FB_FORMAT format;
-	volatile char *outputBuffer;
+	char *outputBuffer;
 	unsigned int wdma_width;
 	unsigned int wdma_height;
 };
@@ -293,12 +304,7 @@ struct fb_post_video_buffer {
 #include <linux/workqueue.h>
 
 #include <linux/version.h>
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 10, 0))
-#include <linux/sw_sync.h>
-#else
 #include <../drivers/staging/android/sw_sync.h>
-#endif
-
 
 #define MTKFB_DRIVER "mtkfb"
 
@@ -356,5 +362,4 @@ struct mtkfb_device {
 
 extern long hdmi_handle_cmd(unsigned int cmd, unsigned long arg);
 
-
-#endif				/* __MTKFB_H */
+#endif				/* __MTKFB_H__ */

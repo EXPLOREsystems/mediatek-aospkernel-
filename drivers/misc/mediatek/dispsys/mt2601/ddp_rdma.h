@@ -35,15 +35,15 @@ int RDMAReset(unsigned idx);
 
 /* configu module */
 int RDMAConfig(unsigned idx,
-		    enum RDMA_MODE mode,
-		    DpColorFormat inFormat,
-		    unsigned address,
-		    enum RDMA_OUTPUT_FORMAT outputFormat,
-		    unsigned pitch,
-		    unsigned width,
-		    unsigned height,
-		    bool isByteSwap, /* input setting */
-		    bool isRGBSwap); /* ourput setting */
+	       enum RDMA_MODE mode,
+	       DpColorFormat inFormat,
+	       unsigned address,
+	       enum RDMA_OUTPUT_FORMAT outputFormat,
+	       unsigned pitch,
+	       unsigned width,
+	       unsigned height,
+	       bool isByteSwap,	/* input setting */
+	       bool isRGBSwap);	/* ourput setting */
 
 void RDMAWait(unsigned idx);
 void RDMASetAddress(unsigned int idx, unsigned int address);
@@ -106,6 +106,5 @@ enum RDMA_INPUT_FORMAT rdma_fmt_convert(DpColorFormat fmt);
 
 #define CF_FLD                                                 REG_FLD(13, 0)
 #define CF_ADD_FLD                                             REG_FLD(9, 0)
-
 
 #endif

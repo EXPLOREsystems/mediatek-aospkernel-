@@ -22,7 +22,7 @@
 #include <mach/mt_clkmgr.h>
 #include <mach/mt_irq.h>
 
-/* /LCD HW feature options */
+/* LCD HW feature options */
 /* #define MTK_LCD_HW_3D_SUPPORT */
 
 #define ALIGN_TO(x, n)   (((x) + ((n) - 1)) & ~((n) - 1))
@@ -31,4 +31,4 @@
 
 /* #define MTK_OVL_DECOUPLE_SUPPORT */
 
-#endif /* __DISP_DRV_PLATFORM_H__ */
+#endif				/* __DISP_DRV_PLATFORM_H__ */

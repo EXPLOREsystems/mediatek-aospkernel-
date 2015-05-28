@@ -19,7 +19,6 @@
 
 #include "ddp_drv.h"
 
-
 void disp_bls_init(unsigned int srcWidth, unsigned int srcHeight);
 int disp_bls_config(void);
 void disp_bls_config_full(unsigned int width, unsigned int height);
@@ -36,6 +35,6 @@ void disp_bls_update_gamma_lut(void);
 void disp_bls_update_pwm_lut(void);
 
 /* Called by tasklet to config registers */
-void disp_onConfig_bls(DISP_AAL_PARAM * param);
+void disp_onConfig_bls(DISP_AAL_PARAM *param);
 
 #endif

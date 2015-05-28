@@ -17,12 +17,9 @@
 
 #include "ddp_drv.h"
 
-
-DISPLAY_TDSHP_T tdshpindex =
-{
+DISPLAY_TDSHP_T tdshpindex = {
 entry:
 {
-
 {/* 0 */
 		0x10, /* TDS_COR_GAIN       1500B000[07:00] */
 		0x20, /* TDS_GAIN_HIGH      1500B000[15:08] */
@@ -188,7 +185,7 @@ entry:
 }
 ,
 {/* 3 */
-			0x10, /* TDS_COR_GAIN       1500B000[07:00] */
+		0x10, /* TDS_COR_GAIN       1500B000[07:00] */
 		0x30, /* TDS_GAIN_HIGH      1500B000[15:08] */
 		0x20, /* TDS_GAIN_MID       1500B000[23:16] */
 		0x0, /* TDS_INK_SEL        1500B000[25:24] */
@@ -243,7 +240,7 @@ entry:
 }
 ,
 {/* 4 */
-				0x12, /* TDS_COR_GAIN       1500B000[07:00] */
+		0x12, /* TDS_COR_GAIN       1500B000[07:00] */
 		0x30, /* TDS_GAIN_HIGH      1500B000[15:08] */
 		0x20, /* TDS_GAIN_MID       1500B000[23:16] */
 		0x0, /* TDS_INK_SEL        1500B000[25:24] */
@@ -408,7 +405,7 @@ entry:
 }
 ,
 {/* 7 */
-	0x18, /* TDS_COR_GAIN       1500B000[07:00] */
+		0x18, /* TDS_COR_GAIN       1500B000[07:00] */
 		0x30, /* TDS_GAIN_HIGH      1500B000[15:08] */
 		0x20, /* TDS_GAIN_MID       1500B000[23:16] */
 		0x0, /* TDS_INK_SEL        1500B000[25:24] */
@@ -463,7 +460,7 @@ entry:
 }
 ,
 {/* 8 */
-    0x1c, /* TDS_COR_GAIN       1500B000[07:00] */
+		0x1c, /* TDS_COR_GAIN       1500B000[07:00] */
 		0x30, /* TDS_GAIN_HIGH      1500B000[15:08] */
 		0x20, /* TDS_GAIN_MID       1500B000[23:16] */
 		0x0, /* TDS_INK_SEL        1500B000[25:24] */
@@ -518,7 +515,7 @@ entry:
 }
 ,
 {/* 9 */
-	 0x20, /* TDS_COR_GAIN       1500B000[07:00] */
+		0x20, /* TDS_COR_GAIN       1500B000[07:00] */
 		0x40, /* TDS_GAIN_HIGH      1500B000[15:08] */
 		0x20, /* TDS_GAIN_MID       1500B000[23:16] */
 		0x0, /* TDS_INK_SEL        1500B000[25:24] */
@@ -573,7 +570,7 @@ entry:
 }
 ,
 {/* 10 */
-			0x10, /* TDS_COR_GAIN       1500B000[07:00] */
+		0x10, /* TDS_COR_GAIN       1500B000[07:00] */
 		0x20, /* TDS_GAIN_HIGH      1500B000[15:08] */
 		0x10, /* TDS_GAIN_MID       1500B000[23:16] */
 		0x0, /* TDS_INK_SEL        1500B000[25:24] */
@@ -628,7 +625,7 @@ entry:
 }
 ,
 {/* 11 */
-			0x10, /* TDS_COR_GAIN       1500B000[07:00] */
+		0x10, /* TDS_COR_GAIN       1500B000[07:00] */
 		0x20, /* TDS_GAIN_HIGH      1500B000[15:08] */
 		0x10, /* TDS_GAIN_MID       1500B000[23:16] */
 		0x0, /* TDS_INK_SEL        1500B000[25:24] */

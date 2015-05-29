@@ -41,23 +41,23 @@
 #endif
 
 /* register, address, configurations */
-#define TPD_DEVICE            "mtk-tpd"
-#define TPD_X                  0
-#define TPD_Y                  1
-#define TPD_Z1                 2
-#define TPD_Z2                 3
-#define TP_DELAY              (2*HZ/100)
-#define TP_DRV_MAX_COUNT          (20)
-#define TPD_WARP_CNT          (4)
-#define TPD_VIRTUAL_KEY_MAX   (10)
+#define TPD_DEVICE		"mtk-tpd"
+#define TPD_X			0
+#define TPD_Y			1
+#define TPD_Z1			2
+#define TPD_Z2			3
+#define TP_DELAY		(2*HZ/100)
+#define TP_DRV_MAX_COUNT	(20)
+#define TPD_WARP_CNT		(4)
+#define TPD_VIRTUAL_KEY_MAX	(10)
 
 /* various mode */
-#define TPD_MODE_NORMAL        0
-#define TPD_MODE_KEYPAD        1
-#define TPD_MODE_SW 2
-#define TPD_MODE_FAV_SW 3
-#define TPD_MODE_FAV_HW 4
-#define TPD_MODE_RAW_DATA 5
+#define TPD_MODE_NORMAL		0
+#define TPD_MODE_KEYPAD		1
+#define TPD_MODE_SW		2
+#define TPD_MODE_FAV_SW		3
+#define TPD_MODE_FAV_HW		4
+#define TPD_MODE_RAW_DATA	5
 #undef TPD_RES_X
 #undef TPD_RES_Y
 extern int TPD_RES_X;

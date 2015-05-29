@@ -352,28 +352,28 @@ void tpd_em_log_output(int raw_x, int raw_y, int cal_x, int cal_y, int p, int do
 	} else if (down == TPD_TYPE_RAW_DATA) {
 		if (tpd_em_log == TPD_TYPE_RAW_DATA) {
 			printk("[tpd_em_log] rx=%d,ry=%d,rz1=%d,rz2=%d,p=%d,r\n",
-			       raw_x, raw_y, cal_x, cal_y, p);
+				   raw_x, raw_y, cal_x, cal_y, p);
 		}
 	} else if (down == TPD_TYPE_REJECT1) {
 		printk("[tpd_em_log] the first or last point is rejected\n");
 	} else if (down == TPD_TYPE_REJECT2) {
 		printk
-		    ("[tpd_em_log] pressure(%d) > NICE_PRESSURE(%d), debounce debt0:%d ms, debt1:%d ms, spl_num:%d\n",
-		     raw_x, raw_y, cal_x, cal_y, p);
+			("[tpd_em_log] pressure(%d) > NICE_PRESSURE(%d), debounce debt0:%d ms, debt1:%d ms, spl_num:%d\n",
+			 raw_x, raw_y, cal_x, cal_y, p);
 	} else if (down == TPD_TYPE_FIST_LATENCY) {
 		printk("[tpd_em_log] The first touch latency is %d ms\n", raw_x / 1000);
 	} else if (down && tpd_down_status == 0) {
 		printk("[tpd_em_log] rx=%d,ry=%d,cx=%d,cy=%d,p=%d,d(+%ld ms)\n",
-		       raw_x, raw_y, cal_x, cal_y, p,
-		       (tpd_last_2_int_time[1] - tpd_last_2_int_time[0]) / 1000);
+			   raw_x, raw_y, cal_x, cal_y, p,
+			   (tpd_last_2_int_time[1] - tpd_last_2_int_time[0]) / 1000);
 	} else if (down && tpd_down_status != 0) {
 		printk("[tpd_em_log] rx=%d,ry=%d,cx=%d,cy=%d,p=%d,m(+%ld ms)\n",
-		       raw_x, raw_y, cal_x, cal_y, p,
-		       (tpd_last_2_int_time[1] - tpd_last_2_int_time[0]) / 1000);
+			   raw_x, raw_y, cal_x, cal_y, p,
+			   (tpd_last_2_int_time[1] - tpd_last_2_int_time[0]) / 1000);
 	} else {
 		printk("[tpd_em_log] rx=%d,ry=%d,cx=%d,cy=%d,p=%d,u(+%ld ms)\n",
-		       raw_x, raw_y, cal_x, cal_y, p,
-		       (tpd_last_2_int_time[1] - tpd_last_2_int_time[0]) / 1000);
+			   raw_x, raw_y, cal_x, cal_y, p,
+			   (tpd_last_2_int_time[1] - tpd_last_2_int_time[0]) / 1000);
 	}
 }
 

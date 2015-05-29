@@ -471,6 +471,10 @@ config TOUCHSCREEN_MTK_MXT224
 	bool "MXT224 for Mediatek package"
 	depends on TOUCHSCREEN_MTK
 
+config TOUCHSCREEN_MTK_TMA445A
+	bool "TMA445A for Mediatek package"
+	depends on TOUCHSCREEN_MTK
+
 config TOUCHSCREEN_MTK_FT5206
 	depends on TOUCHSCREEN_MTK
 	bool "FT5206 for Mediatek package"

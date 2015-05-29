@@ -14,10 +14,10 @@ static ssize_t mtk_virtual_keys_show(struct kobject *kobj, struct kobj_attribute
 	int i, j;
 	for (i = 0, j = 0; i < tpd_keycnt; i++)
 		j += sprintf(buf, "%s%s:%d:%d:%d:%d:%d%s", buf,
-			     __stringify(EV_KEY), tpd_keys[i],
-			     tpd_keys_dim[i][0], tpd_keys_dim[i][1],
-			     tpd_keys_dim[i][2], tpd_keys_dim[i][3],
-			     (i == tpd_keycnt - 1 ? "\n" : ":"));
+				 __stringify(EV_KEY), tpd_keys[i],
+				 tpd_keys_dim[i][0], tpd_keys_dim[i][1],
+				 tpd_keys_dim[i][2], tpd_keys_dim[i][3],
+				 (i == tpd_keycnt - 1 ? "\n" : ":"));
 	return j;
 }
 
@@ -81,10 +81,10 @@ void tpd_button(unsigned int x, unsigned int y, unsigned int down)
 	if (down) {
 		for (i = 0; i < tpd_keycnt; i++) {
 			if (x >= tpd_keys_dim[i][0] - (tpd_keys_dim[i][2] / 2) &&
-			    x <= tpd_keys_dim[i][0] + (tpd_keys_dim[i][2] / 2) &&
-			    y >= tpd_keys_dim[i][1] - (tpd_keys_dim[i][3] / 2) &&
-			    y <= tpd_keys_dim[i][1] + (tpd_keys_dim[i][3] / 2) &&
-			    !(tpd->btn_state & (1 << i))) {
+				x <= tpd_keys_dim[i][0] + (tpd_keys_dim[i][2] / 2) &&
+				y >= tpd_keys_dim[i][1] - (tpd_keys_dim[i][3] / 2) &&
+				y <= tpd_keys_dim[i][1] + (tpd_keys_dim[i][3] / 2) &&
+				!(tpd->btn_state & (1 << i))) {
 				input_report_key(tpd->kpd, tpd_keys[i], 1);
 				input_sync(tpd->kpd);
 				tpd->btn_state |= (1 << i);

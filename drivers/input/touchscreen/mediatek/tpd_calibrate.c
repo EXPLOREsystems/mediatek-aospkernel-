@@ -14,23 +14,23 @@ void tpd_warp_calibrate(int *x, int *y)
 	int wx = *x, wy = *y;
 	if (wx < tpd_wb_start[0] && tpd_wb_start[0] > 0) {
 		wx = tpd_wb_start[0] -
-		    ((tpd_wb_start[0] - wx) * (tpd_wb_start[0] -
-					       tpd_wb_end[0]) / (tpd_wb_start[0]));
+			((tpd_wb_start[0] - wx) * (tpd_wb_start[0] -
+						   tpd_wb_end[0]) / (tpd_wb_start[0]));
 		/* wx = wx*(tpd_wb_start[0]-tpd_wb_end[0])/tpd_wb_start[0]+tpd_wb_end[0]; */
 	} else if (wx > tpd_wb_start[2])
 		wx = (wx - tpd_wb_start[2]) * (tpd_wb_end[2] - tpd_wb_start[2]) / (TPD_RES_X -
 										   tpd_wb_start[2])
-		    + tpd_wb_start[2];
+			+ tpd_wb_start[2];
 
 	if (wy < tpd_wb_start[1] && tpd_wb_start[1] > 0)
 		wy = tpd_wb_start[1] -
-		    ((tpd_wb_start[1] - wy) * (tpd_wb_start[1] -
-					       tpd_wb_end[1]) / (tpd_wb_start[1]));
+			((tpd_wb_start[1] - wy) * (tpd_wb_start[1] -
+						   tpd_wb_end[1]) / (tpd_wb_start[1]));
 	/* wy = wy*(tpd_wb_start[1]-tpd_wb_end[1])/tpd_wb_start[1]+tpd_wb_end[1]; */
 	else if (wy > tpd_wb_start[3] && wy <= TPD_RES_Y)
 		wy = (wy - tpd_wb_start[3]) * (tpd_wb_end[3] - tpd_wb_start[3]) / (TPD_RES_Y -
 										   tpd_wb_start[3])
-		    + tpd_wb_start[3];
+			+ tpd_wb_start[3];
 	if (wy < 0)
 		wy = 0;
 	if (wx < 0)

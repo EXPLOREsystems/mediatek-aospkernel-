@@ -1,21 +1,21 @@
 /******************************************************************************
- * mtk_tpd.c - MTK Android Linux Touch Panel Device Driver               *
- *                                                                            *
- * Copyright 2008-2009 MediaTek Co.,Ltd.                                      *
- *                                                                            *
- * DESCRIPTION:                                                               *
- *     this file provide basic touch panel event to input sub system          *
- *                                                                            *
- * AUTHOR:                                                                    *
- *     Kirby.Wu (mtk02247)                                                    *
- *                                                                            *
- * NOTE:                                                                      *
- * 1. Sensitivity for touch screen should be set to edge-sensitive.           *
- *    But in this driver it is assumed to be done by interrupt core,          *
- *    though not done yet. Interrupt core may provide interface to            *
- *    let drivers set the sensitivity in the future. In this case,            *
- *    this driver should set the sensitivity of the corresponding IRQ         *
- *    line itself.                                                            *
+ * mtk_tpd.c - MTK Android Linux Touch Panel Device Driver
+ *
+ * Copyright 2008-2009 MediaTek Co.,Ltd.
+ *
+ * DESCRIPTION:
+ *	 this file provide basic touch panel event to input sub system
+ *
+ * AUTHOR:
+ *	 Kirby.Wu (mtk02247)
+ *
+ * NOTE:
+ * 1. Sensitivity for touch screen should be set to edge-sensitive.
+ *	But in this driver it is assumed to be done by interrupt core,
+ *	though not done yet. Interrupt core may provide interface to
+ *	let drivers set the sensitivity in the future. In this case,
+ *	this driver should set the sensitivity of the corresponding IRQ
+ *	line itself.
  ******************************************************************************/
 
 #include "tpd.h"
@@ -103,29 +103,28 @@ static long tpd_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned lon
 		}
 
 		break;
-        case TPD_GET_FILTER_PARA:
-            data = (void __user *) arg;
+	case TPD_GET_FILTER_PARA:
+		data = (void __user *) arg;
 
-            if (data == NULL)
-            {
-                err = -EINVAL;
-                printk("tpd: TPD_GET_FILTER_PARA IOCTL CMD: data is null\n");
-                break;
-            }
+		if (data == NULL)
+		{
+			err = -EINVAL;
+			printk("tpd: TPD_GET_FILTER_PARA IOCTL CMD: data is null\n");
+			break;
+		}
 
-            if(copy_to_user(data, &tpd_filter, sizeof(struct tpd_filter_t)))
-            {
-                printk("tpd: TPD_GET_FILTER_PARA IOCTL CMD: copy data error\n");
-                err = -EFAULT;
-                break;
-            }
-            break;
+		if(copy_to_user(data, &tpd_filter, sizeof(struct tpd_filter_t)))
+		{
+			printk("tpd: TPD_GET_FILTER_PARA IOCTL CMD: copy data error\n");
+			err = -EFAULT;
+			break;
+		}
+		break;
 
 	default:
 		printk("tpd: unknown IOCTL: 0x%08x\n", cmd);
 		err = -ENOIOCTLCMD;
 		break;
-
 	}
 
 	return err;
@@ -168,8 +167,8 @@ static struct tpd_driver_t tpd_driver_list[TP_DRV_MAX_COUNT];	/* = {0}; */
 
 #ifdef CONFIG_OF
 struct platform_device tpd_device = {
-    .name   	= TPD_DEVICE,
-    .id        	= -1,
+	.name = TPD_DEVICE,
+	.id = -1,
 };
 #endif
 
@@ -198,16 +197,16 @@ static struct early_suspend MTK_TS_early_suspend_handler = {
 
 int tpd_ssb_data_match(char *name, struct tag_para_touch_ssb_data_single *data )
 {
-    int i = 0;
-    for(i = 0; i < NAME_LENGTH; i++)
-    {
-        if(strcmp(name, &touch_cust_ssb_data.touch_ssb_data[i].identifier[0]) == 0){
-            printk("tpd_ssb_data_match: %s\n", name);
-            memcpy(data, &touch_cust_ssb_data.touch_ssb_data[i], sizeof(touch_cust_ssb_data.touch_ssb_data[i]));
-            return 0;
-        }
-    }
-    return -1;
+	int i = 0;
+	for(i = 0; i < NAME_LENGTH; i++)
+	{
+		if(strcmp(name, &touch_cust_ssb_data.touch_ssb_data[i].identifier[0]) == 0){
+			printk("tpd_ssb_data_match: %s\n", name);
+			memcpy(data, &touch_cust_ssb_data.touch_ssb_data[i], sizeof(touch_cust_ssb_data.touch_ssb_data[i]));
+			return 0;
+		}
+	}
+	return -1;
 }
 
 static struct tpd_driver_t *g_tpd_drv;

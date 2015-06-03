@@ -1,3 +1,17 @@
+/*
+* Copyright (C) 2011-2015 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #ifndef __IRQS_H__
 #define __IRQS_H__
 
@@ -10,7 +24,7 @@
 #define CPU_BRINGUP_SGI 1
 #define FIQ_SMP_CALL_SGI 13
 #define FIQ_DBG_SGI 14
-#define NR_IRQS NR_MT_IRQ_LINE
+#define NR_IRQS (NR_MT_IRQ_LINE+220)
 
 #define MT_EDGE_SENSITIVE   0
 #define MT_LEVEL_SENSITIVE  1

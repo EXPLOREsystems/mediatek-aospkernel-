@@ -1,3 +1,17 @@
+/*
+* Copyright (C) 2011-2015 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #ifndef __EINT_H__
 #define __EINT_H__
 
@@ -113,6 +127,9 @@ extern void mt_eint_print_status(void);
 extern unsigned int mt_eint_get_status(unsigned int eint_num);
 extern int get_eint_attribute(char *name, unsigned int name_len, unsigned int type, char *result,
 			      unsigned int *len);
+
+extern int mt_gpio_set_debounce(unsigned gpio, unsigned debounce);
+extern int mt_gpio_to_irq(unsigned gpio);
 
 #if 1
 extern void mt65xx_eint_mask(unsigned int eint_num);

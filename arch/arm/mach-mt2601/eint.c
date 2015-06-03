@@ -29,6 +29,10 @@
 #include "mach/eint.h"
 #include "mach/sync_write.h"
 
+#include <linux/irqdomain.h>
+#include <linux/irq.h>
+#include <linux/irqchip/chained_irq.h>
+
 #ifdef MD_EINT
 #include <cust_eint.h>
 #include <cust_eint_md1.h>
@@ -40,6 +44,14 @@
 #else
 #define dbgmsg(...)
 #endif
+
+#define EINT_IRQ_BASE NR_MT_IRQ_LINE
+
+/* Check if NR_IRQS is enough */
+#if (EINT_IRQ_BASE + EINT_MAX_CHANNEL) > (NR_IRQS)
+#error NR_IRQS too small.
+#endif
+
 
 /*
  * Define internal data structures.
@@ -53,6 +65,7 @@ typedef struct {
 	unsigned int softisr_called[EINT_MAX_CHANNEL];
 #endif
 	struct timer_list eint_sw_deb_timer[EINT_MAX_CHANNEL];
+	unsigned int count[EINT_MAX_CHANNEL];
 } eint_func;
 
 typedef enum {
@@ -746,6 +759,150 @@ void mt_eint_set_timer_event(unsigned int eint_num)
 }
 
 /*
+ * mt_eint_demux: EINT interrupt service routine.
+ * @irq: EINT IRQ number
+ * @desc: EINT IRQ descriptor
+ * Return IRQ returned code.
+ */
+static irqreturn_t mt_eint_demux(unsigned irq, struct irq_desc *desc)
+{
+	unsigned int index, rst;
+	unsigned long base;
+	unsigned int status = 0;
+	unsigned int status_check;
+	unsigned int reg_base, offset;
+	unsigned long long t1, t2;
+	int mask_status = 0;
+	struct irq_chip *chip = irq_get_chip(irq);
+	chained_irq_enter(chip, desc);
+
+
+	/*
+	 * NoteXXX: Need to get the wake up for 0.5 seconds when an EINT intr tirggers.
+	 *          This is used to prevent system from suspend such that other drivers
+	 *          or applications can have enough time to obtain their own wake lock.
+	 *          (This information is gotten from the power management owner.)
+	 */
+
+	tasklet_schedule(&eint_tasklet);
+	dbgmsg("EINT Module - %s ISR Start\n", __func__);
+	/* printk("EINT acitve: %s, acitve status: %d\n", mt_irq_is_active(EINT_IRQ) ? "yes" : "no", mt_irq_is_active(EINT_IRQ)); */
+
+	for (reg_base = 0; reg_base < EINT_MAX_CHANNEL; reg_base += 32) {
+		/* read status register every 32 interrupts */
+		status = mt_eint_get_status(reg_base);
+		if (status)
+			dbgmsg("EINT Module - index:%d,EINT_STA = 0x%x\n", reg_base, status);
+		else
+			continue;
+
+		for (offset = 0; offset < 32; offset++) {
+			index = reg_base + offset;
+			if (index >= EINT_MAX_CHANNEL)
+				break;
+
+			status_check = status & (1 << (index % 32));
+			if (status_check)
+				dbgmsg("Got eint:%d (%d)\n", index, EINT_FUNC.count[index]);
+			else
+				continue;
+
+			EINT_FUNC.count[index]++;
+
+			/* deal with EINT from request_irq() */
+			if (!EINT_FUNC.eint_func[index]) {
+				dbgmsg("EINT %d: go with new mt_eint\n", index);
+				if ((EINT_FUNC.is_deb_en[index] == 1) &&
+						(index >= MAX_HW_DEBOUNCE_CNT)) {
+					/* if its debounce is enable and it is a sw debounce */
+					mt_eint_mask(index);
+					/* printk("got sw index %d\n", index); */
+					mt_eint_set_timer_event(index);
+				} else {
+					/* printk("got hw index %d\n", index); */
+					t1 = sched_clock();
+					generic_handle_irq(index + EINT_IRQ_BASE);
+					t2 = sched_clock();
+					if ((EINT_FUNC.is_deb_en[index] == 1) &&
+							(index < MAX_HW_DEBOUNCE_CNT)) {
+
+						if (mt_eint_get_mask(index) == 1) {
+							mask_status = 1;
+						} else {
+							mask_status = 0;
+						}
+						mt_eint_mask(index);
+
+						/* Don't need to use reset ? */
+						/* reset debounce counter */
+						base = (index / 4) * 4 + EINT_DBNC_SET_BASE;
+						rst =
+							(EINT_DBNC_RST_BIT <<
+							 EINT_DBNC_SET_RST_BITS) << ((index %
+									 4) * 8);
+						mt_reg_sync_writel(rst, base);
+
+						if (mask_status == 0)
+							mt_eint_unmask(index);
+					}
+#if (EINT_DEBUG == 1)
+					status = mt_eint_get_status(index);
+					dbgmsg("EINT Module - EINT_STA after ack = 0x%x\n",
+							status);
+#endif
+
+					if ((t2 - t1) > 3000000)
+						pr_warn("[EINT]Warn!EINT:%d run too long,s:%llu,e:%llu,total:%llu\n", index, t1, t2, (t2 - t1));
+				}
+			}
+			/* deal with EINT from mt_eint_registration() */
+			else {
+				mt_eint_mask(index);
+				dbgmsg("EINT %d: go with original mt_eint\n", index);
+				if ((EINT_FUNC.is_deb_en[index] == 1) &&
+						(index >= MAX_HW_DEBOUNCE_CNT)) {
+					/* if its debounce is enable and it is a sw debounce */
+					mt_eint_set_timer_event(index);
+				} else {
+					/* HW debounce or no use debounce */
+					t1 = sched_clock();
+					if (EINT_FUNC.eint_func[index]) {
+						EINT_FUNC.eint_func[index] ();
+					}
+					/* generic_handle_irq(EINT_IRQ_BASE); */
+					t2 = sched_clock();
+					mt_eint_ack(index);
+
+					/* reset debounce counter */
+					base = (index / 4) * 4 + EINT_DBNC_SET_BASE;
+					rst =
+						(EINT_DBNC_RST_BIT << EINT_DBNC_SET_RST_BITS) <<
+						((index % 4) * 8);
+					mt_reg_sync_writel(rst, base);
+
+#if (EINT_DEBUG == 1)
+					status = mt_eint_get_status(index);
+					dbgmsg("EINT Module - EINT_STA after ack = 0x%x\n",
+							status);
+#endif
+					if (EINT_FUNC.eint_auto_umask[index]) {
+						mt_eint_unmask(index);
+					}
+
+					if ((t2 - t1) > 1000000)
+						pr_warn("[EINT]Warn!EINT:%d run too long,s:%llu,e:%llu,total:%llu\n", index, t1, t2, (t2 - t1));
+				}
+			}
+		}
+	}
+
+	dbgmsg("EINT Module - %s ISR END\n", __func__);
+	chained_irq_exit(chip, desc);
+	return IRQ_HANDLED;
+}
+
+
+/*
  * mt_eint_isr: EINT interrupt service routine.
  * @irq: EINT IRQ number
  * @dev_id:
@@ -1349,13 +1506,81 @@ void setup_MD_eint(void)
 #endif				/* MD_EINT */
 }
 
+static void mt_eint_irq_mask(struct irq_data *data)
+{
+	mt_eint_mask(data->hwirq);
+}
+
+static void mt_eint_irq_unmask(struct irq_data *data)
+{
+	mt_eint_unmask(data->hwirq);
+}
+
+static void mt_eint_irq_ack(struct irq_data *data)
+{
+	mt_eint_ack(data->hwirq);
+}
+
+static int mt_eint_irq_set_type(struct irq_data *data, unsigned int type)
+{
+	int eint_num = data->hwirq;
+
+	if (type & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_EDGE_FALLING))
+		mt_eint_set_polarity(eint_num, MT_EINT_POL_NEG);
+	else
+		mt_eint_set_polarity(eint_num, MT_EINT_POL_POS);
+	if (type & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING))
+		mt_eint_set_sens(eint_num, MT_EDGE_SENSITIVE);
+	else
+		mt_eint_set_sens(eint_num, MT_LEVEL_SENSITIVE);
+
+	return IRQ_SET_MASK_OK;
+}
+
+static struct irq_chip mt_irq_eint = {
+	.name = "mt-eint",
+	.irq_mask = mt_eint_irq_mask,
+	.irq_unmask = mt_eint_irq_unmask,
+	.irq_ack = mt_eint_irq_ack,
+	.irq_set_type = mt_eint_irq_set_type,
+};
+
+static unsigned int mt_eint_get_count(unsigned int eint_num)
+{
+	if (eint_num < EINT_MAX_CHANNEL)
+		return EINT_FUNC.count[eint_num];
+
+	return 0;
+}
+
+int mt_gpio_set_debounce(unsigned gpio, unsigned debounce)
+{
+	if (gpio >= EINT_MAX_CHANNEL)
+		return -EINVAL;
+
+	debounce /= 1000;
+	mt_eint_set_hw_debounce(gpio, debounce);
+	return 0;
+}
+EXPORT_SYMBOL(mt_gpio_set_debounce);
+
+int mt_gpio_to_irq(unsigned gpio)
+{
+	if (gpio >= EINT_MAX_CHANNEL)
+		return -EINVAL;
+	return gpio + EINT_IRQ_BASE;
+}
+EXPORT_SYMBOL(mt_gpio_to_irq);
+
 /*
  * mt_eint_init: initialize EINT driver.
  * Always return 0.
  */
 static int __init mt_eint_init(void)
 {
+	int irq_base;
 	unsigned int i;
+	struct irq_domain *domain;
 	struct mt_eint_driver *eint_drv;
 
 	/* assign to domain 0 for AP */
@@ -1377,12 +1602,7 @@ static int __init mt_eint_init(void)
 #if defined(EINT_TEST)
 		EINT_FUNC.softisr_called[i] = 0;
 #endif
-	}
-
-
-	/* normal EINT IRQ registration */
-	if (request_irq(EINT_IRQ, mt_eint_isr, IRQF_TRIGGER_HIGH, "EINT", NULL)) {
-		pr_err("EINT IRQ LINE NOT AVAILABLE");
+		EINT_FUNC.count[i] = 0;
 	}
 
 	/* register EINT driver */
@@ -1400,6 +1620,26 @@ static int __init mt_eint_init(void)
 	eint_drv->is_debounce_en = mt_eint_is_debounce_en;
 	eint_drv->enable_debounce = mt_eint_enable_debounce;
 	eint_drv->disable_debounce = mt_eint_disable_debounce;
+	eint_drv->get_count = mt_eint_get_count;
+
+	/* Register Linux IRQ interface */
+	irq_base = irq_alloc_descs(EINT_IRQ_BASE, EINT_IRQ_BASE, EINT_MAX_CHANNEL, numa_node_id());
+	if (irq_base != EINT_IRQ_BASE)
+		pr_err("EINT alloc desc error %d\n", irq_base);
+
+
+	for (i = 0; i < EINT_MAX_CHANNEL; i++) {
+		irq_set_chip_and_handler(i + EINT_IRQ_BASE, &mt_irq_eint, handle_level_irq);
+		set_irq_flags(i + EINT_IRQ_BASE, IRQF_VALID);
+	}
+
+	domain = irq_domain_add_legacy(NULL, EINT_MAX_CHANNEL, EINT_IRQ_BASE, 0,
+				       &irq_domain_simple_ops, eint_drv);
+
+	if (!domain)
+		pr_err("EINT domain add error\n");
+
+	irq_set_chained_handler(EINT_IRQ, (irq_flow_handler_t) mt_eint_demux);
 
 	return 0;
 }

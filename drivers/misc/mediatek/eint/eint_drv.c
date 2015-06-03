@@ -2,6 +2,7 @@
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/platform_device.h>
+#include <mach/irqs.h>
 #include <mach/eint_drv.h>
 
 static struct mt_eint_driver mt_eint_drv = {
@@ -12,6 +13,20 @@ static struct mt_eint_driver mt_eint_drv = {
 			      .owner = THIS_MODULE,
 			      },
 		   },
+	.eint_max_channel = NULL,
+	.enable = NULL,
+	.disable = NULL,
+	.is_disable = NULL,
+	.get_sens = NULL,
+	.set_sens = NULL,
+	.get_polarity = NULL,
+	.set_polarity = NULL,
+	.get_debounce_cnt = NULL,
+	.set_debounce_cnt = NULL,
+	.is_debounce_en = NULL,
+	.enable_debounce = NULL,
+	.disable_debounce = NULL,
+	.get_count = NULL,
 };
 
 static unsigned int cur_eint_num;
@@ -206,18 +221,17 @@ static ssize_t cur_eint_deb_en_store(struct device_driver *driver, const char *b
 		 * The user should note this assumption.
 		 */
 		if (mt_eint_drv.is_disable(cur_eint_num)) {
-			if (enable) {
+			if (enable)
 				mt_eint_drv.enable_debounce(cur_eint_num);
-			} else {
+			else
 				mt_eint_drv.disable_debounce(cur_eint_num);
-			}
 		} else {
 			mt_eint_drv.disable(cur_eint_num);
-			if (enable) {
+			if (enable)
 				mt_eint_drv.enable_debounce(cur_eint_num);
-			} else {
+			else
 				mt_eint_drv.disable_debounce(cur_eint_num);
-			}
+
 			mt_eint_drv.enable(cur_eint_num);
 		}
 	} else {
@@ -246,12 +260,10 @@ static ssize_t current_eint_enable_store(struct device_driver *driver,
 {
 	if (mt_eint_drv.enable) {
 		mt_eint_drv.enable(cur_eint_num);
-		if (mt_eint_drv.is_disable(cur_eint_num)) {
+		if (mt_eint_drv.is_disable(cur_eint_num))
 			pr_crit("EINT %d should be enabled but it is still disabled", cur_eint_num);
-		}
-	} else {
+	} else
 		pr_err("mt_eint_drv.enable is NULL");
-	}
 
 	return count;
 }
@@ -272,11 +284,10 @@ static ssize_t current_eint_disable_show(struct device_driver *driver, char *buf
 static ssize_t current_eint_disable_store(struct device_driver *driver,
 					  const char *buf, size_t count)
 {
-	if (mt_eint_drv.disable) {
+	if (mt_eint_drv.disable)
 		mt_eint_drv.disable(cur_eint_num);
-	} else {
+	else
 		pr_err("mt_eint_drv.enable is NULL");
-	}
 
 	return count;
 }
@@ -284,31 +295,97 @@ static ssize_t current_eint_disable_store(struct device_driver *driver,
 DRIVER_ATTR(current_eint_disable, 0644, current_eint_disable_show, current_eint_disable_store);
 #endif
 
+unsigned int eint_drv_get_count(unsigned int eint_num)
+{
+	if (mt_eint_drv.get_count)
+		return mt_eint_drv.get_count(eint_num);
+
+	return 0;
+}
+
+int eint_drv_get_max_channel(void)
+{
+	if (mt_eint_drv.eint_max_channel)
+		return mt_eint_drv.eint_max_channel();
+
+	return 0;
+}
+
+
+
+static ssize_t cur_eint_count_show(struct device_driver *driver, char *buf)
+{
+	return snprintf(buf, PAGE_SIZE, "%d\n", eint_drv_get_count(cur_eint_num));
+}
+
+DRIVER_ATTR(current_eint_count, 0644, cur_eint_count_show, NULL);
+
+
+static ssize_t eint_count_all_show(struct device_driver *driver, char *buf)
+{
+	char *ptr = buf;
+
+	if (mt_eint_drv.get_count) {
+		unsigned int i;
+		for (i = 0; i < mt_eint_drv.eint_max_channel(); i++) {
+			if (mt_eint_drv.get_count(i)) {
+				ptr += sprintf(ptr, "eint %d cnt=0x%x, pol=%s, sen=%s, ",
+					       i,
+					       mt_eint_drv.get_count(i),
+					       mt_eint_drv.get_polarity(i) ==
+					       MT_EINT_POL_POS ? "high" : "low",
+					       mt_eint_drv.get_sens(i) ==
+					       MT_LEVEL_SENSITIVE ? "level" : "edge");
+
+				if (mt_eint_drv.is_debounce_en(i)) {
+					/* debounce enable */
+					ptr +=
+					    sprintf(ptr, "deb=enable deb_cnt=%d\n",
+						    mt_eint_drv.get_debounce_cnt(i));
+				} else {
+					ptr += sprintf(ptr, "deb=disable\n");
+				}
+			}
+		}
+	} else {
+		ptr += sprintf(ptr, "mt_eint_drv.get_count is NULL\n");
+	}
+
+
+	return ptr - buf;
+}
+
+DRIVER_ATTR(eint_count_all, 0644, eint_count_all_show, NULL);
+
+
+
 static int __init eint_drv_init(void)
 {
 	int ret;
 
 	ret = driver_register(&mt_eint_drv.driver.driver);
-	if (ret) {
+	if (ret)
 		pr_err("Fail to register mt_eint_drv");
-	}
 
 	ret = driver_create_file(&mt_eint_drv.driver.driver, &driver_attr_current_eint);
 	ret |= driver_create_file(&mt_eint_drv.driver.driver, &driver_attr_current_eint_sens);
 	ret |= driver_create_file(&mt_eint_drv.driver.driver, &driver_attr_current_eint_pol);
 	ret |= driver_create_file(&mt_eint_drv.driver.driver, &driver_attr_current_eint_deb);
 	ret |= driver_create_file(&mt_eint_drv.driver.driver, &driver_attr_current_eint_deb_en);
-	if (ret) {
+	ret |= driver_create_file(&mt_eint_drv.driver.driver, &driver_attr_current_eint_count);
+	ret |= driver_create_file(&mt_eint_drv.driver.driver, &driver_attr_eint_count_all);
+
+	if (ret)
 		pr_err("Fail to create mt_eint_drv sysfs files");
-	}
 #if defined(EINT_DRV_TEST)
 	ret = driver_create_file(&mt_eint_drv.driver.driver, &driver_attr_current_eint_enable);
 	ret |= driver_create_file(&mt_eint_drv.driver.driver, &driver_attr_current_eint_disable);
-	if (ret) {
+	if (ret)
 		pr_err("Fail to create EINT sysfs files");
-	}
 #endif
 
 	return 0;
 }
+
+
 arch_initcall(eint_drv_init);

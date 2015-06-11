@@ -1836,3 +1836,8 @@ UINT32 wmt_lib_set_host_assert_info(UINT32 type, UINT32 reason, UINT32 en)
 {
 	return stp_dbg_set_host_assert_info(type, reason, en);
 }
+
+INT32 wmt_lib_trigger_reset(VOID)
+{
+	return wmt_btm_trigger_reset();
+}

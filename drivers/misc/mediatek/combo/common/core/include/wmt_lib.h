@@ -310,6 +310,7 @@ extern UINT32 wmt_lib_set_host_assert_info(UINT32 type, UINT32 reason, UINT32 en
 extern MTK_WCN_BOOL wmt_lib_handle_idc_msg(ipc_ilm_t *idc_infor);
 #endif
 extern INT32 wmt_lib_tm_temp_query(void);
+extern INT32 wmt_lib_trigger_reset(VOID);
 /*******************************************************************************
 *                              F U N C T I O N S
 ********************************************************************************

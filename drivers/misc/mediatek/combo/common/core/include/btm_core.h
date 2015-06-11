@@ -106,6 +106,7 @@ INT32 stp_btm_sort_btm_wq(MTKSTP_BTM_T *stp_btm);
 INT32 stp_notify_btm_dump(MTKSTP_BTM_T *stp_btm);
 INT32 stp_notify_btm_do_fw_assert(MTKSTP_BTM_T *stp_btm);
 INT32 stp_notify_btm_handle_wmt_lte_coex(MTKSTP_BTM_T *stp_btm);
+INT32 wmt_btm_trigger_reset(VOID);
 
 MTKSTP_BTM_T *stp_btm_init(void);
 

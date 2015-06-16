@@ -3669,15 +3669,11 @@ static int tpd_probe(struct i2c_client *client, const struct i2c_device_id *id)
 
 	client->irq = CUST_EINT_TOUCH_PANEL_NUM;
 
-	error = mxt_initialize(data);
-	if (error)
-		goto err_remove_mem_access;
-
 	error = sysfs_create_group(&client->dev.kobj, &mxt_attr_group);
 	if (error) {
 		TPD_DMESG("Failure %d creating sysfs group\n",
 			error);
-		goto err_free_irq;
+		goto err_free_mem;
 	}
 
 	sysfs_bin_attr_init(&data->mem_access_attr);
@@ -3701,17 +3697,23 @@ static int tpd_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	mt_eint_set_sens(CUST_EINT_TOUCH_PANEL_NUM, MT_LEVEL_SENSITIVE);
 	mt_eint_set_hw_debounce(CUST_EINT_TOUCH_PANEL_NUM, 64);
 	mt_eint_registration(CUST_EINT_TOUCH_PANEL_NUM, EINTF_TRIGGER_LOW, tpd_eint_interrupt_handler, 0);
+
+	error = mxt_initialize(data);
+	if (error) {
+		goto err_remove_mem_access;
+	}
+
 	tpd_load_status = 1;
 
 	return 0;
 
 err_remove_mem_access:
+	mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);
+	kthread_stop(thread);
 	sysfs_remove_bin_file(&client->dev.kobj, &data->mem_access_attr);
 	data->mem_access_attr.attr.name = NULL;
 err_remove_sysfs_group:
 	sysfs_remove_group(&client->dev.kobj, &mxt_attr_group);
-err_free_irq:
-	free_irq(client->irq, data);
 err_free_mem:
 	kfree(data);
 	return error;

@@ -50,10 +50,10 @@
 	#define SPI_INFO(dev, fmt, args...)
 #endif
 
-#ifdef SPI_REC_DEBUG
-/* The SPI block clock is 66MHz in MT6572 */
-#define SPI_CLOCK_PERIED 66000  /* kHz */
+/* The SPI block clock is 66.6MHz in MT2601 */
+#define SPI_MODULE_CLOCK 66600000
 
+#ifdef SPI_REC_DEBUG
 #include <linux/syscalls.h>	/* getpid() */
 #define SPI_REC_MSG_MAX 500
 #define SPI_REC_NUM 20
@@ -715,31 +715,18 @@ static void mt_spi_next_message(struct mt_spi_t *ms)
 	chip_config = (struct mt_chip_conf *)msg->state;
 
 #ifdef SPI_REC_DEBUG
-		spi_speed = SPI_CLOCK_PERIED/(chip_config->low_time + chip_config->high_time);
-	sprintf(msg_addr, "msgn,%4dKHz", spi_speed);
+	spi_speed = SPI_MODULE_CLOCK / (chip_config->low_time + chip_config->high_time);
+	sprintf(msg_addr, "msgn,%dHz", spi_speed);
 #else
 	sprintf(msg_addr, "msgn");
-
 #endif
 
-	/* t_rec[0] = sched_clock(); */
-
 	spi_rec_time(msg_addr);
-/* t_rec[1] = sched_clock(); */
-/* printk(KERN_ALERT"msgs rec consume time%lld",t_rec[1] - t_rec[0]); */
-
 
 	SPI_DBG("start transfer message:0x%p\n", msg);
 	ms->cur_transfer = list_entry(msg->transfers.next, struct spi_transfer, transfer_list);
 
-	/*clock and gpio set*/
-/* spi_gpio_set(ms); */
-/* enable_clk(); */
-/* t_rec[0] = sched_clock(); */
-/* spi_rec_time("clke"); */
-/* t_rec[1] = sched_clock(); */
-/* printk(KERN_ALERT"clke rec consume time%lld",t_rec[1] - t_rec[0]); */
-		reset_spi(ms);
+	reset_spi(ms);
 	mt_do_spi_setup(ms, chip_config);
 	mt_spi_next_xfer(ms, msg);
 
@@ -840,10 +827,12 @@ static irqreturn_t mt_spi_interrupt(int irq, void *dev_id)
 	struct spi_message	*msg;
 	struct spi_transfer	*xfer;
 	struct mt_chip_conf *chip_config;
-
 	unsigned long flags;
-	u32 reg_val, cnt;
+	u32 reg_val, cnt, remainder;
 	u8 mode, i;
+	u8 *rx_buf;
+	int shift;
+
 	spi_rec_time("irqs");
 
 	spin_lock_irqsave(&ms->lock, flags);
@@ -886,11 +875,22 @@ static irqreturn_t mt_spi_interrupt(int irq, void *dev_id)
 		ms->running = IDLE;
 
 	if (is_fifo_read(msg) && xfer->rx_buf) {
-		cnt = (xfer->len%4)?(xfer->len/4 + 1):(xfer->len/4);
+		cnt = xfer->len / 4;
+		remainder = xfer->len % 4;
 		for (i = 0; i < cnt; i++) {
 			reg_val = spi_readl(ms, SPI_RX_DATA_REG); /*get the data from rx*/
 			SPI_INFO(&msg->spi->dev, "SPI_RX_DATA_REG:0x%x", reg_val);
 			*((u32 *)xfer->rx_buf + i) = reg_val;
+		}
+
+		if (remainder) {
+			rx_buf = xfer->rx_buf + cnt * 4;
+			reg_val = spi_readl(ms, SPI_RX_DATA_REG);
+
+			for (i = 0; i < remainder; i++) {
+				shift = BITS_PER_BYTE * i;
+				rx_buf[i] = reg_val >> shift;
+			}
 		}
 	}
 
@@ -921,9 +921,10 @@ mt_do_spi_setup(struct mt_spi_t *ms, struct mt_chip_conf *chip_config)
 
 #ifdef SPI_VERBOSE
 	u32 speed;
-#define SPI_MODULE_CLOCK 66000
-	speed = SPI_MODULE_CLOCK/(chip_config->low_time + chip_config->high_time);
-	SPI_DBG("mode:%d, speed:%d KHz,CPOL%d,CPHA%d\n", chip_config->com_mod, speed, chip_config->cpol, chip_config->cpha);
+	speed = SPI_MODULE_CLOCK / (chip_config->low_time + chip_config->high_time);
+	SPI_DBG("mode:%d, speed:%dHz,CPOL%d,CPHA%d\n",
+		chip_config->com_mod, speed,
+		chip_config->cpol, chip_config->cpha);
 #endif
 	/*clear RST bits*/
 	reg_val = spi_readl(ms, SPI_CMD_REG);
@@ -1007,8 +1008,9 @@ static int mt_spi_setup(struct spi_device *spidev)
 {
 	struct spi_master *master;
 	struct mt_spi_t *ms;
-
 	struct mt_chip_conf *chip_config = NULL;
+  	u32 max_high_time, max_low_time, min_hz_supported;
+	u32 delay;
 
 	master = spidev->master;
 	ms = spi_master_get_devdata(master);
@@ -1062,12 +1064,28 @@ static int mt_spi_setup(struct spi_device *spidev)
 		spidev->controller_data = chip_config;
 	}
 
-	SPI_INFO(&spidev->dev, "set up chip config,mode:%d\n", chip_config->com_mod);
+	chip_config->cpol = spidev->mode & SPI_CPOL ? 1 : 0;
+	chip_config->cpha = spidev->mode & SPI_CPHA ? 1 : 0;
 
-/* #ifdef SPI_REC_DEBUG */
-/* spi_speed = 134300/(chip_config->low_time + chip_config->high_time); */
-/* #endif */
-	/*check chip configuration valid*/
+	if (spidev->max_speed_hz > 0) {
+		max_high_time = (SPI_CFG0_SCK_HIGH_MASK >> SPI_CFG0_SCK_HIGH_OFFSET) + 1;
+		max_low_time = (SPI_CFG0_SCK_LOW_MASK >> SPI_CFG0_SCK_LOW_OFFSET) + 1;
+		min_hz_supported = SPI_MODULE_CLOCK / (max_high_time + max_low_time);
+
+		if (spidev->max_speed_hz < min_hz_supported) {
+			dev_warn(&spidev->dev,
+				 "max_speed_hz %dHz not supported, set to %dHz\n",
+				 spidev->max_speed_hz, min_hz_supported);
+			chip_config->high_time = max_high_time;
+			chip_config->low_time = max_low_time;
+                } else {
+			delay = DIV_ROUND_UP(SPI_MODULE_CLOCK, spidev->max_speed_hz);
+			chip_config->high_time = (delay + 1) / 2;
+			chip_config->low_time = (delay + 1) / 2;
+                }
+	}
+
+	SPI_INFO(&spidev->dev, "set up chip config,mode:%d\n", chip_config->com_mod);
 
 	ms->config = chip_config;
 	if (!((chip_config->pause == PAUSE_MODE_ENABLE) || (chip_config->pause == PAUSE_MODE_DISABLE)) ||
@@ -1267,7 +1285,7 @@ static void __init mt_spi_exit(void)
 module_init(mt_spi_init);
 module_exit(mt_spi_exit);
 
-MODULE_DESCRIPTION("MT6572 SPI Controller Driver");
+MODULE_DESCRIPTION("MT2601 SPI Controller Driver");
 MODULE_AUTHOR("MediaTek");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform: mt_spi");

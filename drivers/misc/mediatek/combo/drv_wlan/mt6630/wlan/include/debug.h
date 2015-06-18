@@ -9,9 +9,6 @@
     assert functions.
 */
 
-
-
-
 #ifndef _DEBUG_H
 #define _DEBUG_H
 
@@ -147,6 +144,8 @@ extern UINT_32 u4DebugModule;
 #define ROAMING_DBG_CLASSES \
 	(DBG_CLASS_DEFAULT)
 
+#define TDLS_DBG_CLASSES \
+	(DBG_CLASS_DEFAULT)
 
 /* Define INIT related debug classes */
 #if (INIT_DBG_CLASSES & DBG_CLASS_ERROR)
@@ -3089,9 +3088,115 @@ extern UINT_32 u4DebugModule;
 #define ROAMING_TEMP_LOGDUMP32(_StartAddr, _Length)
 #endif
 
+/* Define TDLS related debug classes */
+#if (TDLS_DBG_CLASSES & DBG_CLASS_ERROR)
+#define TDLS_ERROR_LOGFUNC(_Module, _Class, _Fmt) \
+	DBGLOG_FUNC(_Module, _Class, _Fmt)
+#define TDLS_ERROR_LOGDUMP8(_StartAddr, _Length) \
+	dumpMemory8(DBG_TDLS_IDX, DBG_CLASS_ERROR, _StartAddr, _Length)
+#define TDLS_ERROR_LOGDUMP32(_StartAddr, _Length) \
+	dumpMemory32(DBG_TDLS_IDX, DBG_CLASS_ERROR, _StartAddr, _Length)
+#else
+#define TDLS_ERROR_LOGFUNC(_Module, _Class, _Fmt)
+#define TDLS_ERROR_LOGDUMP8(_StartAddr, _Length)
+#define TDLS_ERROR_LOGDUMP32(_StartAddr, _Length)
+#endif
+
+#if (TDLS_DBG_CLASSES & DBG_CLASS_WARN)
+#define TDLS_WARN_LOGFUNC(_Module, _Class, _Fmt) \
+	DBGLOG_FUNC(_Module, _Class, _Fmt)
+#define TDLS_WARN_LOGDUMP8(_StartAddr, _Length) \
+	dumpMemory8(DBG_TDLS_IDX, DBG_CLASS_WARN, _StartAddr, _Length)
+#define TDLS_WARN_LOGDUMP32(_StartAddr, _Length) \
+	dumpMemory32(DBG_TDLS_IDX, DBG_CLASS_WARN, _StartAddr, _Length)
+#else
+#define TDLS_WARN_LOGFUNC(_Module, _Class, _Fmt)
+#define TDLS_WARN_LOGDUMP8(_StartAddr, _Length)
+#define TDLS_WARN_LOGDUMP32(_StartAddr, _Length)
+#endif
+
+#if (TDLS_DBG_CLASSES & DBG_CLASS_STATE)
+#define TDLS_STATE_LOGFUNC(_Module, _Class, _Fmt) \
+	DBGLOG_FUNC(_Module, _Class, _Fmt)
+#define TDLS_STATE_LOGDUMP8(_StartAddr, _Length) \
+	dumpMemory8(DBG_TDLS_IDX, DBG_CLASS_STATE, _StartAddr, _Length)
+#define TDLS_STATE_LOGDUMP32(_StartAddr, _Length) \
+	dumpMemory32(DBG_TDLS_IDX, DBG_CLASS_STATE, _StartAddr, _Length)
+#else
+#define TDLS_STATE_LOGFUNC(_Module, _Class, _Fmt)
+#define TDLS_STATE_LOGDUMP8(_StartAddr, _Length)
+#define TDLS_STATE_LOGDUMP32(_StartAddr, _Length)
+#endif
+
+#if (TDLS_DBG_CLASSES & DBG_CLASS_EVENT)
+#define TDLS_EVENT_LOGFUNC(_Module, _Class, _Fmt) \
+	DBGLOG_FUNC(_Module, _Class, _Fmt)
+#define TDLS_EVENT_LOGDUMP8(_StartAddr, _Length) \
+	dumpMemory8(DBG_TDLS_IDX, DBG_CLASS_EVENT, _StartAddr, _Length)
+#define TDLS_EVENT_LOGDUMP32(_StartAddr, _Length) \
+	dumpMemory32(DBG_TDLS_IDX, DBG_CLASS_EVENT, _StartAddr, _Length)
+#else
+#define TDLS_EVENT_LOGFUNC(_Module, _Class, _Fmt)
+#define TDLS_EVENT_LOGDUMP8(_StartAddr, _Length)
+#define TDLS_EVENT_LOGDUMP32(_StartAddr, _Length)
+#endif
+
+#if (TDLS_DBG_CLASSES & DBG_CLASS_TRACE)
+#define TDLS_TRACE_LOGFUNC(_Module, _Class, _Fmt) \
+	DBGLOG_FUNC(_Module, _Class, _Fmt)
+#define TDLS_TRACE_LOGDUMP8(_StartAddr, _Length) \
+	dumpMemory8(DBG_TDLS_IDX, DBG_CLASS_TRACE, _StartAddr, _Length)
+#define TDLS_TRACE_LOGDUMP32(_StartAddr, _Length) \
+	dumpMemory32(DBG_TDLS_IDX, DBG_CLASS_TRACE, _StartAddr, _Length)
+#else
+#define TDLS_TRACE_LOGFUNC(_Module, _Class, _Fmt)
+#define TDLS_TRACE_LOGDUMP8(_StartAddr, _Length)
+#define TDLS_TRACE_LOGDUMP32(_StartAddr, _Length)
+#endif
+
+#if (TDLS_DBG_CLASSES & DBG_CLASS_INFO)
+#define TDLS_INFO_LOGFUNC(_Module, _Class, _Fmt) \
+	DBGLOG_FUNC(_Module, _Class, _Fmt)
+#define TDLS_INFO_LOGDUMP8(_StartAddr, _Length) \
+	dumpMemory8(DBG_TDLS_IDX, DBG_CLASS_INFO, _StartAddr, _Length)
+#define TDLS_INFO_LOGDUMP32(_StartAddr, _Length) \
+	dumpMemory32(DBG_TDLS_IDX, DBG_CLASS_INFO, _StartAddr, _Length)
+#else
+#define TDLS_INFO_LOGFUNC(_Module, _Class, _Fmt)
+#define TDLS_INFO_LOGDUMP8(_StartAddr, _Length)
+#define TDLS_INFO_LOGDUMP32(_StartAddr, _Length)
+#endif
+
+#if (TDLS_DBG_CLASSES & DBG_CLASS_LOUD)
+#define TDLS_LOUD_LOGFUNC(_Module, _Class, _Fmt) \
+	DBGLOG_FUNC(_Module, _Class, _Fmt)
+#define TDLS_LOUD_LOGDUMP8(_StartAddr, _Length) \
+	dumpMemory8(DBG_TDLS_IDX, DBG_CLASS_LOUD, _StartAddr, _Length)
+#define TDLS_LOUD_LOGDUMP32(_StartAddr, _Length) \
+	dumpMemory32(DBG_TDLS_IDX, DBG_CLASS_LOUD, _StartAddr, _Length)
+#else
+#define TDLS_LOUD_LOGFUNC(_Module, _Class, _Fmt)
+#define TDLS_LOUD_LOGDUMP8(_StartAddr, _Length)
+#define TDLS_LOUD_LOGDUMP32(_StartAddr, _Length)
+#endif
+
+#if (TDLS_DBG_CLASSES & DBG_CLASS_TEMP)
+#define TDLS_TEMP_LOGFUNC(_Module, _Class, _Fmt) \
+	DBGLOG_FUNC(_Module, _Class, _Fmt)
+#define TDLS_TEMP_LOGDUMP8(_StartAddr, _Length) \
+	dumpMemory8(DBG_TDLS_IDX, DBG_CLASS_TEMP, _StartAddr, _Length)
+#define TDLS_TEMP_LOGDUMP32(_StartAddr, _Length) \
+	dumpMemory32(DBG_TDLS_IDX, DBG_CLASS_TEMP, _StartAddr, _Length)
+#else
+#define TDLS_TEMP_LOGFUNC(_Module, _Class, _Fmt)
+#define TDLS_TEMP_LOGDUMP8(_StartAddr, _Length)
+#define TDLS_TEMP_LOGDUMP32(_StartAddr, _Length)
+#endif
+
+
 #if defined(LINUX)
 #define DBG_PRINTF_64BIT_DEC    "lld"
-#else				/* Windows */
+#else /* Windows */
 #define DBG_PRINTF_64BIT_DEC    "I64d"
 #endif
 
@@ -3103,37 +3208,39 @@ extern UINT_32 u4DebugModule;
 */
 /* Define debug module index */
 typedef enum _ENUM_DBG_MODULE_T {
-	DBG_INIT_IDX = 0,	/* 0x00 *//* For driver initial */
-	DBG_HAL_IDX,		/* 0x01 *//* For HAL(HW) Layer */
-	DBG_INTR_IDX,		/* 0x02 *//* For Interrupt */
+	DBG_INIT_IDX = 0,	/* 0x00 */ /* For driver initial */
+	DBG_HAL_IDX,		/* 0x01 */ /* For HAL(HW) Layer */
+	DBG_INTR_IDX,		/* 0x02 */ /* For Interrupt */
 	DBG_REQ_IDX,		/* 0x03 */
 	DBG_TX_IDX,		/* 0x04 */
 	DBG_RX_IDX,		/* 0x05 */
-	DBG_RFTEST_IDX,		/* 0x06 *//* For RF test mode */
-	DBG_EMU_IDX,		/* 0x07 *//* Developer specific */
+	DBG_RFTEST_IDX,		/* 0x06 */ /* For RF test mode */
+	DBG_EMU_IDX,		/* 0x07 */ /* Developer specific */
 
-	DBG_SW1_IDX,		/* 0x08 *//* Developer specific */
-	DBG_SW2_IDX,		/* 0x09 *//* Developer specific */
-	DBG_SW3_IDX,		/* 0x0A *//* Developer specific */
-	DBG_SW4_IDX,		/* 0x0B *//* Developer specific */
+	DBG_SW1_IDX,		/* 0x08 */ /* Developer specific */
+	DBG_SW2_IDX,		/* 0x09 */ /* Developer specific */
+	DBG_SW3_IDX,		/* 0x0A */ /* Developer specific */
+	DBG_SW4_IDX,		/* 0x0B */ /* Developer specific */
 
-	DBG_HEM_IDX,		/* 0x0C *//* HEM */
-	DBG_AIS_IDX,		/* 0x0D *//* AIS */
-	DBG_RLM_IDX,		/* 0x0E *//* RLM */
-	DBG_MEM_IDX,		/* 0x0F *//* RLM */
-	DBG_CNM_IDX,		/* 0x10 *//* CNM */
-	DBG_RSN_IDX,		/* 0x11 *//* RSN */
-	DBG_BSS_IDX,		/* 0x12 *//* BSS */
-	DBG_SCN_IDX,		/* 0x13 *//* SCN */
-	DBG_SAA_IDX,		/* 0x14 *//* SAA */
-	DBG_AAA_IDX,		/* 0x15 *//* AAA */
-	DBG_P2P_IDX,		/* 0x16 *//* P2P */
-	DBG_QM_IDX,		/* 0x17 *//* QUE_MGT */
-	DBG_SEC_IDX,		/* 0x18 *//* SEC */
-	DBG_BOW_IDX,		/* 0x19 *//* BOW */
-	DBG_WAPI_IDX,		/* 0x1A *//* WAPI */
-	DBG_ROAMING_IDX,	/* 0x1B *//* ROAMING */
-	DBG_TDLS_IDX,		/* 0x1C *//* TDLS *//* CFG_SUPPORT_TDLS */
+	DBG_HEM_IDX,		/* 0x0C */ /* HEM */
+	DBG_AIS_IDX,		/* 0x0D */ /* AIS */
+	DBG_RLM_IDX,		/* 0x0E */ /* RLM */
+	DBG_MEM_IDX,		/* 0x0F */ /* RLM */
+	DBG_CNM_IDX,		/* 0x10 */ /* CNM */
+	DBG_RSN_IDX,		/* 0x11 */ /* RSN */
+	DBG_BSS_IDX,		/* 0x12 */ /* BSS */
+	DBG_SCN_IDX,		/* 0x13 */ /* SCN */
+	DBG_SAA_IDX,		/* 0x14 */ /* SAA */
+	DBG_AAA_IDX,		/* 0x15 */ /* AAA */
+	DBG_P2P_IDX,		/* 0x16 */ /* P2P */
+	DBG_QM_IDX,		/* 0x17 */ /* QUE_MGT */
+	DBG_SEC_IDX,		/* 0x18 */ /* SEC */
+	DBG_BOW_IDX,		/* 0x19 */ /* BOW */
+	DBG_WAPI_IDX,		/* 0x1A */ /* WAPI */
+	DBG_ROAMING_IDX,	/* 0x1B */ /* ROAMING */
+	DBG_TDLS_IDX,		/* 0x1C */ /* TDLS */ /* CFG_SUPPORT_TDLS */
+	DBG_OID_IDX,
+	DBG_NIC_IDX,
 	DBG_MODULE_NUM		/* Notice the XLOG check */
 } ENUM_DBG_MODULE_T;
 
@@ -3161,8 +3268,8 @@ typedef enum _ENUM_DBG_MODULE_T {
 #define MACSTR          "%02x:%02x:%02x:%02x:%02x:%02x"
 
 /* Debug print argument for the MAC Address */
-#define MAC2STR(a)      ((PUINT_8)a)[0], ((PUINT_8)a)[1], ((PUINT_8)a)[2], \
-			((PUINT_8)a)[3], ((PUINT_8)a)[4], ((PUINT_8)a)[5]
+#define MAC2STR(a)	\
+	((PUINT_8)a)[0], ((PUINT_8)a)[1], ((PUINT_8)a)[2], ((PUINT_8)a)[3], ((PUINT_8)a)[4], ((PUINT_8)a)[5]
 
 /* Debug print format string for the IPv4 Address */
 #define IPV4STR         "%u.%u.%u.%u"
@@ -3179,13 +3286,11 @@ typedef enum _ENUM_DBG_MODULE_T {
 			((PUINT_8)a)[8], ((PUINT_8)a)[9], ((PUINT_8)a)[10], ((PUINT_8)a)[11], \
 			((PUINT_8)a)[12], ((PUINT_8)a)[13], ((PUINT_8)a)[14], ((PUINT_8)a)[15]
 
-
 /* The pre-defined format to dump the value of a varaible with its name shown. */
 #define DUMPVAR(variable, format)           (#variable " = " format "\n", variable)
 
 /* The pre-defined format to dump the MAC type value with its name shown. */
 #define DUMPMACADDR(addr)                   (#addr " = " MACSTR "\n", MAC2STR(addr))
-
 
 /* Basiclly, we just do renaming of KAL functions although they should
  * be defined as "Nothing to do" if DBG=0. But in some compiler, the macro
@@ -3227,10 +3332,17 @@ typedef enum _ENUM_DBG_MODULE_T {
 #define DBGLOG_MEM8(_Module, _Class, _StartAddr, _Length)
 #define DBGLOG_MEM32(_Module, _Class, _StartAddr, _Length)
 #else
-#define DBGLOG(_Module, _Class, _Fmt) \
-{ \
-	_Module##_##_Class##_LOGFUNC(_Module, _Class, _Fmt); \
-}
+#define DBGLOG(_Module, _Class, _Fmt, ...) \
+	do { \
+		if ((aucDebugModule[DBG_##_Module##_IDX] & DBG_CLASS_##_Class) == 0) \
+			break; \
+		pr_debug(WLAN_TAG"%s:(" #_Module " " #_Class ")"_Fmt, __func__, ##__VA_ARGS__); \
+	} while (0)
+
+#define DBGLOG1(_Module, _Class, _Fmt) \
+	{ \
+		_Module##_##_Class##_LOGFUNC(_Module, _Class, _Fmt); \
+	}
 
 #define DBGLOG_MEM8(_Module, _Class, _StartAddr, _Length) \
 { \
@@ -3313,11 +3425,11 @@ typedef enum _ENUM_DBG_MODULE_T {
 				kalBreakPoint(); \
 			} \
 		}
-#endif				/* WINDOWS_CE */
+#endif /* WINDOWS_CE */
 #else
 #define ASSERT(_exp)
 #define ASSERT_REPORT(_exp, _fmt)
-#endif				/* BUILD_QA_DBG */
+#endif /* BUILD_QA_DBG */
 
 /* The following macro is used for debugging packed structures. */
 #ifndef DATA_STRUC_INSPECTING_ASSERT
@@ -3330,16 +3442,12 @@ typedef enum _ENUM_DBG_MODULE_T {
 ********************************************************************************
 */
 
-VOID
-dumpMemory8(IN UINT_32 u4DbgIndex,
-	    IN UINT_8 ucDbgClass, IN PUINT_8 pucStartAddr, IN UINT_32 u4Length);
+VOID dumpMemory8(IN UINT_32 u4DbgIndex, IN UINT_8 ucDbgClass, IN PUINT_8 pucStartAddr, IN UINT_32 u4Length);
 
-VOID
-dumpMemory32(IN UINT_32 u4DbgIndex,
-	     IN UINT_8 ucDbgClass, IN PUINT_32 pu4StartAddr, IN UINT_32 u4Length);
+VOID dumpMemory32(IN UINT_32 u4DbgIndex, IN UINT_8 ucDbgClass, IN PUINT_32 pu4StartAddr, IN UINT_32 u4Length);
 
 /*******************************************************************************
 *                              F U N C T I O N S
 ********************************************************************************
 */
-#endif				/* _DEBUG_H */
+#endif /* _DEBUG_H */

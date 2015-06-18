@@ -6,6 +6,8 @@ ccflags-y += $(WLAN_CHIP_LIST)
 
 WLAN_CHIP_ID=MT6630
 
+ccflags-y += -DCFG_SUPPORT_DEBUG_FS=0
+ccflags-y += -DWLAN_INCLUDE_PROC
 ccflags-y += -DCFG_SUPPORT_AGPS_ASSIST=1
 ccflags-y += -DCFG_SUPPORT_TSF_USING_BOOTTIME=1
 
@@ -18,12 +20,6 @@ else
     ccflags-y += -DCFG_SUPPORT_CHNL_CONFLICT_REVISE=1
 endif
 
-ifeq ($(CONFIG_HAVE_XLOG_FEATURE), y)
-    ccflags-y += -DCFG_SUPPORT_XLOG=1
-else
-    ccflags-y += -DCFG_SUPPORT_XLOG=0
-endif
-
 ifeq ($(CONFIG_HAVE_AEE_FEATURE), y)
     ccflags-y += -DCFG_SUPPORT_AEE=1
 else
@@ -31,11 +27,7 @@ else
 endif
 
 # Disable ASSERT() for user load, enable for others
-ifneq ($(TARGET_BUILD_VARIANT),user)
-    ccflags-y += -DBUILD_QA_DBG=1
-else
-    ccflags-y += -DBUILD_QA_DBG=0
-endif
+ccflags-y += -DBUILD_QA_DBG=0
 
 ifeq ($(CONFIG_MTK_COMBO_WIFI),y)
     ccflags-y += -DCFG_BUILT_IN_DRIVER=1
@@ -60,7 +52,6 @@ else
     ccflags-y += -DCFG_HS20_DEBUG=0
     ccflags-y += -DCFG_ENABLE_GTK_FRAME_FILTER=0
 endif
-
 
 MTK_MET_PROFILING_SUPPORT = yes
 ifeq ($(MTK_MET_PROFILING_SUPPORT), yes)
@@ -115,6 +106,7 @@ OS_OBJS :=	$(OS_DIR)gl_init.o \
 			$(OS_DIR)gl_wext_priv.o \
 			$(OS_DIR)gl_rst.o \
 			$(OS_DIR)gl_cfg80211.o \
+			$(OS_DIR)gl_vendor.o \
 			$(OS_DIR)platform.o
 
 MGMT_OBJS := $(MGMT_DIR)ais_fsm.o \
@@ -141,10 +133,10 @@ MGMT_OBJS := $(MGMT_DIR)ais_fsm.o \
              $(MGMT_DIR)roaming_fsm.o \
              $(MGMT_DIR)tkip_mic.o \
              $(MGMT_DIR)hs20.o \
-             $(MGMT_DIR)tdls.o        
+             $(MGMT_DIR)tdls.o
 # ---------------------------------------------------
 # P2P Objects List
-# ---------------------------------------------------      
+# ---------------------------------------------------
 
 COMMON_OBJS += $(COMMON_DIR)wlan_p2p.o
 
@@ -165,13 +157,11 @@ MGMT_OBJS += $(MGMT_DIR)p2p_dev_fsm.o\
             $(MGMT_DIR)p2p_rlm.o\
             $(MGMT_DIR)p2p_assoc.o\
             $(MGMT_DIR)p2p_bss.o\
-            $(MGMT_DIR)p2p_rlm_obss.o        
-                 
+            $(MGMT_DIR)p2p_rlm_obss.o
+
 MGMT_OBJS += $(MGMT_DIR)wapi.o
 
-ifeq ($(WLAN_PROC), y)
-OS_OBJS += gl_proc.o
-endif
+OS_OBJS += $(OS_DIR)gl_proc.o
 
 HIF_OBJS :=  $(HIF_DIR)arm.o \
              $(HIF_DIR)sdio.o

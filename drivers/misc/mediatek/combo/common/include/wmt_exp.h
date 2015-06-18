@@ -276,6 +276,7 @@ extern VOID wmt_lib_ps_irq_cb(VOID);
 extern ENUM_WMT_ANT_RAM_STATUS mtk_wcn_wmt_ant_ram_ctrl(ENUM_WMT_ANT_RAM_CTRL ctrlId, UCHAR *pBuf,
 							UINT32 length, ENUM_WMT_ANT_RAM_SEQ seq);
 
+extern MTK_WCN_BOOL mtk_wcn_wmt_do_reset(ENUM_WMTDRV_TYPE_T type);
 
 #ifdef MTK_WCN_WMT_STP_EXP_SYMBOL_ABSTRACT
 extern VOID mtk_wcn_wmt_exp_init(VOID);

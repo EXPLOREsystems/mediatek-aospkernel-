@@ -9,8 +9,6 @@
     to the GLUE Layer.
 */
 
-
-
 #ifndef _TYPEDEF_H
 #define _TYPEDEF_H
 
@@ -40,6 +38,7 @@
 
 #define WLAN_STATUS_MEDIA_CONNECT               ((WLAN_STATUS) 0x4001000BL)
 #define WLAN_STATUS_MEDIA_DISCONNECT            ((WLAN_STATUS) 0x4001000CL)
+#define WLAN_STATUS_MEDIA_DISCONNECT_LOCALLY	((WLAN_STATUS) 0x4001000DL)
 #define WLAN_STATUS_MEDIA_SPECIFIC_INDICATION   ((WLAN_STATUS) 0x40010012L)
 
 #define WLAN_STATUS_SCAN_COMPLETE               ((WLAN_STATUS) 0x60010001L)
@@ -67,7 +66,6 @@
 /* NIC status flags */
 #define ADAPTER_FLAG_HW_ERR                     0x00400000
 
-
 /*******************************************************************************
 *                             D A T A   T Y P E S
 ********************************************************************************
@@ -87,7 +85,6 @@ typedef struct _MSG_HDR_T MSG_HDR_T, *P_MSG_HDR_T;
 /* Type definition for Pointer to OS Native Packet */
 typedef void *P_NATIVE_PACKET;
 
-
 /* Type definition for WLAN configuration */
 typedef struct _WLAN_CFG_T WLAN_CFG_T, *P_WLAN_CFG_T;
 
@@ -96,8 +93,7 @@ typedef struct _WLAN_CFG_ENTRY_T WLAN_CFG_ENTRY_T, *P_WLAN_CFG_ENTRY_T;
 
 /* Type definition for WLAN configuration callback */
 typedef WLAN_STATUS(*WLAN_CFG_SET_CB) (P_ADAPTER_T prAdapter,
-				       PUINT_8 pucKey, PUINT_8 pucValue, PVOID pPrivate,
-				       UINT_32 u4Flags);
+				       PUINT_8 pucKey, PUINT_8 pucValue, PVOID pPrivate, UINT_32 u4Flags);
 
 /* Type definition for STA_RECORD_T structure to handle the connectivity and packet reception
  * for a particular STA.
@@ -124,7 +120,6 @@ typedef VOID(*IST_EVENT_FUNCTION) (P_ADAPTER_T);
 /* Type definition for function pointer of timer handler */
 typedef VOID(*PFN_TIMER_CALLBACK) (IN P_GLUE_INFO_T);
 
-
 /*******************************************************************************
 *                            P U B L I C   D A T A
 ********************************************************************************
@@ -149,4 +144,4 @@ typedef VOID(*PFN_TIMER_CALLBACK) (IN P_GLUE_INFO_T);
 *                              F U N C T I O N S
 ********************************************************************************
 */
-#endif				/* _TYPEDEF_H */
+#endif /* _TYPEDEF_H */

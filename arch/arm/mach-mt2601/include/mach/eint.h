@@ -96,7 +96,7 @@
 /*
  * Define constants.
  */
-#define EINT_AP_MAXNUMBER       25
+#define EINT_AP_MAXNUMBER       26
 #define EINT_MAX_CHANNEL        26
 #define MAX_HW_DEBOUNCE_CNT     26
 

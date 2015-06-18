@@ -28,6 +28,8 @@
 #include <mach/eint_drv.h>
 #include "mach/eint.h"
 #include "mach/sync_write.h"
+#include "mach/gpio_const.h"
+#include "mach/mt_gpio.h"
 
 #include <linux/irqdomain.h>
 #include <linux/irq.h>
@@ -46,9 +48,11 @@
 #endif
 
 #define EINT_IRQ_BASE NR_MT_IRQ_LINE
+#define MAX_GPIO_PER_EINT 5
+#define NR_EINT_IRQS 60
 
 /* Check if NR_IRQS is enough */
-#if (EINT_IRQ_BASE + EINT_MAX_CHANNEL) > (NR_IRQS)
+#if (EINT_IRQ_BASE + NR_EINT_IRQS) > (NR_IRQS)
 #error NR_IRQS too small.
 #endif
 
@@ -89,6 +93,77 @@ typedef enum {
 static const unsigned int EINT_IRQ = MT_EINT_IRQ_ID;
 static eint_func EINT_FUNC;
 struct wake_lock EINT_suspend_lock;
+
+static const struct
+{
+	GPIO_PIN pin;
+	GPIO_MODE mode;
+	uint8_t domain;
+	uint8_t eint;
+} irq_to_gpio[NR_EINT_IRQS] = {
+	{ GPIO30, GPIO_MODE_02, 0, 0 },
+	{ GPIO29, GPIO_MODE_02, 0, 1 },
+	{ GPIO28, GPIO_MODE_02, 0, 2 },
+	{ GPIO27, GPIO_MODE_02, 0, 3 },
+	{ GPIO26, GPIO_MODE_02, 0, 4 },
+	{ GPIO25, GPIO_MODE_02, 0, 5 },
+	{ GPIO31, GPIO_MODE_02, 0, 6 },
+	{ GPIO65, GPIO_MODE_03, 0, 7 },
+	{ GPIO66, GPIO_MODE_03, 0, 8 },
+	{ GPIO60, GPIO_MODE_04, 0, 9 },
+	{ GPIO56, GPIO_MODE_04, 0, 10 },
+	{ GPIO57, GPIO_MODE_04, 0, 11 },
+	{ GPIO54, GPIO_MODE_02, 0, 12 },
+	{ GPIO51, GPIO_MODE_02, 0, 13 },
+	{ GPIO52, GPIO_MODE_02, 0, 14 },
+	{ GPIO90, GPIO_MODE_01, 0, 15 },
+	{ -1, 0, 0, 16 },
+	{ -1, 0, 0, 17 },
+	{ -1, 0, 0, 18 },
+	{ -1, 0, 0, 19 },
+	{ -1, 0, 0, 20 },
+	{ -1, 0, 0, 21 },
+	{ -1, 0, 0, 22 },
+	{ -1, 0, 0, 23 },
+	{ -1, 0, 0, 24 },
+	{ -1, 0, 0, 25 },
+	{ GPIO135, GPIO_MODE_04, 1, 0 },
+	{ GPIO129, GPIO_MODE_02, 1, 1 },
+	{ GPIO128, GPIO_MODE_02, 1, 2 },
+	{ GPIO63, GPIO_MODE_03, 1, 3 },
+	{ GPIO74, GPIO_MODE_03, 1, 4 },
+	{ GPIO144, GPIO_MODE_03, 1, 5 },
+	{ GPIO77, GPIO_MODE_02, 1, 6 },
+	{ GPIO69, GPIO_MODE_04, 1, 7 },
+	{ GPIO70, GPIO_MODE_04, 1, 8 },
+	{ GPIO79, GPIO_MODE_03, 1, 9 },
+	{ GPIO80, GPIO_MODE_03, 1, 10 },
+	{ GPIO81, GPIO_MODE_03, 1, 11 },
+	{ GPIO58, GPIO_MODE_04, 1, 12 },
+	{ GPIO64, GPIO_MODE_03, 1, 13 },
+	{ GPIO84, GPIO_MODE_03, 1, 14 },
+	{ GPIO101, GPIO_MODE_02, 1, 15 },
+	{ GPIO136, GPIO_MODE_04, 2, 2 },
+	{ GPIO73, GPIO_MODE_03, 2, 3 },
+	{ GPIO98, GPIO_MODE_04, 2, 4 },
+	{ GPIO108, GPIO_MODE_02, 2, 6 },
+	{ GPIO75, GPIO_MODE_03, 2, 7 },
+	{ GPIO76, GPIO_MODE_03, 2, 8 },
+	{ GPIO88, GPIO_MODE_01, 2, 9 },
+	{ GPIO82, GPIO_MODE_03, 2, 12 },
+	{ GPIO83, GPIO_MODE_03, 2, 13 },
+	{ GPIO89, GPIO_MODE_01, 2, 14 },
+	{ GPIO97, GPIO_MODE_04, 3, 3 },
+	{ GPIO143, GPIO_MODE_03, 3, 4 },
+	{ GPIO140, GPIO_MODE_04, 3, 6 },
+	{ GPIO99, GPIO_MODE_04, 3, 7 },
+	{ GPIO87, GPIO_MODE_01, 3, 8 },
+	{ GPIO100, GPIO_MODE_04, 3, 14 },
+	{ GPIO142, GPIO_MODE_03, 4, 7 },
+	{ GPIO145, GPIO_MODE_03, 4, 8 },
+};
+
+static int16_t eint_to_irq[EINT_MAX_CHANNEL];
 
 
 void mt65xx_eint_set_hw_debounce(unsigned int eint_num, unsigned int ms)
@@ -142,179 +217,6 @@ unsigned int mt_eint_get_mask(unsigned int eint_num)
 	}
 	return st;
 }
-
-#if 0
-/*
- * mt_eint_mask_all: Mask all the specified EINT number.
- */
-void mt_eint_mask_all(void)
-{
-	unsigned int base;
-	unsigned int val = 0xFFFFFFFF, i;
-
-	base = EINT_MASK_SET_BASE;
-	for (i = 0; i < EINT_CTRL_REG_NUMBER; i++) {
-		writel_relaxed(val, base + (i * 4));
-		dbgmsg(KERN_DEBUG "[EINT] mask addr:%x = %x\n", EINT_MASK_BASE + (i * 4),
-		       readl(EINT_MASK_BASE + (i * 4)));
-	}
-	dsb();
-}
-
-/*
- * mt_eint_unmask_all: Mask the specified EINT number.
- */
-void mt_eint_unmask_all(void)
-{
-	unsigned int base;
-	unsigned int val = 0xFFFFFFFF, i;
-
-	base = EINT_MASK_CLR_BASE;
-	for (i = 0; i < EINT_CTRL_REG_NUMBER; i++) {
-		writel_relaxed(val, base + (i * 4));
-		dbgmsg(KERN_DEBUG "[EINT] unmask addr:%x = %x\n", EINT_MASK_BASE + (i * 4),
-		       readl(EINT_MASK_BASE + (i * 4)));
-	}
-	dsb();
-}
-
-/*
- * mt_eint_get_soft: To get the eint mask
- * @eint_num: the EINT number to get
- */
-unsigned int mt_eint_get_soft(unsigned int eint_num)
-{
-	unsigned int base;
-	unsigned int st;
-	unsigned int bit = 1 << (eint_num % 32);
-
-	if (eint_num < EINT_AP_MAXNUMBER) {
-		base = (eint_num / 32) * 4 + EINT_SOFT_BASE;
-	} else {
-		printk("[EINT] mt_eint_get_soft: illegal eint number %x\n", eint_num);
-	}
-	st = readl(base);
-
-	if (st & bit) {
-		st = 1;		/* set */
-	} else {
-		st = 0;		/* clear */
-	}
-	return st;
-}
-#endif
-
-#if 0
-/*
- * mt_eint_emu_set: Trigger the specified EINT number.
- * @eint_num: EINT number to set
- */
-void mt_eint_emu_set(unsigned int eint_num)
-{
-	unsigned int base;
-	unsigned int bit = 1 << (eint_num % 32);
-	unsigned int value;
-
-	if (eint_num < EINT_AP_MAXNUMBER) {
-		base = (eint_num / 32) * 4 + EINT_EMUL_BASE;
-	} else {
-		printk("[EINT] %s: illegal eint number %x\n", __func__, eint_num);
-		return;
-	}
-	value = readl(base);
-	value = bit | value;
-	mt65xx_reg_sync_writel(value, base);
-
-	dbgmsg(KERN_DEBUG "[EINT] emul set addr:%x = %x\n", base, bit);
-}
-
-/*
- * mt_eint_emu_clr: Trigger the specified EINT number.
- * @eint_num: EINT number to clr
- */
-void mt_eint_emu_clr(unsigned int eint_num)
-{
-	unsigned int base;
-	unsigned int bit = 1 << (eint_num % 32);
-	unsigned int value;
-
-	if (eint_num < EINT_AP_MAXNUMBER) {
-		base = (eint_num / 32) * 4 + EINT_EMUL_BASE;
-	} else {
-		printk("[EINT] %s: illegal eint number %x\n", __func__, eint_num);
-		return;
-	}
-	value = readl(base);
-	value = (~bit) & value;
-	mt65xx_reg_sync_writel(value, base);
-
-	dbgmsg(KERN_DEBUG "[EINT] emul clr addr:%x = %x\n", base, bit);
-}
-
-/*
- * eint_send_pulse: Trigger the specified EINT number.
- * @eint_num: EINT number to send
- */
-inline void mt_eint_send_pulse(unsigned int eint_num)
-{
-	unsigned int base_set;
-	unsigned int base_clr;
-	unsigned int bit = 1 << (eint_num % 32);
-
-	if (eint_num < EINT_AP_MAXNUMBER) {
-		base_set = (eint_num / 32) * 4 + EINT_SOFT_SET_BASE;
-		base_clr = (eint_num / 32) * 4 + EINT_SOFT_CLR_BASE;
-	} else {
-		printk("[EINT] %s: illegal eint number %x\n", __func__, eint_num);
-		return;
-	}
-
-	mt65xx_reg_sync_writel(bit, base_set);
-	mt65xx_reg_sync_writel(bit, base_clr);
-}
-#endif
-
-#if 0
-/*
- * mt_eint_soft_set: Trigger the specified EINT number.
- * @eint_num: EINT number to set
- */
-void mt_eint_soft_set(unsigned int eint_num)
-{
-	unsigned int base;
-	unsigned int bit = 1 << (eint_num % 32);
-
-	if (eint_num < EINT_AP_MAXNUMBER) {
-		base = (eint_num / 32) * 4 + EINT_SOFT_SET_BASE;
-	} else {
-		printk("[EINT] %s: illegal eint number %x\n", __func__, eint_num);
-		return;
-	}
-	mt65xx_reg_sync_writel(bit, base);
-
-	dbgmsg(KERN_DEBUG "[EINT] soft set addr:%x = %x\n", base, bit);
-}
-
-/*
- * mt_eint_soft_clr: Unmask the specified EINT number.
- * @eint_num: EINT number to clear
- */
-void mt_eint_soft_clr(unsigned int eint_num)
-{
-	unsigned int base;
-	unsigned int bit = 1 << (eint_num % 32);
-
-	if (eint_num < EINT_AP_MAXNUMBER) {
-		base = (eint_num / 32) * 4 + EINT_SOFT_CLR_BASE;
-	} else {
-		printk("[EINT] %s: illegal eint number %x\n", __func__, eint_num);
-		return;
-	}
-	mt65xx_reg_sync_writel(bit, base);
-
-	dbgmsg(KERN_DEBUG "[EINT] soft clr addr:%x = %x\n", base, bit);
-}
-#endif
 
 /*
  * mt_eint_mask: Mask the specified EINT number.
@@ -810,7 +712,7 @@ static irqreturn_t mt_eint_demux(unsigned irq, struct irq_desc *desc)
 			EINT_FUNC.count[index]++;
 
 			/* deal with EINT from request_irq() */
-			if (!EINT_FUNC.eint_func[index]) {
+			if (eint_to_irq[index] > 0) {
 				dbgmsg("EINT %d: go with new mt_eint\n", index);
 				if ((EINT_FUNC.is_deb_en[index] == 1) &&
 						(index >= MAX_HW_DEBOUNCE_CNT)) {
@@ -821,7 +723,7 @@ static irqreturn_t mt_eint_demux(unsigned irq, struct irq_desc *desc)
 				} else {
 					/* printk("got hw index %d\n", index); */
 					t1 = sched_clock();
-					generic_handle_irq(index + EINT_IRQ_BASE);
+					generic_handle_irq(eint_to_irq[index]);
 					t2 = sched_clock();
 					if ((EINT_FUNC.is_deb_en[index] == 1) &&
 							(index < MAX_HW_DEBOUNCE_CNT)) {
@@ -898,92 +800,6 @@ static irqreturn_t mt_eint_demux(unsigned irq, struct irq_desc *desc)
 
 	dbgmsg("EINT Module - %s ISR END\n", __func__);
 	chained_irq_exit(chip, desc);
-	return IRQ_HANDLED;
-}
-
-
-/*
- * mt_eint_isr: EINT interrupt service routine.
- * @irq: EINT IRQ number
- * @dev_id:
- * Return IRQ returned code.
- */
-static irqreturn_t mt_eint_isr(int irq, void *dev_id)
-{
-	unsigned int index, rst, base;
-	unsigned int status = 0;
-	unsigned int status_check;
-	unsigned int reg_base, offset;
-	unsigned long long t1, t2;
-
-	/*
-	 * NoteXXX: Need to get the wake up for 0.5 seconds when an EINT intr tirggers.
-	 *          This is used to prevent system from suspend such that other drivers
-	 *          or applications can have enough time to obtain their own wake lock.
-	 *          (This information is gotten from the power management owner.)
-	 */
-	tasklet_schedule(&eint_tasklet);
-
-	dbgmsg(KERN_DEBUG "EINT Module - %s ISR Start\n", __func__);
-
-	for (reg_base = 0; reg_base < EINT_MAX_CHANNEL; reg_base += 32) {
-		/* read status register every 32 interrupts */
-		status = mt_eint_get_status(reg_base);
-		if (status) {
-			dbgmsg(KERN_DEBUG "EINT Module - index:%d,EINT_STA = 0x%x\n", reg_base,
-			       status);
-		} else {
-			continue;
-		}
-
-		for (offset = 0; offset < 32; offset++) {
-			/* t1 = t2 = 0; */
-			index = reg_base + offset;
-			if (index >= EINT_MAX_CHANNEL)
-				break;
-
-			status_check = status & (1 << (index % 32));
-			if (status_check) {
-				/* printk(KERN_DEBUG "Got eint:%d\n",index); */
-				mt_eint_mask(index);
-				if ((EINT_FUNC.is_deb_en[index] == 1)
-				    && (index >= MAX_HW_DEBOUNCE_CNT)) {
-					/* if its debounce is enable and it is a sw debounce */
-					mt_eint_set_timer_event(index);
-				} else {
-					/* HW debounce or no use debounce */
-					t1 = sched_clock();
-					if (EINT_FUNC.eint_func[index]) {
-						EINT_FUNC.eint_func[index] ();
-					}
-					t2 = sched_clock();
-					mt_eint_ack(index);
-#if 1				/* Don't need to use reset ? */
-					/* reset debounce counter */
-					base = (index / 4) * 4 + EINT_DBNC_SET_BASE;
-					rst =
-					    (EINT_DBNC_RST_BIT << EINT_DBNC_SET_RST_BITS) <<
-					    ((index % 4) * 8);
-					mt65xx_reg_sync_writel(rst, base);
-#endif
-#if (EINT_DEBUG == 1)
-					status = mt_eint_get_status(index);
-					dbgmsg("EINT Module - EINT_STA after ack = 0x%x\n", status);
-#endif
-					if (EINT_FUNC.eint_auto_umask[index]) {
-						mt_eint_unmask(index);
-					}
-					if ((t2 - t1) > 1000000) {
-						printk(KERN_WARNING
-						       "[EINT] Warning! EINT:%d run too long,s:%llu,e:%llu,total:%llu\n",
-						       index, t1, t2, (t2 - t1));
-					}
-				}
-			}
-		}
-	}
-
-	dbgmsg(KERN_DEBUG "EINT Module - %s ISR END\n", __func__);
 	return IRQ_HANDLED;
 }
 
@@ -1078,6 +894,9 @@ void mt_eint_registration(unsigned int eint_num, unsigned int flag,
 
 		EINT_FUNC.eint_func[eint_num] = EINT_FUNC_PTR;
 		EINT_FUNC.eint_auto_umask[eint_num] = is_auto_umask;
+
+		/* use -1 to indicate that an eint is registered by mt_eint_registration */
+		eint_to_irq[eint_num] = -1;
 
 		mt_eint_ack(eint_num);
 		mt_eint_unmask(eint_num);
@@ -1537,12 +1356,45 @@ static int mt_eint_irq_set_type(struct irq_data *data, unsigned int type)
 	return IRQ_SET_MASK_OK;
 }
 
+static int mtk_pinctrl_irq_request_resources(struct irq_data *d)
+{
+	int pin, mode;
+
+	printk(KERN_DEBUG "mtk_pinctrl_irq_request_resources: pin=%d, mode=%d, hwirq=%ld, irq=%d\n", pin, mode, d->hwirq, d->irq);
+
+	if (d->irq < EINT_IRQ_BASE || d->irq >= EINT_IRQ_BASE + ARRAY_SIZE(irq_to_gpio))
+		return -EINVAL;
+
+	pin = irq_to_gpio[d->irq - EINT_IRQ_BASE].pin;
+	mode = irq_to_gpio[d->irq - EINT_IRQ_BASE].mode;
+
+	if (pin < 0)
+		return -EINVAL;
+
+	if (eint_to_irq[d->hwirq] != 0)
+		return -EINVAL;
+
+	eint_to_irq[d->hwirq] = d->irq;
+
+	/* set mux to INT mode */
+	mt_set_gpio_mode(pin, mode);
+
+	return 0;
+}
+
+static void mtk_pinctrl_irq_release_resources(struct irq_data *d)
+{
+	eint_to_irq[d->hwirq] = 0;
+}
+
 static struct irq_chip mt_irq_eint = {
 	.name = "mt-eint",
 	.irq_mask = mt_eint_irq_mask,
 	.irq_unmask = mt_eint_irq_unmask,
 	.irq_ack = mt_eint_irq_ack,
 	.irq_set_type = mt_eint_irq_set_type,
+	.irq_request_resources = mtk_pinctrl_irq_request_resources,
+	.irq_release_resources = mtk_pinctrl_irq_release_resources,
 };
 
 static unsigned int mt_eint_get_count(unsigned int eint_num)
@@ -1553,24 +1405,35 @@ static unsigned int mt_eint_get_count(unsigned int eint_num)
 	return 0;
 }
 
-int mt_gpio_set_debounce(unsigned gpio, unsigned debounce)
+int mt_gpio_to_irq(unsigned gpio)
 {
-	if (gpio >= EINT_MAX_CHANNEL)
+	int i;
+
+	if (gpio >= MT_GPIO_BASE_MAX)
 		return -EINVAL;
 
+	for (i=0; i<ARRAY_SIZE(irq_to_gpio); i++) {
+		if (irq_to_gpio[i].pin == gpio)
+			return EINT_IRQ_BASE + i;
+	}
+
+	return -EINVAL;
+}
+EXPORT_SYMBOL(mt_gpio_to_irq);
+
+int mt_gpio_set_debounce(unsigned gpio, unsigned debounce)
+{
+	int irq = mt_gpio_to_irq(gpio);
+
+	if (irq < 0)
+		return irq;
+
 	debounce /= 1000;
-	mt_eint_set_hw_debounce(gpio, debounce);
+	mt_eint_set_hw_debounce(irq_to_gpio[irq - EINT_IRQ_BASE].eint, debounce);
+
 	return 0;
 }
 EXPORT_SYMBOL(mt_gpio_set_debounce);
-
-int mt_gpio_to_irq(unsigned gpio)
-{
-	if (gpio >= EINT_MAX_CHANNEL)
-		return -EINVAL;
-	return gpio + EINT_IRQ_BASE;
-}
-EXPORT_SYMBOL(mt_gpio_to_irq);
 
 /*
  * mt_eint_init: initialize EINT driver.
@@ -1580,7 +1443,7 @@ static int __init mt_eint_init(void)
 {
 	int irq_base;
 	unsigned int i;
-	struct irq_domain *domain;
+	struct irq_domain *domain[MAX_GPIO_PER_EINT];
 	struct mt_eint_driver *eint_drv;
 
 	/* assign to domain 0 for AP */
@@ -1623,21 +1486,24 @@ static int __init mt_eint_init(void)
 	eint_drv->get_count = mt_eint_get_count;
 
 	/* Register Linux IRQ interface */
-	irq_base = irq_alloc_descs(EINT_IRQ_BASE, EINT_IRQ_BASE, EINT_MAX_CHANNEL, numa_node_id());
+	irq_base = irq_alloc_descs(EINT_IRQ_BASE, EINT_IRQ_BASE, ARRAY_SIZE(irq_to_gpio), numa_node_id());
+
 	if (irq_base != EINT_IRQ_BASE)
 		pr_err("EINT alloc desc error %d\n", irq_base);
 
+	for (i=0; i<MAX_GPIO_PER_EINT; i++) {
+		domain[i] = irq_domain_add_linear(NULL, EINT_MAX_CHANNEL,
+				&irq_domain_simple_ops, eint_drv);
 
-	for (i = 0; i < EINT_MAX_CHANNEL; i++) {
+		if (!domain[i])
+			pr_err("EINT domain add error\n");
+	}
+
+	for (i = 0; i < ARRAY_SIZE(irq_to_gpio); i++) {
+		irq_domain_associate(domain[irq_to_gpio[i].domain], i + EINT_IRQ_BASE, irq_to_gpio[i].eint);
 		irq_set_chip_and_handler(i + EINT_IRQ_BASE, &mt_irq_eint, handle_level_irq);
 		set_irq_flags(i + EINT_IRQ_BASE, IRQF_VALID);
 	}
-
-	domain = irq_domain_add_legacy(NULL, EINT_MAX_CHANNEL, EINT_IRQ_BASE, 0,
-				       &irq_domain_simple_ops, eint_drv);
-
-	if (!domain)
-		pr_err("EINT domain add error\n");
 
 	irq_set_chained_handler(EINT_IRQ, (irq_flow_handler_t) mt_eint_demux);
 

@@ -1,3 +1,17 @@
+/*
+* Copyright (C) 2011-2015 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <linux/kernel.h>
 #include <linux/device.h>
 #include <linux/platform_device.h>
@@ -21,7 +35,6 @@
 /*
  * Definition
  */
-#define LDVT
 
 #define CIRQ_DEBUG   0
 #if (CIRQ_DEBUG == 1)
@@ -355,39 +368,6 @@ void mt_cirq_disable(void)
  */
 void mt_cirq_flush(void)
 {
-#if 0
-	unsigned int st;
-
-	print_func();
-
-	st = readl(CIRQ_CON);
-	st |= (CIRQ_CON_FLUSH << CIRQ_CON_FLUSH_BITS);
-	mt65xx_reg_sync_writel((st & CIRQ_CON_BITS_MASK), CIRQ_CON);
-#else
-
-#if 0
-	unsigned int cirq_num, msb_cirq_num;
-	unsigned int st;
-
-	print_func();
-
-	for (cirq_num = 0; cirq_num < CIRQ_MAX_CHANNEL; cirq_num += 32) {
-		st = readl((cirq_num / 32) * 4 + CIRQ_STA_BASE);
-
-		mt65xx_reg_sync_writel(st << (CIRQ_TO_IRQ_NUM(0) % 32),
-				       GIC_DIST_BASE + GIC_DIST_PENDING_SET +
-				       (CIRQ_TO_IRQ_NUM(cirq_num) / 32 * 4));
-		if (CIRQ_TO_IRQ_NUM(0) % 32 != 0) {
-			msb_cirq_num =
-			    ((cirq_num + 31) <
-			     CIRQ_MAX_CHANNEL) ? (cirq_num + 31) : CIRQ_MAX_CHANNEL;
-			mt65xx_reg_sync_writel(st >> (32 - (CIRQ_TO_IRQ_NUM(0) % 32)),
-					       GIC_DIST_BASE + GIC_DIST_PENDING_SET +
-					       (CIRQ_TO_IRQ_NUM(msb_cirq_num) / 32 * 4));
-		}
-	}
-	mt_cirq_ack_all();
-#endif
 	unsigned int i;
 	unsigned int st;
 
@@ -409,8 +389,6 @@ void mt_cirq_flush(void)
 		}
 	}
 	mt_cirq_ack_all();
-
-#endif
 
 	return;
 }
@@ -524,58 +502,6 @@ void mt_cirq_clone_gic(void)
 	return;
 }
 
-#if 0
-/*
- * mt_cirq_wfi_func:
- */
-void mt_cirq_wfi_func(void)
-{
-	mt_cirq_mask_all();
-
-	mt_cirq_set_pol(IRQ_TO_CIRQ_NUM(MT_MD_WDT1_IRQ_ID), MT_CIRQ_POL_NEG);
-	mt_cirq_set_sens(IRQ_TO_CIRQ_NUM(MT_MD_WDT1_IRQ_ID), MT_EDGE_SENSITIVE);
-	mt_cirq_unmask(IRQ_TO_CIRQ_NUM(MT_MD_WDT1_IRQ_ID));
-
-	return;
-}
-#endif
-
-#if defined(LDVT)
-/*
- * cirq_dvt_show: To show usage.
- */
-static ssize_t cirq_dvt_show(struct device_driver *driver, char *buf)
-{
-	return snprintf(buf, PAGE_SIZE, "CIRQ dvt test\n");
-}
-
-/*
- * mci_dvt_store: To select mci test case.
- */
-static ssize_t cirq_dvt_store(struct device_driver *driver, const char *buf, size_t count)
-{
-	char *p = (char *)buf;
-	unsigned int num;
-
-	num = simple_strtoul(p, &p, 10);
-	switch (num) {
-	case 1:
-		mt_cirq_clone_gic();
-		break;
-	case 2:
-		break;
-	case 3:
-		break;
-	default:
-		break;
-	}
-
-	return count;
-}
-
-DRIVER_ATTR(cirq_dvt, 0664, cirq_dvt_show, cirq_dvt_store);
-#endif				/* !LDVT */
-
 /*
  * cirq_irq_handler: SYS_CIRQ interrupt service routine.
  */
@@ -596,25 +522,11 @@ int mt_cirq_init(void)
 {
 	int ret;
 
-	printk("CIRQ init...\n");
-
-#if 1
-	if (request_irq(MT_CIRQ_IRQ_ID, cirq_irq_handler, IRQF_TRIGGER_LOW, "CIRQ", NULL)) {
-		printk(KERN_ERR "CIRQ IRQ LINE NOT AVAILABLE!!\n");
-	} else {
-		printk("CIRQ handler init success.\n");
-	}
-#endif
+	printk(KERN_DEBUG "CIRQ init...\n");
 
 	ret = driver_register(&mt_cirq_drv.driver);
 	if (ret == 0)
-		printk("CIRQ init done...\n");
-
-#ifdef LDVT
-	ret = driver_create_file(&mt_cirq_drv.driver, &driver_attr_cirq_dvt);
-	if (ret == 0)
-		printk("CIRQ create sysfs file done...\n");
-#endif
+		printk(KERN_DEBUG "CIRQ init done...\n");
 
 	return 0;
 }

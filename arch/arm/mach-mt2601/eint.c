@@ -1360,8 +1360,6 @@ static int mtk_pinctrl_irq_request_resources(struct irq_data *d)
 {
 	int pin, mode;
 
-	printk(KERN_DEBUG "mtk_pinctrl_irq_request_resources: pin=%d, mode=%d, hwirq=%ld, irq=%d\n", pin, mode, d->hwirq, d->irq);
-
 	if (d->irq < EINT_IRQ_BASE || d->irq >= EINT_IRQ_BASE + ARRAY_SIZE(irq_to_gpio))
 		return -EINVAL;
 

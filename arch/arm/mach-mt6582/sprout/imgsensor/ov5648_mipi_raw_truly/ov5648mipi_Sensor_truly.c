@@ -772,8 +772,8 @@ static void OV5648MIPI_Write_Shutter(kal_uint16 iShutter)
                 break;
         }
 
-        SENSORDB("AutoFlickerMode!!! min_framelength for AutoFlickerMode = %d (0x%x)\n", min_framelength, min_framelength);
-        SENSORDB("max framerate(10 base) autofilker = %d\n",(OV5648MIPITRULY_sensor.pvPclk)*10 /line_length/min_framelength);
+        //SENSORDB("AutoFlickerMode!!! min_framelength for AutoFlickerMode = %d (0x%x)\n", min_framelength, min_framelength);
+        //SENSORDB("max framerate(10 base) autofilker = %d\n",(OV5648MIPI_sensor.pvPclk)*10 /line_length/min_framelength);
 
         if (iShutter < 3)
             iShutter = 3;
@@ -795,7 +795,7 @@ static void OV5648MIPI_Write_Shutter(kal_uint16 iShutter)
         {
             frame_length = OV5648MIPITRULY_FULL_PERIOD_LINE_NUMS + OV5648MIPITRULY_sensor.dummy_line + extra_lines ;
         }
-        SENSORDB("frame_length 0= %d\n",frame_length);
+        //SENSORDB("frame_length 0= %d\n",frame_length);
 
 
         if (frame_length < min_framelength)
@@ -816,7 +816,7 @@ static void OV5648MIPI_Write_Shutter(kal_uint16 iShutter)
             frame_length = min_framelength;
         }
 
-        SENSORDB("frame_length 1= %d\n", frame_length);
+        //SENSORDB("frame_length 1= %d\n", frame_length);
 
 
         //Set total frame length
@@ -834,8 +834,8 @@ static void OV5648MIPI_Write_Shutter(kal_uint16 iShutter)
         OV5648MIPI_write_cmos_sensor(0x3501, (iShutter>>4) & 0xFF);
         OV5648MIPI_write_cmos_sensor(0x3502, (iShutter<<4) & 0xF0);  /* Don't use the fraction part. */
 
-        SENSORDB("frame_length 2= %d\n",frame_length);
-        SENSORDB("shutter=%d, extra_lines=%d, line_length=%d, frame_length=%d\n", iShutter, extra_lines, line_length, frame_length);
+        //SENSORDB("frame_length 2= %d\n",frame_length);
+        //SENSORDB("shutter=%d, extra_lines=%d, line_length=%d, frame_length=%d\n", iShutter, extra_lines, line_length, frame_length);
     }
     else
     {
@@ -876,7 +876,7 @@ static void OV5648MIPI_Write_Shutter(kal_uint16 iShutter)
         {
             frame_length = OV5648MIPITRULY_FULL_PERIOD_LINE_NUMS + OV5648MIPITRULY_sensor.dummy_line + extra_lines ;
         }
-        SENSORDB("frame_length 0= %d\n",frame_length);
+        //SENSORDB("frame_length 0= %d\n",frame_length);
 
         //Set total frame length
         OV5648MIPI_write_cmos_sensor(0x380e, (frame_length >> 8) & 0xFF);
@@ -894,8 +894,8 @@ static void OV5648MIPI_Write_Shutter(kal_uint16 iShutter)
         OV5648MIPI_write_cmos_sensor(0x3501, (iShutter>>4) & 0xFF);
         OV5648MIPI_write_cmos_sensor(0x3502, (iShutter<<4) & 0xF0);  /* Don't use the fraction part. */
 
-        SENSORDB("frame_length 2= %d\n",frame_length);
-        SENSORDB("shutter=%d, extra_lines=%d, line_length=%d, frame_length=%d\n", iShutter, extra_lines, line_length, frame_length);
+        //SENSORDB("frame_length 2= %d\n",frame_length);
+        //SENSORDB("shutter=%d, extra_lines=%d, line_length=%d, frame_length=%d\n", iShutter, extra_lines, line_length, frame_length);
     }
 }   /*  OV5648MIPI_Write_Shutter  */
 
@@ -1827,6 +1827,9 @@ static void OV5648MIPI_Capture_Setting(void)
 *
 *************************************************************************/
 extern unsigned int g_para_version;
+extern char g_para_model[32];
+extern unsigned int gDrvIndex;
+
 UINT32 OV5648MIPITrulyOpen(void)
 {
     kal_uint16 sensor_id = 0;
@@ -1943,17 +1946,30 @@ static UINT32 OV5648GetSensorID(UINT32 *sensorID)
     }
     else
     {
-        /* GPIO_MAIN_CAM_ID_PIN	AC11(GPIO17) 0x80000011*/
-        /* Sunny(1), Truly(0)*/
-        unsigned int hw_id;
-        hw_id=mt_get_gpio_in(GPIO_MAIN_CAM_ID_PIN); // GPIO 19
-        mdelay(1);
-        SENSORDB("OV5648 hw_id:%x \n",hw_id);
-        if(hw_id != 0x00){
-            *sensorID = 0xFFFFFFFF;
-            SENSORDB("This is not truly ov5648: module_id = 0x%x ", hw_id);
-            return ERROR_SENSOR_CONNECT_FAIL;
+        SENSORDB("OV5648(index:%x), ParaName=%s\n",gDrvIndex >> 16, g_para_model);
+        if(0 == strcmp("BOARD_D3062", g_para_model))/*Only for Model "BOARD_D3062"*/
+        {
+            if((gDrvIndex >> 16)!= 0x02)
+            {
+                *sensorID = 0xFFFFFFFF;
+                SENSORDB("This is not truly ov5648: module_id = 0x%x ", gDrvIndex >> 16);
+                return ERROR_SENSOR_CONNECT_FAIL;
+            }
         }
+        else{
+            /* GPIO_MAIN_CAM_ID_PIN	AC11(GPIO17) 0x80000011*/
+            /* Sunny(1), Truly(0)*/
+            unsigned int hw_id;
+            hw_id=mt_get_gpio_in(GPIO_MAIN_CAM_ID_PIN); // GPIO 19
+            mdelay(1);
+            SENSORDB("OV5648 hw_id:%x \n",hw_id);
+            if(hw_id != 0x00){
+                *sensorID = 0xFFFFFFFF;
+                SENSORDB("This is not truly ov5648: module_id = 0x%x ", hw_id);
+                return ERROR_SENSOR_CONNECT_FAIL;
+            }
+        }
+
     }
     *sensorID +=0x02;
     SENSORDB("This is  truly ov5648, sensorID = 0x%x ", *sensorID);

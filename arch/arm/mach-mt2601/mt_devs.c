@@ -21,12 +21,17 @@
 #include <mach/mt_reg_base.h>
 #include <mach/devs.h>
 #include <mach/mt_boot.h>
+#include "mach/mt_gpio.h"
 #include <linux/version.h>
 #include "mach/mtk_ccci_helper.h"
 #include <mach/mtk_memcfg.h>
 #include <mach/dfo_boot.h>
 #include <mach/dfo_boot_default.h>
 #include <linux/mrdump.h>
+#include <cust_gpio_boot.h>
+#if defined(CONFIG_NANOHUB) || defined(CONFIG_NANOHUB_MODULE)
+#include <linux/platform_data/nanohub.h>
+#endif
 
 #define SERIALNO_LEN 32
 static char serial_number[SERIALNO_LEN];
@@ -567,6 +572,70 @@ static struct platform_device mt_spi_device = {
 	.resource = mt_spi_resources
 };
 
+#if defined(CONFIG_NANOHUB) || defined(CONFIG_NANOHUB_MODULE)
+static struct nanohub_flash_bank nanohub_flash_banks[] = {
+	[0] = {
+		.bank = 0,
+		.address = 0x08000000,
+		.length = 0x04000,
+	},
+	[1] = {
+		.bank = 3,
+		.address = 0x0800C000,
+		.length = 0x04000,
+	},
+	[2] = {
+		.bank = 4,
+		.address = 0x08010000,
+		.length = 0x10000,
+	}
+};
+
+static struct nanohub_flash_bank nanohub_shared_flash_banks[] = {
+	[0] = {
+		.bank = 5,
+		.address = 0x08020000,
+		.length = 0x20000,
+	},
+	[1] = {
+		.bank = 6,
+		.address = 0x08040000,
+		.length = 0x20000,
+	},
+	[2] = {
+		.bank = 7,
+		.address = 0x08060000,
+		.length = 0x20000,
+	}
+};
+
+static struct nanohub_platform_data nanohub_info = {
+	.wakeup_gpio = GPIO139,
+	.nreset_gpio = GPIO145,
+	.boot0_gpio = GPIO143,
+	.irq1_gpio = GPIO140,
+	.irq2_gpio = GPIO87,
+	.spi_cs_gpio = GPIO97,
+	.bl_addr = 0x08000000,
+	.flash_banks = nanohub_flash_banks,
+	.num_flash_banks = ARRAY_SIZE(nanohub_flash_banks),
+	.shared_flash_banks = nanohub_shared_flash_banks,
+	.num_shared_flash_banks = ARRAY_SIZE(nanohub_shared_flash_banks),
+};
+#endif
+
+static struct spi_board_info spi_board_devs[] = {
+#if defined(CONFIG_NANOHUB) || defined(CONFIG_NANOHUB_MODULE)
+	{
+		.modalias = "nanohub",
+		.max_speed_hz = 33000000,
+		.bus_num = 0,
+		.chip_select = 0,
+		.mode = SPI_MODE_0,
+		.platform_data = &nanohub_info,
+	},
+#endif
+};
 #endif
 
 
@@ -1649,10 +1718,13 @@ __init int mt_board_init(void)
 
 
 #if defined(CONFIG_MTK_SPI)
-/* spi_register_board_info(spi_board_devs, ARRAY_SIZE(spi_board_devs)); */
+	spi_register_board_info(spi_board_devs, ARRAY_SIZE(spi_board_devs));
 	platform_device_register(&mt_spi_device);
 #endif
-
+	mt_set_gpio_pull_select(GPIO140, GPIO140_PULL);
+	mt_set_gpio_pull_enable(GPIO140, GPIO140_PULLEN);
+	mt_set_gpio_pull_select(GPIO87, GPIO87_PULL);
+	mt_set_gpio_pull_enable(GPIO87, GPIO87_PULLEN);
 
 
 

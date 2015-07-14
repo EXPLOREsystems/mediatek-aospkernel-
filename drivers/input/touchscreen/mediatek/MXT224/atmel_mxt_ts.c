@@ -995,7 +995,7 @@ static void mxt_input_sync(struct mxt_data *data)
 static void mxt_proc_t9_message(struct mxt_data *data, u8 *message)
 {
 	struct device *dev = &data->client->dev;
-	struct input_dev *input_dev = data->input_dev;
+	struct input_dev *input_dev = tpd->dev;
 	int id;
 	u8 status;
 	int x;
@@ -1045,6 +1045,7 @@ static void mxt_proc_t9_message(struct mxt_data *data, u8 *message)
 		if (status & MXT_T9_RELEASE) {
 			input_mt_report_slot_state(input_dev,
 						   MT_TOOL_FINGER, 0);
+			input_mt_sync(input_dev);
 			mxt_input_sync(data);
 		}
 
@@ -2452,11 +2453,10 @@ static int mxt_initialize_t9_input_device(struct mxt_data *data)
 	if (error)
 		TPD_DMESG("Failed to initialize T9 resolution\n");
 
-	input_dev = input_allocate_device();
+	input_dev = tpd->dev;
 	if (!input_dev)
 		return -ENOMEM;
 
-	input_dev->name = "Atmel maXTouch Touchscreen";
 	input_dev->phys = data->phys;
 	input_dev->id.bustype = BUS_I2C;
 	input_dev->dev.parent = dev;
@@ -2484,7 +2484,6 @@ static int mxt_initialize_t9_input_device(struct mxt_data *data)
 		input_abs_set_res(input_dev, ABS_MT_POSITION_Y,
 				  MXT_PIXELS_PER_MM);
 
-		input_dev->name = "Atmel maXTouch Touchpad";
 	} else {
 		mt_flags |= INPUT_MT_DIRECT;
 	}
@@ -2535,19 +2534,12 @@ static int mxt_initialize_t9_input_device(struct mxt_data *data)
 
 	input_set_drvdata(input_dev, data);
 
-	error = input_register_device(input_dev);
-	if (error) {
-		TPD_DMESG("Error %d registering input device\n", error);
-		goto err_free_mem;
-	}
-
 	mutex_init(&input_dev->mutex);
 	data->input_dev = input_dev;
 
 	return 0;
 
 err_free_mem:
-	input_free_device(input_dev);
 	return error;
 }
 

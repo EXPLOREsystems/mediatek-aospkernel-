@@ -1252,7 +1252,7 @@ static int mt_cpufreq_init(struct cpufreq_policy *policy)
     * set default policy and cpuinfo, unit : Khz
     **********************************************/
 	/* Efuse Table Entry Point */
-	g_cpufreq_get_ptp_level = get_ptp_level();
+	g_cpufreq_get_ptp_level = PTP_LEVEL_1;
 	xlog_printk(ANDROID_LOG_ERROR, "Power/DVFS", "g_cpufreq_get_ptp_level = %d\n",
 		    g_cpufreq_get_ptp_level);
 

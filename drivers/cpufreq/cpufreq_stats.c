@@ -116,7 +116,7 @@ static ssize_t show_time_in_state(struct cpufreq_policy *policy, char *buf)
 	for (i = 0; i < stat->state_num; i++) {
 		len += sprintf(buf + len, "%u %llu\n", stat->freq_table[i],
 			(unsigned long long)
-			jiffies_64_to_clock_t(stat->time_in_state[i]));
+			cputime64_to_clock_t(stat->time_in_state[i]));
 	}
 	return len;
 }
@@ -335,19 +335,19 @@ put_ref:
 
 static void cpufreq_allstats_free(void)
 {
-	int cpu;
+	int i;
 	struct all_cpufreq_stats *all_stat;
 
 	sysfs_remove_file(cpufreq_global_kobject,
 						&_attr_all_time_in_state.attr);
 
-	for_each_possible_cpu(cpu) {
-		all_stat = per_cpu(all_cpufreq_stats, cpu);
+	for (i = 0; i < total_cpus; i++) {
+		all_stat = per_cpu(all_cpufreq_stats, i);
 		if (!all_stat)
 			continue;
 		kfree(all_stat->time_in_state);
 		kfree(all_stat);
-		per_cpu(all_cpufreq_stats, cpu) = NULL;
+		per_cpu(all_cpufreq_stats, i) = NULL;
 	}
 	if (all_freq_table) {
 		kfree(all_freq_table->freq_table);

@@ -25,12 +25,9 @@
 #include <linux/tick.h>
 #include <linux/types.h>
 #include <linux/cpu.h>
-#include <linux/sched.h>
-#include <linux/sched/rt.h>
-#include <linux/kthread.h>
-#include <linux/input.h>	/* <-XXX */
-#include <linux/slab.h>		/* <-XXX */
-#include "mach/mt_cpufreq.h"	/* <-XXX */
+#include <linux/input.h>
+#include <linux/slab.h>
+#include "mach/mt_cpufreq.h"
 
 #include "cpufreq_governor.h"
 
@@ -40,14 +37,13 @@
 #define DEF_SAMPLING_DOWN_FACTOR            (1)
 #define MAX_SAMPLING_DOWN_FACTOR            (100000)
 #define MICRO_FREQUENCY_DOWN_DIFFERENTIAL   (15)
-#define MIN_FREQUENCY_DOWN_DIFFERENTIAL     (5)	/* <-XXX */
-#define MAX_FREQUENCY_DOWN_DIFFERENTIAL     (20)	/* <-XXX */
+#define MIN_FREQUENCY_DOWN_DIFFERENTIAL     (5)
+#define MAX_FREQUENCY_DOWN_DIFFERENTIAL     (20)
 #define MICRO_FREQUENCY_UP_THRESHOLD        (85)
 #define MICRO_FREQUENCY_MIN_SAMPLE_RATE     (30000)
 #define MIN_FREQUENCY_UP_THRESHOLD          (21)
 #define MAX_FREQUENCY_UP_THRESHOLD          (100)
 
-/* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 /*
  * cpu hotplug - macro
  */
@@ -123,7 +119,6 @@ static long g_cpu_down_load_history[MAX_CPU_DOWN_AVG_TIMES] = { 0 };
 cpu_hotplug_work_type_t g_trigger_hp_work;
 static unsigned int g_next_hp_action;
 static struct delayed_work hp_work;
-struct workqueue_struct *hp_wq = NULL;
 
 int g_tlp_avg_current;	/* set global for information purpose */
 int g_tlp_avg_sum;
@@ -168,7 +163,6 @@ EXPORT_SYMBOL(dbs_freq_thermal_limited);
 
 
 void (*cpufreq_freq_check) (enum mt_cpu_dvfs_id id) = NULL;
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
 
 static DEFINE_PER_CPU(struct hp_cpu_dbs_info_s, hp_cpu_dbs_info);
 
@@ -207,7 +201,7 @@ static int should_io_be_busy(void)
 	    boot_cpu_data.x86 == 6 && boot_cpu_data.x86_model >= 15)
 		return 1;
 #endif
-	return 1;		/* io wait time should be subtracted from idle time // <-XXX */
+	return 1;		/* io wait time should be subtracted from idle time */
 }
 
 /*
@@ -281,7 +275,6 @@ static void dbs_freq_increase(struct cpufreq_policy *p, unsigned int freq)
 	if (hp_tuners->powersave_bias)
 		freq = hp_ops.powersave_bias_target(p, freq, CPUFREQ_RELATION_H);
 	else if (p->cur == p->max) {
-/* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 		if (dbs_ignore == 0) {
 			if ((dbs_thermal_limited == 1) && (freq > dbs_thermal_limited_freq)) {
 				freq = dbs_thermal_limited_freq;
@@ -290,7 +283,6 @@ static void dbs_freq_increase(struct cpufreq_policy *p, unsigned int freq)
 
 			dbs_ignore = 1;
 		} else
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
 			return;
 	}
 
@@ -298,13 +290,12 @@ static void dbs_freq_increase(struct cpufreq_policy *p, unsigned int freq)
 				CPUFREQ_RELATION_L : CPUFREQ_RELATION_H);
 }
 
-/* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 /*
  * cpu hotplug - function definition
  */
 int hp_get_dynamic_cpu_hotplug_enable(void)
 {
-	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;	/* TODO: FIXME, cpu = 0 */
+	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;
 	struct hp_dbs_tuners *hp_tuners;
 
 	if (!dbs_data)
@@ -319,7 +310,7 @@ EXPORT_SYMBOL(hp_get_dynamic_cpu_hotplug_enable);
 
 void hp_set_dynamic_cpu_hotplug_enable(int enable)
 {
-	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;	/* TODO: FIXME, cpu = 0 */
+	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;
 	struct hp_dbs_tuners *hp_tuners;
 
 	if (!dbs_data)
@@ -343,7 +334,7 @@ EXPORT_SYMBOL(hp_set_dynamic_cpu_hotplug_enable);
 
 void hp_limited_cpu_num(int num)
 {
-	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;	/* TODO: FIXME, cpu = 0 */
+	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;
 	struct hp_dbs_tuners *hp_tuners;
 
 	if (!dbs_data)
@@ -364,7 +355,7 @@ EXPORT_SYMBOL(hp_limited_cpu_num);
 void hp_based_cpu_num(int num)
 {
 	unsigned int online_cpus_count;
-	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;	/* TODO: FIXME, cpu = 0 */
+	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;
 	struct hp_dbs_tuners *hp_tuners;
 
 	if (!dbs_data)
@@ -386,16 +377,12 @@ void hp_based_cpu_num(int num)
 		struct hp_cpu_dbs_info_s *dbs_info;
 		struct cpufreq_policy *policy;
 
-		dbs_info = &per_cpu(hp_cpu_dbs_info, 0);	/* TODO: FIXME, cpu = 0 */
+		dbs_info = &per_cpu(hp_cpu_dbs_info, 0);
 		policy = dbs_info->cdbs.cur_policy;
 
 		dbs_freq_increase(policy, policy->max);
 		g_trigger_hp_work = CPU_HOTPLUG_WORK_TYPE_BASE;
-		/* schedule_delayed_work_on(0, &hp_work, 0); */
-		if (hp_wq == NULL)
-			pr_emerg("[power/hotplug] %s():%d, impossible\n", __func__, __LINE__);
-		else
-			queue_delayed_work_on(0, hp_wq, &hp_work, 0);
+		schedule_delayed_work_on(0, &hp_work, 0);
 	}
 #endif
 
@@ -405,7 +392,7 @@ EXPORT_SYMBOL(hp_based_cpu_num);
 
 int hp_get_cpu_rush_boost_enable(void)
 {
-	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;	/* TODO: FIXME, cpu = 0 */
+	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;
 	struct hp_dbs_tuners *hp_tuners;
 
 	if (!dbs_data)
@@ -420,7 +407,7 @@ EXPORT_SYMBOL(hp_get_cpu_rush_boost_enable);
 
 void hp_set_cpu_rush_boost_enable(int enable)
 {
-	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;	/* TODO: FIXME, cpu = 0 */
+	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;
 	struct hp_dbs_tuners *hp_tuners;
 
 	if (!dbs_data)
@@ -451,7 +438,7 @@ static void sched_get_nr_running_avg(int *avg, int *iowait_avg)
 
 static void hp_reset_strategy_nolock(void)
 {
-	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;	/* TODO: FIXME, cpu = 0 */
+	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;
 	struct hp_dbs_tuners *hp_tuners;
 
 	if (!dbs_data)
@@ -464,13 +451,11 @@ static void hp_reset_strategy_nolock(void)
 	g_cpu_up_sum_load = 0;
 	g_cpu_up_load_index = 0;
 	g_cpu_up_load_history[hp_tuners->cpu_up_avg_times - 1] = 0;
-	/* memset(g_cpu_up_load_history, 0, sizeof(long) * MAX_CPU_UP_AVG_TIMES); */
 
 	g_cpu_down_count = 0;
 	g_cpu_down_sum_load = 0;
 	g_cpu_down_load_index = 0;
 	g_cpu_down_load_history[hp_tuners->cpu_down_avg_times - 1] = 0;
-	/* memset(g_cpu_down_load_history, 0, sizeof(long) * MAX_CPU_DOWN_AVG_TIMES); */
 
 	g_tlp_avg_sum = 0;
 	g_tlp_avg_count = 0;
@@ -492,7 +477,7 @@ static void hp_reset_strategy(void)
 
 static void hp_work_handler(struct work_struct *work)
 {
-	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;	/* TODO: FIXME, cpu = 0 */
+	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;
 	struct hp_dbs_tuners *hp_tuners;
 
 	if (!dbs_data)
@@ -552,7 +537,6 @@ static void hp_work_handler(struct work_struct *work)
 					     hp_tuners->cpu_num_limit); ++i)
 					cpu_up(i);
 
-				/* pr_debug("[power/hotplug] cpu input boost\n"); */
 				break;
 			}
 
@@ -560,40 +544,12 @@ static void hp_work_handler(struct work_struct *work)
 			dbs_ignore = 0;	/* force trigger frequency scaling */
 
 			pr_debug("[power/hotplug] hp_work_handler end\n");
-
-			/*
-			   if (g_next_hp_action) // turn on CPU
-			   {
-			   if (online_cpus_count < num_possible_cpus())
-			   {
-			   pr_debug("hp_work_handler: cpu_up(%d) kick off\n", online_cpus_count);
-			   cpu_up(online_cpus_count);
-			   hp_reset_strategy();
-			   pr_debug("hp_work_handler: cpu_up(%d) completion\n", online_cpus_count);
-
-			   dbs_ignore = 0; // force trigger frequency scaling
-			   }
-			   }
-			   else // turn off CPU
-			   {
-			   if (online_cpus_count > 1)
-			   {
-			   pr_debug("hp_work_handler: cpu_down(%d) kick off\n", (online_cpus_count - 1));
-			   cpu_down((online_cpus_count - 1));
-			   hp_reset_strategy();
-			   pr_debug("hp_work_handler: cpu_down(%d) completion\n", (online_cpus_count - 1));
-
-			   dbs_ignore = 0; // force trigger frequency scaling
-			   }
-			   }
-			 */
 		}
 
 		mutex_unlock(&hp_onoff_mutex);
 	}
 }
 #endif				/* #ifdef CONFIG_HOTPLUG_CPU */
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
 
 /*
  * Every sampling_rate, we check, if current idle time is less than 20%
@@ -619,21 +575,19 @@ static void hp_check_cpu(int cpu, unsigned int load_freq)
 
 	dbs_info->freq_lo = 0;
 
-	/* pr_emerg("***** cpu: %d, load_freq: %u, smp_processor_id: %d *****\n", cpu, load_freq, smp_processor_id()); */
-
 	/* Check for frequency increase */
 	if (load_freq > hp_tuners->up_threshold * policy->cur) {
 		/* If switching to max speed, apply sampling_down_factor */
 		if (policy->cur < policy->max)
 			dbs_info->rate_mult = hp_tuners->sampling_down_factor;
 		dbs_freq_increase(policy, policy->max);
-		goto hp_check;	/* <-XXX */
+		goto hp_check;
 	}
 
 	/* Check for frequency decrease */
 	/* if we cannot reduce the frequency anymore, break out early */
 	if (policy->cur == policy->min)
-		goto hp_check;	/* <-XXX */
+		goto hp_check;
 
 	/*
 	 * The optimal frequency is the frequency that is the lowest that can
@@ -658,7 +612,6 @@ static void hp_check_cpu(int cpu, unsigned int load_freq)
 			__cpufreq_driver_target(policy, freq_next, CPUFREQ_RELATION_L);
 		}
 	}
-/* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
  hp_check:{
 #ifdef CONFIG_HOTPLUG_CPU
 		long cpus_sum_load_last_up = 0;
@@ -702,8 +655,6 @@ static void hp_check_cpu(int cpu, unsigned int load_freq)
 		g_tlp_avg_average = g_tlp_avg_sum / hp_tuners->cpu_rush_tlp_times;
 
 		if (hp_tuners->cpu_rush_boost_enable) {
-			/* pr_debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@ tlp: %d @@@@@@@@@@@@@@@@@@@@@@@@@@@\n", g_tlp_avg_average); */
-
 			if (g_cpus_sum_load_current >
 			    hp_tuners->cpu_rush_threshold * online_cpus_count)
 				++g_cpu_rush_count;
@@ -723,11 +674,7 @@ static void hp_check_cpu(int cpu, unsigned int load_freq)
 					g_next_hp_action = num_possible_cpus();
 
 				g_trigger_hp_work = CPU_HOTPLUG_WORK_TYPE_RUSH;
-				/* schedule_delayed_work_on(0, &hp_work, 0); */
-				if (hp_wq == NULL)
-					pr_emerg("[power/hotplug] %s():%d, impossible\n", __func__, __LINE__);
-				else
-					queue_delayed_work_on(0, hp_wq, &hp_work, 0);
+				schedule_delayed_work_on(0, &hp_work, 0);
 
 				goto hp_check_end;
 			}
@@ -738,11 +685,7 @@ static void hp_check_cpu(int cpu, unsigned int load_freq)
 			dbs_freq_increase(policy, policy->max);
 			pr_debug("dbs_check_cpu: turn on CPU\n");
 			g_trigger_hp_work = CPU_HOTPLUG_WORK_TYPE_BASE;
-			/* schedule_delayed_work_on(0, &hp_work, 0); */
-			if (hp_wq == NULL)
-				pr_emerg("[power/hotplug] %s():%d, impossible\n", __func__, __LINE__);
-			else
-				queue_delayed_work_on(0, hp_wq, &hp_work, 0);
+			schedule_delayed_work_on(0, &hp_work, 0);
 
 			goto hp_check_end;
 		}
@@ -751,11 +694,7 @@ static void hp_check_cpu(int cpu, unsigned int load_freq)
 			dbs_freq_increase(policy, policy->max);
 			pr_debug("dbs_check_cpu: turn off CPU\n");
 			g_trigger_hp_work = CPU_HOTPLUG_WORK_TYPE_LIMIT;
-			/* schedule_delayed_work_on(0, &hp_work, 0); */
-			if (hp_wq == NULL)
-				pr_emerg("[power/hotplug] %s():%d, impossible\n", __func__, __LINE__);
-			else
-				queue_delayed_work_on(0, hp_wq, &hp_work, 0);
+			schedule_delayed_work_on(0, &hp_work, 0);
 
 			goto hp_check_end;
 		}
@@ -777,7 +716,6 @@ static void hp_check_cpu(int cpu, unsigned int load_freq)
 				else
 					g_cpu_up_sum_load = 0;
 
-				/* g_cpu_up_sum_load /= hp_tuners->cpu_up_avg_times; */
 				if (g_cpu_up_sum_load >
 				    (hp_tuners->cpu_up_threshold * online_cpus_count *
 				     hp_tuners->cpu_up_avg_times)) {
@@ -790,11 +728,7 @@ static void hp_check_cpu(int cpu, unsigned int load_freq)
 						pr_debug("dbs_check_cpu: turn on CPU\n");
 						g_next_hp_action = online_cpus_count + 1;
 						g_trigger_hp_work = CPU_HOTPLUG_WORK_TYPE_UP;
-						/* schedule_delayed_work_on(0, &hp_work, 0); */
-						if (hp_wq == NULL)
-							pr_emerg("[power/hotplug] %s():%d, impossible\n", __func__, __LINE__);
-						else
-							queue_delayed_work_on(0, hp_wq, &hp_work, 0);
+						schedule_delayed_work_on(0, &hp_work, 0);
 
 						goto hp_check_end;
 					}
@@ -836,11 +770,9 @@ static void hp_check_cpu(int cpu, unsigned int load_freq)
 
 				while ((g_cpu_down_sum_load <
 					cpu_down_threshold * (g_next_hp_action - 1)) &&
-				       /* (g_next_hp_action > tlp_cpu_num) && */
 				       (g_next_hp_action > hp_tuners->cpu_num_base))
 					--g_next_hp_action;
 
-				/* pr_debug("### g_next_hp_action: %d, tlp_cpu_num: %d, g_cpu_down_sum_load / hp_tuners->cpu_down_avg_times: %d ###\n", g_next_hp_action, tlp_cpu_num, g_cpu_down_sum_load / hp_tuners->cpu_down_avg_times); */
 				if (g_next_hp_action < online_cpus_count) {
 #ifdef DEBUG_LOG
 					pr_debug("dbs_check_cpu: g_cpu_down_sum_load = %d\n",
@@ -849,11 +781,7 @@ static void hp_check_cpu(int cpu, unsigned int load_freq)
 					dbs_freq_increase(policy, policy->max);
 					pr_debug("dbs_check_cpu: turn off CPU\n");
 					g_trigger_hp_work = CPU_HOTPLUG_WORK_TYPE_DOWN;
-					/* schedule_delayed_work_on(0, &hp_work, 0); */
-					if (hp_wq == NULL)
-						pr_emerg("[power/hotplug] %s():%d, impossible\n", __func__, __LINE__);
-					else
-						queue_delayed_work_on(0, hp_wq, &hp_work, 0);
+					schedule_delayed_work_on(0, &hp_work, 0);
 				}
 			}
 #ifdef DEBUG_LOG
@@ -870,7 +798,6 @@ static void hp_check_cpu(int cpu, unsigned int load_freq)
 
 #endif				/* #ifdef CONFIG_HOTPLUG_CPU */
 	}
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
 }
 
 static void hp_dbs_timer(struct work_struct *work)
@@ -921,11 +848,9 @@ static void hp_dbs_timer(struct work_struct *work)
 	gov_queue_work(dbs_data, dbs_info->cdbs.cur_policy, delay, modify_all);
 	mutex_unlock(&core_dbs_info->cdbs.timer_mutex);
 
-/* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-	/* for downgrade */ /* TODO: FIXME */
+	/* for downgrade */
 	if (cpufreq_freq_check)
-		cpufreq_freq_check(0);	/* TODO: FIXME, fix cpuid = 0 */
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
+		cpufreq_freq_check(0);
 }
 
 /************************** sysfs interface ************************/
@@ -947,29 +872,30 @@ static struct common_dbs_data hp_dbs_cdata;
 static void update_sampling_rate(struct dbs_data *dbs_data, unsigned int new_rate)
 {
 	struct hp_dbs_tuners *hp_tuners = dbs_data->tuners;
+	int cpu;
 
 	hp_tuners->sampling_rate = new_rate = max(new_rate, dbs_data->min_sampling_rate);
 
-	{
+	for_each_online_cpu(cpu) {
 		struct cpufreq_policy *policy;
 		struct hp_cpu_dbs_info_s *dbs_info;
 		unsigned long next_sampling, appointed_at;
 
-		policy = cpufreq_cpu_get(0);
+		policy = cpufreq_cpu_get(cpu);
 		if (!policy)
-			return;
+			continue;
 		if (policy->governor != &cpufreq_gov_hotplug) {
 			cpufreq_cpu_put(policy);
-			return;
+			continue;
 		}
-		dbs_info = &per_cpu(hp_cpu_dbs_info, 0);
+		dbs_info = &per_cpu(hp_cpu_dbs_info, cpu);
 		cpufreq_cpu_put(policy);
 
 		mutex_lock(&dbs_info->cdbs.timer_mutex);
 
 		if (!delayed_work_pending(&dbs_info->cdbs.work)) {
 			mutex_unlock(&dbs_info->cdbs.timer_mutex);
-			return;
+			continue;
 		}
 
 		next_sampling = jiffies + usecs_to_jiffies(new_rate);
@@ -988,52 +914,6 @@ static void update_sampling_rate(struct dbs_data *dbs_data, unsigned int new_rat
 		mutex_unlock(&dbs_info->cdbs.timer_mutex);
 	}
 }
-
-void hp_enable_timer(int enable)
-{
-#if 1
-	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data; /* TODO: FIXME, cpu = 0 */
-	static unsigned int sampling_rate_backup = 0;
-
-	if (!dbs_data || dbs_data->cdata->governor != GOV_HOTPLUG || (enable && !sampling_rate_backup))
-		return;
-
-	if (enable)
-		update_sampling_rate(dbs_data, sampling_rate_backup);
-	else {
-		struct hp_dbs_tuners *hp_tuners = dbs_data->tuners;
-
-		sampling_rate_backup = hp_tuners->sampling_rate;
-		update_sampling_rate(dbs_data, 30000 * 100);
-	}
-#else
-	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data; /* TODO: FIXME, cpu = 0 */
-	int cpu = 0;
-	struct cpufreq_policy *policy;
-	struct hp_dbs_tuners *hp_tuners;
-	struct hp_cpu_dbs_info_s *dbs_info;
-
-	policy = cpufreq_cpu_get(cpu);
-	if (!policy)
-		continue;
-	if (policy->governor != &cpufreq_gov_hotplug) {
-		cpufreq_cpu_put(policy);
-		continue;
-	}
-	dbs_info = &per_cpu(hp_cpu_dbs_info, cpu);
-	cpufreq_cpu_put(policy);
-
-	if (enable) {
-		hp_tuners = dbs_data->tuners;
-		mutex_lock(&dbs_info->cdbs.timer_mutex);
-		gov_queue_work(dbs_data, dbs_info->cdbs.cur_policy, usecs_to_jiffies(hp_tuners->sampling_rate), true);
-		mutex_unlock(&dbs_info->cdbs.timer_mutex);
-	} else
-		cancel_delayed_work_sync(&dbs_info->cdbs.work);
-	}
-#endif
-}
-EXPORT_SYMBOL(hp_enable_timer);
 
 static ssize_t store_sampling_rate(struct dbs_data *dbs_data, const char *buf, size_t count)
 {
@@ -1176,7 +1056,6 @@ gov_sys_pol_attr_rw(ignore_nice_load);
 gov_sys_pol_attr_rw(powersave_bias);
 gov_sys_pol_attr_ro(sampling_rate_min);
 
-/* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 static ssize_t store_down_differential(struct dbs_data *dbs_data, const char *buf, size_t count)
 {
 	struct hp_dbs_tuners *hp_tuners = dbs_data->tuners;
@@ -1305,15 +1184,11 @@ static ssize_t store_cpu_num_base(struct dbs_data *dbs_data, const char *buf, si
 #ifdef CONFIG_HOTPLUG_CPU
 
 	if (online_cpus_count < input && online_cpus_count < hp_tuners->cpu_num_limit) {
-		struct cpufreq_policy *policy = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy;	/* TODO: FIXME, cpu = 0 */
+		struct cpufreq_policy *policy = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy;
 
 		dbs_freq_increase(policy, policy->max);
 		g_trigger_hp_work = CPU_HOTPLUG_WORK_TYPE_BASE;
-		/* schedule_delayed_work_on(0, &hp_work, 0); */
-		if (hp_wq == NULL)
-			pr_emerg("[power/hotplug] %s():%d, impossible\n", __func__, __LINE__);
-		else
-			queue_delayed_work_on(0, hp_wq, &hp_work, 0);
+		schedule_delayed_work_on(0, &hp_work, 0);
 	}
 #endif
 
@@ -1427,7 +1302,6 @@ static ssize_t store_cpu_rush_threshold(struct dbs_data *dbs_data, const char *b
 
 	mutex_lock(&hp_mutex);
 	hp_tuners->cpu_rush_threshold = input;
-	/* hp_reset_strategy_nolock(); //no need */
 	mutex_unlock(&hp_mutex);
 
 	return count;
@@ -1500,7 +1374,6 @@ gov_sys_pol_attr_rw(cpu_rush_boost_num);
 gov_sys_pol_attr_rw(cpu_rush_threshold);
 gov_sys_pol_attr_rw(cpu_rush_tlp_times);
 gov_sys_pol_attr_rw(cpu_rush_avg_times);
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
 
 static struct attribute *dbs_attributes_gov_sys[] = {
 	&sampling_rate_min_gov_sys.attr,
@@ -1510,7 +1383,6 @@ static struct attribute *dbs_attributes_gov_sys[] = {
 	&ignore_nice_load_gov_sys.attr,
 	&powersave_bias_gov_sys.attr,
 	&io_is_busy_gov_sys.attr,
-/* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 	&down_differential_gov_sys.attr,
 	&cpu_up_threshold_gov_sys.attr,
 	&cpu_down_differential_gov_sys.attr,
@@ -1526,7 +1398,6 @@ static struct attribute *dbs_attributes_gov_sys[] = {
 	&cpu_rush_threshold_gov_sys.attr,
 	&cpu_rush_tlp_times_gov_sys.attr,
 	&cpu_rush_avg_times_gov_sys.attr,
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
 	NULL
 };
 
@@ -1543,7 +1414,6 @@ static struct attribute *dbs_attributes_gov_pol[] = {
 	&ignore_nice_load_gov_pol.attr,
 	&powersave_bias_gov_pol.attr,
 	&io_is_busy_gov_pol.attr,
-/* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 	&down_differential_gov_pol.attr,
 	&cpu_up_threshold_gov_pol.attr,
 	&cpu_down_differential_gov_pol.attr,
@@ -1559,7 +1429,6 @@ static struct attribute *dbs_attributes_gov_pol[] = {
 	&cpu_rush_threshold_gov_pol.attr,
 	&cpu_rush_tlp_times_gov_pol.attr,
 	&cpu_rush_avg_times_gov_pol.attr,
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
 	NULL
 };
 
@@ -1570,50 +1439,12 @@ static struct attribute_group hp_attr_group_gov_pol = {
 
 /************************** sysfs end ************************/
 
-/* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 
 #ifdef CONFIG_HOTPLUG_CPU
-
-static struct task_struct *freq_up_task;
-
-static int touch_freq_up_task(void *data)
-{
-	struct cpufreq_policy *policy;
-
-	while (1) {
-		policy = cpufreq_cpu_get(0);
-		dbs_freq_increase(policy, policy->max);
-		cpufreq_cpu_put(policy);
-		/* mt_cpufreq_set_ramp_down_count_const(0, 100); */
-		pr_debug("@%s():%d\n", __func__, __LINE__);
-
-		set_current_state(TASK_INTERRUPTIBLE);
-		schedule();
-
-		if (kthread_should_stop())
-			break;
-	}
-
-	return 0;
-}
-
 static void dbs_input_event(struct input_handle *handle, unsigned int type,
 			    unsigned int code, int value)
 {
-	/* int i; */
-
-	/* if ((dbs_tuners_ins.powersave_bias == POWERSAVE_BIAS_MAXLEVEL) || */
-	/* (dbs_tuners_ins.powersave_bias == POWERSAVE_BIAS_MINLEVEL)) { */
-	/* nothing to do */
-	/* return; */
-	/* } */
-
-	/* for_each_online_cpu(i) { */
-	/* queue_work_on(i, input_wq, &per_cpu(dbs_refresh_work, i)); */
-	/* } */
-	/* pr_debug("$$$ in_interrupt(): %d, in_irq(): %d, type: %d, code: %d, value: %d $$$\n", in_interrupt(), in_irq(), type, code, value); */
-
-	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;	/* TODO: FIXME, cpu = 0 */
+	struct dbs_data *dbs_data = per_cpu(hp_cpu_dbs_info, 0).cdbs.cur_policy->governor_data;
 	struct hp_dbs_tuners *hp_tuners;
 
 	if (!dbs_data)
@@ -1624,24 +1455,11 @@ static void dbs_input_event(struct input_handle *handle, unsigned int type,
 
 	if ((type == EV_KEY) && (code == BTN_TOUCH) && (value == 1)
 	    && (dbs_data->cdata->governor == GOV_HOTPLUG && hp_tuners->cpu_input_boost_enable)) {
-		/* if (!in_interrupt()) */
-		/* { */
 		unsigned int online_cpus_count = num_online_cpus();
 
-		pr_debug("@%s():%d, online_cpus_count = %d, cpu_input_boost_num = %d\n", __func__, __LINE__, online_cpus_count, hp_tuners->cpu_input_boost_num);
-
-		if (online_cpus_count < hp_tuners->cpu_input_boost_num && online_cpus_count < hp_tuners->cpu_num_limit) {
-			/* schedule_delayed_work_on(0, &hp_work, 0); */
-			if (hp_wq == NULL)
-				pr_emerg("[power/hotplug] %s():%d, impossible\n", __func__, __LINE__);
-			else
-				queue_delayed_work_on(0, hp_wq, &hp_work, 0);
-		}
-
-		if (online_cpus_count <= hp_tuners->cpu_input_boost_num && online_cpus_count <= hp_tuners->cpu_num_limit)
-			wake_up_process(freq_up_task);
-
-		/* } */
+		if (online_cpus_count < hp_tuners->cpu_input_boost_num
+		    && online_cpus_count < hp_tuners->cpu_num_limit)
+			schedule_delayed_work_on(0, &hp_work, 0);
 	}
 }
 
@@ -1699,7 +1517,6 @@ static struct input_handler dbs_input_handler = {
 };
 #endif				/* #ifdef CONFIG_HOTPLUG_CPU */
 
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
 
 static int hp_init(struct dbs_data *dbs_data)
 {
@@ -1721,9 +1538,9 @@ static int hp_init(struct dbs_data *dbs_data)
 		tuners->up_threshold = MICRO_FREQUENCY_UP_THRESHOLD;
 		tuners->adj_up_threshold = MICRO_FREQUENCY_UP_THRESHOLD -
 		    MICRO_FREQUENCY_DOWN_DIFFERENTIAL;
-		tuners->down_differential = MICRO_FREQUENCY_DOWN_DIFFERENTIAL;	/* <-XXX */
-		tuners->cpu_up_threshold = MICRO_CPU_UP_THRESHOLD;	/* <-XXX */
-		tuners->cpu_down_differential = MICRO_CPU_DOWN_DIFFERENTIAL;	/* <-XXX */
+		tuners->down_differential = MICRO_FREQUENCY_DOWN_DIFFERENTIAL;
+		tuners->cpu_up_threshold = MICRO_CPU_UP_THRESHOLD;
+		tuners->cpu_down_differential = MICRO_CPU_DOWN_DIFFERENTIAL;
 		/*
 		 * In nohz/micro accounting case we set the minimum frequency
 		 * not depending on HZ, but fixed (very low). The deferred
@@ -1732,32 +1549,31 @@ static int hp_init(struct dbs_data *dbs_data)
 		dbs_data->min_sampling_rate = MICRO_FREQUENCY_MIN_SAMPLE_RATE;
 
 		/* cpu rush boost */
-		tuners->cpu_rush_threshold = MICRO_CPU_RUSH_THRESHOLD;	/* <-XXX */
+		tuners->cpu_rush_threshold = MICRO_CPU_RUSH_THRESHOLD;
 	} else {
 		tuners->up_threshold = DEF_FREQUENCY_UP_THRESHOLD;
 		tuners->adj_up_threshold = DEF_FREQUENCY_UP_THRESHOLD -
 		    DEF_FREQUENCY_DOWN_DIFFERENTIAL;
-		tuners->down_differential = DEF_FREQUENCY_DOWN_DIFFERENTIAL;	/* <-XXX */
-		tuners->cpu_up_threshold = DEF_CPU_UP_THRESHOLD;	/* <-XXX */
-		tuners->cpu_down_differential = DEF_CPU_DOWN_DIFFERENTIAL;	/* <-XXX */
+		tuners->down_differential = DEF_FREQUENCY_DOWN_DIFFERENTIAL;
+		tuners->cpu_up_threshold = DEF_CPU_UP_THRESHOLD;
+		tuners->cpu_down_differential = DEF_CPU_DOWN_DIFFERENTIAL;
 
 		/* For correct statistics, we need 10 ticks for each measure */
 		dbs_data->min_sampling_rate = MIN_SAMPLING_RATE_RATIO * jiffies_to_usecs(10);
 
 		/* cpu rush boost */
-		tuners->cpu_rush_threshold = DEF_CPU_RUSH_THRESHOLD;	/* <-XXX */
+		tuners->cpu_rush_threshold = DEF_CPU_RUSH_THRESHOLD;
 	}
 
 	tuners->sampling_down_factor = DEF_SAMPLING_DOWN_FACTOR;
 	tuners->ignore_nice_load = 0;
 	tuners->powersave_bias = default_powersave_bias;
 	tuners->io_is_busy = should_io_be_busy();
-/* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 	tuners->cpu_up_avg_times = DEF_CPU_UP_AVG_TIMES;
 	tuners->cpu_down_avg_times = DEF_CPU_DOWN_AVG_TIMES;
 	tuners->cpu_num_limit = num_possible_cpus();
 	tuners->cpu_num_base = 1;
-	tuners->is_cpu_hotplug_disable = (tuners->cpu_num_limit > 1) ? 0 : 1;
+	tuners->is_cpu_hotplug_disable = 1;
 	tuners->cpu_input_boost_enable = DEF_CPU_INPUT_BOOST_ENABLE;
 	tuners->cpu_input_boost_num = DEF_CPU_INPUT_BOOST_NUM;
 	tuners->cpu_rush_boost_enable = DEF_CPU_RUSH_BOOST_ENABLE;
@@ -1767,7 +1583,6 @@ static int hp_init(struct dbs_data *dbs_data)
 
 #ifdef CONFIG_HOTPLUG_CPU
 	INIT_DEFERRABLE_WORK(&hp_work, hp_work_handler);
-	hp_wq = alloc_workqueue("hp_work_handler", WQ_HIGHPRI, 0);
 	g_next_hp_action = num_online_cpus();
 #endif
 
@@ -1804,7 +1619,6 @@ static int hp_init(struct dbs_data *dbs_data)
 	pr_debug("cpufreq_gov_dbs_init: dbs_tuners_ins.cpu_rush_avg_times = %d\n",
 		 tuners->cpu_rush_avg_times);
 #endif
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
 
 	dbs_data->tuners = tuners;
 	mutex_init(&dbs_data->mutex);
@@ -1813,13 +1627,6 @@ static int hp_init(struct dbs_data *dbs_data)
 
 static void hp_exit(struct dbs_data *dbs_data)
 {
-/* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-#ifdef CONFIG_HOTPLUG_CPU
-	cancel_delayed_work_sync(&hp_work);
-	if (hp_wq)
-		destroy_workqueue(hp_wq);
-#endif
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
 	kfree(dbs_data->tuners);
 }
 
@@ -1895,7 +1702,6 @@ EXPORT_SYMBOL_GPL(hp_unregister_powersave_bias_handler);
 
 static int hp_cpufreq_governor_dbs(struct cpufreq_policy *policy, unsigned int event)
 {
-/* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 	struct dbs_data *dbs_data;
 	int rc = 0;
 
@@ -1904,7 +1710,6 @@ static int hp_cpufreq_governor_dbs(struct cpufreq_policy *policy, unsigned int e
 	else
 		dbs_data = hp_dbs_cdata.gdbs_data;
 
-	/* pr_emerg("***** policy->cpu: %d, event: %u, smp_processor_id: %d, have_governor_per_policy: %d *****\n", policy->cpu, event, smp_processor_id(), have_governor_per_policy()); */
 	switch (event) {
 	case CPUFREQ_GOV_START:
 #ifdef DEBUG_LOG
@@ -1923,32 +1728,22 @@ static int hp_cpufreq_governor_dbs(struct cpufreq_policy *policy, unsigned int e
 		}
 #endif
 #ifdef CONFIG_HOTPLUG_CPU
-		if (0)		/* (!policy->cpu) // <-XXX */
+		if (0)		/* (!policy->cpu) */
 			rc = input_register_handler(&dbs_input_handler);
 #endif
 		break;
 
 	case CPUFREQ_GOV_STOP:
 #ifdef CONFIG_HOTPLUG_CPU
-		if (0)		/* (!policy->cpu) // <-XXX */
+		if (0)		/* (!policy->cpu) */
 			input_unregister_handler(&dbs_input_handler);
 
 #endif
 		break;
 	}
 
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
 	return cpufreq_governor_dbs(policy, &hp_dbs_cdata, event);
 }
-
-/* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-#if 0
-int cpufreq_gov_dbs_get_sum_load(void)
-{
-	return g_cpus_sum_load_current;
-}
-#endif
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
 
 #ifndef CONFIG_CPU_FREQ_DEFAULT_GOV_HOTPLUG
 static
@@ -1962,25 +1757,16 @@ struct cpufreq_governor cpufreq_gov_hotplug = {
 
 static int __init cpufreq_gov_dbs_init(void)
 {
-	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
-
-	freq_up_task = kthread_create(touch_freq_up_task, NULL, "touch_freq_up_task");
-
-	if (IS_ERR(freq_up_task))
-		return PTR_ERR(freq_up_task);
-
-	sched_setscheduler_nocheck(freq_up_task, SCHED_FIFO, &param);
-	get_task_struct(freq_up_task);
-
 	return cpufreq_register_governor(&cpufreq_gov_hotplug);
 }
 
 static void __exit cpufreq_gov_dbs_exit(void)
 {
-	cpufreq_unregister_governor(&cpufreq_gov_hotplug);
+#ifdef CONFIG_HOTPLUG_CPU
+	cancel_delayed_work_sync(&hp_work);
+#endif
 
-	kthread_stop(freq_up_task);
-	put_task_struct(freq_up_task);
+	cpufreq_unregister_governor(&cpufreq_gov_hotplug);
 }
 
 MODULE_AUTHOR("Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>");

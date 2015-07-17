@@ -43,6 +43,8 @@ enum {OD_NORMAL_SAMPLE, OD_SUB_SAMPLE};
 /* Hotplug Sampling types */
 enum {HP_NORMAL_SAMPLE, HP_SUB_SAMPLE};
 
+enum {BL_NORMAL_SAMPLE, BL_SUB_SAMPLE};
+
 /*
  * Macro for creating governors sysfs routines
  *
@@ -167,6 +169,16 @@ struct cs_cpu_dbs_info_s {
 	unsigned int enable:1;
 };
 
+struct bl_cpu_dbs_info_s {
+	struct cpu_dbs_common_info cdbs;
+	struct cpufreq_frequency_table *freq_table;
+	unsigned int freq_lo;
+	unsigned int freq_lo_jiffies;
+	unsigned int freq_hi_jiffies;
+	unsigned int rate_mult;
+	unsigned int sample_type:1;
+};
+
 struct hp_cpu_dbs_info_s {
 	struct cpu_dbs_common_info cdbs;
 	struct cpufreq_frequency_table *freq_table;
@@ -183,6 +195,7 @@ struct od_dbs_tuners {
 	unsigned int sampling_rate;
 	unsigned int sampling_down_factor;
 	unsigned int up_threshold;
+	unsigned int adj_up_threshold;
 	unsigned int powersave_bias;
 	unsigned int io_is_busy;
 };
@@ -204,7 +217,6 @@ struct hp_dbs_tuners {
 	unsigned int adj_up_threshold;
 	unsigned int powersave_bias;
 	unsigned int io_is_busy;
-// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         unsigned int down_differential;
 	unsigned int cpu_up_threshold;
 	unsigned int cpu_down_differential;
@@ -220,7 +232,28 @@ struct hp_dbs_tuners {
 	unsigned int cpu_rush_threshold;
 	unsigned int cpu_rush_tlp_times;
 	unsigned int cpu_rush_avg_times;
-// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+};
+
+struct bl_dbs_tuners {
+	unsigned int ignore_nice_load;
+	unsigned int sampling_rate;
+	unsigned int sampling_down_factor;
+	unsigned int up_threshold;
+	unsigned int adj_up_threshold;
+	unsigned int powersave_bias;
+	unsigned int io_is_busy;
+	unsigned int od_threshold;
+	unsigned int down_differential;
+	unsigned int cpu_up_threshold;
+	unsigned int cpu_down_differential;
+	unsigned int cpu_up_avg_times;
+	unsigned int cpu_down_avg_times;
+	unsigned int thermal_dispatch_avg_times;
+	unsigned int cpu_num_limit;
+	unsigned int cpu_num_base;
+	unsigned int is_cpu_hotplug_disable;
+	unsigned int cpu_input_boost_enable;
+	unsigned int ambient_mode;
 };
 
 /* Common Governer data across policies */
@@ -229,7 +262,8 @@ struct common_dbs_data {
 	/* Common across governors */
 	#define GOV_ONDEMAND		0
 	#define GOV_CONSERVATIVE	1
-        #define GOV_HOTPLUG		2
+	#define GOV_HOTPLUG		2
+	#define GOV_BALANCE     	3
 	int governor;
 	struct attribute_group *attr_group_gov_sys; /* one governor - system */
 	struct attribute_group *attr_group_gov_pol; /* one governor - policy */
@@ -276,7 +310,15 @@ struct hp_ops {
 	unsigned int (*powersave_bias_target)(struct cpufreq_policy *policy,
 			unsigned int freq_next, unsigned int relation);
 	void (*freq_increase)(struct cpufreq_policy *p, unsigned int freq);
-	struct input_handler *input_handler; // <-XXX
+	struct input_handler *input_handler;
+};
+
+struct bl_ops {
+	void (*powersave_bias_init_cpu)(int cpu);
+	unsigned int (*powersave_bias_target)(struct cpufreq_policy *policy,
+			unsigned int freq_next, unsigned int relation);
+	void (*freq_increase)(struct cpufreq_policy *p, unsigned int freq);
+	struct input_handler *input_handler;
 };
 
 static inline int delay_for_sampling_rate(unsigned int sampling_rate)
@@ -320,4 +362,8 @@ void hp_register_powersave_bias_handler(unsigned int (*f)
 		(struct cpufreq_policy *, unsigned int, unsigned int),
 		unsigned int powersave_bias);
 void hp_unregister_powersave_bias_handler(void);
+void bl_register_powersave_bias_handler(unsigned int (*f)
+		(struct cpufreq_policy *, unsigned int, unsigned int),
+		unsigned int powersave_bias);
+void bl_unregister_powersave_bias_handler(void);
 #endif /* _CPUFREQ_GOVERNOR_H */

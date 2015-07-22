@@ -30,7 +30,7 @@ struct ipv6_devconf {
 	__s32		accept_ra_defrtr;
 	__s32		accept_ra_pinfo;
     /* MTK_DHCPV6C_WIFI	*/
-	__s32		ra_info_flag;	
+	__s32		ra_info_flag;
 #ifdef CONFIG_IPV6_ROUTER_PREF
 	__s32		accept_ra_rtr_pref;
 	__s32		rtr_probe_interval;
@@ -51,7 +51,8 @@ struct ipv6_devconf {
 	__s32		disable_ipv6;
 	__s32		accept_dad;
 	__s32		force_tllao;
-	__s32           ndisc_notify;
+	__s32       ndisc_notify;
+	__s32		use_oif_addrs_only;
 	void		*sysctl;
 };
 
@@ -81,7 +82,7 @@ static inline struct ipv6hdr *ipipv6_hdr(const struct sk_buff *skb)
 	return (struct ipv6hdr *)skb_transport_header(skb);
 }
 
-/* 
+/*
    This structure contains results of exthdrs parsing
    as offsets from skb->nh.
  */

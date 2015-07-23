@@ -519,6 +519,8 @@ static void _DISP_WaitMemWriteDone(void)
 		/* output layerId = MAX_INPUT_CONFIG */
 		if (job->output.dirty)
 			disp_sync_inc_timeline(job->group_id, job->output.layer_id, job->output.index);
+
+		disp_sync_present_fence_inc(job->group_id);
 	}
 	/* 5. misc */
 	clean_up_task_wakeup = 1;
@@ -1954,6 +1956,7 @@ static void _DISP_RegUpdateCallback(void *pParam)
 				PanDispSettingApplied = 1;
 				PanDispSettingPending = 0;
 			}
+			wake_up(&reg_update_wq);
 		}
 	}
 }

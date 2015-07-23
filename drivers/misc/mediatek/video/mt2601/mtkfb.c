@@ -21,7 +21,6 @@
 #include <linux/device.h>
 #include <linux/platform_device.h>
 #include <linux/dma-mapping.h>
-#include <linux/earlysuspend.h>
 #include <linux/kthread.h>
 #include <linux/rtpm_prio.h>
 #include <linux/vmalloc.h>
@@ -160,6 +159,7 @@ static int sem_flipping_cnt = 1;
 static int sem_early_suspend_cnt = 1;
 static int sem_overlay_buffer_cnt = 1;
 static int vsync_cnt;
+static int blank_skip_count;
 
 extern BOOL dispsys_dynamic_cg_control_enable;
 extern LCM_PARAMS *lcm_params;
@@ -179,16 +179,8 @@ static int mtkfb_update_screen(struct fb_info *info);
 static void mtkfb_update_screen_impl(void);
 unsigned int mtkfb_fm_auto_test(void);
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-static void mtkfb_late_resume(struct early_suspend *h);
-static void mtkfb_early_suspend(struct early_suspend *h);
-#endif
-
-#if 0
-extern unsigned int get_phys_offset(void);
-extern unsigned int get_max_DRAM_size(void);
-extern unsigned int get_actual_DRAM_size(void);
-#endif
+static void mtkfb_late_resume(void);
+static void mtkfb_early_suspend(void);
 
 /* --------------------------------------------------------------------------- */
 /* Timer Routines */
@@ -409,9 +401,7 @@ static void mtkfb_update_screen_impl(void)
 		sem_overlay_buffer_cnt--;
 	}
 
-	if (is_early_suspended)
-		DISP_CHECK_RET(DISP_TriggerSessionEarlySuspend());
-	else
+	if (!is_early_suspended)
 		DISP_CHECK_RET(DISP_UpdateScreen(0, 0, fb_xres_update, fb_yres_update));
 
 	if (down_sem) {
@@ -1394,24 +1384,17 @@ static int mtkfb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg
 	}
 
 	case MTKFB_POWEROFF:
-#ifdef CONFIG_HAS_EARLYSUSPEND
 		if (is_early_suspended)
 			return r;
-		mtkfb_early_suspend(0);
-#endif
+		mtkfb_early_suspend();
 		return r;
 
 	case MTKFB_POWERON:
-#ifdef CONFIG_HAS_EARLYSUSPEND
 		if (!is_early_suspended)
 			return r;
-		mtkfb_late_resume(0);
-		if (!lcd_fps)
-			msleep(30);
-		else
-			msleep(2 * 100000 / lcd_fps);	/* Delay 2 frames. */
-		mt65xx_leds_brightness_set(MT65XX_LED_TYPE_LCD, 127);
-#endif
+		mtkfb_late_resume();
+		DISP_WaitVSYNC();
+		mt65xx_leds_brightness_set(MT65XX_LED_TYPE_LCD, LED_HALF);
 		return r;
 
 	case MTKFB_GET_POWERSTATE:
@@ -1896,6 +1879,21 @@ static int mtkfb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg
 			return -EFAULT;
 		}
 		MMProfileLogStructure(MTKFB_MMP_Events.SetInput, MMProfileFlagStart, &layerInfo, disp_session_input_config);
+
+#if defined(CONFIG_MTK_LCM_PHYSICAL_ROTATION)
+		if (0 == strncmp(CONFIG_MTK_LCM_PHYSICAL_ROTATION, "180", 3)) {
+			int i;
+
+			for (i = 0; i < MAX_INPUT_CONFIG; i++) {
+				if (layerInfo.config[i].layer_enable) {
+					layerInfo.config[i].layer_rotation = (layerInfo.config[i].layer_rotation + MTK_FB_ORIENTATION_180) % 4;
+					layerInfo.config[i].tgt_offset_x = MTK_FB_XRES - (layerInfo.config[i].tgt_offset_x + layerInfo.config[i].tgt_width);
+					layerInfo.config[i].tgt_offset_y = MTK_FB_YRES - (layerInfo.config[i].tgt_offset_y + layerInfo.config[i].tgt_height);
+				}
+			}
+		}
+#endif
+
 		if (disp_set_session_input(&layerInfo) != DCP_STATUS_OK)
 			r = -EFAULT;
 		is_ipoh_bootup = false;
@@ -2127,40 +2125,25 @@ unsigned int mtkfb_fm_auto_test(void)
 
 static int mtkfb_blank(int blank_mode, struct fb_info *info)
 {
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	static int skip_count = 1;
-
 	switch (blank_mode) {
 	case FB_BLANK_UNBLANK:
 	case FB_BLANK_NORMAL:
-		mtkfb_late_resume(NULL);
-		if (!lcd_fps)
-			msleep(30);
-		else
-			msleep(2 * 100000 / lcd_fps);	/* Delay 2 frames. */
-#if defined(CONFIG_MTK_LEDS)
-#ifndef MTKFB_FPGA_ONLY
-		mt65xx_leds_brightness_set(MT65XX_LED_TYPE_LCD, 127);
-#endif
-#endif
+		mtkfb_late_resume();
 		break;
 	case FB_BLANK_VSYNC_SUSPEND:
 	case FB_BLANK_HSYNC_SUSPEND:
 		break;
 	case FB_BLANK_POWERDOWN:
-		if (skip_count > 0) {
-			skip_count--;
+		if (blank_skip_count > 0) {
+			blank_skip_count--;
 			break;
 		}
-		mtkfb_early_suspend(NULL);
+		mtkfb_early_suspend();
 		break;
 	default:
 		return -EINVAL;
 	}
 	return 0;
-#else
-	return -EINVAL;
-#endif
 }
 
 /* Callback table for the frame buffer framework. Some of these pointers
@@ -2877,9 +2860,7 @@ static void mtkfb_shutdown(struct device *pdev)
 	}
 
 	MTKFB_INFO("[FB Driver] mtkfb_shutdown()\n");
-#if defined(CONFIG_MTK_LEDS)
-	/* mt65xx_leds_brightness_set(MT65XX_LED_TYPE_LCD, LED_OFF); */
-#endif
+
 	if (!lcd_fps)
 		msleep(30);
 	else
@@ -2945,8 +2926,7 @@ void mtkfb_clear_lcm(void)
 	DISP_WaitForLCDNotBusy();
 }
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-static void mtkfb_early_suspend(struct early_suspend *h)
+static void mtkfb_early_suspend(void)
 {
 	int i = 0;
 
@@ -2960,9 +2940,7 @@ static void mtkfb_early_suspend(struct early_suspend *h)
 	MTKFB_INFO("[FB Driver] enter early_suspend\n");
 
 	mutex_lock(&ScreenCaptureMutex);
-#if defined(CONFIG_MTK_LEDS)
-	mt65xx_leds_brightness_set(MT65XX_LED_TYPE_LCD, LED_OFF);
-#endif
+
 	if (!lcd_fps)
 		msleep(30);
 	else
@@ -3017,7 +2995,6 @@ static void mtkfb_early_suspend(struct early_suspend *h)
 	MSG_FUNC_LEAVE();
 	aee_kernel_wdt_kick_Powkey_api("mtkfb_early_suspend", WDT_SETBY_Display);
 }
-#endif
 
 /* PM resume */
 static int mtkfb_resume(struct device *pdev)
@@ -3029,8 +3006,7 @@ static int mtkfb_resume(struct device *pdev)
 	return 0;
 }
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-static void mtkfb_late_resume(struct early_suspend *h)
+static void mtkfb_late_resume(void)
 {
 	if (dispsys_dynamic_cg_control_enable) {
 		DISP_LateResume();
@@ -3095,7 +3071,6 @@ static void mtkfb_late_resume(struct early_suspend *h)
 	MSG_FUNC_LEAVE();
 	aee_kernel_wdt_kick_Powkey_api("mtkfb_late_resume", WDT_SETBY_Display);
 }
-#endif
 
 /*---------------------------------------------------------------------------*/
 #ifdef CONFIG_PM
@@ -3176,20 +3151,40 @@ static struct platform_driver mtkfb_driver = {
 		   },
 };
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-static struct early_suspend mtkfb_early_suspend_handler = {
-	.level = EARLY_SUSPEND_LEVEL_DISABLE_FB,
-	.suspend = mtkfb_early_suspend,
-	.resume = mtkfb_late_resume,
-};
-#endif
-
 #ifdef DEFAULT_MMP_ENABLE
 void MMProfileEnable(int enable);
 void MMProfileStart(int start);
 void init_mtkfb_mmp_events(void);
 void init_ddp_mmp_events(void);
 #endif
+
+static struct notifier_block healthd_bl_fb_notifier;
+static int healthd_bl_fb_notifier_callback(struct notifier_block *self, unsigned long event, void *data)
+{
+	struct fb_event *evdata = data;
+	INT32 blank;
+
+	MTKFB_INFO("healthd_bl_fb_notifier_callback\n");
+
+	if (event != FB_EVENT_BLANK)
+		return 0;
+
+	blank = *(INT32 *)evdata->data;
+	MTKFB_INFO("fb_notify(blank=%d)\n", blank);
+
+	switch (blank) {
+	case FB_BLANK_UNBLANK:
+		DISP_WaitVSYNC();
+		mt65xx_leds_brightness_set(MT65XX_LED_TYPE_LCD, LED_HALF);
+		break;
+	case FB_BLANK_POWERDOWN:
+		mt65xx_leds_brightness_set(MT65XX_LED_TYPE_LCD, LED_OFF);
+		break;
+	default:
+		break;
+	}
+	return 0;
+}
 
 /* Register both the driver and the device */
 int __init mtkfb_init(void)
@@ -3212,9 +3207,15 @@ int __init mtkfb_init(void)
 		r = -ENODEV;
 		goto exit;
 	}
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	register_early_suspend(&mtkfb_early_suspend_handler);
-#endif
+
+	healthd_bl_fb_notifier.notifier_call = healthd_bl_fb_notifier_callback;
+	if ((get_boot_mode() == KERNEL_POWER_OFF_CHARGING_BOOT) ||
+	    (get_boot_mode() == LOW_POWER_OFF_CHARGING_BOOT)) {
+		blank_skip_count = 1;
+		r = fb_register_client(&healthd_bl_fb_notifier);
+		if (r)
+			MTKFB_WRAN("register healthd_bl_fb_notifier failed! ret(%d)\n", r);
+	}
 
 	DBG_Init();
 
@@ -3231,9 +3232,9 @@ static void __exit mtkfb_cleanup(void)
 
 	platform_driver_unregister(&mtkfb_driver);
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	unregister_early_suspend(&mtkfb_early_suspend_handler);
-#endif
+	if ((get_boot_mode() == KERNEL_POWER_OFF_CHARGING_BOOT) ||
+	    (get_boot_mode() == LOW_POWER_OFF_CHARGING_BOOT))
+		fb_unregister_client(&healthd_bl_fb_notifier);
 
 	kthread_stop(screen_update_task);
 	if (esd_recovery_task)

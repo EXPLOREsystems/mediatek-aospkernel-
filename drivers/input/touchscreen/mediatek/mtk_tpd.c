@@ -1,3 +1,17 @@
+/*
+* Copyright (C) 2011-2015 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
 /******************************************************************************
  * mtk_tpd.c - MTK Android Linux Touch Panel Device Driver
  *
@@ -27,6 +41,7 @@
 #include <linux/device.h>
 #include <linux/slab.h>
 #include <asm/uaccess.h>
+#include <linux/fb.h>
 
 /* for magnify velocity******************************************** */
 #define TOUCH_IOC_MAGIC 'A'
@@ -184,14 +199,53 @@ static struct platform_driver tpd_driver = {
 		   .name = TPD_DEVICE,
 		   },
 };
+static struct tpd_driver_t *g_tpd_drv;
 
 /*20091105, Kelvin, re-locate touch screen driver to earlysuspend*/
-#ifdef CONFIG_HAS_EARLYSUSPEND
+#if !defined(CONFIG_FB) && defined(CONFIG_HAS_EARLYSUSPEND)
 static struct early_suspend MTK_TS_early_suspend_handler = {
 	.level = EARLY_SUSPEND_LEVEL_STOP_DRAWING - 1,
 	.suspend = NULL,
 	.resume = NULL,
 };
+#else
+static int tpd_suspend_flag = 0;
+
+/* hh: use fb_notifier */
+static struct notifier_block tpd_fb_notifier;
+
+/* use fb_notifier */
+static int tpd_fb_notifier_callback(struct notifier_block *self, unsigned long event, void *data)
+{
+	TPD_DMESG("tpd_fb_notifier_callback\n");
+
+	struct fb_event *evdata = data;
+	int blank;
+	int i;
+
+	/* If we aren't interested in this event, skip it immediately ... */
+	if (event != FB_EVENT_BLANK)
+		return 0;
+
+	blank = *(int *)evdata->data;
+	TPD_DMESG("fb_notify(blank=%d)\n", blank);
+	switch (blank) {
+	case FB_BLANK_UNBLANK:
+		TPD_DMESG("LCD ON Notify\n");
+		if (g_tpd_drv && tpd_suspend_flag)
+			g_tpd_drv->resume(NULL);
+		tpd_suspend_flag = 0;
+		break;
+	case FB_BLANK_POWERDOWN:
+		TPD_DMESG("LCD OFF Notify\n");
+		if (g_tpd_drv) g_tpd_drv->suspend(NULL);
+		tpd_suspend_flag = 1;
+		break;
+	default:
+		break;
+	}
+	return 0;
+}
 #endif
 
 
@@ -209,7 +263,6 @@ int tpd_ssb_data_match(char *name, struct tag_para_touch_ssb_data_single *data )
 	return -1;
 }
 
-static struct tpd_driver_t *g_tpd_drv;
 /* Add driver: if find TPD_TYPE_CAPACITIVE driver sucessfully, loading it */
 int tpd_driver_add(struct tpd_driver_t *tpd_drv)
 {
@@ -367,10 +420,15 @@ static int tpd_probe(struct platform_device *pdev)
 			return 0;
 		}
 	}
-#ifdef CONFIG_HAS_EARLYSUSPEND
+#if !defined(CONFIG_FB) && defined(CONFIG_HAS_EARLYSUSPEND)
 	MTK_TS_early_suspend_handler.suspend = g_tpd_drv->suspend;
 	MTK_TS_early_suspend_handler.resume = g_tpd_drv->resume;
 	register_early_suspend(&MTK_TS_early_suspend_handler);
+#else
+	/* use fb_notifier */
+	tpd_fb_notifier.notifier_call = tpd_fb_notifier_callback;
+	if (fb_register_client(&tpd_fb_notifier))
+		TPD_DMESG("register fb_notifier fail!\n");
 #endif
 #endif
 /* #ifdef TPD_TYPE_CAPACITIVE */
@@ -437,8 +495,10 @@ static int tpd_probe(struct platform_device *pdev)
 static int tpd_remove(struct platform_device *pdev)
 {
 	input_unregister_device(tpd->dev);
-#ifdef CONFIG_HAS_EARLYSUSPEND
+#if !defined(CONFIG_FB) && defined(CONFIG_HAS_EARLYSUSPEND)
 	unregister_early_suspend(&MTK_TS_early_suspend_handler);
+#else
+	fb_unregister_client(&tpd_fb_notifier);
 #endif
 	return 0;
 }
@@ -468,8 +528,10 @@ static void __exit tpd_device_exit(void)
 	TPD_DMESG("MediaTek touch panel driver exit\n");
 	/* input_unregister_device(tpd->dev); */
 	platform_driver_unregister(&tpd_driver);
-#ifdef CONFIG_HAS_EARLYSUSPEND
+#if !defined(CONFIG_FB) && defined(CONFIG_HAS_EARLYSUSPEND)
 	unregister_early_suspend(&MTK_TS_early_suspend_handler);
+#else
+	fb_unregister_client(&tpd_fb_notifier);
 #endif
 }
 

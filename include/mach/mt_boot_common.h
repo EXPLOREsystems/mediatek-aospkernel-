@@ -16,36 +16,32 @@
 #define __MT_BOOT_COMMON_H__
 
 /* boot type definitions */
-typedef enum 
-{
-    NORMAL_BOOT = 0,
-    META_BOOT = 1,
-    RECOVERY_BOOT = 2,    
-    SW_REBOOT = 3,
-    FACTORY_BOOT = 4,
-    ADVMETA_BOOT = 5,
-    ATE_FACTORY_BOOT = 6,
-    ALARM_BOOT = 7,
-#if defined (CONFIG_MTK_KERNEL_POWER_OFF_CHARGING)
-    KERNEL_POWER_OFF_CHARGING_BOOT = 8,
-    LOW_POWER_OFF_CHARGING_BOOT = 9,
-#endif
-    UNKNOWN_BOOT
+typedef enum {
+	NORMAL_BOOT = 0,
+	META_BOOT = 1,
+	RECOVERY_BOOT = 2,
+	SW_REBOOT = 3,
+	FACTORY_BOOT = 4,
+	ADVMETA_BOOT = 5,
+	ATE_FACTORY_BOOT = 6,
+	ALARM_BOOT = 7,
+	KERNEL_POWER_OFF_CHARGING_BOOT = 8,
+	LOW_POWER_OFF_CHARGING_BOOT = 9,
+	UNKNOWN_BOOT
 } BOOTMODE;
 
 typedef enum {
-    BR_POWER_KEY = 0,
-    BR_USB,
-    BR_RTC,
-    BR_WDT,
-    BR_WDT_BY_PASS_PWK,
-    BR_TOOL_BY_PASS_PWK,
-    BR_2SEC_REBOOT,
-    BR_UNKNOWN,
-    BR_KERNEL_PANIC,
-    BR_WDT_SW,
-    BR_WDT_HW 
-    
+	BR_POWER_KEY = 0,
+	BR_USB,
+	BR_RTC,
+	BR_WDT,
+	BR_WDT_BY_PASS_PWK,
+	BR_TOOL_BY_PASS_PWK,
+	BR_2SEC_REBOOT,
+	BR_UNKNOWN,
+	BR_KERNEL_PANIC,
+	BR_WDT_SW,
+	BR_WDT_HW
 } boot_reason_t;
 
 extern BOOTMODE g_boot_mode;
@@ -59,5 +55,5 @@ extern boot_reason_t get_boot_reason(void);
 extern void set_boot_reason(boot_reason_t br);
 
 
-#endif 
+#endif
 

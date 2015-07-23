@@ -41,8 +41,7 @@ config EARLYSUSPEND
 
 config FB_EARLYSUSPEND
 	bool "FB Early suspend"
-	depends on EARLYSUSPEND
-	default y
+	default n
 	select HAS_EARLYSUSPEND
 	---help---
 	  Call early suspend handlers when the user requested sleep state

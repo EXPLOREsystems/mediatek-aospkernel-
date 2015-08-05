@@ -1021,7 +1021,10 @@ long WMT_unlocked_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			pAtchNum = arg;
 			WMT_INFO_FUNC(" get patch num from launcher = %d\n", pAtchNum);
 			wmt_lib_set_patch_num(pAtchNum);
-			pPatchInfo = kzalloc(sizeof(WMT_PATCH_INFO) * pAtchNum, GFP_ATOMIC);
+			if (pAtchNum > 0)
+				pPatchInfo = kzalloc(sizeof(WMT_PATCH_INFO) * pAtchNum, GFP_ATOMIC);
+			else
+				WMT_ERR_FUNC("patch num == 0!\n");
 			if (!pPatchInfo) {
 				WMT_ERR_FUNC("allocate memory fail!\n");
 				break;

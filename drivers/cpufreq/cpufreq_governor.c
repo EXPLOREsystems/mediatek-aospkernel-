@@ -25,9 +25,16 @@
 #include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/workqueue.h>
-#include <linux/input.h> // <-XXX
+#include <linux/cpu.h>
+#include <linux/input.h>
 
 #include "cpufreq_governor.h"
+
+#if defined(CONFIG_CPU_FREQ_GOV_BALANCE)
+extern unsigned int get_normal_max_freq(void);
+extern struct notifier_block bl_idle_nb;
+#endif
+
 
 static struct attribute_group *get_sysfs_attr(struct dbs_data *dbs_data)
 {
@@ -43,29 +50,29 @@ void dbs_check_cpu(struct dbs_data *dbs_data, int cpu)
 	struct od_dbs_tuners *od_tuners = dbs_data->tuners;
 	struct hp_dbs_tuners *hp_tuners = dbs_data->tuners;
 	struct cs_dbs_tuners *cs_tuners = dbs_data->tuners;
+	struct bl_dbs_tuners *bl_tuners = dbs_data->tuners;
 	struct cpufreq_policy *policy;
-	int freq_avg;
 	unsigned int max_load = 0;
 	unsigned int ignore_nice;
 	unsigned int j;
 
-	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-#ifdef CONFIG_CPU_FREQ_GOV_HOTPLUG
+#if defined(CONFIG_CPU_FREQ_GOV_HOTPLUG) || defined(CONFIG_CPU_FREQ_GOV_BALANCE)
 	extern int g_cpus_sum_load_current;
 	g_cpus_sum_load_current = 0;
 #endif
-	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 	if (dbs_data->cdata->governor == GOV_ONDEMAND)
 		ignore_nice = od_tuners->ignore_nice_load;
 	else if (dbs_data->cdata->governor == GOV_HOTPLUG)
 		ignore_nice = hp_tuners->ignore_nice_load;
+	else if (dbs_data->cdata->governor == GOV_BALANCE)
+		ignore_nice = bl_tuners->ignore_nice_load;
 	else
 		ignore_nice = cs_tuners->ignore_nice_load;
 
 	policy = cdbs->cur_policy;
 
-	/* Get Absolute Load */
+	/* Get Absolute Load (in terms of freq for ondemand gov) */
 	for_each_cpu(j, policy->cpus) {
 		struct cpu_dbs_common_info *j_cdbs;
 		u64 cur_wall_time, cur_idle_time;
@@ -85,6 +92,8 @@ void dbs_check_cpu(struct dbs_data *dbs_data, int cpu)
 			io_busy = od_tuners->io_is_busy;
 		else if (dbs_data->cdata->governor == GOV_HOTPLUG)
 			io_busy = hp_tuners->io_is_busy;
+		else if (dbs_data->cdata->governor == GOV_BALANCE)
+			io_busy = bl_tuners->io_is_busy;
 
 		cur_idle_time = get_cpu_idle_time(j, &cur_wall_time, io_busy);
 
@@ -119,8 +128,7 @@ void dbs_check_cpu(struct dbs_data *dbs_data, int cpu)
 
 		load = 100 * (wall_time - idle_time) / wall_time;
 
-		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-#ifdef CONFIG_CPU_FREQ_GOV_HOTPLUG
+#if defined(CONFIG_CPU_FREQ_GOV_HOTPLUG) || defined(CONFIG_CPU_FREQ_GOV_BALANCE)
 #if defined(CONFIG_THERMAL_LIMIT_TEST)
 
 		if (mt_cpufreq_thermal_test_limited_load() > 0)
@@ -129,14 +137,13 @@ void dbs_check_cpu(struct dbs_data *dbs_data, int cpu)
 #endif
 
 		g_cpus_sum_load_current += load;
-		//pr_emerg("***** cpu: %d, load: %u, g_cpus_sum_load_current: %d, smp_processor_id: %d, num_online_cpus(): %d *****\n", j, load, g_cpus_sum_load_current, smp_processor_id(), num_online_cpus());
 #endif
-		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 		if (dbs_data->cdata->governor == GOV_ONDEMAND
-		    || dbs_data->cdata->governor == GOV_HOTPLUG // <-XXX
+		    || dbs_data->cdata->governor == GOV_HOTPLUG
+		    || dbs_data->cdata->governor == GOV_BALANCE
 		   ) {
-			freq_avg = __cpufreq_driver_getavg(policy, j);
+			int freq_avg = __cpufreq_driver_getavg(policy, j);
 
 			if (freq_avg <= 0)
 				freq_avg = policy->cur;
@@ -147,15 +154,13 @@ void dbs_check_cpu(struct dbs_data *dbs_data, int cpu)
 		if (load > max_load)
 			max_load = load;
 
-		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-#ifdef CONFIG_CPU_FREQ_GOV_HOTPLUG
+#if defined(CONFIG_CPU_FREQ_GOV_HOTPLUG) || defined(CONFIG_CPU_FREQ_GOV_BALANCE)
 #ifdef DEBUG_LOG
 		pr_debug("dbs_check_cpu: cpu = %d\n", j);
 		pr_debug("dbs_check_cpu: wall_time = %d, idle_time = %d, load = %d\n", wall_time, idle_time, load);
-		pr_debug("dbs_check_cpu: freq_avg = %d, max_load_freq = %d, g_cpus_sum_load_current = %d\n", freq_avg, max_load_freq, g_cpus_sum_load_current);
+		pr_debug("dbs_check_cpu: freq_avg = %d, max_load = %d, g_cpus_sum_load_current = %d\n", freq_avg, max_load, g_cpus_sum_load_current);
 #endif
 #endif
-		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	}
 
 	dbs_data->cdata->gov_check_cpu(cpu, max_load);
@@ -167,7 +172,7 @@ static inline void __gov_queue_work(int cpu, struct dbs_data *dbs_data,
 {
 	struct cpu_dbs_common_info *cdbs = dbs_data->cdata->get_cpu_cdbs(cpu);
 
-	if (cpu == 0 || dbs_data->cdata->governor != GOV_HOTPLUG) // <-XXX
+	if (cpu == 0 || ((dbs_data->cdata->governor != GOV_HOTPLUG) && (dbs_data->cdata->governor != GOV_BALANCE)))
 		mod_delayed_work_on(cpu, system_wq, &cdbs->work, delay);
 }
 
@@ -179,9 +184,9 @@ void gov_queue_work(struct dbs_data *dbs_data, struct cpufreq_policy *policy,
 	if (!policy->governor_enabled)
 		return;
 
-	if (!all_cpus) {
+	if (!all_cpus)
 		__gov_queue_work(smp_processor_id(), dbs_data, delay);
-	} else {
+	else {
 		for_each_cpu(i, policy->cpus)
 			__gov_queue_work(i, dbs_data, delay);
 	}
@@ -195,7 +200,7 @@ static inline void gov_cancel_work(struct dbs_data *dbs_data,
 	int i;
 
 	for_each_cpu(i, policy->cpus) {
-		if (i == 0 || dbs_data->cdata->governor != GOV_HOTPLUG) { // <-XXX
+		if (i == 0 || ((dbs_data->cdata->governor != GOV_HOTPLUG) && (dbs_data->cdata->governor != GOV_BALANCE))) {
 			cdbs = dbs_data->cdata->get_cpu_cdbs(i);
 			cancel_delayed_work_sync(&cdbs->work);
 		}
@@ -230,6 +235,9 @@ static void set_sampling_rate(struct dbs_data *dbs_data,
 	} else if (dbs_data->cdata->governor == GOV_HOTPLUG) {
 		struct hp_dbs_tuners *hp_tuners = dbs_data->tuners;
 		hp_tuners->sampling_rate = sampling_rate;
+	} else if (dbs_data->cdata->governor == GOV_BALANCE) {
+		struct bl_dbs_tuners *bl_tuners = dbs_data->tuners;
+		bl_tuners->sampling_rate = sampling_rate;
 	} else {
 		struct od_dbs_tuners *od_tuners = dbs_data->tuners;
 		od_tuners->sampling_rate = sampling_rate;
@@ -243,11 +251,14 @@ int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 	struct od_cpu_dbs_info_s *od_dbs_info = NULL;
 	struct hp_cpu_dbs_info_s *hp_dbs_info = NULL;
 	struct cs_cpu_dbs_info_s *cs_dbs_info = NULL;
+	struct bl_cpu_dbs_info_s *bl_dbs_info = NULL;
 	struct od_ops *od_ops = NULL;
 	struct hp_ops *hp_ops = NULL;
+	struct bl_ops *bl_ops = NULL;
 	struct od_dbs_tuners *od_tuners = NULL;
 	struct hp_dbs_tuners *hp_tuners = NULL;
 	struct cs_dbs_tuners *cs_tuners = NULL;
+	struct bl_dbs_tuners *bl_tuners = NULL;
 	struct cpu_dbs_common_info *cpu_cdbs;
 	unsigned int sampling_rate, latency, ignore_nice, j, cpu = policy->cpu;
 	int io_busy = 0;
@@ -316,11 +327,10 @@ int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 
 			cpufreq_register_notifier(cs_ops->notifier_block,
 						  CPUFREQ_TRANSITION_NOTIFIER);
-		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-		} else if (   (cdata->governor == GOV_HOTPLUG)
+		} else if ( (cdata->governor == GOV_HOTPLUG)
 			   && (!policy->governor->initialized)
 			   && (!cpu)
-			   ) {
+		) {
 			struct cpu_dbs_common_info *cdbs =
 				dbs_data->cdata->get_cpu_cdbs(0);
 
@@ -331,7 +341,21 @@ int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 			hp_ops = dbs_data->cdata->gov_ops;
 			rc = input_register_handler(hp_ops->input_handler);
 			pr_debug("@%s(CPUFREQ_GOV_POLICY_INIT), rc = %d\n", __func__, rc);
-		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		} else if (   (cdata->governor == GOV_BALANCE)
+			   && (!policy->governor->initialized)
+			   && (!cpu)
+			   ) {
+			struct cpu_dbs_common_info *cdbs =
+				dbs_data->cdata->get_cpu_cdbs(0);
+
+			mutex_init(&cdbs->timer_mutex);
+			INIT_DEFERRABLE_WORK(&cdbs->work,
+						dbs_data->cdata->gov_dbs_timer);
+
+			bl_ops = dbs_data->cdata->gov_ops;
+			rc = input_register_handler(bl_ops->input_handler);
+			pr_debug("@%s(CPUFREQ_GOV_POLICY_INIT), rc = %d\n", __func__, rc);
+			idle_notifier_register(&bl_idle_nb);
 		}
 
 		if (!have_governor_per_policy())
@@ -340,7 +364,6 @@ int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 		return 0;
 
 	case CPUFREQ_GOV_POLICY_EXIT:
-		// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		if ((dbs_data->cdata->governor == GOV_HOTPLUG) && (!cpu)) {
 			struct cpu_dbs_common_info *cdbs =
 				dbs_data->cdata->get_cpu_cdbs(0);
@@ -353,7 +376,20 @@ int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 			mutex_destroy(&cdbs->timer_mutex);
 			mutex_unlock(&dbs_data->mutex);
 		}
-		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+		if ((dbs_data->cdata->governor == GOV_BALANCE) && (!cpu)) {
+			struct cpu_dbs_common_info *cdbs =
+				dbs_data->cdata->get_cpu_cdbs(0);
+
+			bl_ops = dbs_data->cdata->gov_ops;
+			input_unregister_handler(bl_ops->input_handler);
+			pr_debug("@%s(CPUFREQ_GOV_POLICY_EXIT), rc = %d\n", __func__, rc);
+			idle_notifier_unregister(&bl_idle_nb);
+
+			mutex_lock(&dbs_data->mutex);
+			mutex_destroy(&cdbs->timer_mutex);
+			mutex_unlock(&dbs_data->mutex);
+		}
 
 		if (!--dbs_data->usage_count) {
 			sysfs_remove_group(get_governor_parent_kobj(policy),
@@ -390,6 +426,13 @@ int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 		ignore_nice = hp_tuners->ignore_nice_load;
 		hp_ops = dbs_data->cdata->gov_ops;
 		io_busy = hp_tuners->io_is_busy;
+	} else if (dbs_data->cdata->governor == GOV_BALANCE) {
+		bl_tuners = dbs_data->tuners;
+		bl_dbs_info = dbs_data->cdata->get_cpu_dbs_info_s(cpu);
+		sampling_rate = bl_tuners->sampling_rate;
+		ignore_nice = bl_tuners->ignore_nice_load;
+		bl_ops = dbs_data->cdata->gov_ops;
+		io_busy = bl_tuners->io_is_busy;
 	} else {
 		od_tuners = dbs_data->tuners;
 		od_dbs_info = dbs_data->cdata->get_cpu_dbs_info_s(cpu);
@@ -419,7 +462,7 @@ int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 				j_cdbs->prev_cpu_nice =
 					kcpustat_cpu(j).cpustat[CPUTIME_NICE];
 
-			if (dbs_data->cdata->governor != GOV_HOTPLUG) { // <-XXX
+			if (j == 0 || ((dbs_data->cdata->governor != GOV_HOTPLUG) && (dbs_data->cdata->governor != GOV_BALANCE))) {
 				mutex_init(&j_cdbs->timer_mutex);
 				INIT_DEFERRABLE_WORK(&j_cdbs->work,
 						     dbs_data->cdata->gov_dbs_timer);
@@ -438,6 +481,10 @@ int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 			hp_dbs_info->rate_mult = 1;
 			hp_dbs_info->sample_type = HP_NORMAL_SAMPLE;
 			hp_ops->powersave_bias_init_cpu(cpu);
+		} else if (dbs_data->cdata->governor == GOV_BALANCE) {
+			bl_dbs_info->rate_mult = 1;
+			bl_dbs_info->sample_type = BL_NORMAL_SAMPLE;
+			bl_ops->powersave_bias_init_cpu(cpu);
 		} else {
 			od_dbs_info->rate_mult = 1;
 			od_dbs_info->sample_type = OD_NORMAL_SAMPLE;
@@ -459,7 +506,7 @@ int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 
 		gov_cancel_work(dbs_data, policy);
 
-		if (dbs_data->cdata->governor != GOV_HOTPLUG) { // <-XXX
+		if ((dbs_data->cdata->governor != GOV_HOTPLUG) && (dbs_data->cdata->governor != GOV_BALANCE)) {
 			mutex_lock(&dbs_data->mutex);
 			mutex_destroy(&cpu_cdbs->timer_mutex);
 			mutex_unlock(&dbs_data->mutex);
@@ -470,12 +517,28 @@ int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 	case CPUFREQ_GOV_LIMITS:
 		mutex_lock(&cpu_cdbs->timer_mutex);
 
-		if (policy->max < cpu_cdbs->cur_policy->cur)
-			__cpufreq_driver_target(cpu_cdbs->cur_policy,
-						policy->max, CPUFREQ_RELATION_H);
-		else if (policy->min > cpu_cdbs->cur_policy->cur)
-			__cpufreq_driver_target(cpu_cdbs->cur_policy,
-						policy->min, CPUFREQ_RELATION_L);
+#if defined(CONFIG_CPU_FREQ_GOV_BALANCE)
+		if (dbs_data->cdata->governor == GOV_BALANCE)
+		{
+			if (get_normal_max_freq() < cpu_cdbs->cur_policy->cur)
+				__cpufreq_driver_target(cpu_cdbs->cur_policy,
+							get_normal_max_freq(), CPUFREQ_RELATION_H);
+			else if (policy->min > cpu_cdbs->cur_policy->cur)
+				__cpufreq_driver_target(cpu_cdbs->cur_policy,
+							policy->min, CPUFREQ_RELATION_L);
+		}
+		else
+		{
+#endif
+			if (policy->max < cpu_cdbs->cur_policy->cur)
+				__cpufreq_driver_target(cpu_cdbs->cur_policy,
+							policy->max, CPUFREQ_RELATION_H);
+			else if (policy->min > cpu_cdbs->cur_policy->cur)
+				__cpufreq_driver_target(cpu_cdbs->cur_policy,
+							policy->min, CPUFREQ_RELATION_L);
+#if defined(CONFIG_CPU_FREQ_GOV_BALANCE)
+		}
+#endif
 
 		dbs_check_cpu(dbs_data, cpu);
 		mutex_unlock(&cpu_cdbs->timer_mutex);

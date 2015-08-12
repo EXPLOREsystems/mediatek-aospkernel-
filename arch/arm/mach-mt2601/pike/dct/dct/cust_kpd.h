@@ -29,6 +29,9 @@
 #define KEY_STAR	227	/* KEY_SWITCHVIDEOMODE */
 #define KEY_DEL	KEY_BACKSPACE
 #define KEY_SYM		KEY_COMPOSE
+#define KEY_STEM_1	265
+#define KEY_STEM_2	266
+#define KEY_STEM_3	267
 /* KEY_HOME */
 /* KEY_BACK */
 /* KEY_VOLUMEDOWN */
@@ -70,7 +73,7 @@
 /* HW keycode [0 ~ 71] -> Linux keycode */
 #define KPD_INIT_KEYMAP()	\
 {	\
-	[0] = KEY_VOLUMEDOWN,		\
+	[0] = KEY_STEM_1,		\
 }
 /*****************************************************************/
 /*******************Preload Customation***************************/
@@ -89,10 +92,11 @@
 /*******************factory Customation***************************/
 /*****************************************************************/
 #define KEYS_PWRKEY_MAP		{ KEY_POWER, "Power" }
-#define DEFINE_KEYS_KEYMAP(x)		\
- struct key x[] = {	\
-	KEYS_PWRKEY_MAP,		\
-  { KEY_VOLUMEDOWN,   "VLDown"  }, \
+#define KEYS_STEM_1_MAP		{ KEY_STEM_1, "Stem1" }
+#define DEFINE_KEYS_KEYMAP(x)	\
+ struct key x[] = {		\
+	KEYS_PWRKEY_MAP,	\
+	KEYS_STEM_1_MAP,	\
 }
 /*****************************************************************/
 /*******************recovery Customation****************************/

@@ -43,6 +43,7 @@ static u64 MXTI2CDMABuf_pa = NULL;
 static int tpd_flag;
 static char atmel_cfg_path[] = "maxtouch.raw";
 static struct task_struct *thread = NULL;
+static int thread_exit = FALSE;
 
 static DECLARE_WAIT_QUEUE_HEAD(waiter);
 
@@ -3583,6 +3584,10 @@ static int touch_event_handler(void *pdata)
 		set_current_state(TASK_INTERRUPTIBLE);
 		wait_event_interruptible(waiter, tpd_flag!=0);
 		tpd_flag = 0;
+		if (thread_exit) {
+			break;
+		}
+
 		set_current_state(TASK_RUNNING);
 		#else
 		msleep(100);
@@ -3701,7 +3706,8 @@ static int tpd_probe(struct i2c_client *client, const struct i2c_device_id *id)
 
 err_remove_mem_access:
 	mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);
-	kthread_stop(thread);
+	thread_exit = TRUE;
+	wake_up_interruptible(&waiter);
 	sysfs_remove_bin_file(&client->dev.kobj, &data->mem_access_attr);
 	data->mem_access_attr.attr.name = NULL;
 err_remove_sysfs_group:

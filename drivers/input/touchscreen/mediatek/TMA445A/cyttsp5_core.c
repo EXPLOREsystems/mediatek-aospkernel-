@@ -5468,7 +5468,7 @@ int cyttsp5_probe(const struct cyttsp5_bus_ops *ops, struct device *dev,
 		TPD_DMESG( "%s: HW Init fail r=%d\n", __func__, rc);
 
 #ifdef TPD_POWER_SOURCE_CUSTOM
-	hwPowerOn(TPD_POWER_SOURCE_CUSTOM, VOL_2800, "TP");
+	hwPowerOn(TPD_POWER_SOURCE_CUSTOM, VOL_3300, "TP");
 	/* Wait before detect */
 	msleep(20);
 #endif

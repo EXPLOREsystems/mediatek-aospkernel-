@@ -1,11 +1,15 @@
 /*
  * cyttsp5_i2c.c
  * Cypress TrueTouch(TM) Standard Product V5 I2C Module.
- * For use with Cypress Txx5xx parts.
+ * For use with Cypress touchscreen controllers.
  * Supported parts include:
- * TMA5XX
+ * CYTMA5XX
+ * CYTMA448
+ * CYTMA445A
+ * CYTT21XXX
+ * CYTT31XXX
  *
- * Copyright (C) 2012-2014 Cypress Semiconductor
+ * Copyright (C) 2012-2015 Cypress Semiconductor
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -203,7 +207,7 @@ static int cyttsp5_i2c_read_default(struct device *dev, void *buf, int size)
 		rc = i2c_master_recv(client, buf, size);
 	else
 		rc = i2c_read_bytes_dma(client, buf, size);
-
+	
 	return (rc < 0) ? rc : rc != size ? -EIO : 0;
 }
 
@@ -263,7 +267,7 @@ static struct cyttsp5_bus_ops cyttsp5_i2c_bus_ops = {
 };
 
 #ifdef CONFIG_TOUCHSCREEN_CYPRESS_CYTTSP5_DEVICETREE_SUPPORT
-static struct of_device_id cyttsp5_i2c_of_match[] = {
+static const struct of_device_id cyttsp5_i2c_of_match[] = {
 	{ .compatible = "cy,cyttsp5_i2c_adapter", },
 	{ }
 };
@@ -332,7 +336,7 @@ static int cyttsp5_i2c_remove(struct i2c_client *client)
 
 static int tpd_local_init(void)
 {
-	TPD_DMESG("TMA445A I2C Touchscreen Driver (Built %s @ %s)\n", __DATE__, __TIME__);
+	TPD_DEBUG("TMA445A I2C Touchscreen Driver (Built %s @ %s)\n", __DATE__, __TIME__);
 
 	if (i2c_add_driver(&tpd_i2c_driver) != 0) {
 		TPD_DMESG("unable to add TMA445A i2c driver.");
@@ -402,7 +406,7 @@ static struct tpd_driver_t tpd_device_driver = {
 static int __init cyttsp5_i2c_init(void)
 {
 	TPD_DMESG("MedaTek TMA445A touch panel driver init\n");
-
+	
 	i2c_register_board_info(TPD_I2C_NUMBER, &tma445a_i2c_tpd, 1);
 	if(tpd_driver_add(&tpd_device_driver) < 0)
 		TPD_DMESG("add TMA445A driver failed\n");

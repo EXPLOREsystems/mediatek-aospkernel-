@@ -1,11 +1,15 @@
 /*
  * cyttsp5_platform.c
  * Cypress TrueTouch(TM) Standard Product V5 Platform Module.
- * For use with Cypress Txx5xx parts.
+ * For use with Cypress touchscreen controllers.
  * Supported parts include:
- * TMA5XX
+ * CYTMA5XX
+ * CYTMA448
+ * CYTMA445A
+ * CYTT21XXX
+ * CYTT31XXX
  *
- * Copyright (C) 2013-2014 Cypress Semiconductor
+ * Copyright (C) 2013-2015 Cypress Semiconductor
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -96,13 +100,12 @@ static struct cyttsp5_core_platform_data _cyttsp5_core_platform_data = {
 		NULL,	/* Reserved */
 		NULL,	/* Reserved */
 		NULL,	/* Operational Configuration Record */
-		NULL,	/* &cyttsp5_sett_ddata, *//* Design Data Record */
-		NULL,	/* &cyttsp5_sett_mdata, *//* Manufacturing Data Record */
+		NULL, /* &cyttsp5_sett_ddata, *//* Design Data Record */
+		NULL, /* &cyttsp5_sett_mdata, *//* Manufacturing Data Record */
 		NULL,	/* Config and Test Registers */
 		&cyttsp5_sett_btn_keys,	/* button-to-keycode table */
 	},
-	.flags = CY_CORE_FLAG_WAKE_ON_GESTURE
-			| CY_CORE_FLAG_RESTORE_PARAMETERS,
+	.flags = CY_CORE_FLAG_RESTORE_PARAMETERS,
 	.easy_wakeup_gesture = CY_CORE_EWG_NONE,
 };
 
@@ -116,7 +119,7 @@ static const int16_t cyttsp5_abs[] = {
 	ABS_MT_TOUCH_MINOR, 0, 255, 0, 0,
 	ABS_MT_ORIENTATION, -127, 127, 0, 0,
 	ABS_MT_TOOL_TYPE, 0, MT_TOOL_MAX, 0, 0,
-	ABS_DISTANCE, 0, 255, 0, 0,	/* Used with hover */
+	ABS_MT_DISTANCE, 0, 255, 0, 0,	/* Used with hover */
 };
 
 static struct touch_framework cyttsp5_framework = {
@@ -329,7 +332,11 @@ struct cyttsp5_loader_platform_data _cyttsp5_loader_platform_data = {
 	.ttconfig = &cyttsp5_ttconfig,
 	.fws = cyttsp5_firmwares,
 	.ttconfigs = cyttsp5_ttconfigs,
+#ifndef TPD_FACTORY_CALIBRATE_AFTER_FW_UPGRADE
 	.flags = CY_LOADER_FLAG_NONE,
+#else
+	.flags = CY_LOADER_FLAG_CALIBRATE_AFTER_FW_UPGRADE,
+#endif
 };
 
 int cyttsp5_xres(struct cyttsp5_core_platform_data *pdata,
@@ -407,14 +414,14 @@ int cyttsp5_detect(struct cyttsp5_core_platform_data *pdata,
 
 	while (retry--) {
 		/* Perform reset, wait for 100 ms and perform read */
-		TPD_DMESG( "%s: Performing a reset\n", __func__);
+		TPD_DEBUG( "%s: Performing a reset\n", __func__);
 		pdata->xres(pdata, dev);
 		msleep(100);
 		rc = read(dev, buf, 1);
 		if (!rc)
 			return 0;
 
-		TPD_DMESG( "%s: Read unsuccessful, try=%d\n",
+		TPD_DEBUG( "%s: Read unsuccessful, try=%d\n",
 			__func__, 3 - retry);
 	}
 

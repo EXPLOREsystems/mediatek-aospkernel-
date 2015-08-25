@@ -1,5 +1,5 @@
-#ifndef TOUCHPANEL_H__
-#define TOUCHPANEL_H__
+#ifndef __TPD_CUSTOM_TMA445A_H__
+#define __TPD_CUSTOM_TMA445A_H__
 
 /* Pre-defined definition */
 #define TPD_TYPE_CAPACITIVE
@@ -12,6 +12,12 @@
 
 //#define TPD_CLOSE_POWER_IN_SLEEP
 #define TPD_POWER_SOURCE_CUSTOM		MT6323_POWER_LDO_VMC
+
+/* use carefully when startup and FW update is in controlled conditions */
+// #define TPD_FACTORY_CALIBRATE_AFTER_FW_UPGRADE
+
+/* enable config upgrade if touch config files included in build */
+#define CONFIG_TOUCHSCREEN_CYPRESS_CYTTSP5_PLATFORM_TTCONFIG_UPGRADE
 
 #define MAX_TRANSACTION_LENGTH		8
 #define MAX_I2C_TRANSFER_SIZE		(MAX_TRANSACTION_LENGTH - 2)
@@ -44,4 +50,4 @@
 		mt_set_gpio_pull_enable(pin, GPIO_PULL_DISABLE);\
 	}while(0)
 
-#endif /* TOUCHPANEL_H__ */
+#endif /* __TPD_CUSTOM_TMA445A_H__ */

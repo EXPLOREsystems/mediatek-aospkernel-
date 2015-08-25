@@ -1,11 +1,15 @@
 /*
  * cyttsp5_core.c
  * Cypress TrueTouch(TM) Standard Product V5 Core Module.
- * For use with Cypress Txx5xx parts.
+ * For use with Cypress touchscreen controllers.
  * Supported parts include:
- * TMA5XX
+ * CYTMA5XX
+ * CYTMA448
+ * CYTMA445A
+ * CYTT21XXX
+ * CYTT31XXX
  *
- * Copyright (C) 2012-2014 Cypress Semiconductor
+ * Copyright (C) 2012-2015 Cypress Semiconductor
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -73,7 +77,7 @@ struct cyttsp5_hid_report {
 
 struct atten_node {
 	struct list_head node;
-	char id;
+	char *id;
 	struct device *dev;
 
 	int (*func)(struct device *);
@@ -84,6 +88,13 @@ struct param_node {
 	struct list_head node;
 	u8 id;
 	u32 value;
+	u8 size;
+};
+
+struct module_node {
+	struct list_head node;
+	struct cyttsp5_module *module;
+	void *data;
 };
 
 struct cyttsp5_hid_cmd {
@@ -145,10 +156,10 @@ void cyttsp5_pr_buf(struct device *dev, u8 *dptr, int size,
 		scnprintf(pr_buf + k, CY_MAX_PRBUF_SIZE, fmt, dptr[i]);
 
 	if (size)
-		TPD_DMESG( "%s:  %s[0..%d]=%s%s\n", __func__, data_name,
+		TPD_DEBUG( "%s:  %s[0..%d]=%s%s\n", __func__, data_name,
 			size - 1, pr_buf, size <= max ? "" : CY_PR_TRUNCATED);
 	else
-		TPD_DMESG( "%s:  %s[]\n", __func__, data_name);
+		TPD_DEBUG( "%s:  %s[]\n", __func__, data_name);
 }
 EXPORT_SYMBOL_GPL(cyttsp5_pr_buf);
 #endif
@@ -303,7 +314,7 @@ static struct cyttsp5_hid_field *cyttsp5_create_hid_field_(
 }
 
 static int cyttsp5_add_parameter(struct cyttsp5_core_data *cd,
-		u8 param_id, u32 param_value)
+		u8 param_id, u32 param_value, u8 param_size)
 {
 	struct param_node *param, *param_new;
 
@@ -313,8 +324,8 @@ static int cyttsp5_add_parameter(struct cyttsp5_core_data *cd,
 		if (param->id == param_id) {
 			/* Update parameter */
 			param->value = param_value;
-			TPD_DMESG( "%s: Update parameter id:%d value:%d\n",
-				 __func__, param_id, param_value);
+			TPD_DEBUG( "%s: Update parameter id:%d value:%d size:%d\n",
+				 __func__, param_id, param_value, param_size);
 			goto exit_unlock;
 		}
 	}
@@ -326,9 +337,10 @@ static int cyttsp5_add_parameter(struct cyttsp5_core_data *cd,
 
 	param_new->id = param_id;
 	param_new->value = param_value;
+	param_new->size = param_size;
 
-	TPD_DMESG( "%s: Add parameter id:%d value:%d\n",
-		__func__, param_id, param_value);
+	TPD_DEBUG( "%s: Add parameter id:%d value:%d size:%d\n",
+		__func__, param_id, param_value, param_size);
 
 	spin_lock(&cd->spinlock);
 	list_add(&param_new->node, &cd->param_list);
@@ -370,7 +382,7 @@ wait:
 	cd->exclusive_waits--;
 exit:
 	mutex_unlock(&cd->system_lock);
-	TPD_DMESG( "%s: request_exclusive ok=%p\n",
+	TPD_DEBUG( "%s: request_exclusive ok=%p\n",
 		__func__, ownptr);
 
 	return 0;
@@ -381,7 +393,7 @@ static int release_exclusive_(struct cyttsp5_core_data *cd, void *ownptr)
 	if (cd->exclusive_dev != ownptr)
 		return -EINVAL;
 
-	TPD_DMESG( "%s: exclusive_dev %p freed\n",
+	TPD_DEBUG( "%s: exclusive_dev %p freed\n",
 		__func__, cd->exclusive_dev);
 	cd->exclusive_dev = NULL;
 	wake_up(&cd->wait_q);
@@ -410,11 +422,11 @@ static int cyttsp5_hid_exec_cmd_(struct cyttsp5_core_data *cd,
 	u8 cmd_length;
 	u8 cmd_offset = 0;
 
-	cmd_length = 2					/* command register */
-		+ 2					/* command */
+	cmd_length = 2 /* command register */
+		+ 2	/* command */
 		+ (hid_cmd->report_id >= 0XF ? 1 : 0)	/* Report ID */
 		+ (hid_cmd->has_data_register ? 2 : 0)	/* Data register */
-		+ hid_cmd->write_length;		/* Data length */
+		+ hid_cmd->write_length;	/* Data length */
 
 	cmd = kzalloc(cmd_length, GFP_KERNEL);
 	if (!cmd)
@@ -763,7 +775,7 @@ static void cyttsp5_check_set_parameter(struct cyttsp5_core_data *cd,
 		return;
 	}
 
-	cyttsp5_add_parameter(cd, param_id, param_value);
+	cyttsp5_add_parameter(cd, param_id, param_value, param_size);
 }
 
 static void cyttsp5_check_command(struct cyttsp5_core_data *cd,
@@ -934,13 +946,6 @@ static int cyttsp5_hid_send_output_and_wait_(struct cyttsp5_core_data *cd,
 	if (rc)
 		goto error;
 
-	/* Workaround for FW defect, CDT165308
-	 * bl_launch app creates a glitch in IRQ line */
-	if (hid_output->command_code == HID_OUTPUT_BL_LAUNCH_APP) {
-		mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);
-		msleep(20);
-		mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);
-	}
 
 	t = wait_event_timeout(cd->wait_q, (cd->hid_cmd_state == 0),
 			msecs_to_jiffies(timeout_ms));
@@ -1127,7 +1132,7 @@ static int cyttsp5_si_get_btn_data(struct cyttsp5_core_data *cd)
 		& HID_SYSINFO_BTN_MASK;
 	size_t btn_keys_size;
 
-	TPD_DMESG( "%s: get btn data\n", __func__);
+	TPD_DEBUG( "%s: get btn data\n", __func__);
 
 	for (i = 0; i < HID_SYSINFO_MAX_BTN; i++) {
 		if (btns & (1 << i))
@@ -1176,64 +1181,64 @@ static void cyttsp5_si_put_log_data(struct cyttsp5_core_data *cd)
 	struct cyttsp5_sensing_conf_data *scd = &si->sensing_conf_data;
 	int i;
 
-	TPD_DMESG( "%s: pip_ver_major =0x%02X (%d)\n", __func__,
+	TPD_DEBUG( "%s: pip_ver_major =0x%02X (%d)\n", __func__,
 		cydata->pip_ver_major, cydata->pip_ver_major);
-	TPD_DMESG( "%s: pip_ver_minor =0x%02X (%d)\n", __func__,
+	TPD_DEBUG( "%s: pip_ver_minor =0x%02X (%d)\n", __func__,
 		cydata->pip_ver_minor, cydata->pip_ver_minor);
-	TPD_DMESG( "%s: fw_pid =0x%04X (%d)\n", __func__,
+	TPD_DEBUG( "%s: fw_pid =0x%04X (%d)\n", __func__,
 		cydata->fw_pid, cydata->fw_pid);
-	TPD_DMESG( "%s: fw_ver_major =0x%02X (%d)\n", __func__,
+	TPD_DEBUG( "%s: fw_ver_major =0x%02X (%d)\n", __func__,
 		cydata->fw_ver_major, cydata->fw_ver_major);
-	TPD_DMESG( "%s: fw_ver_minor =0x%02X (%d)\n", __func__,
+	TPD_DEBUG( "%s: fw_ver_minor =0x%02X (%d)\n", __func__,
 		cydata->fw_ver_minor, cydata->fw_ver_minor);
-	TPD_DMESG( "%s: revctrl =0x%08X (%d)\n", __func__,
+	TPD_DEBUG( "%s: revctrl =0x%08X (%d)\n", __func__,
 		cydata->revctrl, cydata->revctrl);
-	TPD_DMESG( "%s: fw_ver_conf =0x%04X (%d)\n", __func__,
+	TPD_DEBUG( "%s: fw_ver_conf =0x%04X (%d)\n", __func__,
 		cydata->fw_ver_conf, cydata->fw_ver_conf);
-	TPD_DMESG( "%s: bl_ver_major =0x%02X (%d)\n", __func__,
+	TPD_DEBUG( "%s: bl_ver_major =0x%02X (%d)\n", __func__,
 		cydata->bl_ver_major, cydata->bl_ver_major);
-	TPD_DMESG( "%s: bl_ver_minor =0x%02X (%d)\n", __func__,
+	TPD_DEBUG( "%s: bl_ver_minor =0x%02X (%d)\n", __func__,
 		cydata->bl_ver_minor, cydata->bl_ver_minor);
-	TPD_DMESG( "%s: jtag_id_h =0x%04X (%d)\n", __func__,
+	TPD_DEBUG( "%s: jtag_id_h =0x%04X (%d)\n", __func__,
 		cydata->jtag_id_h, cydata->jtag_id_h);
-	TPD_DMESG( "%s: jtag_id_l =0x%04X (%d)\n", __func__,
+	TPD_DEBUG( "%s: jtag_id_l =0x%04X (%d)\n", __func__,
 		cydata->jtag_id_l, cydata->jtag_id_l);
 	for (i = 0; i < CY_NUM_MFGID; i++)
-		TPD_DMESG( "%s: mfg_id[%d] =0x%02X (%d)\n", __func__, i,
+		TPD_DEBUG( "%s: mfg_id[%d] =0x%02X (%d)\n", __func__, i,
 			cydata->mfg_id[i], cydata->mfg_id[i]);
-	TPD_DMESG( "%s: post_code =0x%04X (%d)\n", __func__,
+	TPD_DEBUG( "%s: post_code =0x%04X (%d)\n", __func__,
 		cydata->post_code, cydata->post_code);
 
-	TPD_DMESG( "%s: electrodes_x =0x%02X (%d)\n", __func__,
+	TPD_DEBUG( "%s: electrodes_x =0x%02X (%d)\n", __func__,
 		scd->electrodes_x, scd->electrodes_x);
-	TPD_DMESG( "%s: electrodes_y =0x%02X (%d)\n", __func__,
+	TPD_DEBUG( "%s: electrodes_y =0x%02X (%d)\n", __func__,
 		scd->electrodes_y, scd->electrodes_y);
-	TPD_DMESG( "%s: len_x =0x%04X (%d)\n", __func__,
+	TPD_DEBUG( "%s: len_x =0x%04X (%d)\n", __func__,
 		scd->len_x, scd->len_x);
-	TPD_DMESG( "%s: len_y =0x%04X (%d)\n", __func__,
+	TPD_DEBUG( "%s: len_y =0x%04X (%d)\n", __func__,
 		scd->len_y, scd->len_y);
-	TPD_DMESG( "%s: res_x =0x%04X (%d)\n", __func__,
+	TPD_DEBUG( "%s: res_x =0x%04X (%d)\n", __func__,
 		scd->res_x, scd->res_x);
-	TPD_DMESG( "%s: res_y =0x%04X (%d)\n", __func__,
+	TPD_DEBUG( "%s: res_y =0x%04X (%d)\n", __func__,
 		scd->res_y, scd->res_y);
-	TPD_DMESG( "%s: max_z =0x%04X (%d)\n", __func__,
+	TPD_DEBUG( "%s: max_z =0x%04X (%d)\n", __func__,
 		scd->max_z, scd->max_z);
-	TPD_DMESG( "%s: origin_x =0x%02X (%d)\n", __func__,
+	TPD_DEBUG( "%s: origin_x =0x%02X (%d)\n", __func__,
 		scd->origin_x, scd->origin_x);
-	TPD_DMESG( "%s: origin_y =0x%02X (%d)\n", __func__,
+	TPD_DEBUG( "%s: origin_y =0x%02X (%d)\n", __func__,
 		scd->origin_y, scd->origin_y);
-	TPD_DMESG( "%s: panel_id =0x%02X (%d)\n", __func__,
+	TPD_DEBUG( "%s: panel_id =0x%02X (%d)\n", __func__,
 		scd->panel_id, scd->panel_id);
-	TPD_DMESG( "%s: btn =0x%02X (%d)\n", __func__,
+	TPD_DEBUG( "%s: btn =0x%02X (%d)\n", __func__,
 		scd->btn, scd->btn);
-	TPD_DMESG( "%s: scan_mode =0x%02X (%d)\n", __func__,
+	TPD_DEBUG( "%s: scan_mode =0x%02X (%d)\n", __func__,
 		scd->scan_mode, scd->scan_mode);
-	TPD_DMESG( "%s: max_num_of_tch_per_refresh_cycle =0x%02X (%d)\n",
+	TPD_DEBUG( "%s: max_num_of_tch_per_refresh_cycle =0x%02X (%d)\n",
 		__func__, scd->max_tch, scd->max_tch);
 
-	TPD_DMESG( "%s: xy_mode =%p\n", __func__,
+	TPD_DEBUG( "%s: xy_mode =%p\n", __func__,
 		si->xy_mode);
-	TPD_DMESG( "%s: xy_data =%p\n", __func__,
+	TPD_DEBUG( "%s: xy_data =%p\n", __func__,
 		si->xy_data);
 }
 
@@ -1447,29 +1452,24 @@ int _cyttsp5_request_hid_output_get_param(struct device *dev,
 }
 
 static int cyttsp5_hid_output_set_param_(struct cyttsp5_core_data *cd,
-		u8 param_id, u32 value)
+		u8 param_id, u32 value, u8 size)
 {
 	u8 write_buf[6];
-	u8 *ptr = &write_buf[1];
-	u8 size = 0;
+	u8 *ptr = &write_buf[2];
 	int rc;
+	int i;
 	struct cyttsp5_hid_output hid_output = {
 		HID_OUTPUT_APP_COMMAND(HID_OUTPUT_SET_PARAM),
 		.write_buf = write_buf,
 	};
 
 	write_buf[0] = param_id;
-	while (value) {
-		size++;
-		ptr[size] = value & 0xFF;
+	write_buf[1] = size;
+	for (i = 0; i < size; i++) {
+		ptr[i] = value & 0xFF;
 		value = value >> 8;
 	}
-	if (size == 0) {
-		size = 1;
-		ptr[size] = 0;
-	}
 
-	write_buf[1] = size;
 	hid_output.write_length = 2 + size;
 
 	rc = cyttsp5_hid_send_output_and_wait_(cd, &hid_output);
@@ -1483,7 +1483,7 @@ static int cyttsp5_hid_output_set_param_(struct cyttsp5_core_data *cd,
 }
 
 static int cyttsp5_hid_output_set_param(struct cyttsp5_core_data *cd,
-		u8 param_id, u32 value)
+		u8 param_id, u32 value, u8 size)
 {
 	int rc;
 
@@ -1494,7 +1494,7 @@ static int cyttsp5_hid_output_set_param(struct cyttsp5_core_data *cd,
 		return rc;
 	}
 
-	rc = cyttsp5_hid_output_set_param_(cd, param_id, value);
+	rc = cyttsp5_hid_output_set_param_(cd, param_id, value, size);
 
 	if (release_exclusive(cd, cd->dev) < 0)
 		TPD_DMESG( "%s: fail to release exclusive\n", __func__);
@@ -1503,14 +1503,14 @@ static int cyttsp5_hid_output_set_param(struct cyttsp5_core_data *cd,
 }
 
 int _cyttsp5_request_hid_output_set_param(struct device *dev,
-		int protect, u8 param_id, u32 value)
+		int protect, u8 param_id, u32 value, u8  size)
 {
 	struct cyttsp5_core_data *cd = dev_get_drvdata(dev);
 
 	if (protect)
-		return cyttsp5_hid_output_set_param(cd, param_id, value);
+		return cyttsp5_hid_output_set_param(cd, param_id, value, size);
 
-	return cyttsp5_hid_output_set_param_(cd, param_id, value);
+	return cyttsp5_hid_output_set_param_(cd, param_id, value, size);
 }
 
 static int cyttsp5_hid_output_enter_easywake_state_(
@@ -1831,6 +1831,9 @@ again:
 	if (rc)
 		return rc;
 
+	if (cd->response_buf[5] != CY_CMD_STATUS_SUCCESS)
+		goto set_status;
+
 	read_data_id = cd->response_buf[6];
 	if (read_data_id != data_id)
 		return -EPROTO;
@@ -1849,12 +1852,13 @@ again:
 		}
 	}
 
-	if (status)
-		*status = cd->response_buf[5];
 	if (data_format)
 		*data_format = cd->response_buf[9];
 	if (actual_read_len)
 		*actual_read_len = total_read_len;
+set_status:
+	if (status)
+		*status = cd->response_buf[5];
 
 	return rc;
 }
@@ -1987,8 +1991,12 @@ static int cyttsp5_hid_output_get_selftest_result_(
 		.write_buf = write_buf,
 	};
 
-	/* Repeat reading for Opens test */
-	repeat = test_id == CY_ST_ID_OPENS;
+	/*
+	 * Do not repeat reading for Auto Shorts test
+	 * when PIP version < 1.3
+	 */
+	repeat = IS_PIP_VER_GE(&cd->sysinfo, 1, 3)
+			|| test_id != CY_ST_ID_AUTOSHORTS;
 
 again:
 	write_buf[0] = LOW_BYTE(read_offset);
@@ -2000,6 +2008,9 @@ again:
 	rc = cyttsp5_hid_send_output_and_wait_(cd, &hid_output);
 	if (rc)
 		return rc;
+
+	if (cd->response_buf[5] != CY_CMD_STATUS_SUCCESS)
+		goto set_status;
 
 	read_test_id = cd->response_buf[6];
 	if (read_test_id != test_id)
@@ -2018,14 +2029,15 @@ again:
 			goto again;
 		}
 	}
-	if (status)
-		*status = cd->response_buf[5];
+
 	if (actual_read_len)
 		*actual_read_len = total_read_len;
+set_status:
+	if (status)
+		*status = cd->response_buf[5];
 
 	return rc;
 }
-
 
 static int cyttsp5_hid_output_get_selftest_result(
 		struct cyttsp5_core_data *cd, u16 read_offset, u16 read_length,
@@ -2048,7 +2060,6 @@ static int cyttsp5_hid_output_get_selftest_result(
 
 	return rc;
 }
-
 
 static int _cyttsp5_request_hid_output_get_selftest_result(struct device *dev,
 		int protect, u16 read_offset, u16 read_length, u8 test_id,
@@ -2381,7 +2392,7 @@ static int cyttsp5_get_config_ver_(struct cyttsp5_core_data *cd)
 exit:
 	cyttsp5_hid_output_resume_scanning_(cd);
 error:
-	TPD_DMESG( "%s: CONFIG_VER:%04X\n", __func__, config_ver);
+	TPD_DEBUG( "%s: CONFIG_VER:%04X\n", __func__, config_ver);
 	return rc;
 }
 
@@ -2684,7 +2695,7 @@ static int cyttsp5_hid_output_bl_get_panel_id_(
 
 	rc = cyttsp5_hid_send_output_and_wait_(cd, &hid_output);
 	if (rc == -EPROTO && cd->response_buf[5] == ERROR_COMMAND) {
-		TPD_DMESG( "%s: Get Panel ID command not supported\n",
+		TPD_DEBUG( "%s: Get Panel ID command not supported\n",
 			__func__);
 		*panel_id = PANEL_ID_NOT_ENABLED;
 		return 0;
@@ -2753,8 +2764,6 @@ static int cyttsp5_get_hid_descriptor_(struct cyttsp5_core_data *cd,
 		goto error;
 	}
 
-	TPD_DMESG( "%s: now wait for hid_cmd_state \n", __func__);
-
 	t = wait_event_timeout(cd->wait_q, (cd->hid_cmd_state == 0),
 			msecs_to_jiffies(CY_HID_GET_HID_DESCRIPTOR_TIMEOUT));
 	if (IS_TMO(t)) {
@@ -2767,16 +2776,14 @@ static int cyttsp5_get_hid_descriptor_(struct cyttsp5_core_data *cd,
 	memcpy((u8 *)desc, cd->response_buf, sizeof(struct cyttsp5_hid_desc));
 
 	/* Check HID descriptor length and version */
-	TPD_DMESG( "%s: HID len:%X HID ver:%X\n", __func__,
+	TPD_DEBUG( "%s: HID len:%X HID ver:%X\n", __func__,
 		le16_to_cpu(desc->hid_desc_len),
 		le16_to_cpu(desc->bcd_version));
 
 	if (le16_to_cpu(desc->hid_desc_len) != sizeof(*desc) ||
 		le16_to_cpu(desc->bcd_version) != CY_HID_VERSION) {
 		TPD_DMESG( "%s: Unsupported HID version\n", __func__);
-#if 0 //James
-		return -ENOSYS;
-#endif
+		return -ENODEV;
 	}
 
 	goto exit;
@@ -2835,7 +2842,7 @@ static int cyttsp5_hw_soft_reset(struct cyttsp5_core_data *cd)
 				__func__);
 		return rc;
 	}
-	TPD_DMESG( "%s: execute SOFT reset\n", __func__);
+	TPD_DEBUG( "%s: execute SOFT reset\n", __func__);
 	return 0;
 }
 
@@ -2843,11 +2850,11 @@ static int cyttsp5_hw_hard_reset(struct cyttsp5_core_data *cd)
 {
 	if (cd->cpdata->xres) {
 		cd->cpdata->xres(cd->cpdata, cd->dev);
-		TPD_DMESG( "%s: execute HARD reset\n", __func__);
+		TPD_DEBUG( "%s: execute HARD reset\n", __func__);
 		return 0;
 	}
 	TPD_DMESG( "%s: FAILED to execute HARD reset\n", __func__);
-	return -ENOSYS;
+	return -ENODEV;
 }
 
 static int cyttsp5_hw_reset(struct cyttsp5_core_data *cd)
@@ -2857,7 +2864,7 @@ static int cyttsp5_hw_reset(struct cyttsp5_core_data *cd)
 	mutex_lock(&cd->system_lock);
 	rc = cyttsp5_hw_hard_reset(cd);
 	mutex_unlock(&cd->system_lock);
-	if (rc == -ENOSYS)
+	if (rc == -ENODEV)
 		rc = cyttsp5_hw_soft_reset(cd);
 	return rc;
 }
@@ -2901,7 +2908,7 @@ static int parse_report_descriptor(struct cyttsp5_core_data *cd,
 	int logical_collection_count = 0;
 	int collection_nest = 0;
 
-	TPD_DMESG( "%s: Report descriptor length: %zu\n",
+	TPD_DEBUG( "%s: Report descriptor length: %zu\n",
 		__func__, len);
 
 	mutex_lock(&cd->hid_report_lock);
@@ -2977,7 +2984,7 @@ static int parse_report_descriptor(struct cyttsp5_core_data *cd,
 						item_size);
 				break;
 			default:
-				dev_info(cd->dev,
+				TPD_DMESG(
 					"%s: Unrecognized Global tag %d\n",
 					__func__, item_tag);
 			}
@@ -3009,7 +3016,7 @@ static int parse_report_descriptor(struct cyttsp5_core_data *cd,
 				get_hid_item_data(data, item_size);
 				break;
 			default:
-				dev_info(cd->dev,
+				TPD_DMESG(
 					"%s: Unrecognized Local tag %d\n",
 					__func__, item_tag);
 			}
@@ -3222,7 +3229,7 @@ static int setup_report_descriptor(struct cyttsp5_core_data *cd)
 				cyttsp5_tch_abs_field_map[i],
 				tch_collection_usage_page);
 		if (field) {
-			TPD_DMESG(
+			TPD_DEBUG(
 				" Field %p: rep_cnt:%d rep_sz:%d off:%d data:%02X min:%d max:%d usage_page:%08X\n",
 				field, field->report_count, field->report_size,
 				field->offset, field->data_type,
@@ -3230,7 +3237,7 @@ static int setup_report_descriptor(struct cyttsp5_core_data *cd)
 				field->usage_page);
 			fill_tch_abs(&si->tch_abs[i], field);
 			si->tch_abs[i].report = 1;
-			TPD_DMESG( "%s: ofs:%zu size:%zu min:%zu max:%zu bofs:%zu report:%d\n",
+			TPD_DEBUG( "%s: ofs:%zu size:%zu min:%zu max:%zu bofs:%zu report:%d\n",
 				cyttsp5_tch_abs_string[i],
 				si->tch_abs[i].ofs, si->tch_abs[i].size,
 				si->tch_abs[i].min, si->tch_abs[i].max,
@@ -3245,7 +3252,7 @@ static int setup_report_descriptor(struct cyttsp5_core_data *cd)
 				cyttsp5_tch_hdr_field_map[i],
 				tch_collection_usage_page);
 		if (field) {
-			TPD_DMESG(
+			TPD_DEBUG(
 				" Field %p: rep_cnt:%d rep_sz:%d off:%d data:%02X min:%d max:%d usage_page:%08X\n",
 				field, field->report_count, field->report_size,
 				field->offset, field->data_type,
@@ -3253,11 +3260,11 @@ static int setup_report_descriptor(struct cyttsp5_core_data *cd)
 				field->usage_page);
 			fill_tch_abs(&si->tch_hdr[i], field);
 			si->tch_hdr[i].report = 1;
-			TPD_DMESG( "%s: ofs:%zu size:%zu min:%zu max:%zu bofs:%zu report:%d\n",
+			TPD_DEBUG( "%s: ofs:%zu size:%zu min:%zu max:%zu bofs:%zu report:%d\n",
 				cyttsp5_tch_hdr_string[i],
-				si->tch_abs[i].ofs, si->tch_abs[i].size,
-				si->tch_abs[i].min, si->tch_abs[i].max,
-				si->tch_abs[i].bofs, si->tch_abs[i].report);
+				si->tch_hdr[i].ofs, si->tch_hdr[i].size,
+				si->tch_hdr[i].min, si->tch_hdr[i].max,
+				si->tch_hdr[i].bofs, si->tch_hdr[i].report);
 
 		} else {
 			si->tch_hdr[i].report = 0;
@@ -3279,7 +3286,7 @@ static int setup_report_descriptor(struct cyttsp5_core_data *cd)
 	if (report)
 		si->desc.btn_report_id = report->id;
 	else
-		si->desc.tch_report_id = HID_BTN_REPORT_ID;
+		si->desc.btn_report_id = HID_BTN_REPORT_ID;
 
 	for (i = 0; i < cd->num_hid_reports; i++) {
 		struct cyttsp5_hid_report *report = cd->hid_reports[i];
@@ -3302,7 +3309,7 @@ static int setup_report_descriptor(struct cyttsp5_core_data *cd)
 		}
 	}
 
-	TPD_DMESG( "Features: easywake:%d noise_metric:%d tracking_heatmap:%d sensor_data:%d\n",
+	TPD_DEBUG( "Features: easywake:%d noise_metric:%d tracking_heatmap:%d sensor_data:%d\n",
 			cd->features.easywake, cd->features.noise_metric,
 			cd->features.tracking_heatmap,
 			cd->features.sensor_data);
@@ -3352,14 +3359,14 @@ static int cyttsp5_get_report_descriptor_(struct cyttsp5_core_data *cd)
 			__func__, rc);
 	}
 
-	TPD_DMESG( "%s: %d reports found in descriptor\n", __func__,
+	TPD_DEBUG( "%s: %d reports found in descriptor\n", __func__,
 		cd->num_hid_reports);
 
 	for (t = 0; t < cd->num_hid_reports; t++) {
 		struct cyttsp5_hid_report *report = cd->hid_reports[t];
 		int j;
 
-		TPD_DMESG(
+		TPD_DEBUG(
 			"Report %d: type:%d id:%02X size:%d fields:%d rec_fld_index:%d hdr_sz:%d rec_sz:%d usage_page:%08X\n",
 			t, report->type, report->id,
 			report->size, report->num_fields,
@@ -3369,14 +3376,14 @@ static int cyttsp5_get_report_descriptor_(struct cyttsp5_core_data *cd)
 		for (j = 0; j < report->num_fields; j++) {
 			struct cyttsp5_hid_field *field = report->fields[j];
 
-			TPD_DMESG(
+			TPD_DEBUG(
 				" Field %d: rep_cnt:%d rep_sz:%d off:%d data:%02X min:%d max:%d usage_page:%08X\n",
 				j, field->report_count, field->report_size,
 				field->offset, field->data_type,
 				field->logical_min, field->logical_max,
 				field->usage_page);
 
-			TPD_DMESG( "  Collections Phys:%08X App:%08X Log:%08X\n",
+			TPD_DEBUG( "  Collections Phys:%08X App:%08X Log:%08X\n",
 				field->collection_usage_pages
 					[HID_COLLECTION_PHYSICAL],
 				field->collection_usage_pages
@@ -3391,7 +3398,7 @@ static int cyttsp5_get_report_descriptor_(struct cyttsp5_core_data *cd)
 	/* Free it for now */
 	cyttsp5_free_hid_reports_(cd);
 
-	TPD_DMESG( "%s: %d reports found in descriptor\n", __func__,
+	TPD_DEBUG( "%s: %d reports found in descriptor\n", __func__,
 		cd->num_hid_reports);
 
 	goto exit;
@@ -3440,7 +3447,7 @@ static void cyttsp5_queue_startup_(struct cyttsp5_core_data *cd)
 		schedule_work(&cd->startup_work);
 		TPD_DMESG( "%s: cyttsp5_startup queued\n", __func__);
 	} else {
-		TPD_DMESG( "%s: startup_state = %d\n", __func__,
+		TPD_DEBUG( "%s: startup_state = %d\n", __func__,
 			cd->startup_state);
 	}
 }
@@ -3457,14 +3464,14 @@ static void call_atten_cb(struct cyttsp5_core_data *cd,
 {
 	struct atten_node *atten, *atten_n;
 
-	TPD_DMESG( "%s: check list type=%d mode=%d\n",
+	TPD_DEBUG( "%s: check list type=%d mode=%d\n",
 		__func__, type, mode);
 	spin_lock(&cd->spinlock);
 	list_for_each_entry_safe(atten, atten_n,
 			&cd->atten_list[type], node) {
 		if (!mode || atten->mode & mode) {
 			spin_unlock(&cd->spinlock);
-			TPD_DMESG( "%s: attention for '%s'", __func__,
+			TPD_DEBUG( "%s: attention for '%s'", __func__,
 				dev_name(atten->dev));
 			atten->func(atten->dev);
 			spin_lock(&cd->spinlock);
@@ -3510,6 +3517,12 @@ static void cyttsp5_watchdog_work(struct work_struct *work)
 			container_of(work, struct cyttsp5_core_data,
 					watchdog_work);
 	int rc;
+	 /*fix CDT207254
+	*if found the current sleep_state is SS_SLEEPING
+	*then no need to request_exclusive, directly return
+	*/
+	if (cd->sleep_state == SS_SLEEPING)
+		return;
 
 	rc = request_exclusive(cd, cd->dev, CY_REQUEST_EXCLUSIVE_TIMEOUT);
 	if (rc < 0) {
@@ -3551,7 +3564,7 @@ static void cyttsp5_watchdog_timer(unsigned long handle)
 	if (!cd)
 		return;
 
-	TPD_DMESG( "%s: Watchdog timer triggered\n", __func__);
+	TPD_DEBUG( "%s: Watchdog timer triggered\n", __func__);
 
 	if (!work_pending(&cd->watchdog_work))
 		schedule_work(&cd->watchdog_work);
@@ -3623,9 +3636,6 @@ static int cyttsp5_core_sleep_(struct cyttsp5_core_data *cd)
 		mutex_unlock(&cd->system_lock);
 		return 1;
 	}
-
-	TPD_DMESG( "%s: request exclusive\n", __func__);
-
 	mutex_unlock(&cd->system_lock);
 
 	/* Ensure watchdog and startup works stopped */
@@ -3649,29 +3659,27 @@ static int cyttsp5_core_sleep(struct cyttsp5_core_data *cd)
 {
 	int rc;
 
-
-	TPD_DMESG( "%s: request exclusive\n", __func__);
-
 	rc = request_exclusive(cd, cd->dev, CY_REQUEST_EXCLUSIVE_TIMEOUT);
 	if (rc < 0) {
 		TPD_DMESG( "%s: fail get exclusive ex=%p own=%p\n",
 				__func__, cd->exclusive_dev, cd->dev);
-		return 0;
+		return rc;
 	}
 
-	TPD_DMESG( "%s: cyttsp5_core_sleep_\n", __func__);
 	rc = cyttsp5_core_sleep_(cd);
 
 	if (release_exclusive(cd, cd->dev) < 0)
 		TPD_DMESG( "%s: fail to release exclusive\n", __func__);
 	else
-		TPD_DMESG( "%s: pass release exclusive\n", __func__);
+		TPD_DEBUG( "%s: pass release exclusive\n", __func__);
 
 	return rc;
 }
 
 static int cyttsp5_wakeup_host(struct cyttsp5_core_data *cd)
 {
+#ifndef EASYWAKE_TSG6
+	/* TSG5 EasyWake */
 	int rc = 0;
 	int event_id;
 	int size = get_unaligned_le16(&cd->input_buf[0]);
@@ -3683,7 +3691,7 @@ static int cyttsp5_wakeup_host(struct cyttsp5_core_data *cd)
 	cd->wake_initiated_by_device = 1;
 	event_id = cd->input_buf[3];
 
-	TPD_DMESG( "%s: e=%d, rc=%d\n", __func__, event_id, rc);
+	TPD_DEBUG( "%s: e=%d, rc=%d\n", __func__, event_id, rc);
 
 	if (rc) {
 		cyttsp5_core_sleep_(cd);
@@ -3694,6 +3702,41 @@ static int cyttsp5_wakeup_host(struct cyttsp5_core_data *cd)
 	call_atten_cb(cd, CY_ATTEN_WAKE, 0);
 exit:
 	return rc;
+#else
+	/* TSG6 FW1.3 EasyWake */
+	int rc = 0;
+	int i = 0;
+	int report_length;
+
+	/* Validate report */
+	if (cd->input_buf[2] != 4)
+		rc = -EINVAL;
+
+	cd->wake_initiated_by_device = 1;
+
+	TPD_DEBUG( "%s: rc=%d\n", __func__, rc);
+
+	if (rc) {
+		cyttsp5_core_sleep_(cd);
+		goto exit;
+	}
+
+	/* Get gesture id and gesture data length */
+	cd->gesture_id = cd->input_buf[3];
+	report_length = (cd->input_buf[1] << 8) | (cd->input_buf[0]);
+	cd->gesture_data_length = report_length - 4;
+
+	TPD_DBUG( "%s: gesture_id = %d, gesture_data_length = %d\n",
+		__func__, cd->gesture_id, cd->gesture_data_length);
+
+	for (i = 0; i < cd->gesture_data_length; i++)
+		cd->gesture_data[i] = cd->input_buf[4 + i];
+
+	/* attention WAKE */
+	call_atten_cb(cd, CY_ATTEN_WAKE, 0);
+exit:
+	return rc;
+#endif
 }
 
 static void cyttsp5_get_touch_axis(struct cyttsp5_core_data *cd,
@@ -3791,7 +3834,7 @@ static int parse_touch_input(struct cyttsp5_core_data *cd, int size)
 	int report_id = cd->input_buf[2];
 	int rc = -EINVAL;
 
-	TPD_DMESG( "%s: Received touch report\n", __func__);
+	TPD_DEBUG( "%s: Received touch report\n", __func__);
 	if (!si->ready) {
 		TPD_DMESG(
 			"%s: Need system information to parse touches\n",
@@ -3822,7 +3865,7 @@ static int parse_touch_input(struct cyttsp5_core_data *cd, int size)
 
 static int parse_command_input(struct cyttsp5_core_data *cd, int size)
 {
-	TPD_DMESG( "%s: Received cmd interrupt\n", __func__);
+	TPD_DEBUG( "%s: Received cmd interrupt\n", __func__);
 
 	memcpy(cd->response_buf, cd->input_buf, size);
 
@@ -3842,16 +3885,16 @@ static int cyttsp5_parse_input(struct cyttsp5_core_data *cd)
 
 	size = get_unaligned_le16(&cd->input_buf[0]);
 
-	TPD_DMESG( "%s: parse input message size = %d\n", __func__, size);
+	TPD_DEBUG( "%s: parse input message size = %d\n", __func__, size);
 
 	/* check reset */
 	if (size == 0) {
-		TPD_DMESG( "%s: Reset complete\n", __func__);
+		TPD_DEBUG( "%s: Reset complete\n", __func__);
 		memcpy(cd->response_buf, cd->input_buf, 2);
 		mutex_lock(&cd->system_lock);
 		if (!cd->hid_reset_cmd_state && !cd->hid_cmd_state) {
 			mutex_unlock(&cd->system_lock);
-			TPD_DMESG( "%s: Device Initiated Reset\n",
+			TPD_DEBUG( "%s: Device Initiated Reset\n",
 					__func__);
 			return 0;
 		}
@@ -3870,7 +3913,7 @@ static int cyttsp5_parse_input(struct cyttsp5_core_data *cd)
 		return 0;
 
 	report_id = cd->input_buf[2];
-	TPD_DMESG( "%s: report_id:%X\n", __func__, report_id);
+	TPD_DEBUG( "%s: report_id:%X\n", __func__, report_id);
 
 	/* Check wake-up report */
 	if (report_id == HID_WAKEUP_REPORT_ID) {
@@ -3927,14 +3970,40 @@ read:
 				__func__, rc);
 		return rc;
 	}
-	TPD_DMESG( "%s: Read input successfully\n", __func__);
+	TPD_DEBUG( "%s: Read input successfully\n", __func__);
 	return rc;
 }
+
+static  bool cyttsp5_check_irq_asserted(struct cyttsp5_core_data *cd)
+{
+#ifdef ENABLE_WORKAROUND_FOR_GLITCH_AFTER_BL_LAUNCH_APP
+	/* Workaround for FW defect, CDT165308
+	* bl_launch app creates a glitch in IRQ line */
+	if (cd->hid_cmd_state == HID_OUTPUT_BL_LAUNCH_APP + 1
+			&& cd->cpdata->irq_stat){
+		/*
+		in X1S panel and GC1546 panel, the width for the INT
+		glitch is about 4us,the normal INT width of response
+		will last more than 200us, so use 10us delay
+		for distinguish the glitch the normal INT is enough.
+		*/
+		udelay(10);
+		if (cd->cpdata->irq_stat(cd->cpdata, cd->dev)
+			!= CY_IRQ_ASSERTED_VALUE)
+			return false;
+	}
+#endif
+	return true;
+}
+
 
 static irqreturn_t cyttsp5_irq(int irq, void *handle)
 {
 	struct cyttsp5_core_data *cd = handle;
 	int rc;
+
+	if (!cyttsp5_check_irq_asserted(cd))
+		return IRQ_HANDLED;
 
 	rc = cyttsp5_read_input(cd);
 	if (!rc)
@@ -3944,7 +4013,7 @@ static irqreturn_t cyttsp5_irq(int irq, void *handle)
 }
 
 int _cyttsp5_subscribe_attention(struct device *dev,
-	enum cyttsp5_atten_type type, char id, int (*func)(struct device *),
+	enum cyttsp5_atten_type type, char *id, int (*func)(struct device *),
 	int mode)
 {
 	struct cyttsp5_core_data *cd = dev_get_drvdata(dev);
@@ -3954,14 +4023,14 @@ int _cyttsp5_subscribe_attention(struct device *dev,
 	if (!atten_new)
 		return -ENOMEM;
 
-	TPD_DMESG( "%s from '%s'\n", __func__, dev_name(cd->dev));
+	TPD_DEBUG( "%s from '%s'\n", __func__, dev_name(cd->dev));
 
 	spin_lock(&cd->spinlock);
 	list_for_each_entry(atten, &cd->atten_list[type], node) {
 		if (atten->id == id && atten->mode == mode) {
 			spin_unlock(&cd->spinlock);
 			kfree(atten_new);
-			TPD_DMESG( "%s: %s=%p %s=%d\n",
+			TPD_DEBUG( "%s: %s=%p %s=%d\n",
 				 __func__,
 				 "already subscribed attention",
 				 dev, "mode", mode);
@@ -3982,7 +4051,7 @@ int _cyttsp5_subscribe_attention(struct device *dev,
 }
 
 int _cyttsp5_unsubscribe_attention(struct device *dev,
-	enum cyttsp5_atten_type type, char id, int (*func)(struct device *),
+	enum cyttsp5_atten_type type, char *id, int (*func)(struct device *),
 	int mode)
 {
 	struct cyttsp5_core_data *cd = dev_get_drvdata(dev);
@@ -3994,7 +4063,7 @@ int _cyttsp5_unsubscribe_attention(struct device *dev,
 			list_del(&atten->node);
 			spin_unlock(&cd->spinlock);
 			kfree(atten);
-			TPD_DMESG( "%s: %s=%p %s=%d\n",
+			TPD_DEBUG( "%s: %s=%p %s=%d\n",
 				__func__,
 				"unsub for atten->dev", atten->dev,
 				"atten->mode", atten->mode);
@@ -4026,7 +4095,7 @@ static int cyttsp5_reset(struct cyttsp5_core_data *cd)
 	int rc;
 
 	/* reset hardware */
-	TPD_DMESG( "%s: reset hw...\n", __func__);
+	TPD_DEBUG( "%s: reset hw...\n", __func__);
 	rc = cyttsp5_hw_reset(cd);
 	if (rc < 0)
 		TPD_DMESG( "%s: %s dev='%s' r=%d\n", __func__,
@@ -4180,10 +4249,10 @@ static int cyttsp5_restore_parameters_(struct cyttsp5_core_data *cd)
 	spin_lock(&cd->spinlock);
 	list_for_each_entry(param, &cd->param_list, node) {
 		spin_unlock(&cd->spinlock);
-		TPD_DMESG( "%s: Parameter id:%d value:%d\n",
+		TPD_DEBUG( "%s: Parameter id:%d value:%d\n",
 			 __func__, param->id, param->value);
 		rc = cyttsp5_hid_output_set_param_(cd, param->id,
-				param->value);
+				param->value, param->size);
 		if (rc)
 			goto exit;
 		spin_lock(&cd->spinlock);
@@ -4200,35 +4269,44 @@ static int _fast_startup(struct cyttsp5_core_data *cd)
 
 reset:
 	if (retry != CY_CORE_STARTUP_RETRY_COUNT)
-		TPD_DMESG( "%s: Retry %d\n", __func__,
+		TPD_DEBUG( "%s: Retry %d\n", __func__,
 			CY_CORE_STARTUP_RETRY_COUNT - retry);
 
 	rc = cyttsp5_get_hid_descriptor_(cd, &cd->hid_desc);
 	if (rc < 0) {
 		TPD_DMESG( "%s: Error on getting HID descriptor r=%d\n",
 			__func__, rc);
-		RETRY_OR_EXIT(retry--, reset, exit);
+		if (retry--)
+			goto reset;
+		goto exit;
 	}
 	cd->mode = cyttsp5_get_mode(cd, &cd->hid_desc);
 
 	if (cd->mode == CY_MODE_BOOTLOADER) {
-		dev_info(cd->dev, "%s: Bootloader mode\n", __func__);
+		TPD_DMESG( "%s: Bootloader mode\n", __func__);
 		rc = cyttsp5_hid_output_bl_launch_app_(cd);
 		if (rc < 0) {
 			TPD_DMESG( "%s: Error on launch app r=%d\n",
 				__func__, rc);
-			RETRY_OR_EXIT(retry--, reset, exit);
+			if (retry--)
+				goto reset;
+			goto exit;
 		}
 		rc = cyttsp5_get_hid_descriptor_(cd, &cd->hid_desc);
 		if (rc < 0) {
 			TPD_DMESG(
 				"%s: Error on getting HID descriptor r=%d\n",
 				__func__, rc);
-			RETRY_OR_EXIT(retry--, reset, exit);
+			if (retry--)
+				goto reset;
+			goto exit;
 		}
 		cd->mode = cyttsp5_get_mode(cd, &cd->hid_desc);
-		if (cd->mode == CY_MODE_BOOTLOADER)
-			RETRY_OR_EXIT(retry--, reset, exit);
+		if (cd->mode == CY_MODE_BOOTLOADER) {
+			if (retry--)
+				goto reset;
+			goto exit;
+		}
 	}
 
 	rc = cyttsp5_restore_parameters_(cd);
@@ -4295,7 +4373,7 @@ static int cyttsp5_core_wake(struct cyttsp5_core_data *cd)
 	if (rc < 0) {
 		TPD_DMESG( "%s: fail get exclusive ex=%p own=%p\n",
 				__func__, cd->exclusive_dev, cd->dev);
-		return 0;
+		return rc;
 	}
 
 	rc = cyttsp5_core_wake_(cd);
@@ -4303,7 +4381,7 @@ static int cyttsp5_core_wake(struct cyttsp5_core_data *cd)
 	if (release_exclusive(cd, cd->dev) < 0)
 		TPD_DMESG( "%s: fail to release exclusive\n", __func__);
 	else
-		TPD_DMESG( "%s: pass release exclusive\n", __func__);
+		TPD_DEBUG( "%s: pass release exclusive\n", __func__);
 
 	return rc;
 }
@@ -4335,7 +4413,7 @@ static int cyttsp5_get_ic_crc_(struct cyttsp5_core_data *cd, u8 ebid)
 exit:
 	cyttsp5_hid_output_resume_scanning_(cd);
 error:
-	TPD_DMESG( "%s: CRC: ebid:%d, crc:0x%04X\n",
+	TPD_DEBUG( "%s: CRC: ebid:%d, crc:0x%04X\n",
 			__func__, ebid, si->ttconfig.crc);
 	return rc;
 }
@@ -4384,7 +4462,7 @@ static int cyttsp5_startup_(struct cyttsp5_core_data *cd, bool reset)
 
 reset:
 	if (retry != CY_CORE_STARTUP_RETRY_COUNT)
-		TPD_DMESG( "%s: Retry %d\n", __func__,
+		TPD_DEBUG( "%s: Retry %d\n", __func__,
 			CY_CORE_STARTUP_RETRY_COUNT - retry);
 
 	rc = cyttsp5_check_and_deassert_int(cd);
@@ -4395,15 +4473,24 @@ reset:
 		if (rc < 0) {
 			TPD_DMESG( "%s: Error on h/w reset r=%d\n",
 					__func__, rc);
-			RETRY_OR_EXIT(retry--, reset, exit);
+			if (retry--)
+				goto reset;
+			goto exit;
 		}
 	}
+
+	/* CDT214064 */
+	if (cd->wait_for_auto_cali_cplt)
+		wait_event_timeout(cd->wait_q, NULL,
+			msecs_to_jiffies(CY_HID_AUTO_CALI_CPLT_TIMEOUT));
 
 	rc = cyttsp5_get_hid_descriptor_(cd, &cd->hid_desc);
 	if (rc < 0) {
 		TPD_DMESG( "%s: Error on getting HID descriptor r=%d\n",
 			__func__, rc);
-		RETRY_OR_EXIT(retry--, reset, exit);
+		if (retry--)
+			goto reset;
+		goto exit;
 	}
 	cd->mode = cyttsp5_get_mode(cd, &cd->hid_desc);
 
@@ -4415,20 +4502,24 @@ reset:
 		if (rc < 0) {
 			TPD_DMESG( "%s: Error on start bootloader r=%d\n",
 				__func__, rc);
-			RETRY_OR_EXIT(retry--, reset, exit);
+			if (retry--)
+				goto reset;
+			goto exit;
 		}
-		dev_info(cd->dev, "%s: Bootloader mode\n", __func__);
+		TPD_DMESG( "%s: Bootloader mode\n", __func__);
 	}
 
 	cyttsp5_hid_output_bl_get_panel_id_(cd, &cd->panel_id);
 
-	TPD_DMESG( "%s: Panel ID: 0x%02X\n", __func__, cd->panel_id);
+	TPD_DEBUG( "%s: Panel ID: 0x%02X\n", __func__, cd->panel_id);
 
 	rc = cyttsp5_hid_output_bl_launch_app_(cd);
 	if (rc < 0) {
 		TPD_DMESG( "%s: Error on launch app r=%d\n",
 			__func__, rc);
-		RETRY_OR_EXIT(retry--, reset, exit);
+		if (retry--)
+			goto reset;
+		goto exit;
 	}
 
 	rc = cyttsp5_get_hid_descriptor_(cd, &cd->hid_desc);
@@ -4436,11 +4527,16 @@ reset:
 		TPD_DMESG(
 			"%s: Error on getting HID descriptor r=%d\n",
 			__func__, rc);
-		RETRY_OR_EXIT(retry--, reset, exit);
+		if (retry--)
+			goto reset;
+		goto exit;
 	}
 	cd->mode = cyttsp5_get_mode(cd, &cd->hid_desc);
-	if (cd->mode == CY_MODE_BOOTLOADER)
-		RETRY_OR_EXIT(retry--, reset, exit);
+	if (cd->mode == CY_MODE_BOOTLOADER) {
+		if (retry--)
+			goto reset;
+		goto exit;
+	}
 
 	mutex_lock(&cd->system_lock);
 	/* Read descriptor lengths */
@@ -4453,23 +4549,27 @@ reset:
 
 	cd->mode = cyttsp5_get_mode(cd, &cd->hid_desc);
 	if (cd->mode == CY_MODE_OPERATIONAL)
-		dev_info(cd->dev, "%s: Operational mode\n", __func__);
+		TPD_DMESG( "%s: Operational mode\n", __func__);
 	else if (cd->mode == CY_MODE_BOOTLOADER)
-		dev_info(cd->dev, "%s: Bootloader mode\n", __func__);
+		TPD_DMESG( "%s: Bootloader mode\n", __func__);
 	else if (cd->mode == CY_MODE_UNKNOWN) {
 		TPD_DMESG( "%s: Unknown mode\n", __func__);
 		rc = -ENODEV;
 		mutex_unlock(&cd->system_lock);
-		RETRY_OR_EXIT(retry--, reset, exit);
+		if (retry--)
+			goto reset;
+		goto exit;
 	}
 	mutex_unlock(&cd->system_lock);
 
-	dev_info(cd->dev, "%s: Reading report descriptor\n", __func__);
+	TPD_DMESG( "%s: Reading report descriptor\n", __func__);
 	rc = cyttsp5_get_report_descriptor_(cd);
 	if (rc < 0) {
 		TPD_DMESG( "%s: Error on getting report descriptor r=%d\n",
 			__func__, rc);
-		RETRY_OR_EXIT(retry--, reset, exit);
+		if (retry--)
+			goto reset;
+		goto exit;
 	}
 
 	if (!cd->features.easywake)
@@ -4479,10 +4579,12 @@ reset:
 	if (rc) {
 		TPD_DMESG( "%s: Error on getting sysinfo r=%d\n",
 			__func__, rc);
-		RETRY_OR_EXIT(retry--, reset, exit);
+		if (retry--)
+			goto reset;
+		goto exit;
 	}
 
-	dev_info(cd->dev, "cyttsp5 Protocol Version: %d.%d\n",
+	TPD_DMESG( "cyttsp5 Protocol Version: %d.%d\n",
 			cd->sysinfo.cydata.pip_ver_major,
 			cd->sysinfo.cydata.pip_ver_minor);
 
@@ -4544,7 +4646,7 @@ static int cyttsp5_startup(struct cyttsp5_core_data *cd, bool reset)
 		/* Don't return fail code, mode is already changed. */
 		TPD_DMESG( "%s: fail to release exclusive\n", __func__);
 	else
-		TPD_DMESG( "%s: pass release exclusive\n", __func__);
+		TPD_DEBUG( "%s: pass release exclusive\n", __func__);
 
 exit:
 	mutex_lock(&cd->system_lock);
@@ -4569,7 +4671,11 @@ static void cyttsp5_startup_work_function(struct work_struct *work)
 			__func__, rc);
 }
 
-#if defined(CONFIG_PM_RUNTIME)
+/*
+ * CONFIG_PM_RUNTIME option is removed in 3.19.0.
+ */
+#if defined(CONFIG_PM_RUNTIME) || \
+		(LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0))
 static int cyttsp5_core_rt_suspend(struct device *dev)
 {
 	struct cyttsp5_core_data *cd = dev_get_drvdata(dev);
@@ -4605,7 +4711,7 @@ static int cyttsp5_core_suspend(struct device *dev)
 
 	cyttsp5_core_sleep(cd);
 
-	if (!(cd->cpdata->flags & CY_CORE_FLAG_WAKE_ON_GESTURE))
+	if (IS_DEEP_SLEEP_CONFIGURED(cd->easy_wakeup_gesture))
 		return 0;
 
 	/*
@@ -4616,11 +4722,11 @@ static int cyttsp5_core_suspend(struct device *dev)
 	cd->irq_disabled = 1;
 
 	if (device_may_wakeup(dev)) {
-		TPD_DMESG( "%s Device MAY wakeup\n", __func__);
+		TPD_DEBUG( "%s Device MAY wakeup\n", __func__);
 		if (!enable_irq_wake(cd->irq))
 			cd->irq_wake = 1;
 	} else {
-		TPD_DMESG( "%s Device MAY NOT wakeup\n", __func__);
+		TPD_DEBUG( "%s Device MAY NOT wakeup\n", __func__);
 	}
 
 	return 0;
@@ -4630,7 +4736,7 @@ static int cyttsp5_core_resume(struct device *dev)
 {
 	struct cyttsp5_core_data *cd = dev_get_drvdata(dev);
 
-	if (!(cd->cpdata->flags & CY_CORE_FLAG_WAKE_ON_GESTURE))
+	if (IS_DEEP_SLEEP_CONFIGURED(cd->easy_wakeup_gesture))
 		goto exit;
 
 	/*
@@ -4643,13 +4749,13 @@ static int cyttsp5_core_resume(struct device *dev)
 	}
 
 	if (device_may_wakeup(dev)) {
-		TPD_DMESG( "%s Device MAY wakeup\n", __func__);
+		TPD_DEBUG( "%s Device MAY wakeup\n", __func__);
 		if (cd->irq_wake) {
 			disable_irq_wake(cd->irq);
 			cd->irq_wake = 0;
 		}
 	} else {
-		TPD_DMESG( "%s Device MAY NOT wakeup\n", __func__);
+		TPD_DEBUG( "%s Device MAY NOT wakeup\n", __func__);
 	}
 
 exit:
@@ -4679,7 +4785,7 @@ static int cyttsp5_pm_notifier(struct notifier_block *nb,
 			struct cyttsp5_core_data, pm_notifier);
 
 	if (action == PM_SUSPEND_PREPARE) {
-		TPD_DMESG( "%s: Suspend prepare\n", __func__);
+		TPD_DEBUG( "%s: Suspend prepare\n", __func__);
 
 		/*
 		 * If not runtime PM suspended, either call runtime
@@ -4870,10 +4976,28 @@ static ssize_t cyttsp5_drv_debug_store(struct device *dev,
 	unsigned long value;
 	int rc;
 	u8 return_data[8];
+	static u8 wd_disabled;
 
 	rc = kstrtoul(buf, 10, &value);
 	if (rc < 0) {
 		TPD_DMESG( "%s: Invalid value\n", __func__);
+		goto cyttsp5_drv_debug_store_exit;
+	}
+
+	/* Start watchdog timer command */
+	if (value == CY_DBG_HID_START_WD) {
+		TPD_DMESG( "%s: start watchdog (cd=%p)\n", __func__, cd);
+		wd_disabled = 0;
+		cyttsp5_start_wd_timer(cd);
+		goto cyttsp5_drv_debug_store_exit;
+	}
+
+	/* Stop watchdog timer temporarily */
+	cyttsp5_stop_wd_timer(cd);
+
+	if (value == CY_DBG_HID_STOP_WD) {
+		TPD_DMESG( "%s: stop watchdog (cd=%p)\n", __func__, cd);
+		wd_disabled = 1;
 		goto cyttsp5_drv_debug_store_exit;
 	}
 
@@ -4912,11 +5036,11 @@ static ssize_t cyttsp5_drv_debug_store(struct device *dev,
 	case CY_DBG_HID_SET_POWER_ON:
 		TPD_DMESG( "%s: hid_set_power_on (cd=%p)\n", __func__, cd);
 		cyttsp5_hid_cmd_set_power(cd, HID_POWER_ON);
-		cyttsp5_start_wd_timer(cd);
+		wd_disabled = 0;
 		break;
 	case CY_DBG_HID_SET_POWER_SLEEP:
 		TPD_DMESG( "%s: hid_set_power_off (cd=%p)\n", __func__, cd);
-		cyttsp5_stop_wd_timer(cd);
+		wd_disabled = 1;
 		cyttsp5_hid_cmd_set_power(cd, HID_POWER_SLEEP);
 		break;
 	case CY_DBG_HID_NULL:
@@ -4938,14 +5062,6 @@ static ssize_t cyttsp5_drv_debug_store(struct device *dev,
 	case CY_DBG_HID_RESUME_SCAN:
 		TPD_DMESG( "%s: resume_scanning (cd=%p)\n", __func__, cd);
 		cyttsp5_hid_output_resume_scanning(cd);
-		break;
-	case CY_DBG_HID_STOP_WD:
-		TPD_DMESG( "%s: stop watchdog (cd=%p)\n", __func__, cd);
-		cyttsp5_stop_wd_timer(cd);
-		break;
-	case CY_DBG_HID_START_WD:
-		TPD_DMESG( "%s: start watchdog (cd=%p)\n", __func__, cd);
-		cyttsp5_start_wd_timer(cd);
 		break;
 	case HID_OUTPUT_BL_VERIFY_APP_INTEGRITY:
 		TPD_DMESG( "%s: verify app integ (cd=%p)\n", __func__, cd);
@@ -4970,6 +5086,10 @@ static ssize_t cyttsp5_drv_debug_store(struct device *dev,
 	default:
 		TPD_DMESG( "%s: Invalid value\n", __func__);
 	}
+
+	/* Enable watchdog timer */
+	if (!wd_disabled)
+		cyttsp5_start_wd_timer(cd);
 
 cyttsp5_drv_debug_store_exit:
 	return size;
@@ -5014,9 +5134,6 @@ static ssize_t cyttsp5_easy_wakeup_gesture_store(struct device *dev,
 	unsigned long value;
 	int ret;
 
-	if (!(cd->cpdata->flags & CY_CORE_FLAG_WAKE_ON_GESTURE))
-		return -EINVAL;
-
 	if (!cd->features.easywake)
 		return -EINVAL;
 
@@ -5044,6 +5161,49 @@ static ssize_t cyttsp5_easy_wakeup_gesture_store(struct device *dev,
 	return size;
 }
 
+#ifdef EASYWAKE_TSG6
+/*
+ * Show easywake gesture id via sysfs
+ */
+static ssize_t cyttsp5_easy_wakeup_gesture_id_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct cyttsp5_core_data *cd = dev_get_drvdata(dev);
+	ssize_t ret;
+
+	mutex_lock(&cd->system_lock);
+	ret = snprintf(buf, CY_MAX_PRBUF_SIZE, "0x%02X\n",
+			cd->gesture_id);
+	mutex_unlock(&cd->system_lock);
+	return ret;
+}
+
+/*
+ * Show easywake gesture data via sysfs
+ * The format:
+ * x1(LSB), x1(MSB),y1(LSB), y1(MSB),x2(LSB), x2(MSB),y2(LSB), y2(MSB),...
+ */
+static ssize_t cyttsp5_easy_wakeup_gesture_data_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct cyttsp5_core_data *cd = dev_get_drvdata(dev);
+	ssize_t ret = 0;
+	int i;
+
+	mutex_lock(&cd->system_lock);
+
+	for (i = 0; i < cd->gesture_data_length; i++)
+		ret += snprintf(buf + ret, CY_MAX_PRBUF_SIZE - ret,
+				"0x%02X\n", cd->gesture_data[i]);
+
+	ret += snprintf(buf + ret, CY_MAX_PRBUF_SIZE - ret,
+			"(%d bytes)\n", cd->gesture_data_length);
+
+	mutex_unlock(&cd->system_lock);
+	return ret;
+}
+#endif
+
 /* Show Panel ID via sysfs */
 static ssize_t cyttsp5_panel_id_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
@@ -5053,6 +5213,41 @@ static ssize_t cyttsp5_panel_id_show(struct device *dev,
 
 	ret = snprintf(buf, CY_MAX_PRBUF_SIZE, "0x%02X\n",
 			cd->panel_id);
+	return ret;
+}
+
+/* Show platform data via sysfs */
+static ssize_t cyttsp5_platform_data_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct cyttsp5_platform_data *pdata = dev_get_platdata(dev);
+	ssize_t ret;
+
+	ret = sprintf(buf,
+		"%s: %d\n"
+		"%s: %d\n"
+		"%s: %d\n"
+		"%s: %d\n"
+		"%s: %d\n"
+		"%s: %d\n"
+		"%s: %d\n"
+		"%s: %d\n"
+		"%s: %d\n"
+		"%s: %d\n"
+		"%s: %d\n"
+		"%s: %d\n",
+		"Interrupt GPIO", pdata->core_pdata->irq_gpio,
+		"Reset GPIO", pdata->core_pdata->rst_gpio,
+		"Level trigger delay (us)", pdata->core_pdata->level_irq_udelay,
+		"HID descriptor register", pdata->core_pdata->hid_desc_register,
+		"Vendor ID", pdata->core_pdata->vendor_id,
+		"Product ID", pdata->core_pdata->product_id,
+		"Easy wakeup gesture", pdata->core_pdata->easy_wakeup_gesture,
+		"Vkeys x", pdata->mt_pdata->vkeys_x,
+		"Vkeys y", pdata->mt_pdata->vkeys_y,
+		"Core data flags", pdata->core_pdata->flags,
+		"MT data flags", pdata->mt_pdata->flags,
+		"Loader data flags", pdata->loader_pdata->flags);
 	return ret;
 }
 
@@ -5068,7 +5263,14 @@ static struct device_attribute attributes[] = {
 	__ATTR(easy_wakeup_gesture, S_IRUSR | S_IWUSR,
 		cyttsp5_easy_wakeup_gesture_show,
 		cyttsp5_easy_wakeup_gesture_store),
+#ifdef EASYWAKE_TSG6
+	__ATTR(easy_wakeup_gesture_id, S_IRUSR,
+		cyttsp5_easy_wakeup_gesture_id_show, NULL),
+	__ATTR(easy_wakeup_gesture_data, S_IRUSR,
+		cyttsp5_easy_wakeup_gesture_data_show, NULL),
+#endif
 	__ATTR(panel_id, S_IRUGO, cyttsp5_panel_id_show, NULL),
+	__ATTR(platform_data, S_IRUGO, cyttsp5_platform_data_show, NULL),
 };
 
 static int add_sysfs_interfaces(struct device *dev)
@@ -5215,8 +5417,86 @@ struct cyttsp5_core_commands *cyttsp5_get_commands(void)
 }
 EXPORT_SYMBOL_GPL(cyttsp5_get_commands);
 
+static DEFINE_MUTEX(core_list_lock);
 static LIST_HEAD(core_list);
+static DEFINE_MUTEX(module_list_lock);
+static LIST_HEAD(module_list);
 static int core_number;
+
+static int cyttsp5_probe_module(struct cyttsp5_core_data *cd,
+		struct cyttsp5_module *module)
+{
+	struct module_node *module_node;
+	int rc = 0;
+
+	module_node = kzalloc(sizeof(*module_node), GFP_KERNEL);
+	if (!module_node)
+		return -ENOMEM;
+
+	module_node->module = module;
+
+	mutex_lock(&cd->module_list_lock);
+	list_add(&module_node->node, &cd->module_list);
+	mutex_unlock(&cd->module_list_lock);
+
+	rc = module->probe(cd->dev, &module_node->data);
+	if (rc) {
+		/*
+		 * Remove from the list when probe fails
+		 * in order not to call release
+		 */
+		mutex_lock(&cd->module_list_lock);
+		list_del(&module_node->node);
+		mutex_unlock(&cd->module_list_lock);
+		kfree(module_node);
+		goto exit;
+	}
+
+exit:
+	return rc;
+}
+
+static void cyttsp5_release_module(struct cyttsp5_core_data *cd,
+		struct cyttsp5_module *module)
+{
+	struct module_node *m, *m_n;
+
+	mutex_lock(&cd->module_list_lock);
+	list_for_each_entry_safe(m, m_n, &cd->module_list, node)
+		if (m->module == module) {
+			module->release(cd->dev, m->data);
+			list_del(&m->node);
+			kfree(m);
+			break;
+		}
+	mutex_unlock(&cd->module_list_lock);
+}
+
+static void cyttsp5_probe_modules(struct cyttsp5_core_data *cd)
+{
+	struct cyttsp5_module *m;
+	int rc = 0;
+
+	mutex_lock(&module_list_lock);
+	list_for_each_entry(m, &module_list, node) {
+		rc = cyttsp5_probe_module(cd, m);
+		if (rc)
+			TPD_DMESG( "%s: Probe fails for module %s\n",
+				__func__, m->name);
+	}
+	mutex_unlock(&module_list_lock);
+}
+
+static void cyttsp5_release_modules(struct cyttsp5_core_data *cd)
+{
+	struct cyttsp5_module *m;
+
+	mutex_lock(&module_list_lock);
+	list_for_each_entry(m, &module_list, node)
+		cyttsp5_release_module(cd, m);
+	mutex_unlock(&module_list_lock);
+}
+
 struct cyttsp5_core_data *cyttsp5_get_core_data(char *id)
 {
 	struct cyttsp5_core_data *d;
@@ -5233,46 +5513,104 @@ static void cyttsp5_add_core(struct device *dev)
 	struct cyttsp5_core_data *d;
 	struct cyttsp5_core_data *cd = dev_get_drvdata(dev);
 
+	mutex_lock(&core_list_lock);
 	list_for_each_entry(d, &core_list, node)
 		if (d->dev == dev)
-			return;
+			goto unlock;
 
 	list_add(&cd->node, &core_list);
+unlock:
+	mutex_unlock(&core_list_lock);
 }
 
 static void cyttsp5_del_core(struct device *dev)
 {
 	struct cyttsp5_core_data *d, *d_n;
 
-	list_for_each_entry_safe(d, d_n, &core_list, node) {
+	mutex_lock(&core_list_lock);
+	list_for_each_entry_safe(d, d_n, &core_list, node)
 		if (d->dev == dev) {
 			list_del(&d->node);
-			return;
+			goto unlock;
 		}
-	}
+unlock:
+	mutex_unlock(&core_list_lock);
 }
 
-#if defined(CONFIG_HAS_EARLYSUSPEND) || defined(CONFIG_FB)
-static void cyttsp5_pm_runtime_get(struct cyttsp5_core_data *cd)
+int cyttsp5_register_module(struct cyttsp5_module *module)
 {
-	int i;
+	struct cyttsp5_module *m;
+	struct cyttsp5_core_data *cd;
 
-	for (i = 0; i < cd->number_of_open_input_device; i++) {
-		pm_runtime_get_sync(cd->dev);
-		cd->pm_runtime_usage_count++;
-	}
+	int rc = 0;
+
+	if (!module || !module->probe || !module->release)
+		return -EINVAL;
+
+	mutex_lock(&module_list_lock);
+	list_for_each_entry(m, &module_list, node)
+		if (m == module) {
+			rc = -EEXIST;
+			goto unlock;
+		}
+
+	list_add(&module->node, &module_list);
+
+	/* Probe the module for each core */
+	mutex_lock(&core_list_lock);
+	list_for_each_entry(cd, &core_list, node)
+		cyttsp5_probe_module(cd, module);
+	mutex_unlock(&core_list_lock);
+
+unlock:
+	mutex_unlock(&module_list_lock);
+	return rc;
 }
+EXPORT_SYMBOL_GPL(cyttsp5_register_module);
 
-static void cyttsp5_pm_runtime_put(struct cyttsp5_core_data *cd)
+void cyttsp5_unregister_module(struct cyttsp5_module *module)
 {
-	int i;
+	struct cyttsp5_module *m, *m_n;
+	struct cyttsp5_core_data *cd;
 
-	for (i = 0; i < cd->number_of_open_input_device; i++) {
-		pm_runtime_put(cd->dev);
-		cd->pm_runtime_usage_count--;
-	}
+	if (!module)
+		return;
+
+	mutex_lock(&module_list_lock);
+
+	/* Release the module for each core */
+	mutex_lock(&core_list_lock);
+	list_for_each_entry(cd, &core_list, node)
+		cyttsp5_release_module(cd, module);
+	mutex_unlock(&core_list_lock);
+
+	list_for_each_entry_safe(m, m_n, &module_list, node)
+		if (m == module) {
+			list_del(&m->node);
+			break;
+		}
+
+	mutex_unlock(&module_list_lock);
 }
-#endif
+EXPORT_SYMBOL_GPL(cyttsp5_unregister_module);
+
+void *cyttsp5_get_module_data(struct device *dev, struct cyttsp5_module *module)
+{
+	struct cyttsp5_core_data *cd = dev_get_drvdata(dev);
+	struct module_node *m;
+	void *data = NULL;
+
+	mutex_lock(&cd->module_list_lock);
+	list_for_each_entry(m, &cd->module_list, node)
+		if (m->module == module) {
+			data = m->data;
+			break;
+		}
+	mutex_unlock(&cd->module_list_lock);
+
+	return data;
+}
+EXPORT_SYMBOL(cyttsp5_get_module_data);
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 static void cyttsp5_early_suspend(struct early_suspend *h)
@@ -5280,7 +5618,7 @@ static void cyttsp5_early_suspend(struct early_suspend *h)
 	struct cyttsp5_core_data *cd =
 		container_of(h, struct cyttsp5_core_data, es);
 
-	cyttsp5_pm_runtime_put(cd);
+	call_atten_cb(cd, CY_ATTEN_SUSPEND, 0);
 }
 
 static void cyttsp5_late_resume(struct early_suspend *h)
@@ -5288,7 +5626,7 @@ static void cyttsp5_late_resume(struct early_suspend *h)
 	struct cyttsp5_core_data *cd =
 		container_of(h, struct cyttsp5_core_data, es);
 
-	cyttsp5_pm_runtime_get(cd);
+	call_atten_cb(cd, CY_ATTEN_RESUME, 0);
 }
 
 static void cyttsp5_setup_early_suspend(struct cyttsp5_core_data *cd)
@@ -5308,23 +5646,33 @@ static int fb_notifier_callback(struct notifier_block *self,
 	struct fb_event *evdata = data;
 	int *blank;
 
-	if (event == FB_EVENT_BLANK && evdata) {
-		blank = evdata->data;
-		if (*blank == FB_BLANK_UNBLANK) {
-			dev_info(cd->dev, "%s: UNBLANK!\n", __func__);
-			cyttsp5_pm_runtime_get(cd);
-		} else if (*blank == FB_BLANK_POWERDOWN) {
-			dev_info(cd->dev, "%s: POWERDOWN!\n", __func__);
-			cyttsp5_pm_runtime_put(cd);
+	if (event != FB_EVENT_BLANK || !evdata)
+		goto exit;
+
+	blank = evdata->data;
+	if (*blank == FB_BLANK_UNBLANK) {
+		TPD_DMESG( "%s: UNBLANK!\n", __func__);
+		if (cd->fb_state != FB_ON) {
+			call_atten_cb(cd, CY_ATTEN_RESUME, 0);
+			cd->fb_state = FB_ON;
+		}
+	} else if (*blank == FB_BLANK_POWERDOWN) {
+		TPD_DMESG( "%s: POWERDOWN!\n", __func__);
+		if (cd->fb_state != FB_OFF) {
+			call_atten_cb(cd, CY_ATTEN_SUSPEND, 0);
+			cd->fb_state = FB_OFF;
 		}
 	}
 
+exit:
 	return 0;
 }
 
 static void cyttsp5_setup_fb_notifier(struct cyttsp5_core_data *cd)
 {
 	int rc;
+
+	cd->fb_state = FB_ON;
 
 	cd->fb_notifier.notifier_call = fb_notifier_callback;
 
@@ -5340,7 +5688,7 @@ static int touch_event_handler(void *pdata)
 	struct cyttsp5_platform_data *data = pdata;
 	struct sched_param param = { .sched_priority = RTPM_PRIO_TPD };
 
-	TPD_DMESG( "%s: enter func\n", __func__);
+	TPD_DEBUG( "%s: enter func\n", __func__);
 
 	sched_setscheduler(current, SCHED_RR, &param);
 
@@ -5372,6 +5720,8 @@ static int cyttsp5_setup_irq_gpio(struct cyttsp5_core_data *cd)
 {
 	thread = kthread_run(touch_event_handler, cd, TPD_DEVICE);
 	/* Initialize IRQ */
+	mt_eint_set_hw_debounce(CUST_EINT_TOUCH_PANEL_NUM, 0);
+	mt_eint_set_sens(CUST_EINT_TOUCH_PANEL_NUM, MT_LEVEL_SENSITIVE);
 	mt_eint_registration(CUST_EINT_TOUCH_PANEL_NUM, EINTF_TRIGGER_LOW, tpd_eint_interrupt_handler, 0);
 	cd->irq = CUST_EINT_TOUCH_PANEL_NUM;
 	cd->irq_enabled = true;
@@ -5420,10 +5770,14 @@ int cyttsp5_probe(const struct cyttsp5_bus_ops *ops, struct device *dev,
 	scnprintf(cd->core_id, 20, "%s%d", CYTTSP5_CORE_NAME, core_number++);
 
 	/* Initialize mutexes and spinlocks */
+	mutex_init(&cd->module_list_lock);
 	mutex_init(&cd->system_lock);
 	mutex_init(&cd->adap_lock);
 	mutex_init(&cd->hid_report_lock);
 	spin_lock_init(&cd->spinlock);
+
+	/* Initialize module list */
+	INIT_LIST_HEAD(&cd->module_list);
 
 	/* Initialize attention lists */
 	for (type = 0; type < CY_ATTEN_NUM_ATTEN; type++)
@@ -5479,7 +5833,7 @@ int cyttsp5_probe(const struct cyttsp5_bus_ops *ops, struct device *dev,
 		rc = cd->cpdata->detect(cd->cpdata, cd->dev,
 				cyttsp5_platform_detect_read);
 		if (rc) {
-			dev_info(cd->dev, "%s: No HW detected\n", __func__);
+			TPD_DMESG( "%s: No HW detected\n", __func__);
 			rc = -ENODEV;
 			goto error_detect;
 		}
@@ -5495,7 +5849,7 @@ int cyttsp5_probe(const struct cyttsp5_bus_ops *ops, struct device *dev,
 		goto error_setup_irq;
 	}
 
-	TPD_DMESG( "%s: add sysfs interfaces\n", __func__);
+	TPD_DEBUG( "%s: add sysfs interfaces\n", __func__);
 	rc = add_sysfs_interfaces(dev);
 	if (rc < 0) {
 		TPD_DMESG( "%s: Error, fail sysfs init\n", __func__);
@@ -5520,7 +5874,7 @@ int cyttsp5_probe(const struct cyttsp5_bus_ops *ops, struct device *dev,
 	 * call startup directly to ensure that the device
 	 * is tested before leaving the probe
 	 */
-	TPD_DMESG( "%s: call startup\n", __func__);
+	TPD_DEBUG( "%s: call startup\n", __func__);
 	rc = cyttsp5_startup(cd, false);
 
 	pm_runtime_put_sync(dev);
@@ -5554,6 +5908,9 @@ int cyttsp5_probe(const struct cyttsp5_bus_ops *ops, struct device *dev,
 		goto error_startup_btn;
 	}
 
+	/* Probe registered modules */
+	cyttsp5_probe_modules(cd);
+
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	cyttsp5_setup_early_suspend(cd);
 #elif defined(CONFIG_FB)
@@ -5573,6 +5930,10 @@ error_startup_mt:
 	cyttsp5_mt_release(dev);
 error_startup:
 	pm_runtime_disable(dev);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 16, 0))
+	device_wakeup_disable(dev);
+#endif
+	device_init_wakeup(dev, 0);
 	cancel_work_sync(&cd->startup_work);
 	cyttsp5_stop_wd_timer(cd);
 	cyttsp5_free_si_ptrs(cd);
@@ -5597,6 +5958,9 @@ EXPORT_SYMBOL_GPL(cyttsp5_probe);
 int cyttsp5_release(struct cyttsp5_core_data *cd)
 {
 	struct device *dev = cd->dev;
+
+	/* Release successfully probed modules */
+	cyttsp5_release_modules(cd);
 
 	cyttsp5_proximity_release(dev);
 	cyttsp5_btn_release(dev);
@@ -5623,6 +5987,9 @@ int cyttsp5_release(struct cyttsp5_core_data *cd)
 
 	cyttsp5_stop_wd_timer(cd);
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 16, 0))
+	device_wakeup_disable(dev);
+#endif
 	device_init_wakeup(dev, 0);
 
 #ifdef TTHE_TUNER_SUPPORT

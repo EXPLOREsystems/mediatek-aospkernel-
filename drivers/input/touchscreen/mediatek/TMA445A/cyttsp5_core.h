@@ -1,11 +1,15 @@
 /*
  * cyttsp5_core.h
  * Cypress TrueTouch(TM) Standard Product V5 Core Module.
- * For use with Cypress Txx5xx parts.
+ * For use with Cypress touchscreen controllers.
  * Supported parts include:
- * TMA5XX
+ * CYTMA5XX
+ * CYTMA448
+ * CYTMA445A
+ * CYTT21XXX
+ * CYTT31XXX
  *
- * Copyright (C) 2012-2014 Cypress Semiconductor
+ * Copyright (C) 2012-2015 Cypress Semiconductor
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,9 +42,9 @@
 
 #define CY_DRIVER_NAME TTDA
 #define CY_DRIVER_MAJOR 03
-#define CY_DRIVER_MINOR 04
+#define CY_DRIVER_MINOR 06
 
-#define CY_DRIVER_REVCTRL 721053
+#define CY_DRIVER_REVCTRL 832368
 
 #define CY_DRIVER_VERSION			\
 __stringify(CY_DRIVER_NAME)			\
@@ -48,14 +52,13 @@ __stringify(CY_DRIVER_NAME)			\
 "." __stringify(CY_DRIVER_MINOR)		\
 "." __stringify(CY_DRIVER_REVCTRL)
 
-#define CY_DRIVER_DATE "20141006"	/* YYYYMMDD */
+#define CY_DRIVER_DATE "20150703"	/* YYYYMMDD */
 
 /* abs settings */
 #define CY_IGNORE_VALUE			 -1
 
 enum cyttsp5_core_platform_flags {
 	CY_CORE_FLAG_NONE,
-	CY_CORE_FLAG_WAKE_ON_GESTURE = 0x01,
 	CY_CORE_FLAG_POWEROFF_ON_SLEEP = 0x02,
 	CY_CORE_FLAG_RESTORE_PARAMETERS = 0x04,
 };

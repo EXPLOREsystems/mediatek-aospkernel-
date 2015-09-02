@@ -1,3 +1,17 @@
+/*
+* Copyright (C) 2011-2015 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <cust_leds.h>
 #include <cust_leds_def.h>
 #include <mach/mt_pwm.h>
@@ -40,13 +54,13 @@ unsigned int Cust_SetBacklight(int level, int div)
 
 
 static struct cust_mt65xx_led cust_led_list[MT65XX_LED_TYPE_TOTAL] = {
-	{"red", MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_NLED_ISINK1, {0} },
-	{"green", MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_NLED_ISINK2, {0} },
-	{"blue", MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_NLED_ISINK3, {0} },
-	{"jogball-backlight", MT65XX_LED_MODE_NONE, -1, {0} },
-	{"keyboard-backlight", MT65XX_LED_MODE_NONE, -1, {0} },
-	{"button-backlight", MT65XX_LED_MODE_NONE, -1, {0} },
-	{"lcd-backlight", MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_LCD_ISINK0, {0} },
+	{"red",               MT65XX_LED_MODE_NONE, -1, {0}},
+	{"green",             MT65XX_LED_MODE_NONE, -1, {0}},
+	{"blue",              MT65XX_LED_MODE_NONE, -1, {0}},
+	{"jogball-backlight", MT65XX_LED_MODE_NONE, -1, {0}},
+	{"keyboard-backlight",MT65XX_LED_MODE_NONE, -1, {0}},
+	{"button-backlight",  MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_NLED_ISINK3, {0}},
+	{"lcd-backlight",     MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_LCD_ISINK01, {0}},
 };
 
 struct cust_mt65xx_led *get_cust_led_list(void)

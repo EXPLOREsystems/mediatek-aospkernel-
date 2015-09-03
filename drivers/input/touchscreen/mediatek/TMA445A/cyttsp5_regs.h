@@ -1,11 +1,15 @@
 /*
  * cyttsp5_regs.h
  * Cypress TrueTouch(TM) Standard Product V5 Registers.
- * For use with Cypress Txx5xx parts.
+ * For use with Cypress touchscreen controllers.
  * Supported parts include:
- * TMA5XX
+ * CYTMA5XX
+ * CYTMA448
+ * CYTMA445A
+ * CYTT21XXX
+ * CYTT31XXX
  *
- * Copyright (C) 2012-2014 Cypress Semiconductor
+ * Copyright (C) 2012-2015 Cypress Semiconductor
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -56,6 +60,8 @@
 #include <linux/version.h>
 #include "cyttsp5_core.h"
 
+/* #define EASYWAKE_TSG6 */
+
 #define CY_FW_FILE_PREFIX				"cyttsp5_fw"
 #define CY_FW_FILE_SUFFIX				".bin"
 #define CY_FW_FILE_NAME					"cyttsp5_fw.bin"
@@ -69,6 +75,12 @@
 
 #define CY_DEFAULT_CORE_ID				"cyttsp5_core0"
 #define CY_MAX_NUM_CORE_DEVS				5
+#define CY_IRQ_ASSERTED_VALUE				0
+
+
+#ifdef CY_ENABLE_MAX_ELEN
+#define CY_MAX_ELEN 100
+#endif
 
 /* HID */
 #define HID_CYVENDOR					0xff010000
@@ -101,8 +113,8 @@
 #define HID_SYSINFO_CYDATA_OFFSET			5
 #define HID_SYSINFO_SENSING_OFFSET			33
 #define HID_SYSINFO_BTN_OFFSET				48
-#define HID_SYSINFO_BTN_MASK				0xF
-#define HID_SYSINFO_MAX_BTN				4
+#define HID_SYSINFO_BTN_MASK				0xFF
+#define HID_SYSINFO_MAX_BTN				8
 
 #define HID_POWER_ON					0x0
 #define HID_POWER_SLEEP					0x1
@@ -113,6 +125,7 @@
 #define CY_REQUEST_EXCLUSIVE_TIMEOUT			8000
 #define CY_WATCHDOG_TIMEOUT				1000
 #define CY_HID_RESET_TIMEOUT				5000
+#define CY_HID_AUTO_CALI_CPLT_TIMEOUT			2500
 #define CY_HID_GET_HID_DESCRIPTOR_TIMEOUT		500
 #define CY_HID_GET_REPORT_DESCRIPTOR_TIMEOUT		500
 #define CY_HID_SET_POWER_TIMEOUT			500
@@ -126,7 +139,7 @@
 #define CY_HID_OUTPUT_GET_SYSINFO_TIMEOUT		3000
 #define CY_HID_OUTPUT_CALIBRATE_IDAC_TIMEOUT		5000
 #define CY_HID_OUTPUT_WRITE_CONF_BLOCK_TIMEOUT		400
-#define CY_HID_OUTPUT_RUN_SELF_TEST_TIMEOUT		2000
+#define CY_HID_OUTPUT_RUN_SELF_TEST_TIMEOUT		3000
 #define CY_HID_OUTPUT_BL_INITIATE_BL_TIMEOUT		20000
 #define CY_HID_OUTPUT_BL_PROGRAM_AND_VERIFY_TIMEOUT	400
 
@@ -157,13 +170,6 @@
 	((1 << length) - 1)
 #define GET_FIELD(name, length, shift) \
 	((name >> shift) & GET_MASK(length))
-
-#define RETRY_OR_EXIT(retry_cnt, retry_label, exit_label) \
-do { \
-	if (retry_cnt) \
-		goto retry_label; \
-	goto exit_label; \
-} while (0)
 
 #define HID_ITEM_SIZE_MASK	0x03
 #define HID_ITEM_TYPE_MASK	0x0C
@@ -243,8 +249,22 @@ do { \
 
 #define PANEL_ID_NOT_ENABLED			0xFF
 
+#ifdef EASYWAKE_TSG6
+#define GESTURE_DOUBLE_TAP			(1)
+#define GESTURE_TWO_FINGERS_SLIDE		(2)
+#define GESTURE_TOUCH_DETECTED			(3)
+#define GESTURE_PUSH_BUTTON			(4)
+#define GESTURE_SINGLE_SLIDE_DE_TX		(5)
+#define GESTURE_SINGLE_SLIDE_IN_TX		(6)
+#define GESTURE_SINGLE_SLIDE_DE_RX		(7)
+#define GESTURE_SINGLE_SLIDE_IN_RX		(8)
+#endif
+
 /* FW RAM parameters */
-#define CY_RAM_ID_TOUCHMODE_ENABLED		0xD0 /* Enable proximity */
+#define CY_RAM_ID_TOUCHMODE_ENABLED		0x02
+#define CY_RAM_ID_PROXIMITY_ENABLE		0x20
+#define CY_RAM_ID_TOUCHMODE_ENABLED_SIZE	1
+#define CY_RAM_ID_PROXIMITY_ENABLE_SIZE		1
 
 /* abs signal capabilities offsets in the frameworks array */
 enum cyttsp5_sig_caps {
@@ -336,8 +356,7 @@ enum hid_output {
 
 enum hid_output_bl {
 	HID_OUTPUT_BL_VERIFY_APP_INTEGRITY = 0x31,
-	HID_OUTPUT_BL_APPEND_DATA_BUFF = 0x37,
-	HID_OUTPUT_BL_GET_INFO,
+	HID_OUTPUT_BL_GET_INFO = 0x38,
 	HID_OUTPUT_BL_PROGRAM_AND_VERIFY,
 	HID_OUTPUT_BL_LAUNCH_APP = 0x3B,
 	HID_OUTPUT_BL_GET_PANEL_ID = 0x3E,
@@ -422,6 +441,10 @@ enum cyttsp5_self_test_id {
 	CY_ST_ID_SHORTS,
 	CY_ST_ID_OPENS,
 	CY_ST_ID_AUTOSHORTS,
+	CY_ST_ID_CM_PANEL,
+	CY_ST_ID_CP_PANEL,
+	CY_ST_ID_CM_BUTTON,
+	CY_ST_ID_CP_BUTTON,
 };
 
 #define CY_NUM_MFGID				8
@@ -635,6 +658,8 @@ enum cyttsp5_atten_type {
 	CY_ATTEN_EXCLUSIVE,
 	CY_ATTEN_WAKE,
 	CY_ATTEN_LOADER,
+	CY_ATTEN_SUSPEND,
+	CY_ATTEN_RESUME,
 	CY_ATTEN_NUM_ATTEN,
 };
 
@@ -643,6 +668,11 @@ enum cyttsp5_sleep_state {
 	SS_SLEEP_ON,
 	SS_SLEEPING,
 	SS_WAKING,
+};
+
+enum cyttsp5_fb_state {
+	FB_ON,
+	FB_OFF,
 };
 
 enum cyttsp5_startup_state {
@@ -691,9 +721,6 @@ enum cyttsp5_module_id {
 	CY_MODULE_MT,
 	CY_MODULE_BTN,
 	CY_MODULE_PROX,
-	CY_MODULE_DEBUG,
-	CY_MODULE_LOADER,
-	CY_MODULE_DEVICE_ACCESS,
 	CY_MODULE_LAST,
 };
 
@@ -716,6 +743,7 @@ struct cyttsp5_mt_data {
 	struct input_dev *input;
 	struct cyttsp5_mt_function mt_function;
 	struct mutex mt_lock;
+	bool is_suspended;
 	bool input_device_registered;
 	char phys[NAME_MAX];
 	int num_prv_rec;
@@ -731,6 +759,7 @@ struct cyttsp5_btn_data {
 	struct cyttsp5_sysinfo *si;
 	struct input_dev *input;
 	struct mutex btn_lock;
+	bool is_suspended;
 	bool input_device_registered;
 	char phys[NAME_MAX];
 };
@@ -767,7 +796,7 @@ struct cyttsp5_core_nonhid_cmd {
 	int (*get_param)(struct device *dev, int protect, u8 param_id,
 			u32 *value);
 	int (*set_param)(struct device *dev, int protect, u8 param_id,
-			u32 value);
+			u32 value, u8 size);
 	int (*verify_config_block_crc)(struct device *dev, int protect,
 			u8 ebid, u8 *status, u16 *calculated_crc,
 			u16 *stored_crc);
@@ -813,10 +842,10 @@ typedef int (*cyttsp5_atten_func) (struct device *);
 
 struct cyttsp5_core_commands {
 	int (*subscribe_attention)(struct device *dev,
-			enum cyttsp5_atten_type type, char id,
+			enum cyttsp5_atten_type type, char *id,
 			cyttsp5_atten_func func, int flags);
 	int (*unsubscribe_attention)(struct device *dev,
-			enum cyttsp5_atten_type type, char id,
+			enum cyttsp5_atten_type type, char *id,
 			cyttsp5_atten_func func, int flags);
 	int (*request_exclusive)(struct device *dev, int timeout_ms);
 	int (*release_exclusive)(struct device *dev);
@@ -848,12 +877,21 @@ struct cyttsp5_features {
 	((LINUX_VERSION_CODE < KERNEL_VERSION(3, 3, 0)) \
 	&& defined(CONFIG_PM_SLEEP) && defined(CONFIG_PM_RUNTIME))
 
+struct cyttsp5_module {
+	struct list_head node;
+	char *name;
+	int (*probe)(struct device *dev, void **data);
+	void (*release)(struct device *dev, void *data);
+};
+
 struct cyttsp5_core_data {
 	struct list_head node;
+	struct list_head module_list; /* List of probed modules */
 	char core_id[20];
 	struct device *dev;
 	struct list_head atten_list[CY_ATTEN_NUM_ATTEN];
 	struct list_head param_list;
+	struct mutex module_list_lock;
 	struct mutex system_lock;
 	struct mutex adap_lock;
 	struct mutex hid_report_lock;
@@ -877,6 +915,11 @@ struct cyttsp5_core_data {
 	bool irq_wake;
 	bool irq_disabled;
 	u8 easy_wakeup_gesture;
+#ifdef EASYWAKE_TSG6
+	u8 gesture_id;
+	u8 gesture_data_length;
+	u8 gesture_data[80];
+#endif
 	bool wake_initiated_by_device;
 	bool wait_until_wake;
 	u8 panel_id;
@@ -911,6 +954,7 @@ struct cyttsp5_core_data {
 	struct early_suspend es;
 #elif defined(CONFIG_FB)
 	struct notifier_block fb_notifier;
+	enum cyttsp5_fb_state fb_state;
 #endif
 #ifdef TTHE_TUNER_SUPPORT
 	struct dentry *tthe_debugfs;
@@ -922,6 +966,7 @@ struct cyttsp5_core_data {
 #ifdef VERBOSE_DEBUG
 	u8 pr_buf[CY_MAX_PRBUF_SIZE];
 #endif
+	bool wait_for_auto_cali_cplt;
 };
 
 #ifdef TTHE_TUNER_SUPPORT
@@ -984,7 +1029,7 @@ int release_exclusive(struct cyttsp5_core_data *cd, void *ownptr);
 int _cyttsp5_request_hid_output_get_param(struct device *dev,
 		int protect, u8 param_id, u32 *value);
 int _cyttsp5_request_hid_output_set_param(struct device *dev,
-		int protect, u8 param_id, u32 value);
+		int protect, u8 param_id, u32 value, u8 size);
 
 static inline int cyttsp5_request_exclusive(struct device *dev, int timeout_ms)
 {
@@ -1008,10 +1053,10 @@ static inline int cyttsp5_request_nonhid_get_param(struct device *dev,
 }
 
 static inline int cyttsp5_request_nonhid_set_param(struct device *dev,
-		int protect, u8 param_id, u32 value)
+		int protect, u8 param_id, u32 value, u8 size)
 {
 	return _cyttsp5_request_hid_output_set_param(dev, protect, param_id,
-			value);
+			value, size);
 }
 
 #ifdef VERBOSE_DEBUG
@@ -1069,13 +1114,19 @@ static inline int cyttsp5_proximity_release(struct device *dev) { return 0; }
 
 void cyttsp5_init_function_ptrs(struct cyttsp5_mt_data *md);
 int _cyttsp5_subscribe_attention(struct device *dev,
-	enum cyttsp5_atten_type type, char id, int (*func)(struct device *),
+	enum cyttsp5_atten_type type, char *id, int (*func)(struct device *),
 	int mode);
 int _cyttsp5_unsubscribe_attention(struct device *dev,
-	enum cyttsp5_atten_type type, char id, int (*func)(struct device *),
+	enum cyttsp5_atten_type type, char *id, int (*func)(struct device *),
 	int mode);
 struct cyttsp5_sysinfo *_cyttsp5_request_sysinfo(struct device *dev);
 
 extern const struct dev_pm_ops cyttsp5_pm_ops;
+
+int cyttsp5_register_module(struct cyttsp5_module *module);
+void cyttsp5_unregister_module(struct cyttsp5_module *module);
+
+void *cyttsp5_get_module_data(struct device *dev,
+		struct cyttsp5_module *module);
 
 #endif /* _CYTTSP5_REGS_H */

@@ -1,11 +1,15 @@
 /*
  * cyttsp5_mt_common.c
  * Cypress TrueTouch(TM) Standard Product V5 Multi-Touch Reports Module.
- * For use with Cypress Txx5xx parts.
+ * For use with Cypress touchscreen controllers.
  * Supported parts include:
- * TMA5XX
+ * CYTMA5XX
+ * CYTMA448
+ * CYTMA445A
+ * CYTT21XXX
+ * CYTT31XXX
  *
- * Copyright (C) 2012-2014 Cypress Semiconductor
+ * Copyright (C) 2012-2015 Cypress Semiconductor
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,6 +28,8 @@
 #include "cyttsp5_regs.h"
 #include "tpd.h"
 #include "tpd_custom_tma445a.h"
+
+#define CYTTSP5_MT_NAME "cyttsp5_mt"
 
 #define MT_PARAM_SIGNAL(md, sig_ost) PARAM_SIGNAL(md->pdata->frmwrk, sig_ost)
 #define MT_PARAM_MIN(md, sig_ost) PARAM_MIN(md->pdata->frmwrk, sig_ost)
@@ -50,7 +56,7 @@ static void cyttsp5_get_touch_axis(struct cyttsp5_mt_data *md,
 	int next;
 
 	for (nbyte = 0, *axis = 0, next = 0; nbyte < size; nbyte++) {
-		TPD_DMESG(
+		dev_vdbg(md->dev,
 			"%s: *axis=%02X(%d) size=%d max=%08X xy_data=%p xy_data[%d]=%02X(%d) bofs=%d\n",
 			__func__, *axis, *axis, size, max, xy_data, next,
 			xy_data[next], xy_data[next], bofs);
@@ -60,7 +66,7 @@ static void cyttsp5_get_touch_axis(struct cyttsp5_mt_data *md,
 
 	*axis &= max - 1;
 
-	TPD_DMESG(
+	dev_vdbg(md->dev,
 		"%s: *axis=%02X(%d) size=%d max=%08X xy_data=%p xy_data[%d]=%02X(%d)\n",
 		__func__, *axis, *axis, size, max, xy_data, next,
 		xy_data[next], xy_data[next]);
@@ -81,12 +87,12 @@ static void cyttsp5_get_touch_hdr(struct cyttsp5_mt_data *md,
 			si->tch_hdr[hdr].max,
 			xy_mode + si->tch_hdr[hdr].ofs,
 			si->tch_hdr[hdr].bofs);
-		TPD_DMESG( "%s: get %s=%04X(%d)\n", __func__,
+		dev_vdbg(dev, "%s: get %s=%04X(%d)\n", __func__,
 			cyttsp5_tch_hdr_string[hdr],
 			touch->hdr[hdr], touch->hdr[hdr]);
 	}
 
-	TPD_DMESG(
+	dev_dbg(dev,
 		"%s: time=%X tch_num=%d lo=%d noise=%d counter=%d\n",
 		__func__,
 		touch->hdr[CY_TCH_TIME],
@@ -111,7 +117,7 @@ static void cyttsp5_get_touch_record(struct cyttsp5_mt_data *md,
 			si->tch_abs[abs].max,
 			xy_data + si->tch_abs[abs].ofs,
 			si->tch_abs[abs].bofs);
-		TPD_DMESG( "%s: get %s=%04X(%d)\n", __func__,
+		dev_vdbg(dev, "%s: get %s=%04X(%d)\n", __func__,
 			cyttsp5_tch_abs_string[abs],
 			touch->abs[abs], touch->abs[abs]);
 	}
@@ -168,7 +174,7 @@ static void cyttsp5_mt_process_touch(struct cyttsp5_mt_data *md,
 	tmp = touch->abs[CY_TCH_MIN] * 100 * si->sensing_conf_data.res_x;
 	touch->abs[CY_TCH_MIN] = tmp / si->sensing_conf_data.len_x;
 
-	TPD_DMESG( "%s: flip=%s inv-x=%s inv-y=%s x=%04X(%d) y=%04X(%d)\n",
+	dev_vdbg(dev, "%s: flip=%s inv-x=%s inv-y=%s x=%04X(%d) y=%04X(%d)\n",
 		__func__, flipped ? "true" : "false",
 		md->pdata->flags & CY_MT_FLAG_INV_X ? "true" : "false",
 		md->pdata->flags & CY_MT_FLAG_INV_Y ? "true" : "false",
@@ -192,12 +198,11 @@ static void cyttsp5_get_mt_touches(struct cyttsp5_mt_data *md,
 	struct cyttsp5_sysinfo *si = md->si;
 	int sig;
 	int i, j, t = 0;
-	int max_tch = si->sensing_conf_data.max_tch;
-	DECLARE_BITMAP(ids, max_tch);
+	DECLARE_BITMAP(ids, si->tch_abs[CY_TCH_T].max);
 	int mt_sync_count = 0;
 	u8 *tch_addr;
 
-	bitmap_zero(ids, max_tch);
+	bitmap_zero(ids, si->tch_abs[CY_TCH_T].max);
 	memset(tch->abs, 0, sizeof(tch->abs));
 
 	for (i = 0; i < num_cur_tch; i++) {
@@ -206,11 +211,9 @@ static void cyttsp5_get_mt_touches(struct cyttsp5_mt_data *md,
 
 		/*  Discard proximity event */
 		if (tch->abs[CY_TCH_O] == CY_OBJ_PROXIMITY) {
-			TPD_DMESG( "%s: Discarding proximity event\n",
+			dev_vdbg(dev, "%s: Discarding proximity event\n",
 					__func__);
 			continue;
-		} else if (tch->abs[CY_TCH_O] == CY_OBJ_HOVER) {
-			tch->abs[CY_TCH_P] = 0;
 		}
 
 		/* Validate track_id */
@@ -226,7 +229,7 @@ static void cyttsp5_get_mt_touches(struct cyttsp5_mt_data *md,
 
 		/* Lift-off */
 		if (tch->abs[CY_TCH_E] == CY_EV_LIFTOFF) {
-			TPD_DMESG( "%s: t=%d e=%d lift-off\n",
+			dev_dbg(dev, "%s: t=%d e=%d lift-off\n",
 				__func__, t, tch->abs[CY_TCH_E]);
 			goto cyttsp5_get_mt_touches_pr_tch;
 		}
@@ -251,7 +254,9 @@ static void cyttsp5_get_mt_touches(struct cyttsp5_mt_data *md,
 			cyttsp5_report_event(md, CY_ABS_D_OST,
 					tch->abs[CY_TCH_P]);
 			tch->abs[CY_TCH_P] = 0;
-		}
+		} else
+			cyttsp5_report_event(md, CY_ABS_D_OST, 0);
+
 
 		/* all devices: position and pressure fields */
 		for (j = 0; j <= CY_ABS_W_OST; j++) {
@@ -263,7 +268,7 @@ static void cyttsp5_get_mt_touches(struct cyttsp5_mt_data *md,
 
 		/* Get the extended touch fields */
 		for (j = 0; j < CY_NUM_EXT_TCH_FIELDS; j++) {
-			if (!si->tch_abs[j].report)
+			if (!si->tch_abs[CY_ABS_MAJ_OST + j].report)
 				continue;
 			cyttsp5_report_event(md, CY_ABS_MAJ_OST + j,
 					tch->abs[CY_TCH_MAJ + j]);
@@ -273,7 +278,7 @@ static void cyttsp5_get_mt_touches(struct cyttsp5_mt_data *md,
 		mt_sync_count++;
 
 cyttsp5_get_mt_touches_pr_tch:
-		TPD_DMESG(
+		dev_dbg(dev,
 			"%s: t=%d x=%d y=%d z=%d M=%d m=%d o=%d e=%d obj=%d tip=%d\n",
 			__func__, t,
 			tch->abs[CY_TCH_X],
@@ -288,8 +293,8 @@ cyttsp5_get_mt_touches_pr_tch:
 	}
 
 	if (md->mt_function.final_sync)
-		md->mt_function.final_sync(md->input, max_tch,
-				mt_sync_count, ids);
+		md->mt_function.final_sync(md->input,
+				si->tch_abs[CY_TCH_T].max, mt_sync_count, ids);
 
 	md->num_prv_rec = num_cur_tch;
 }
@@ -314,7 +319,7 @@ static int cyttsp5_xy_worker(struct cyttsp5_mt_data *md)
 	}
 
 	if (tch.hdr[CY_TCH_LO]) {
-		TPD_DMESG( "%s: Large area detected\n", __func__);
+		dev_dbg(dev, "%s: Large area detected\n", __func__);
 		if (md->pdata->flags & CY_MT_FLAG_NO_TOUCH_ON_LO)
 			num_cur_tch = 0;
 	}
@@ -323,7 +328,7 @@ static int cyttsp5_xy_worker(struct cyttsp5_mt_data *md)
 		goto cyttsp5_xy_worker_exit;
 
 	/* extract xy_data for all currently reported touches */
-	TPD_DMESG( "%s: extract data num_cur_tch=%d\n", __func__,
+	dev_vdbg(dev, "%s: extract data num_cur_tch=%d\n", __func__,
 		num_cur_tch);
 	if (num_cur_tch)
 		cyttsp5_get_mt_touches(md, &tch, num_cur_tch);
@@ -336,8 +341,11 @@ cyttsp5_xy_worker_exit:
 	return rc;
 }
 
-static void cyttsp5_mt_send_dummy_event(struct cyttsp5_mt_data *md)
+static void cyttsp5_mt_send_dummy_event(struct cyttsp5_core_data *cd,
+		struct cyttsp5_mt_data *md)
 {
+#ifndef EASYWAKE_TSG6
+	/* TSG5 EasyWake */
 	unsigned long ids = 0;
 
 	/* for easy wakeup */
@@ -352,6 +360,44 @@ static void cyttsp5_mt_send_dummy_event(struct cyttsp5_mt_data *md)
 		md->mt_function.report_slot_liftoff(md, 1);
 	if (md->mt_function.final_sync)
 		md->mt_function.final_sync(md->input, 1, 1, &ids);
+#else
+	/* TSG6 FW1.3 EasyWake */
+	u8 key_value;
+
+	switch (cd->gesture_id) {
+	case GESTURE_DOUBLE_TAP:
+		key_value = KEY_F1;
+	break;
+	case GESTURE_TWO_FINGERS_SLIDE:
+		key_value = KEY_F2;
+	break;
+	case GESTURE_TOUCH_DETECTED:
+		key_value = KEY_F3;
+	break;
+	case GESTURE_PUSH_BUTTON:
+		key_value = KEY_F4;
+	break;
+	case GESTURE_SINGLE_SLIDE_DE_TX:
+		key_value = KEY_F5;
+	break;
+	case GESTURE_SINGLE_SLIDE_IN_TX:
+		key_value = KEY_F6;
+	break;
+	case GESTURE_SINGLE_SLIDE_DE_RX:
+		key_value = KEY_F7;
+	break;
+	case GESTURE_SINGLE_SLIDE_IN_RX:
+		key_value = KEY_F8;
+	break;
+	default:
+	break;
+	}
+
+	input_report_key(md->input, key_value, 1);
+	mdelay(10);
+	input_report_key(md->input, key_value, 0);
+	input_sync(md->input);
+#endif
 }
 
 static int cyttsp5_mt_attention(struct device *dev)
@@ -379,7 +425,7 @@ static int cyttsp5_mt_wake_attention(struct device *dev)
 	struct cyttsp5_mt_data *md = &cd->md;
 
 	mutex_lock(&md->mt_lock);
-	cyttsp5_mt_send_dummy_event(md);
+	cyttsp5_mt_send_dummy_event(cd, md);
 	mutex_unlock(&md->mt_lock);
 	return 0;
 }
@@ -396,28 +442,68 @@ static int cyttsp5_startup_attention(struct device *dev)
 	return 0;
 }
 
+static int cyttsp5_mt_suspend_attention(struct device *dev)
+{
+	struct cyttsp5_core_data *cd = dev_get_drvdata(dev);
+	struct cyttsp5_mt_data *md = &cd->md;
+
+	mutex_lock(&md->mt_lock);
+	cyttsp5_mt_lift_all(md);
+	md->is_suspended = true;
+	mutex_unlock(&md->mt_lock);
+
+	pm_runtime_put(dev);
+
+	return 0;
+}
+
+static int cyttsp5_mt_resume_attention(struct device *dev)
+{
+	struct cyttsp5_core_data *cd = dev_get_drvdata(dev);
+	struct cyttsp5_mt_data *md = &cd->md;
+
+	pm_runtime_get(dev);
+
+	mutex_lock(&md->mt_lock);
+	md->is_suspended = false;
+	mutex_unlock(&md->mt_lock);
+
+	return 0;
+}
+
 static int cyttsp5_mt_open(struct input_dev *input)
 {
 	struct device *dev = input->dev.parent;
 	struct cyttsp5_core_data *cd = dev_get_drvdata(dev);
+	struct cyttsp5_mt_data *md = &cd->md;
 
 	pm_runtime_get_sync(dev);
-	cd->number_of_open_input_device++;
-	cd->pm_runtime_usage_count++;
 
-	TPD_DMESG( "%s: setup subscriptions\n", __func__);
+	mutex_lock(&md->mt_lock);
+	md->is_suspended = false;
+	mutex_unlock(&md->mt_lock);
+
+	dev_vdbg(dev, "%s: setup subscriptions\n", __func__);
 
 	/* set up touch call back */
-	_cyttsp5_subscribe_attention(dev, CY_ATTEN_IRQ, CY_MODULE_MT,
+	_cyttsp5_subscribe_attention(dev, CY_ATTEN_IRQ, CYTTSP5_MT_NAME,
 		cyttsp5_mt_attention, CY_MODE_OPERATIONAL);
 
 	/* set up startup call back */
-	_cyttsp5_subscribe_attention(dev, CY_ATTEN_STARTUP, CY_MODULE_MT,
+	_cyttsp5_subscribe_attention(dev, CY_ATTEN_STARTUP, CYTTSP5_MT_NAME,
 		cyttsp5_startup_attention, 0);
 
 	/* set up wakeup call back */
-	_cyttsp5_subscribe_attention(dev, CY_ATTEN_WAKE, CY_MODULE_MT,
+	_cyttsp5_subscribe_attention(dev, CY_ATTEN_WAKE, CYTTSP5_MT_NAME,
 		cyttsp5_mt_wake_attention, 0);
+
+	/* set up suspend call back */
+	_cyttsp5_subscribe_attention(dev, CY_ATTEN_SUSPEND, CYTTSP5_MT_NAME,
+		cyttsp5_mt_suspend_attention, 0);
+
+	/* set up resume call back */
+	_cyttsp5_subscribe_attention(dev, CY_ATTEN_RESUME, CYTTSP5_MT_NAME,
+		cyttsp5_mt_resume_attention, 0);
 
 	return 0;
 }
@@ -426,21 +512,29 @@ static void cyttsp5_mt_close(struct input_dev *input)
 {
 	struct device *dev = input->dev.parent;
 	struct cyttsp5_core_data *cd = dev_get_drvdata(dev);
+	struct cyttsp5_mt_data *md = &cd->md;
 
-	_cyttsp5_unsubscribe_attention(dev, CY_ATTEN_IRQ, CY_MODULE_MT,
+	_cyttsp5_unsubscribe_attention(dev, CY_ATTEN_IRQ, CYTTSP5_MT_NAME,
 		cyttsp5_mt_attention, CY_MODE_OPERATIONAL);
 
-	_cyttsp5_unsubscribe_attention(dev, CY_ATTEN_STARTUP, CY_MODULE_MT,
+	_cyttsp5_unsubscribe_attention(dev, CY_ATTEN_STARTUP, CYTTSP5_MT_NAME,
 		cyttsp5_startup_attention, 0);
 
-	_cyttsp5_unsubscribe_attention(dev, CY_ATTEN_WAKE, CY_MODULE_MT,
+	_cyttsp5_unsubscribe_attention(dev, CY_ATTEN_WAKE, CYTTSP5_MT_NAME,
 		cyttsp5_mt_wake_attention, 0);
 
-	if (cd->pm_runtime_usage_count > 0) {
+	_cyttsp5_unsubscribe_attention(dev, CY_ATTEN_SUSPEND, CYTTSP5_MT_NAME,
+		cyttsp5_mt_suspend_attention, 0);
+
+	_cyttsp5_unsubscribe_attention(dev, CY_ATTEN_RESUME, CYTTSP5_MT_NAME,
+		cyttsp5_mt_resume_attention, 0);
+
+	mutex_lock(&md->mt_lock);
+	if (!md->is_suspended) {
 		pm_runtime_put(dev);
-		cd->pm_runtime_usage_count--;
+		md->is_suspended = true;
 	}
-	cd->number_of_open_input_device--;
+	mutex_unlock(&md->mt_lock);
 }
 
 static int cyttsp5_setup_input_device(struct device *dev)
@@ -453,7 +547,7 @@ static int cyttsp5_setup_input_device(struct device *dev)
 	int i;
 	int rc;
 
-	TPD_DMESG( "%s: Initialize event signals\n", __func__);
+	dev_vdbg(dev, "%s: Initialize event signals\n", __func__);
 	__set_bit(EV_ABS, md->input->evbit);
 	__set_bit(EV_REL, md->input->evbit);
 	__set_bit(EV_KEY, md->input->evbit);
@@ -501,7 +595,7 @@ static int cyttsp5_setup_input_device(struct device *dev)
 
 			input_set_abs_params(md->input, signal, min, max,
 				MT_PARAM_FUZZ(md, i), MT_PARAM_FLAT(md, i));
-			TPD_DMESG( "%s: register signal=%02X min=%d max=%d\n",
+			dev_dbg(dev, "%s: register signal=%02X min=%d max=%d\n",
 				__func__, signal, min, max);
 		}
 	}
@@ -520,6 +614,16 @@ static int cyttsp5_setup_input_device(struct device *dev)
 	else
 		md->input_device_registered = true;
 
+#ifdef EASYWAKE_TSG6
+	input_set_capability(md->input, EV_KEY, KEY_F1);
+	input_set_capability(md->input, EV_KEY, KEY_F2);
+	input_set_capability(md->input, EV_KEY, KEY_F3);
+	input_set_capability(md->input, EV_KEY, KEY_F4);
+	input_set_capability(md->input, EV_KEY, KEY_F5);
+	input_set_capability(md->input, EV_KEY, KEY_F6);
+	input_set_capability(md->input, EV_KEY, KEY_F7);
+	input_set_capability(md->input, EV_KEY, KEY_F8);
+#endif
 	return rc;
 }
 
@@ -535,7 +639,7 @@ static int cyttsp5_setup_input_attention(struct device *dev)
 
 	rc = cyttsp5_setup_input_device(dev);
 
-	_cyttsp5_unsubscribe_attention(dev, CY_ATTEN_STARTUP, CY_MODULE_MT,
+	_cyttsp5_unsubscribe_attention(dev, CY_ATTEN_STARTUP, CYTTSP5_MT_NAME,
 		cyttsp5_setup_input_attention, 0);
 
 	return rc;
@@ -563,13 +667,13 @@ int cyttsp5_mt_probe(struct device *dev)
 	md->pdata = mt_pdata;
 
 	/* Create the input device and register it. */
-	TPD_DMESG( "%s: Create the input device and register it\n",
+	dev_vdbg(dev, "%s: Create the input device and register it\n",
 		__func__);
 	md->input = input_allocate_device();
 	if (!md->input) {
 		TPD_DMESG( "%s: Error, failed to allocate input device\n",
 			__func__);
-		rc = -ENOSYS;
+		rc = -ENODEV;
 		goto error_alloc_failed;
 	}
 
@@ -596,7 +700,7 @@ int cyttsp5_mt_probe(struct device *dev)
 		TPD_DMESG( "%s: Fail get sysinfo pointer from core p=%p\n",
 			__func__, md->si);
 		_cyttsp5_subscribe_attention(dev, CY_ATTEN_STARTUP,
-			CY_MODULE_MT, cyttsp5_setup_input_attention, 0);
+			CYTTSP5_MT_NAME, cyttsp5_setup_input_attention, 0);
 	}
 
 	return 0;
@@ -619,7 +723,7 @@ int cyttsp5_mt_release(struct device *dev)
 	} else {
 		input_free_device(md->input);
 		_cyttsp5_unsubscribe_attention(dev, CY_ATTEN_STARTUP,
-			CY_MODULE_MT, cyttsp5_setup_input_attention, 0);
+			CYTTSP5_MT_NAME, cyttsp5_setup_input_attention, 0);
 	}
 
 	return 0;

@@ -1,11 +1,15 @@
 /*
- * cyttsp5_devtree.h
- * Cypress TrueTouch(TM) Standard Product V5 Device Access Module.
- * For use with Cypress Txx5xx parts.
+ * cyttsp5_platform.h
+ * Cypress TrueTouch(TM) Standard Product V5 Platform Module.
+ * For use with Cypress touchscreen controllers.
  * Supported parts include:
- * TMA5XX
+ * CYTMA5XX
+ * CYTMA448
+ * CYTMA445A
+ * CYTT21XXX
+ * CYTT31XXX
  *
- * Copyright (C) 2013-2014 Cypress Semiconductor
+ * Copyright (C) 2013-2015 Cypress Semiconductor
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License

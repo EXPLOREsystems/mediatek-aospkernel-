@@ -19,7 +19,6 @@
 #include "cust_gpio_usage.h"
 #include "lcm_drv.h"
 
-
 /* --------------------------------------------------------------------------- */
 /* Local Constants */
 /* --------------------------------------------------------------------------- */
@@ -29,7 +28,7 @@
 #define FRAME_WIDTH  (240)
 #define FRAME_HEIGHT (240)
 
-#define ROW_OFFSET (80)
+#define ROW_OFFSET (0)
 
 #define PHYSICAL_WIDTH  (25)	/* mm */
 #define PHYSICAL_HEIGHT (25)	/* mm */
@@ -42,7 +41,7 @@
 #define FALSE 0
 #endif
 
-#define LCM_PRINT printk
+#define LCM_PRINT pr_warn
 
 /* --------------------------------------------------------------------------- */
 /* Local Variables */
@@ -68,25 +67,21 @@ static inline void send_ctrl_cmd(unsigned int cmd)
 	lcm_util.send_cmd(cmd);
 }
 
-
 static inline void send_data_cmd(unsigned int data)
 {
 	lcm_util.send_data(data & 0xFF);
 }
-
 
 static inline unsigned char read_data_cmd(void)
 {
 	return 0xFF & lcm_util.read_data();
 }
 
-
 static inline void set_lcm_register(unsigned int regIndex, unsigned int regData)
 {
 	send_ctrl_cmd(regIndex);
 	send_data_cmd(regData);
 }
-
 
 static inline void set_lcm_gpio_output_low(unsigned int GPIO)
 {
@@ -95,18 +90,15 @@ static inline void set_lcm_gpio_output_low(unsigned int GPIO)
 	lcm_util.set_gpio_out(GPIO, GPIO_OUT_ZERO);
 }
 
-
 static inline void set_lcm_gpio_mode(unsigned int GPIO, unsigned int mode)
 {
 	lcm_util.set_gpio_mode(GPIO, mode);
 }
 
-
 static inline int get_lcm_gpio_mode(unsigned int GPIO)
 {
 	return mt_get_gpio_mode(GPIO);
 }
-
 
 static void backup_io_mode(void)
 {
@@ -148,7 +140,6 @@ static void backup_io_mode(void)
 	is_io_backup = 1;
 }
 
-
 static void set_io_gpio_mode(void)
 {
 #ifdef GPIO_LCD_IO_0_PIN
@@ -183,7 +174,6 @@ static void set_io_gpio_mode(void)
 	set_lcm_gpio_output_low(GPIO_LCD_IO_7_PIN);
 #endif
 }
-
 
 static void set_io_lcm_mode(void)
 {
@@ -228,7 +218,6 @@ static void lcm_set_util_funcs(const LCM_UTIL_FUNCS *util)
 	memcpy(&lcm_util, util, sizeof(LCM_UTIL_FUNCS));
 }
 
-
 static void lcm_get_params(LCM_PARAMS *params)
 {
 	memset(params, 0, sizeof(LCM_PARAMS));
@@ -264,84 +253,91 @@ static void lcm_get_params(LCM_PARAMS *params)
 	params->dbi.te_edge_polarity = LCM_POLARITY_RISING;
 }
 
-
 static void init_lcm_registers(void)
 {
-	int i;
+	set_lcm_register(0x2D, 0x1D);
+	set_lcm_register(0x2E, 0x83);
+	set_lcm_register(0xE4, 0x02);
 
-	set_lcm_register(0xFF, 0x00);
-	set_lcm_register(0x16, 0x80);
-	set_lcm_register(0x18, 0x16);
+	set_lcm_register(0x1B, 0x1A);
+	set_lcm_register(0x1C, 0x04);
+	set_lcm_register(0x1A, 0x02);
+	set_lcm_register(0x24, 0x1F);
+	set_lcm_register(0x25, 0x57);
+
+	set_lcm_register(0xEA, 0x00);
+	set_lcm_register(0xEB, 0x24);
+	set_lcm_register(0xEC, 0x00);
+	MDELAY(5);
+	set_lcm_register(0xED, 0xC4);
+	set_lcm_register(0xF3, 0x00);
+	MDELAY(5);
+
+	set_lcm_register(0xF4, 0x00);
+	MDELAY(40);
+	set_lcm_register(0x1B, 0x1E);
+
+	set_lcm_register(0x23, 0x85);
+	set_lcm_register(0xE2, 0x04);
+
 	set_lcm_register(0x19, 0x01);
-	set_lcm_register(0x1A, 0x05);
-	set_lcm_register(0x26, 0x08);
-	set_lcm_register(0x2F, 0x11);
-	set_lcm_register(0x17, 0x06);
+	set_lcm_register(0x1C, 0x03);
+	set_lcm_register(0x01, 0x00);
+
 	set_lcm_register(0x1F, 0x88);
 	MDELAY(5);
 	set_lcm_register(0x1F, 0x80);
 	MDELAY(5);
 	set_lcm_register(0x1F, 0x90);
 	MDELAY(5);
-	set_lcm_register(0x1F, 0xD0);
+	set_lcm_register(0x1F, 0xD4);
 	MDELAY(5);
+	set_lcm_register(0x18, 0x66);
+
+	set_lcm_register(0x1A, 0x02);
+	set_lcm_register(0x17, 0x06); /* RGB666 */
+	set_lcm_register(0x36, 0x0B);
+
 	set_lcm_register(0x28, 0x38);
-	MDELAY(50);
-
-	send_ctrl_cmd(0x22);
-	for (i = 0; i < FRAME_WIDTH * (FRAME_HEIGHT + ROW_OFFSET); i++) {
-		send_data_cmd(0x00);
-		send_data_cmd(0x00);
-		send_data_cmd(0x00);
-	}
-
+	MDELAY(40);
 	set_lcm_register(0x28, 0x3C);
-	set_lcm_register(0x1B, 0x1E);
-	set_lcm_register(0x1C, 0x02);
-	set_lcm_register(0x1A, 0x05);
-	set_lcm_register(0x24, 0x35);
-	set_lcm_register(0x25, 0x57);
-	set_lcm_register(0x23, 0x95);
-	set_lcm_register(0x35, 0x00);
-	set_lcm_register(0x36, 0x00);
-	set_lcm_register(0x40, 0x00);
-	set_lcm_register(0x41, 0x00);
-	set_lcm_register(0x42, 0x00);
-	set_lcm_register(0x43, 0x10);
-	set_lcm_register(0x44, 0x10);
-	set_lcm_register(0x45, 0x3b);
-	set_lcm_register(0x46, 0x00);
-	set_lcm_register(0x47, 0x3f);
-	set_lcm_register(0x48, 0x00);
-	set_lcm_register(0x49, 0x08);
-	set_lcm_register(0x4A, 0x12);
-	set_lcm_register(0x4B, 0x15);
-	set_lcm_register(0x4C, 0x09);
-	set_lcm_register(0x50, 0x05);
-	set_lcm_register(0x51, 0x26);
-	set_lcm_register(0x52, 0x16);
-	set_lcm_register(0x53, 0x3f);
-	set_lcm_register(0x54, 0x3f);
-	set_lcm_register(0x55, 0x3F);
-	set_lcm_register(0x56, 0x16);
-	set_lcm_register(0x57, 0x7f);
-	MDELAY(5);
-	set_lcm_register(0x58, 0x1a);
-	MDELAY(5);
-	set_lcm_register(0x59, 0x07);
-	MDELAY(5);
-	set_lcm_register(0x5A, 0x0b);
-	MDELAY(5);
-	set_lcm_register(0x5B, 0x11);
-	MDELAY(5);
-	set_lcm_register(0x5C, 0x1f);
-	MDELAY(5);
-	set_lcm_register(0x5D, 0xDD);
-	MDELAY(5);
-	set_lcm_register(0x01, 0x00);
-	MDELAY(5);
-}
+	MDELAY(40);
 
+	set_lcm_register(0x40, 0x01);
+	set_lcm_register(0x41, 0x02);
+	set_lcm_register(0x42, 0x00);
+	set_lcm_register(0x43, 0x13);
+	set_lcm_register(0x44, 0x12);
+	set_lcm_register(0x45, 0x25);
+	set_lcm_register(0x46, 0x08);
+	set_lcm_register(0x47, 0x55);
+	set_lcm_register(0x48, 0x02);
+	set_lcm_register(0x49, 0x14);
+	set_lcm_register(0x4A, 0x1A);
+	set_lcm_register(0x4B, 0x1B);
+	set_lcm_register(0x4C, 0x16);
+
+	set_lcm_register(0x50, 0x1A);
+	set_lcm_register(0x51, 0x2D);
+	set_lcm_register(0x52, 0x2C);
+	set_lcm_register(0x53, 0x3F);
+	set_lcm_register(0x54, 0x3D);
+	set_lcm_register(0x55, 0x3E);
+	set_lcm_register(0x56, 0x2A);
+	set_lcm_register(0x57, 0x77);
+	set_lcm_register(0x58, 0x09);
+	set_lcm_register(0x59, 0x04);
+	set_lcm_register(0x5A, 0x05);
+	set_lcm_register(0x5B, 0x0B);
+	set_lcm_register(0x5C, 0x1D);
+	set_lcm_register(0x5D, 0xCC);
+
+	set_lcm_register(0xFF, 0x02);
+	set_lcm_register(0x0C, 0x40);
+
+	set_lcm_register(0xFF, 0x00);
+	set_lcm_register(0x60, 0x08); /* TE */
+}
 
 static void lcm_init(void)
 {
@@ -356,7 +352,6 @@ static void lcm_init(void)
 	init_lcm_registers();
 }
 
-
 static void lcm_suspend(void)
 {
 	send_ctrl_cmd(0x28);
@@ -367,7 +362,6 @@ static void lcm_suspend(void)
 	set_io_gpio_mode();
 }
 
-
 static void lcm_resume(void)
 {
 	set_io_lcm_mode();
@@ -377,12 +371,10 @@ static void lcm_resume(void)
 	send_ctrl_cmd(0x29);
 }
 
-
 static void lcm_update(unsigned int x, unsigned int y, unsigned int width, unsigned int height)
 {
 	unsigned short x0, y0, x1, y1;
-	unsigned short h_X_start, l_X_start, h_X_end, l_X_end, h_Y_start, l_Y_start, h_Y_end,
-	    l_Y_end;
+	unsigned short h_X_start, l_X_start, h_X_end, l_X_end, h_Y_start, l_Y_start, h_Y_end, l_Y_end;
 
 	y = y + ROW_OFFSET;
 
@@ -414,7 +406,6 @@ static void lcm_update(unsigned int x, unsigned int y, unsigned int width, unsig
 	send_ctrl_cmd(0x22);
 }
 
-
 static void lcm_setbacklight(unsigned int level)
 {
 	LCM_PRINT("lcm_setbacklight = %d\n", level);
@@ -425,7 +416,6 @@ static void lcm_setbacklight(unsigned int level)
 	send_ctrl_cmd(0x51);
 	send_data_cmd(level);
 }
-
 
 static unsigned int lcm_compare_id(void)
 {
@@ -501,7 +491,6 @@ static void lcm_change_fps(unsigned int mode)
 {
 	if (mode == 0) {	/* slowdown frame rate in idle mode */
 	} else {		/* normal frame rate in idle mode */
-
 	}
 }
 

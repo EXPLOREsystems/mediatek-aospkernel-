@@ -75,9 +75,11 @@ void mali_pmm_deinit(void)
 /* this function will be called periodically with sampling period 200ms~1000ms */
 void mali_pmm_utilization_handler(struct mali_gpu_utilization_data *data)
 {
-   current_sample_utilization = (unsigned int)data->utilization_gpu;
+	current_sample_utilization = (unsigned int)data->utilization_gpu;
 
-   MALI_DEBUG_PRINT(1, ("%s: GPU utilization=%d\n", __func__, current_sample_utilization));
+	if (0 == current_sample_utilization || 256 <= current_sample_utilization) {
+		MALI_DEBUG_PRINT(1, ("%s: GPU utilization=%d\n", __func__, current_sample_utilization));
+	}
 
 #if defined(__MALI_CORE_SCALING_ENABLE__)
 	if (1 == mali_core_scaling_enable) {

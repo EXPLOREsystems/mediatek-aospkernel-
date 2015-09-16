@@ -292,7 +292,7 @@ static void init_lcm_registers(void)
 	MDELAY(5);
 	set_lcm_register(0x1F, 0xD4);
 	MDELAY(5);
-	set_lcm_register(0x18, 0x66);
+	set_lcm_register(0x18, 0x06);
 
 	set_lcm_register(0x1A, 0x02);
 	set_lcm_register(0x17, 0x06); /* RGB666 */
@@ -481,17 +481,18 @@ static unsigned int lcm_ata_check(unsigned char *buffer)
 
 static void lcm_enter_idle(void)
 {
+	set_lcm_register(0x01, 0x04); /* IDMON = 1 */
 }
 
 static void lcm_exit_idle(void)
 {
+	set_lcm_register(0x01, 0x00);
 }
 
 static void lcm_change_fps(unsigned int mode)
 {
-	if (mode == 0) {	/* slowdown frame rate in idle mode */
-	} else {		/* normal frame rate in idle mode */
-	}
+	/* Entering idle mode IDMON=1 automatically 
+	selects update freq based on reg 0x18 setting. */
 }
 
 /* --------------------------------------------------------------------------- */

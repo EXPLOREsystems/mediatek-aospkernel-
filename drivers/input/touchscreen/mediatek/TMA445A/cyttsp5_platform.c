@@ -106,7 +106,7 @@ static struct cyttsp5_core_platform_data _cyttsp5_core_platform_data = {
 		&cyttsp5_sett_btn_keys,	/* button-to-keycode table */
 	},
 	.flags = CY_CORE_FLAG_RESTORE_PARAMETERS,
-	.easy_wakeup_gesture = CY_CORE_EWG_NONE,
+	.easy_wakeup_gesture = CY_CORE_EWG_TAP_TAP,
 };
 
 static const int16_t cyttsp5_abs[] = {
@@ -130,7 +130,7 @@ static struct touch_framework cyttsp5_framework = {
 
 static struct cyttsp5_mt_platform_data _cyttsp5_mt_platform_data = {
 	.frmwrk = &cyttsp5_framework,
-	.flags = CY_MT_FLAG_INV_X | CY_MT_FLAG_INV_Y,
+	.flags = CY_MT_FLAG_INV_X | CY_MT_FLAG_INV_Y | CY_MT_FLAG_NO_TOUCH_ON_LO,
 	.inp_dev_name = CYTTSP5_MT_NAME,
 	.vkeys_x = CY_VKEYS_X,
 	.vkeys_y = CY_VKEYS_Y,

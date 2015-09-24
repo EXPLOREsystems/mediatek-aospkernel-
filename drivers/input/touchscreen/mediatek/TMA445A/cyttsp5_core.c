@@ -3726,7 +3726,7 @@ exit:
 	report_length = (cd->input_buf[1] << 8) | (cd->input_buf[0]);
 	cd->gesture_data_length = report_length - 4;
 
-	TPD_DBUG( "%s: gesture_id = %d, gesture_data_length = %d\n",
+	TPD_DEBUG( "%s: gesture_id = %d, gesture_data_length = %d\n",
 		__func__, cd->gesture_id, cd->gesture_data_length);
 
 	for (i = 0; i < cd->gesture_data_length; i++)
@@ -4709,6 +4709,7 @@ static int cyttsp5_core_suspend(struct device *dev)
 {
 	struct cyttsp5_core_data *cd = dev_get_drvdata(dev);
 
+	TPD_DEBUG( "%s suspending\n", __func__);
 	cyttsp5_core_sleep(cd);
 
 	if (IS_DEEP_SLEEP_CONFIGURED(cd->easy_wakeup_gesture))
@@ -4736,6 +4737,7 @@ static int cyttsp5_core_resume(struct device *dev)
 {
 	struct cyttsp5_core_data *cd = dev_get_drvdata(dev);
 
+	TPD_DEBUG( "%s resuming\n", __func__);
 	if (IS_DEEP_SLEEP_CONFIGURED(cd->easy_wakeup_gesture))
 		goto exit;
 

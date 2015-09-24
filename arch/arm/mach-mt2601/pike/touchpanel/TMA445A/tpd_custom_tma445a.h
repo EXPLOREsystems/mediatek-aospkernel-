@@ -16,8 +16,9 @@
 /* use carefully when startup and FW update is in controlled conditions */
 // #define TPD_FACTORY_CALIBRATE_AFTER_FW_UPGRADE
 
-/* enable config upgrade if touch config files included in build */
-#define CONFIG_TOUCHSCREEN_CYPRESS_CYTTSP5_PLATFORM_TTCONFIG_UPGRADE
+/* Enable Enable Automatic FW upgrade using binary file */
+#define CONFIG_TOUCHSCREEN_CYPRESS_CYTTSP5_BINARY_FW_UPGRADE
+
 
 #define MAX_TRANSACTION_LENGTH		8
 #define MAX_I2C_TRANSFER_SIZE		(MAX_TRANSACTION_LENGTH - 2)

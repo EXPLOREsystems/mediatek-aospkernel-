@@ -27,6 +27,7 @@
 
 #ifndef _CYTTSP5_REGS_H
 #define _CYTTSP5_REGS_H
+#define TTHE_TUNER_SUPPORT
 
 #include <linux/device.h>
 #ifdef CONFIG_HAS_EARLYSUSPEND
@@ -60,7 +61,7 @@
 #include <linux/version.h>
 #include "cyttsp5_core.h"
 
-/* #define EASYWAKE_TSG6 */
+#define EASYWAKE_TSG6
 
 #define CY_FW_FILE_PREFIX				"cyttsp5_fw"
 #define CY_FW_FILE_SUFFIX				".bin"
@@ -751,6 +752,7 @@ struct cyttsp5_mt_data {
 	int or_max;
 	int t_min;
 	int t_max;
+	int palm_detected;
 };
 
 struct cyttsp5_btn_data {

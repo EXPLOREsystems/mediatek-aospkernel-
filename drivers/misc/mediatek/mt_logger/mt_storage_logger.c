@@ -356,69 +356,7 @@ static struct platform_driver storage_logger_driver = {
 static int storage_logger_dump_write_proc(struct file *file, const char *buffer, size_t count,
 					  loff_t *data)
 {
-	char tmpBuf[4];
-	unsigned long u4CopySize = 0;
-	struct file *fp;
-	unsigned int logSize;
-	unsigned int wrote = 0;
-	mm_segment_t old_fs;
-	ssize_t ret;
-	char *tempBufPtr;
-
-	tempBufPtr = (char *)storage_logger_mem_pool;
-	logSize = storage_logger_bufsize;
-	u4CopySize = (count < (sizeof(tmpBuf) - 1)) ? count : (sizeof(tmpBuf) - 1);
-	SLog_MSG("storage_logger_bufsize:%d", storage_logger_bufsize);
-	if (copy_from_user(tmpBuf, buffer, u4CopySize)) {
-		goto error;
-	}
-	tmpBuf[u4CopySize] = '\0';
-
-	if (0 == sscanf(tmpBuf, "%d", &trigger)) {
-		trigger = 0;
-		goto error;
-	}
-
-	if (NULL == storage_logger_mem_pool) {
-		goto error;
-	}
-	STORAGE__LOGGER_PRE_WRITE_DATE_TEST();
-
-	if (1 == trigger) {
-		fp = filp_open(dump_filename, O_WRONLY | O_CREAT | O_TRUNC, 0);
-
-		if (!IS_ERR(fp)) {
-			PERFORMANCE_FILE_CLEAR_STATUS_FLAG(statusFlag, FAIL_TO_OPEN_FILE);
-			old_fs = get_fs();
-			set_fs(KERNEL_DS);
-			while (logSize > 0) {
-				SLog_MSG("logSize:%d", logSize);
-				ret = do_sync_write(fp, tempBufPtr, logSize, &fp->f_pos);
-				if (ret <= 0)
-					goto end;
-
-				logSize -= ret;
-				tempBufPtr += ret;
-				wrote += ret;
-			}
-		} else {
-			PERFORMANCE_FILE_SET_STATUS_FLAG(statusFlag, FAIL_TO_OPEN_FILE);
-			goto error;
-		}
- end:
-		set_fs(old_fs);
-		ret = filp_close(fp, NULL);
-		wroteFileSize = wrote;
-		if (ret >= 0) {
-			PERFORMANCE_FILE_CLEAR_STATUS_FLAG(statusFlag, FAIL_TO_DUMP_FILE_FLAG);
-		} else if (ret < 0) {
-			PERFORMANCE_FILE_SET_STATUS_FLAG(statusFlag, FAIL_TO_DUMP_FILE_FLAG);
-		}
-	}
-	return count;
- error:
-	trigger = 0;
-	return count;
+	return 0;
 }
 
 static int storage_logger_bufsize_show_proc(struct seq_file *m, void *data)

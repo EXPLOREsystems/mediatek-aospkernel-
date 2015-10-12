@@ -319,10 +319,23 @@ static int cyttsp5_xy_worker(struct cyttsp5_mt_data *md)
 	}
 
 	if (tch.hdr[CY_TCH_LO]) {
-		dev_dbg(dev, "%s: Large area detected\n", __func__);
+		TPD_DMESG("%s: Large area detected\n", __func__);
 		if (md->pdata->flags & CY_MT_FLAG_NO_TOUCH_ON_LO)
 			num_cur_tch = 0;
+		if (!md->palm_detected) {
+			TPD_DMESG("%s: Palm detected\n", __func__);
+			md->palm_detected = 1;
+			input_report_key(md->input, KEY_SLEEP, 1);
+			input_sync(md->input);
+		}
 	}
+	else if (md->palm_detected) {
+		TPD_DMESG("%s: Palm removed \n", __func__);
+		md->palm_detected = 0;
+		input_report_key(md->input, KEY_SLEEP, 0);
+		input_sync(md->input);
+	}
+
 
 	if (num_cur_tch == 0 && md->num_prv_rec == 0)
 		goto cyttsp5_xy_worker_exit;
@@ -362,41 +375,14 @@ static void cyttsp5_mt_send_dummy_event(struct cyttsp5_core_data *cd,
 		md->mt_function.final_sync(md->input, 1, 1, &ids);
 #else
 	/* TSG6 FW1.3 EasyWake */
-	u8 key_value;
-
-	switch (cd->gesture_id) {
-	case GESTURE_DOUBLE_TAP:
-		key_value = KEY_F1;
-	break;
-	case GESTURE_TWO_FINGERS_SLIDE:
-		key_value = KEY_F2;
-	break;
-	case GESTURE_TOUCH_DETECTED:
-		key_value = KEY_F3;
-	break;
-	case GESTURE_PUSH_BUTTON:
-		key_value = KEY_F4;
-	break;
-	case GESTURE_SINGLE_SLIDE_DE_TX:
-		key_value = KEY_F5;
-	break;
-	case GESTURE_SINGLE_SLIDE_IN_TX:
-		key_value = KEY_F6;
-	break;
-	case GESTURE_SINGLE_SLIDE_DE_RX:
-		key_value = KEY_F7;
-	break;
-	case GESTURE_SINGLE_SLIDE_IN_RX:
-		key_value = KEY_F8;
-	break;
-	default:
-	break;
+	if (cd->gesture_id == GESTURE_DOUBLE_TAP) {
+		TPD_DMESG("%s: reporting KEY_POWER \n", __func__);
+		input_report_key(md->input, KEY_POWER, 1);
+		input_sync(md->input);
+		mdelay(10);
+		input_report_key(md->input, KEY_POWER, 0);
+		input_sync(md->input);
 	}
-
-	input_report_key(md->input, key_value, 1);
-	mdelay(10);
-	input_report_key(md->input, key_value, 0);
-	input_sync(md->input);
 #endif
 }
 
@@ -425,6 +411,7 @@ static int cyttsp5_mt_wake_attention(struct device *dev)
 	struct cyttsp5_mt_data *md = &cd->md;
 
 	mutex_lock(&md->mt_lock);
+	md->palm_detected = 0;
 	cyttsp5_mt_send_dummy_event(cd, md);
 	mutex_unlock(&md->mt_lock);
 	return 0;
@@ -481,6 +468,7 @@ static int cyttsp5_mt_open(struct input_dev *input)
 
 	mutex_lock(&md->mt_lock);
 	md->is_suspended = false;
+	md->palm_detected = 0;
 	mutex_unlock(&md->mt_lock);
 
 	dev_vdbg(dev, "%s: setup subscriptions\n", __func__);
@@ -615,15 +603,9 @@ static int cyttsp5_setup_input_device(struct device *dev)
 		md->input_device_registered = true;
 
 #ifdef EASYWAKE_TSG6
-	input_set_capability(md->input, EV_KEY, KEY_F1);
-	input_set_capability(md->input, EV_KEY, KEY_F2);
-	input_set_capability(md->input, EV_KEY, KEY_F3);
-	input_set_capability(md->input, EV_KEY, KEY_F4);
-	input_set_capability(md->input, EV_KEY, KEY_F5);
-	input_set_capability(md->input, EV_KEY, KEY_F6);
-	input_set_capability(md->input, EV_KEY, KEY_F7);
-	input_set_capability(md->input, EV_KEY, KEY_F8);
+	input_set_capability(md->input, EV_KEY, KEY_POWER);
 #endif
+	input_set_capability(md->input, EV_KEY, KEY_SLEEP);
 	return rc;
 }
 

@@ -15,6 +15,7 @@
 #include <linux/string.h>
 #include <linux/kernel.h>
 #include <mach/mt_gpio.h>
+#include <mach/upmu_common.h>
 
 #include "cust_gpio_usage.h"
 #include "lcm_drv.h"
@@ -481,11 +482,15 @@ static unsigned int lcm_ata_check(unsigned char *buffer)
 
 static void lcm_enter_idle(void)
 {
+	upmu_set_rg_isink0_ck_sel(0x0);
+	upmu_set_rg_isink1_ck_sel(0x0);
 	set_lcm_register(0x01, 0x04); /* IDMON = 1 */
 }
 
 static void lcm_exit_idle(void)
 {
+	upmu_set_rg_isink0_ck_sel(0x1);
+	upmu_set_rg_isink1_ck_sel(0x1);
 	set_lcm_register(0x01, 0x00);
 }
 

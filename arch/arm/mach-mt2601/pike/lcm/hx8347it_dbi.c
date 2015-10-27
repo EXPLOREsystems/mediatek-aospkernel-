@@ -355,9 +355,29 @@ static void lcm_init(void)
 
 static void lcm_suspend(void)
 {
-	send_ctrl_cmd(0x28);
-	send_ctrl_cmd(0x10);
-	MDELAY(5);
+	/* Display off */
+
+	/* Display control 3 register (28h) */
+	/* DTE=1, GON=1 and D[1-0]=11b) */
+	set_lcm_register(0x28, 0x38);
+
+	MDELAY(40);
+
+	/* Display control 3 register (28h) */
+	/* DTE=0, GON=0 and D[1-0]=10b) */
+	set_lcm_register(0x28, 0x04);
+
+	/* Power supply halt */
+
+	/* Power Control 6 register (1Fh) */
+	/* PON=0, VCOMG=0, DK=1 */
+	set_lcm_register(0x1F, 0x08);
+	/* DK=1, STB=1 */
+	set_lcm_register(0x1F, 0x09);
+
+	/* OSC Control 1 */
+	/* OSC_EN=0 */
+	set_lcm_register(0x19, 0x00);
 
 	backup_io_mode();
 	set_io_gpio_mode();
@@ -367,9 +387,59 @@ static void lcm_resume(void)
 {
 	set_io_lcm_mode();
 
-	send_ctrl_cmd(0x11);
-	MDELAY(120);
-	send_ctrl_cmd(0x29);
+	/* Power supply init */
+
+	/* Power Control 1 register (1Ah) */
+	/* BT[2-0]=010b */
+	set_lcm_register(0x1A, 0x02);
+	/* Power Control 2 register (1Bh) */
+	/* VREG1= 4.8V */
+	set_lcm_register(0x1B, 0x1E);
+	/* VCOM Control 1 register (23h) */
+	/* VCOM offset voltage: VMH/VML moves up 5x15mV steps */
+	set_lcm_register(0x23, 0x85);
+	/* VCOM Control 3 register (25h) */
+	/* VCOML= -1.195V */
+	set_lcm_register(0x25, 0x57);
+	/* VCOM Control 2 register (24h) */
+	/* VCOMH=4.8V */
+	set_lcm_register(0x24, 0x1F);
+
+	/* Power Supply Start */
+
+	/* OSC Control 1 */
+	/* OSC_EN=1	 */
+	set_lcm_register(0x19, 0x01);
+	/* Power Control 3 register (1Ch) */
+	/* AP=011b */
+	set_lcm_register(0x1C, 0x06);
+
+	/* Power Control 6 register (1Fh) */
+	/* STB=0 */
+	set_lcm_register(0x1F, 0x08);
+	/* Power Control 6 register (1Fh) */
+	/* DK=0 */
+	set_lcm_register(0x1F, 0x00);
+	/* Power Control 6 register (1Fh) */
+	/* PON=1 */
+	set_lcm_register(0x1F, 0x10);
+	/* Power Control 6 register (1Fh) */
+	/* PON=1 & VCOMG=1 */
+	set_lcm_register(0x1F, 0x50);
+
+	MDELAY(5);
+
+	/* Display ON */
+
+	/* Display control 3 register (28h) */
+	/* DTE=1, GON=1 and D[1-0]=10b) */
+	set_lcm_register(0x28, 0x38);
+
+	MDELAY(40);
+
+	/* Display control 3 register (28h) */
+	/* DTE=1, GON=1 and D[1-0]=11b) */
+	set_lcm_register(0x28, 0x3C);
 }
 
 static void lcm_update(unsigned int x, unsigned int y, unsigned int width, unsigned int height)

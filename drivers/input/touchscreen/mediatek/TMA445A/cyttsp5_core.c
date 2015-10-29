@@ -41,6 +41,8 @@ static struct task_struct *thread = NULL;
 
 
 #define CY_CORE_STARTUP_RETRY_COUNT		3
+#define CY_INT_READ_RETRIES			40
+#define CY_INT_READ_RETRY_DELAY_MS		50
 
 MODULE_FIRMWARE(CY_FW_FILE_NAME);
 
@@ -3942,35 +3944,22 @@ static int cyttsp5_parse_input(struct cyttsp5_core_data *cd)
 static int cyttsp5_read_input(struct cyttsp5_core_data *cd)
 {
 	struct device *dev = cd->dev;
-	int rc;
-	int t;
+	int rc = 0;
+	int try = CY_INT_READ_RETRIES;
 
-	/* added as workaround to CDT170960: easywake failure */
-	/* Interrupt for easywake, wait for bus controller to wake */
-	mutex_lock(&cd->system_lock);
-	if (!IS_DEEP_SLEEP_CONFIGURED(cd->easy_wakeup_gesture)) {
-		if (cd->sleep_state == SS_SLEEP_ON) {
-			mutex_unlock(&cd->system_lock);
-			if (!dev->power.is_suspended)
-				goto read;
-			t = wait_event_timeout(cd->wait_q,
-					(cd->wait_until_wake == 1),
-					msecs_to_jiffies(2000));
-			if (IS_TMO(t))
-				cyttsp5_queue_startup(cd);
-			goto read;
+	/* Retry reads in case host I2C bus is not ready on first read attempt(s) */
+	while (try--) {
+		rc = cyttsp5_adap_read_default_nosize(cd, cd->input_buf, CY_MAX_INPUT);
+		if (rc == 0) {
+			TPD_DEBUG( "%s: Read input successfully\n", __func__);
+			return 0;
 		}
+		TPD_DMESG( "%s: Error reading report, r=%d try=%d\n", 
+				__func__, rc, CY_INT_READ_RETRIES - try);
+		msleep(CY_INT_READ_RETRY_DELAY_MS);
 	}
-	mutex_unlock(&cd->system_lock);
-
-read:
-	rc = cyttsp5_adap_read_default_nosize(cd, cd->input_buf, CY_MAX_INPUT);
-	if (rc) {
-		TPD_DMESG( "%s: Error getting report, r=%d\n",
-				__func__, rc);
-		return rc;
-	}
-	TPD_DEBUG( "%s: Read input successfully\n", __func__);
+	TPD_DMESG( "%s: Error getting report, restart device r=%d\n", __func__, rc);
+	cyttsp5_queue_startup(cd);
 	return rc;
 }
 
@@ -4715,12 +4704,6 @@ static int cyttsp5_core_suspend(struct device *dev)
 	if (IS_DEEP_SLEEP_CONFIGURED(cd->easy_wakeup_gesture))
 		return 0;
 
-	/*
-	 * This will not prevent resume
-	 * Required to prevent interrupts before i2c awake
-	 */
-	mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);
-	cd->irq_disabled = 1;
 
 	if (device_may_wakeup(dev)) {
 		TPD_DEBUG( "%s Device MAY wakeup\n", __func__);
@@ -4741,14 +4724,6 @@ static int cyttsp5_core_resume(struct device *dev)
 	if (IS_DEEP_SLEEP_CONFIGURED(cd->easy_wakeup_gesture))
 		goto exit;
 
-	/*
-	 * I2C bus pm does not call suspend if device runtime suspended
-	 * This flag is cover that case
-	 */
-	if (cd->irq_disabled) {
-		mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);
-		cd->irq_disabled = 0;
-	}
 
 	if (device_may_wakeup(dev)) {
 		TPD_DEBUG( "%s Device MAY wakeup\n", __func__);
@@ -5685,9 +5660,9 @@ static void cyttsp5_setup_fb_notifier(struct cyttsp5_core_data *cd)
 #endif
 
 
-static int touch_event_handler(void *pdata)
+static int touch_event_handler(void *cdata)
 {
-	struct cyttsp5_platform_data *data = pdata;
+	struct cyttsp5_core_data *data = cdata;
 	struct sched_param param = { .sched_priority = RTPM_PRIO_TPD };
 
 	TPD_DEBUG( "%s: enter func\n", __func__);

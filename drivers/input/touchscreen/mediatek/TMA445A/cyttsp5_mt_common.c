@@ -375,14 +375,18 @@ static void cyttsp5_mt_send_dummy_event(struct cyttsp5_core_data *cd,
 		md->mt_function.final_sync(md->input, 1, 1, &ids);
 #else
 	/* TSG6 FW1.3 EasyWake */
-	if (cd->gesture_id == GESTURE_DOUBLE_TAP) {
-		TPD_DMESG("%s: reporting KEY_POWER \n", __func__);
-		input_report_key(md->input, KEY_POWER, 1);
-		input_sync(md->input);
-		mdelay(10);
-		input_report_key(md->input, KEY_POWER, 0);
-		input_sync(md->input);
-	}
+        /* TPD DOWN */
+        input_report_abs(md->input, ABS_MT_PRESSURE, 100);
+        input_report_abs(md->input, ABS_MT_TOUCH_MAJOR, 100);
+        input_report_key(md->input, BTN_TOUCH, 1);
+        input_report_abs(md->input, ABS_MT_POSITION_X, 119);
+        input_report_abs(md->input, ABS_MT_POSITION_Y, 119);
+        input_mt_sync(md->input);
+        input_sync(md->input);
+        /* TPD UP */
+        input_report_key(md->input, BTN_TOUCH, 0);
+        input_mt_sync(md->input);
+        input_sync(md->input);
 #endif
 }
 
@@ -602,9 +606,6 @@ static int cyttsp5_setup_input_device(struct device *dev)
 	else
 		md->input_device_registered = true;
 
-#ifdef EASYWAKE_TSG6
-	input_set_capability(md->input, EV_KEY, KEY_POWER);
-#endif
 	input_set_capability(md->input, EV_KEY, KEY_SLEEP);
 	return rc;
 }

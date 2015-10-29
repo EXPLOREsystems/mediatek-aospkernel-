@@ -1,3 +1,17 @@
+/*
+* Copyright (C) 2011-2015 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <linux/version.h>
 #include <linux/kernel.h>
 #include <linux/sched.h>
@@ -2102,11 +2116,13 @@ static int msdc_debug_proc_write_DVT(struct file *file, const char __user *buf, 
 {
     int ret;
     int i_msdc_id = 0;
-
     struct msdc_host *host;
 
+    if (count == 0) return -1;
+    if (count > (sizeof(cmd_buf) - 1)) count = sizeof(cmd_buf) - 1;
+
     ret = copy_from_user(cmd_buf, buf, count);
-    if (ret < 0)return -1;
+    if (ret != 0)return -1;
 
     cmd_buf[count] = '\0';
     printk("[****SD_Debug****]msdc Write %s\n", cmd_buf);
@@ -2313,8 +2329,11 @@ static ssize_t msdc_voltage_proc_write(struct file *file, const char __user *buf
 {
     int ret;
 
+    if (count == 0) return -1;
+    if (count > (sizeof(cmd_buf) - 1)) count = sizeof(cmd_buf) - 1;
+
     ret = copy_from_user(cmd_buf, buf, count);
-    if (ret < 0)return -1;
+    if (ret != 0)return -1;
 
     cmd_buf[count] = '\0';
     printk("[****SD_Debug****]msdc Write %s\n", cmd_buf);

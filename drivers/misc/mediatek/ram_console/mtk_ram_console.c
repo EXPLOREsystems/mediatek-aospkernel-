@@ -14,6 +14,7 @@
 #include <linux/mm.h>
 #include <linux/kthread.h>
 #include <asm/io.h>
+#include <mach/mt_clkmgr.h>
 
 
 #define RC_CPU_COUNT NR_CPUS
@@ -92,8 +93,10 @@ void last_kmsg_store_to_emmc(void)
 	buff_size = ram_console_buffer_size + sizeof(struct ram_console_buffer);
 	buff_size = buff_size / EMMC_BLOCK_SIZE;
 	buff_size *= EMMC_BLOCK_SIZE;
+	enable_clock(MT_CG_MSDC0_SW_CG, "SD");
 	card_dump_func_write((unsigned char *)ram_console_buffer, buff_size, EMMC_ADDR,
 			     DUMP_INTO_BOOT_CARD_IPANIC);
+	disable_clock(MT_CG_MSDC0_SW_CG, "SD");
 
 	pr_err("ram_console: save kernel log to emmc!\n");
 }

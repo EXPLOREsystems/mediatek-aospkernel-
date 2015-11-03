@@ -860,10 +860,10 @@ int mt_brightness_set_pmic(enum mt65xx_led_pmic pmic_type, u32 level, u32 div)
 		upmu_set_rg_drv_32k_ck_pdn(0x0); /* Disable power down */
 		upmu_set_rg_isink3_ck_pdn(0x0); /* Disable power down */
 		upmu_set_rg_isink3_ck_sel(0x0); /* Freq = 32KHz for Indicator */
-		upmu_set_isink_dim3_duty(15); /* 16 / 32, no use for register mode */
+		upmu_set_isink_dim3_duty(31); /* 100% duty cycle */
 		upmu_set_isink_ch3_mode(ISINK_PWM_MODE);
 		upmu_set_isink_dim3_fsel(0x0); /* 1KHz, no use for register mode */
-		upmu_set_isink_ch3_step(0x0); /* 4mA */
+		upmu_set_isink_ch3_step(0x4); /* 20mA */
 		upmu_set_isink_sfstr3_tc(0x0); /* 0.5us */
 		upmu_set_isink_sfstr3_en(0x0); /* Disable soft start */
 		upmu_set_rg_isink3_double_en(0x0); /* Disable double current */

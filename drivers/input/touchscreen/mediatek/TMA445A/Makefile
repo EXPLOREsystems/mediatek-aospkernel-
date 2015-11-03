@@ -13,6 +13,6 @@ obj-y	+= cyttsp5.o
 cyttsp5-y := cyttsp5_core.o cyttsp5_mt_common.o
 obj-y	+= cyttsp5_i2c.o
 obj-y += cyttsp5_platform.o
-obj-y += cyttsp5_mta.o
+obj-y += cyttsp5_mtab.o
 obj-y	+= cyttsp5_loader.o
 obj-y	+= cyttsp5_device_access.o

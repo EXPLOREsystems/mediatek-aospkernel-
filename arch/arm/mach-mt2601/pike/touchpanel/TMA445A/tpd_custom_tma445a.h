@@ -51,4 +51,5 @@
 		mt_set_gpio_pull_enable(pin, GPIO_PULL_DISABLE);\
 	}while(0)
 
+#define TMA445A_TOUCH_PROTOCOL		TMA445A_TOUCH_PROTOCOL_B
 #endif /* __TPD_CUSTOM_TMA445A_H__ */

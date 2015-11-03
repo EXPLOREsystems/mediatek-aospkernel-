@@ -357,14 +357,18 @@ cyttsp5_xy_worker_exit:
 static void cyttsp5_mt_send_dummy_event(struct cyttsp5_core_data *cd,
 		struct cyttsp5_mt_data *md)
 {
-#ifndef EASYWAKE_TSG6
-	/* TSG5 EasyWake */
 	unsigned long ids = 0;
 
-	/* for easy wakeup */
 	if (md->mt_function.input_report)
 		md->mt_function.input_report(md->input, ABS_MT_TRACKING_ID,
 			0, CY_OBJ_STANDARD_FINGER);
+
+#ifdef EASYWAKE_TSG6
+	input_report_abs(md->input, ABS_MT_PRESSURE, 100);
+	input_report_abs(md->input, ABS_MT_TOUCH_MAJOR, 100);
+	input_report_abs(md->input, ABS_MT_POSITION_X, 119);
+	input_report_abs(md->input, ABS_MT_POSITION_Y, 119);
+#endif
 	if (md->mt_function.input_sync)
 		md->mt_function.input_sync(md->input);
 	if (md->mt_function.final_sync)
@@ -373,21 +377,6 @@ static void cyttsp5_mt_send_dummy_event(struct cyttsp5_core_data *cd,
 		md->mt_function.report_slot_liftoff(md, 1);
 	if (md->mt_function.final_sync)
 		md->mt_function.final_sync(md->input, 1, 1, &ids);
-#else
-	/* TSG6 FW1.3 EasyWake */
-        /* TPD DOWN */
-        input_report_abs(md->input, ABS_MT_PRESSURE, 100);
-        input_report_abs(md->input, ABS_MT_TOUCH_MAJOR, 100);
-        input_report_key(md->input, BTN_TOUCH, 1);
-        input_report_abs(md->input, ABS_MT_POSITION_X, 119);
-        input_report_abs(md->input, ABS_MT_POSITION_Y, 119);
-        input_mt_sync(md->input);
-        input_sync(md->input);
-        /* TPD UP */
-        input_report_key(md->input, BTN_TOUCH, 0);
-        input_mt_sync(md->input);
-        input_sync(md->input);
-#endif
 }
 
 static int cyttsp5_mt_attention(struct device *dev)

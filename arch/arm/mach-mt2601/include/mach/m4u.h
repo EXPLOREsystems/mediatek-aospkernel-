@@ -16,6 +16,7 @@
 #define __M4U_H__
 #include <linux/ioctl.h>
 #include <linux/fs.h>
+#include <linux/scatterlist.h>
 
 #define MTK_M4U_EXT_PAGE_TABLE
 
@@ -314,7 +315,7 @@ int m4u_reset_mva_release_tlb(M4U_MODULE_ID_ENUM eModuleID);
 /* int m4u_mau_check_pagetable(unsigned int start_addr, unsigned int end_addr); */
 int m4u_mau_get_physical_port(unsigned int *engineMask);
 
-typedef void (*PFN_TF_T) ();
+typedef void (*PFN_TF_T) (void);
 void m4u_set_tf_callback(const M4U_MODULE_ID_ENUM eModuleID, PFN_TF_T ptf);
 
 int m4u_mva_map_kernel(unsigned int mva, unsigned int size, int sec,

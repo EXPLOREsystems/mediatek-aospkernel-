@@ -256,92 +256,106 @@ static void lcm_get_params(LCM_PARAMS *params)
 
 static void init_lcm_registers(void)
 {
-	set_lcm_register(0x2D, 0x1D);
-	set_lcm_register(0x2E, 0x83);
-	set_lcm_register(0xE4, 0x02);
+	set_lcm_register(0x2D, 0x1D); /* Cycle control 1 */
+	set_lcm_register(0x2E, 0x83); /* Cycle control 2 */
+	set_lcm_register(0xE4, 0x02); /* Power saving internal control */
 
-	set_lcm_register(0x1B, 0x1A);
-	set_lcm_register(0x1C, 0x04);
-	set_lcm_register(0x1A, 0x02);
-	set_lcm_register(0x24, 0x1F);
-	set_lcm_register(0x25, 0x57);
+	set_lcm_register(0x1B, 0x1A); /* Power control 2 */
+	set_lcm_register(0x1C, 0x04); /* Power control 3 */
+	set_lcm_register(0x1A, 0x02); /* Power control 1 */
+	set_lcm_register(0x24, 0x1F); /* VCOM Control 2 */
+	set_lcm_register(0x25, 0x57); /* VCOM Control 3 */
 
-	set_lcm_register(0xEA, 0x00);
-	set_lcm_register(0xEB, 0x24);
-	set_lcm_register(0xEC, 0x00);
+	set_lcm_register(0xEA, 0x00); /* Power control internal use (1) */
+	set_lcm_register(0xEB, 0x24); /* Power control internal use (2) */
+	set_lcm_register(0xEC, 0x00); /* Source control internal use (1) */
 	MDELAY(5);
-	set_lcm_register(0xED, 0xC4);
-	set_lcm_register(0xF3, 0x00);
+	set_lcm_register(0xED, 0xC4); /* Source control internal use (2) */
+	set_lcm_register(0xF3, 0x00); /* Power saving 5 */
 	MDELAY(5);
 
-	set_lcm_register(0xF4, 0x00);
+	set_lcm_register(0xF4, 0x00); /* Power saving 6 */
 	MDELAY(40);
-	set_lcm_register(0x1B, 0x1E);
+	set_lcm_register(0x1B, 0x1E); /* Power control 2 */
 
-	set_lcm_register(0x23, 0x85);
-	set_lcm_register(0xE2, 0x04);
+	set_lcm_register(0x23, 0x85); /* VCOM control 1 */
+	set_lcm_register(0xE2, 0x04); /* ??? */
 
-	set_lcm_register(0x19, 0x01);
-	set_lcm_register(0x1C, 0x03);
-	set_lcm_register(0x01, 0x00);
+	set_lcm_register(0x19, 0x01); /* OSC Control 1 */
+	set_lcm_register(0x1C, 0x03); /* Power control 3 */
+	set_lcm_register(0x01, 0x00); /* Display mode control */
 
-	set_lcm_register(0x1F, 0x88);
+	set_lcm_register(0x1F, 0x88); /* Power control 6 */
 	MDELAY(5);
-	set_lcm_register(0x1F, 0x80);
+	set_lcm_register(0x1F, 0x80); /* Power control 6 */
 	MDELAY(5);
-	set_lcm_register(0x1F, 0x90);
+	set_lcm_register(0x1F, 0x90); /* Power control 6 */
 	MDELAY(5);
-	set_lcm_register(0x1F, 0xD4);
+	set_lcm_register(0x1F, 0xD4); /* Power control 6 */
 	MDELAY(5);
-	set_lcm_register(0x18, 0x06);
+	set_lcm_register(0x18, 0x06); /* OSC Control 2 */
 
-	set_lcm_register(0x1A, 0x02);
-	set_lcm_register(0x17, 0x06); /* RGB666 */
-	set_lcm_register(0x36, 0x0B);
+	set_lcm_register(0x1A, 0x02); /* Power control 1 */
+	set_lcm_register(0x17, 0x06); /* COLMODE = RGB666 */
+	set_lcm_register(0x36, 0x0B); /* Panel Characteristic */
 
-	set_lcm_register(0x28, 0x38);
+	set_lcm_register(0x28, 0x38); /* Display control 3 */
 	MDELAY(40);
-	set_lcm_register(0x28, 0x3C);
+	set_lcm_register(0x28, 0x3C); /* Display control 3 */
 	MDELAY(40);
 
-	set_lcm_register(0x40, 0x01);
-	set_lcm_register(0x41, 0x02);
-	set_lcm_register(0x42, 0x00);
-	set_lcm_register(0x43, 0x13);
-	set_lcm_register(0x44, 0x12);
-	set_lcm_register(0x45, 0x25);
-	set_lcm_register(0x46, 0x08);
-	set_lcm_register(0x47, 0x55);
-	set_lcm_register(0x48, 0x02);
-	set_lcm_register(0x49, 0x14);
-	set_lcm_register(0x4A, 0x1A);
-	set_lcm_register(0x4B, 0x1B);
-	set_lcm_register(0x4C, 0x16);
+	set_lcm_register(0x40, 0x01); /* r1 control 1 */
+	set_lcm_register(0x41, 0x02); /* r1 control 2 */
+	set_lcm_register(0x42, 0x00); /* r1 control 3 */
+	set_lcm_register(0x43, 0x13); /* r1 control 4 */
+	set_lcm_register(0x44, 0x12); /* r1 control 5 */
+	set_lcm_register(0x45, 0x25); /* r1 control 6 */
+	set_lcm_register(0x46, 0x08); /* r1 control 7 */
+	set_lcm_register(0x47, 0x55); /* r1 control 8 */
+	set_lcm_register(0x48, 0x02); /* r1 control 9 */
+	set_lcm_register(0x49, 0x14); /* r1 control 10 */
+	set_lcm_register(0x4A, 0x1A); /* r1 control 11 */
+	set_lcm_register(0x4B, 0x1B); /* r1 control 12 */
+	set_lcm_register(0x4C, 0x16); /* r1 control 13 */
 
-	set_lcm_register(0x50, 0x1A);
-	set_lcm_register(0x51, 0x2D);
-	set_lcm_register(0x52, 0x2C);
-	set_lcm_register(0x53, 0x3F);
-	set_lcm_register(0x54, 0x3D);
-	set_lcm_register(0x55, 0x3E);
-	set_lcm_register(0x56, 0x2A);
-	set_lcm_register(0x57, 0x77);
-	set_lcm_register(0x58, 0x09);
-	set_lcm_register(0x59, 0x04);
-	set_lcm_register(0x5A, 0x05);
-	set_lcm_register(0x5B, 0x0B);
-	set_lcm_register(0x5C, 0x1D);
-	set_lcm_register(0x5D, 0xCC);
+	set_lcm_register(0x50, 0x1A); /* r1 control 14 */
+	set_lcm_register(0x51, 0x2D); /* r1 control 15 */
+	set_lcm_register(0x52, 0x2C); /* r1 control 16 */
+	set_lcm_register(0x53, 0x3F); /* r1 control 17 */
+	set_lcm_register(0x54, 0x3D); /* r1 control 18 */
+	set_lcm_register(0x55, 0x3E); /* r1 control 19 */
+	set_lcm_register(0x56, 0x2A); /* r1 control 20 */
+	set_lcm_register(0x57, 0x77); /* r1 control 21 */
+	set_lcm_register(0x58, 0x09); /* r1 control 22 */
+	set_lcm_register(0x59, 0x04); /* r1 control 23 */
+	set_lcm_register(0x5A, 0x05); /* r1 control 24 */
+	set_lcm_register(0x5B, 0x0B); /* r1 control 25 */
+	set_lcm_register(0x5C, 0x1D); /* r1 control 26 */
+	set_lcm_register(0x5D, 0xCC); /* r1 control 27 */
 
-	set_lcm_register(0xFF, 0x02);
-	set_lcm_register(0x0C, 0x40);
+	set_lcm_register(0xFF, 0x02); /* Page select */
 
-	set_lcm_register(0xFF, 0x00);
+	set_lcm_register(0xFF, 0x00); /* Page select */
 	set_lcm_register(0x60, 0x08); /* TE */
+
+	set_lcm_register(0x2f, 0x01); /* In Idle mode = Frame inversion, In Normal mode = 1-line inversion */
+
+	/* Set partial area start row = 0 */
+	set_lcm_register(0x0A, 0x00); /* upper byte */
+	set_lcm_register(0x0B, 0x00); /* low byte */
+
+	/* Set partial area end row = 239d (EFh) */
+	set_lcm_register(0x0C, 0x00); /* upper byte */
+	set_lcm_register(0x0D, 0xEF); /* low byte */
+
+	/* Set refresh gate scan cycle of the rest display area (non-display are)*/
+	/* Display control 1 register(26h), ISC[3:0]=Eh = 57 frames */
+	set_lcm_register(0x26, 0x0E);
 }
 
 static void lcm_init(void)
 {
+
 	backup_io_mode();
 
 	SET_RESET_PIN(1);
@@ -355,6 +369,7 @@ static void lcm_init(void)
 
 static void lcm_suspend(void)
 {
+
 	/* Display off */
 
 	/* Display control 3 register (28h) */
@@ -554,7 +569,10 @@ static void lcm_enter_idle(void)
 {
 	upmu_set_rg_isink0_ck_sel(0x0);
 	upmu_set_rg_isink1_ck_sel(0x0);
-	set_lcm_register(0x01, 0x04); /* IDMON = 1 */
+
+	/* Set idle and partial mode */
+	/* Display mode control register (01h), PLTON = 1 & IDMON = 1 */
+	set_lcm_register(0x01, 0x05);
 }
 
 static void lcm_exit_idle(void)

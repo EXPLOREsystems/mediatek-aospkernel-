@@ -547,24 +547,6 @@ static unsigned int lcm_esd_recover(void)
 
 #endif
 
-static unsigned int lcm_ata_check(unsigned char *buffer)
-{
-	unsigned int ret = 0;
-	unsigned char read_buf;
-
-	send_ctrl_cmd(0x00);
-	read_buf = read_data_cmd();
-
-	LCM_PRINT("ID = 0x%x\n", read_buf);
-
-	if (read_buf == LCM_ID)
-		ret = 1;
-	else
-		ret = 0;
-
-	return ret;
-}
-
 static void lcm_enter_idle(void)
 {
 	upmu_set_rg_isink0_ck_sel(0x0);
@@ -588,6 +570,52 @@ static void lcm_change_fps(unsigned int mode)
 	selects update freq based on reg 0x18 setting. */
 }
 
+static void lcm_read_fb(unsigned char *buffer)
+{
+	int i = 0;
+	unsigned short x0, y0, x1, y1;
+	unsigned short h_X_start, l_X_start, h_X_end, l_X_end, h_Y_start, l_Y_start, h_Y_end, l_Y_end;
+	unsigned short temp;
+
+	x0 = 0;
+	y0 = 0;
+	x1 = FRAME_WIDTH - 1;
+	y1 = FRAME_HEIGHT - 1;
+
+	h_X_start = (x0 & 0xFF00) >> 8;
+	l_X_start = x0 & 0x00FF;
+	h_X_end = (x1 & 0xFF00) >> 8;
+	l_X_end = x1 & 0x00FF;
+
+	h_Y_start = (y0 & 0xFF00) >> 8;
+	l_Y_start = y0 & 0x00FF;
+	h_Y_end = (y1 & 0xFF00) >> 8;
+	l_Y_end = y1 & 0x00FF;
+
+	set_lcm_register(0x02, h_X_start);
+	set_lcm_register(0x03, l_X_start);
+	set_lcm_register(0x04, h_X_end);
+	set_lcm_register(0x05, l_X_end);
+
+	set_lcm_register(0x06, h_Y_start);
+	set_lcm_register(0x07, l_Y_start);
+	set_lcm_register(0x08, h_Y_end);
+	set_lcm_register(0x09, l_Y_end);
+
+	send_ctrl_cmd(0x22);
+
+	read_data_cmd();
+
+	for(i=0; i<60; i++) {
+		temp = read_data_cmd();
+		/* Convert RGB666 to RGB888 */
+		temp >>= 2;
+		temp *= 255;
+		temp /= 63;
+		buffer[i] = (unsigned char)temp;
+	}
+}
+
 /* --------------------------------------------------------------------------- */
 /* Get LCM Driver Hooks */
 /* --------------------------------------------------------------------------- */
@@ -605,8 +633,8 @@ LCM_DRIVER hx8347it_dbi_lcm_drv = {
 	.esd_check = lcm_esd_check,
 	.esd_recover = lcm_esd_recover,
 #endif
-	.ata_check = lcm_ata_check,
 	.enter_idle = lcm_enter_idle,
 	.exit_idle = lcm_exit_idle,
 	.change_fps = lcm_change_fps,
+	.read_fb = lcm_read_fb,
 };

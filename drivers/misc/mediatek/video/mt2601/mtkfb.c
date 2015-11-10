@@ -1953,22 +1953,24 @@ static int mtkfb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg
 
 	case MTKFB_LCM_ALWAYS_ON_ENABLE:
 	{
-		BOOL enable;
+		BOOL alwaysOn;
 
-		if (copy_from_user(&enable, (void __user *)argp, sizeof(BOOL))) {
+		if (copy_from_user(&alwaysOn, (void __user *)argp, sizeof(BOOL))) {
 			MTKFB_INFO("[FB]: copy_from_user failed! line:%d\n", __LINE__);
 			r = -EFAULT;
 		} else {
-			if (is_early_suspended)
-				return r;
-
 			if ((lcm_params->type == LCM_TYPE_DBI) || (lcm_params->type == LCM_TYPE_DSI && lcm_params->dsi.mode == CMD_MODE)) {
-				if (enable)
-					is_lcm_always_on = TRUE;
-				else
-					is_lcm_always_on = FALSE;
+				if ((is_lcm_always_on != alwaysOn) && is_early_suspended) {
+					DISP_LateResume();
+					is_lcm_always_on = alwaysOn;
+					DISP_EarlySuspend();
+				}
+				else {
+					is_lcm_always_on = alwaysOn;
+				}
+
 			}
-			DISP_LOG_PRINT("[FB]: MTKFB_LCM_ALWAYS_ON_ENABLE: %d %d\n", enable, is_lcm_always_on);
+			DISP_LOG_PRINT("[FB]: MTKFB_LCM_ALWAYS_ON_ENABLE: %d\n", is_lcm_always_on);
 		}
 
 		return r;
@@ -1977,22 +1979,27 @@ static int mtkfb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg
 	case MTKFB_SET_DISPLAY_POWER_MODE:
 	{
 		unsigned int state;
+		BOOL alwaysOn = FALSE;
 
 		if (copy_from_user(&state, (void __user *)argp, sizeof(unsigned int))) {
 			MTKFB_INFO("[FB]: copy_from_user failed! line:%d\n", __LINE__);
 			r = -EFAULT;
 		} else {
-			if (is_early_suspended)
-				return r;
-
 			display_power_state = state;
 			if ((lcm_params->type == LCM_TYPE_DBI) || (lcm_params->type == LCM_TYPE_DSI && lcm_params->dsi.mode == CMD_MODE)) {
 				if (display_power_state != DISP_POWER_MODE_OFF)
-					is_lcm_always_on = TRUE;
-				else
-					is_lcm_always_on = FALSE;
+					alwaysOn = TRUE;
+
+				if ((is_lcm_always_on != alwaysOn) && is_early_suspended) {
+					DISP_LateResume();
+					is_lcm_always_on = alwaysOn;
+					DISP_EarlySuspend();
+				}
+				else {
+					is_lcm_always_on = alwaysOn;
+				}
 			}
-			DISP_LOG_PRINT("[FB]: MTKFB_SET_DISPLAY_POWER_MODE: %d\n", display_power_state);
+			DISP_LOG_PRINT("[FB]: MTKFB_SET_DISPLAY_POWER_MODE: %d %d\n", display_power_state, is_lcm_always_on);
 		}
 
 		return r;
@@ -3207,6 +3214,9 @@ int __init mtkfb_init(void)
 		r = -ENODEV;
 		goto exit;
 	}
+
+	if (get_boot_mode() == RECOVERY_BOOT)
+		blank_skip_count = 1;
 
 	healthd_bl_fb_notifier.notifier_call = healthd_bl_fb_notifier_callback;
 	if ((get_boot_mode() == KERNEL_POWER_OFF_CHARGING_BOOT) ||

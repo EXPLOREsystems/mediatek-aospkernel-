@@ -129,7 +129,7 @@ void disp_sync_ion_cache_flush(struct ion_client *client, struct ion_handle *han
 		return;
 
 	sys_data.sys_cmd = ION_SYS_CACHE_SYNC;
-	sys_data.cache_sync_param.handle = (ion_user_handle_t)handle;
+	sys_data.cache_sync_param.handle = handle;
 	sys_data.cache_sync_param.sync_type = ION_CACHE_FLUSH_BY_RANGE;
 
 	if (ion_kernel_ioctl(client, ION_CMD_SYSTEM, (int)&sys_data))
@@ -558,7 +558,7 @@ static void disp_sync_ion_config_buffer(struct ion_client *client, struct ion_ha
 	}
 
 	mm_data.mm_cmd = ION_MM_CONFIG_BUFFER;
-	mm_data.config_buffer_param.handle = (ion_user_handle_t)handle;
+	mm_data.config_buffer_param.handle = handle;
 	mm_data.config_buffer_param.eModuleID = 0;
 	mm_data.config_buffer_param.security = 0;
 	mm_data.config_buffer_param.coherent = 0;

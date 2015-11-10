@@ -248,7 +248,7 @@ static void cmdq_ion_init(void)
 void cmdq_ion_flush(void)
 {
 	sys_data.sys_cmd = ION_SYS_CACHE_SYNC;
-	sys_data.cache_sync_param.handle = (ion_user_handle_t)cmdqIONHandle;
+	sys_data.cache_sync_param.handle = cmdqIONHandle;
 	sys_data.cache_sync_param.sync_type = ION_CACHE_FLUSH_ALL;
 
 	if (ion_kernel_ioctl(cmdqIONClient, ION_CMD_SYSTEM, (unsigned long)&sys_data))

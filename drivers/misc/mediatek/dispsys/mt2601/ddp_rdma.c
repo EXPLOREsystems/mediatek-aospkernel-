@@ -348,7 +348,7 @@ void RDMAWait(unsigned idx)
 {
 	/* polling interrupt status */
 	while ((DISP_REG_GET(DISP_REG_RDMA_INT_STATUS) & 0x1) != 0x1)
-		NULL;
+		;
 	DISP_REG_SET(DISP_REG_RDMA_INT_STATUS, 0x0);
 }
 

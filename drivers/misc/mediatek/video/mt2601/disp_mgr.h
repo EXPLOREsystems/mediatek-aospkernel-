@@ -22,9 +22,6 @@
 typedef unsigned int UINT;
 typedef unsigned char BOOL;
 
-#define DISP_SESSION_TYPE(id) (((id)>>16)&0xff)
-#define DISP_SESSION_DEV(id) ((id)&0xff)
-
 /* ============================================================================= */
 /* forward declarations of external structures */
 /* NOTICE: this is the INPUT PARAMETERS directly from its CLIENT */

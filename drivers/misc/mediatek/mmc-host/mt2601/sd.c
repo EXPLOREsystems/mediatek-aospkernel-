@@ -218,7 +218,7 @@ static unsigned int msdc_online_tuning(struct msdc_host   *host, unsigned fn, un
 
 
 
-struct msdc_host *mtk_msdc_host[] = {NULL, NULL};
+struct msdc_host *mtk_msdc_host[HOST_MAX_NUM] = {NULL, NULL};
 int g_dma_debug[HOST_MAX_NUM] = {0, 0};
 u32 latest_int_status[HOST_MAX_NUM] = {0, 0};
 transfer_mode msdc_latest_transfer_mode[HOST_MAX_NUM] = /* 0 for PIO; 1 for DMA; 2 for nothing */

@@ -118,6 +118,11 @@ static int simple_sd_ioctl_multi_rw(struct msdc_ioctl *msdc_ctl)
     if (msdc_ctl->total_size <= 0)
 	return -EINVAL;
 
+    if ((msdc_ctl->host_num < 0) || (msdc_ctl->host_num >= HOST_MAX_NUM)) {
+        pr_err("invalid host num: %d\n", msdc_ctl->host_num);
+        return -EINVAL;
+    }
+
     host_ctl = mtk_msdc_host[msdc_ctl->host_num];
     BUG_ON(!host_ctl);
     BUG_ON(!host_ctl->mmc);
@@ -293,6 +298,11 @@ static int simple_sd_ioctl_single_rw(struct msdc_ioctl *msdc_ctl)
     if (msdc_ctl->total_size <= 0)
 	return -EINVAL;
 
+    if ((msdc_ctl->host_num < 0) || (msdc_ctl->host_num >= HOST_MAX_NUM)) {
+        pr_err("invalid host num: %d\n", msdc_ctl->host_num);
+        return -EINVAL;
+    }
+
     host_ctl = mtk_msdc_host[msdc_ctl->host_num];
     BUG_ON(!host_ctl);
     BUG_ON(!host_ctl->mmc);
@@ -464,6 +474,11 @@ static int simple_sd_ioctl_get_cid(struct msdc_ioctl *msdc_ctl)
 {
     struct msdc_host *host_ctl;
 
+    if ((msdc_ctl->host_num < 0) || (msdc_ctl->host_num >= HOST_MAX_NUM)) {
+        pr_err("invalid host num: %d\n", msdc_ctl->host_num);
+        return -EINVAL;
+    }
+
     host_ctl = mtk_msdc_host[msdc_ctl->host_num];
 
     BUG_ON(!host_ctl);
@@ -490,6 +505,11 @@ static int simple_sd_ioctl_get_cid(struct msdc_ioctl *msdc_ctl)
 static int simple_sd_ioctl_get_csd(struct msdc_ioctl *msdc_ctl)
 {
     struct msdc_host *host_ctl;
+
+    if ((msdc_ctl->host_num < 0) || (msdc_ctl->host_num >= HOST_MAX_NUM)) {
+        pr_err("invalid host num: %d\n", msdc_ctl->host_num);
+        return -EINVAL;
+    }
 
     host_ctl = mtk_msdc_host[msdc_ctl->host_num];
 
@@ -522,6 +542,11 @@ static int simple_sd_ioctl_get_excsd(struct msdc_ioctl *msdc_ctl)
 #if DEBUG_MMC_IOCTL
     int i;
 #endif
+
+    if ((msdc_ctl->host_num < 0) || (msdc_ctl->host_num >= HOST_MAX_NUM)) {
+        pr_err("invalid host num: %d\n", msdc_ctl->host_num);
+        return -EINVAL;
+    }
 
     host_ctl = mtk_msdc_host[msdc_ctl->host_num];
 
@@ -571,6 +596,12 @@ static int simple_sd_ioctl_set_driving(struct msdc_ioctl *msdc_ctl)
 #if DEBUG_MMC_IOCTL
     unsigned int l_value;
 #endif
+
+    if ((msdc_ctl->host_num < 0) || (msdc_ctl->host_num >= HOST_MAX_NUM)) {
+        pr_err("invalid host num: %d\n", msdc_ctl->host_num);
+        return -EINVAL;
+    }
+
     if (msdc_ctl->host_num == 0) {
 #ifndef CFG_DEV_MSDC0
 	printk("host%d is not config\n", msdc_ctl->host_num);
@@ -649,6 +680,11 @@ static int simple_sd_ioctl_get_driving(struct msdc_ioctl *msdc_ctl)
 /* unsigned int l_value; */
     printk(KERN_ERR "simple_sd_ioctl_get_driving %d\n", msdc_ctl->host_num);
 
+    if ((msdc_ctl->host_num < 0) || (msdc_ctl->host_num >= HOST_MAX_NUM)) {
+        pr_err("invalid host num: %d\n", msdc_ctl->host_num);
+        return -EINVAL;
+    }
+
     if (msdc_ctl->host_num == 0) {
 #ifndef CFG_DEV_MSDC0
 	printk("host%d is not config\n", msdc_ctl->host_num);
@@ -717,6 +753,11 @@ static int simple_sd_ioctl_sd30_mode_switch(struct msdc_ioctl *msdc_ctl)
 #if DEBUG_MMC_IOCTL
     unsigned int l_value;
 #endif
+
+    if ((msdc_ctl->host_num < 0) || (msdc_ctl->host_num >= HOST_MAX_NUM)) {
+        pr_err("invalid host num: %d\n", msdc_ctl->host_num);
+        return -EINVAL;
+    }
 
     if (msdc_ctl->host_num == 0) {
 #ifndef CFG_DEV_MSDC0
@@ -1139,6 +1180,11 @@ static int simple_sd_ioctl_erase_selected_area(struct msdc_ioctl *msdc_ctl)
     struct mmc_card *card;
     unsigned int from, nr, arg;
     int err = 0;
+
+    if ((msdc_ctl->host_num < 0) || (msdc_ctl->host_num >= HOST_MAX_NUM)) {
+        pr_err("invalid host num: %d\n", msdc_ctl->host_num);
+        return -EINVAL;
+    }
 
     host_ctl = mtk_msdc_host[msdc_ctl->host_num];
     BUG_ON(!host_ctl);

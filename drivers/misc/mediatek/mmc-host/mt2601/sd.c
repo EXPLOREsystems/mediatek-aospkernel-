@@ -1,3 +1,17 @@
+/*
+* Copyright (C) 2011-2015 MediaTek Inc.
+*
+* This program is free software: you can redistribute it and/or modify it under the terms of the
+* GNU General Public License version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with this program.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <generated/autoconf.h>
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -1426,20 +1440,26 @@ static void msdc_set_timeout(struct msdc_host *host, u32 ns, u32 clks)
 {
     u32 base = host->base;
     u32 timeout, clk_ns;
+    u32 mode = 0;
 
-    host->timeout_ns   = ns;
+    host->timeout_ns = ns;
     host->timeout_clks = clks;
-
-    clk_ns  = 1000000000UL / host->sclk;
-    timeout = ns / clk_ns + clks;
-    timeout = timeout >> 20; /* in 1048576 sclk cycle unit (83/85)*/
-    timeout = timeout > 1 ? timeout - 1 : 0;
-    timeout = timeout > 255 ? 255 : timeout;
+    if (host->sclk == 0) {
+        timeout = 0;
+    } else {
+        clk_ns  = 1000000000UL / host->sclk;
+        timeout = (ns + clk_ns -1) / clk_ns + clks;
+        timeout = (timeout + (1 << 20) - 1) >> 20; /* in 1048576 sclk cycle unit (83/85)*/
+        sdr_get_field(MSDC_CFG, MSDC_CFG_CKMOD, mode);
+        timeout = (mode == 2) ? timeout * 2 : timeout; /* double timeout for DDR mode */
+        timeout = timeout > 1 ? timeout - 1 : 0;
+        timeout = timeout > 255 ? 255 : timeout;
+    }
 
     sdr_set_field(SDC_CFG, SDC_CFG_DTOC, timeout);
 
-    N_MSG(OPS, "Set read data timeout: %dns %dclks -> %d x 1048576  cycles",
-	ns, clks, timeout + 1);
+    N_MSG(OPS, "msdc%d, Set read data timeout: %dns %dclks -> %d x 1048576 cycles, mode: %d, clk_freq: %dKHz",
+        host->id, ns, clks, timeout + 1, mode, (host->sclk/1000));
 }
 
 typedef enum{

@@ -859,6 +859,10 @@ static int wmt_cl_pa3_set_cur_state(struct thermal_cooling_device *cool_dev, uns
 /* -mtktspa_cooling_pa3_ops- */
 #endif /* NEVER */
 
+unsigned long wmt_wifi_tx_throughput(void){
+	return tx_throughput;
+}
+
 int wmt_wifi_tx_thro_read(struct seq_file *m, void *v)
 {
 	seq_printf(m, "%lu\n", tx_throughput);
@@ -968,11 +972,17 @@ ssize_t wmt_tm_wfd_write(struct file *filp, const char __user *buf, size_t len, 
 {
 	int ret = 0;
 	char tmp[MAX_LEN] = {0};
+	int count;
+
+	count = (len < (MAX_LEN - 1)) ? len : (MAX_LEN - 1);
 
 	/* write data to the buffer */
-	if (copy_from_user(tmp, buf, len)) {
+	if (copy_from_user(tmp, buf, count)) {
 		return -EFAULT;
 	}
+
+	tmp[count] = '\0';
+
 
 	ret = sscanf(tmp, "%d", &tm_wfd_stat);
 
@@ -1010,11 +1020,16 @@ ssize_t wmt_tm_pid_write(struct file *filp, const char __user *buf, size_t len, 
 {
 	int ret = 0;
 	char tmp[MAX_LEN] = {0};
+	int count;
+
+	count = (len < (MAX_LEN - 1)) ? len : (MAX_LEN - 1);
 
 	/* write data to the buffer */
-	if (copy_from_user(tmp, buf, len)) {
+	if (copy_from_user(tmp, buf, count)) {
 		return -EFAULT;
 	}
+
+	tmp[count] = '\0';
 
 	ret = kstrtouint(tmp, 10, &tm_input_pid);
 	if (ret)

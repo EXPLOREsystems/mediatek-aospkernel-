@@ -49,6 +49,7 @@
 #include <linux/aee.h>
 
 #include <mach/mt_spm_api.h>
+#include <linux/cpufreq.h>
 
 /* ************************************ */
 /* Definition */
@@ -59,6 +60,7 @@
 
 extern unsigned int mt_gpufreq_cur_load(void);
 extern unsigned int mt_gpufreq_cur_freq(void);
+extern unsigned long wmt_wifi_tx_throughput(void);
 extern int force_get_tbat(void);
 
 #if defined(CONFIG_MTK_SMART_BATTERY)
@@ -94,78 +96,6 @@ static DEFINE_MUTEX(MTM_SYSINFO_LOCK);
 /* ************************************ */
 /* Define */
 /* ************************************ */
-
-/* ********************************************* */
-/* System Information Monitor */
-/* ********************************************* */
-static mm_segment_t oldfs;
-
-static int get_sys_battery_info(char *dev)
-{
-	int fd;
-	int nRet;
-	int nReadSize;
-	char *pvalue = NULL;
-	char buf[64];
-
-	oldfs = get_fs();
-	set_fs(KERNEL_DS);
-	fd = sys_open(dev, O_RDONLY, 0);
-	if (fd < 0) {
-		THRML_LOG("%s open fail dev:%s fd:%d\n", __func__, dev, fd);
-		set_fs(oldfs);
-		return fd;
-	}
-
-	nReadSize = sys_read(fd, buf, sizeof(buf) - 1);
-	THRML_LOG("%s nReadSize:%d\n", __func__, nReadSize);
-	nRet = simple_strtol(buf, &pvalue, 10);
-
-	set_fs(oldfs);
-	sys_close(fd);
-
-	return nRet;
-}
-
-/* ********************************************* */
-/* Get Wifi Tx throughput */
-/* ********************************************* */
-static int get_sys_wifi_throughput(char *dev, int nRetryNr)
-{
-	int fd;
-	int nRet;
-	int nReadSize;
-	int nRetryCnt = 0;
-	char *pvalue = NULL;
-	char buf[64];
-
-	oldfs = get_fs();
-	set_fs(KERNEL_DS);
-
-	/* If sys_open fail, it will retry "nRetryNr" times. */
-	do {
-		fd = sys_open(dev, O_RDONLY, 0);
-		if (nRetryCnt > nRetryNr) {
-			THRML_LOG("%s open fail dev:%s fd:%d\n", __func__, dev, fd);
-			set_fs(oldfs);
-			return fd;
-		}
-		nRetryCnt++;
-	} while (fd < 0);
-
-	if (nRetryCnt > 1) {
-	   THRML_LOG("%s open fail nRetryCnt:%d\n", __func__, nRetryCnt);
-	}
-
-	nReadSize = sys_read(fd, buf, sizeof(buf) - 1);
-	THRML_LOG("%s nReadSize:%d\n", __func__, nReadSize);
-	nRet = simple_strtol(buf, &pvalue, 10);
-
-	set_fs(oldfs);
-	sys_close(fd);
-
-	return nRet;
-}
 
 /* ********************************************* */
 /* For get_sys_cpu_usage_info_ex() */
@@ -207,122 +137,6 @@ static int cpuloadings[NO_CPU_CORES];
 
 #define TRIMz_ex(tz, x)   ((tz = (unsigned long long)(x)) < 0 ? 0 : tz)
 
-/* ********************************************* */
-/* CPU Index */
-/* ********************************************* */
-#if 0
-static int get_sys_cpu_usage_info_ex_procstat(void)
-{
-	int fd;
-	int nReadSize;
-	char szTempBuf[256];
-	char buf[256];
-	char *pbuf;
-	int nCoreIndex = 0, i;
-
-
-	oldfs = get_fs();
-	set_fs(KERNEL_DS);
-	fd = sys_open("/proc/stat", O_RDONLY, 0);
-
-	if (fd < 0) {
-		THRML_LOG("[get_sys_cpu_usage_info] open fail fd:%d\n", fd);
-		set_fs(oldfs);
-		return -1;
-	}
-
-	nReadSize = sys_read(fd, buf, sizeof(buf) - 1);
-	buf[254] = '\n';
-	buf[255] = 0x0;
-	set_fs(oldfs);
-	sys_close(fd);
-
-	pbuf = buf;
-	SEEK_BUFF(pbuf, '\n');
-
-	THRML_LOG("[Read Buff]:%s\n", buf);
-
-	for (nCoreIndex = 0; nCoreIndex < NUMBER_OF_CORE; nCoreIndex++) {
-		int ret = 0;
-
-		sprintf(szTempBuf, "cpu%01d %%lu %%lu %%lu %%lu %%lu %%lu %%lu", nCoreIndex);
-
-		/* Get CPU Info */
-		if (strncmp(pbuf, "cpu", 3) == 0)
-		{
-			ret = sscanf(pbuf, szTempBuf, &cpu_index_list[nCoreIndex].u[CPU_USAGE_CURRENT_FIELD], &cpu_index_list[nCoreIndex].n[CPU_USAGE_CURRENT_FIELD],
-										  &cpu_index_list[nCoreIndex].s[CPU_USAGE_CURRENT_FIELD], &cpu_index_list[nCoreIndex].i[CPU_USAGE_CURRENT_FIELD],
-										  &cpu_index_list[nCoreIndex].w[CPU_USAGE_CURRENT_FIELD], &cpu_index_list[nCoreIndex].q[CPU_USAGE_CURRENT_FIELD],
-										  &cpu_index_list[nCoreIndex].sq[CPU_USAGE_CURRENT_FIELD]);
-
-			SEEK_BUFF(pbuf, '\n');
-
-			THRML_LOG("sscanf = %d, buf = %0x, pbuf = %0x\n", ret, (int) &buf[0], (int) pbuf);
-		}
-
-		/* Frame */
-		cpu_index_list[nCoreIndex].u[CPU_USAGE_FRAME_FIELD] = cpu_index_list[nCoreIndex].u[CPU_USAGE_CURRENT_FIELD] -
-																	cpu_index_list[nCoreIndex].u[CPU_USAGE_SAVE_FIELD];
-		cpu_index_list[nCoreIndex].n[CPU_USAGE_FRAME_FIELD] = cpu_index_list[nCoreIndex].n[CPU_USAGE_CURRENT_FIELD] -
-																	cpu_index_list[nCoreIndex].n[CPU_USAGE_SAVE_FIELD];
-		cpu_index_list[nCoreIndex].s[CPU_USAGE_FRAME_FIELD] = cpu_index_list[nCoreIndex].s[CPU_USAGE_CURRENT_FIELD] -
-																	cpu_index_list[nCoreIndex].s[CPU_USAGE_SAVE_FIELD];
-		cpu_index_list[nCoreIndex].i[CPU_USAGE_FRAME_FIELD] = TRIMz_ex(cpu_index_list[nCoreIndex].tz,
-																	(cpu_index_list[nCoreIndex].i[CPU_USAGE_CURRENT_FIELD] -
-																	 cpu_index_list[nCoreIndex].i[CPU_USAGE_SAVE_FIELD]));
-		cpu_index_list[nCoreIndex].w[CPU_USAGE_FRAME_FIELD] = cpu_index_list[nCoreIndex].w[CPU_USAGE_CURRENT_FIELD] -
-																	cpu_index_list[nCoreIndex].w[CPU_USAGE_SAVE_FIELD];
-		cpu_index_list[nCoreIndex].q[CPU_USAGE_FRAME_FIELD] = cpu_index_list[nCoreIndex].q[CPU_USAGE_CURRENT_FIELD] -
-																	cpu_index_list[nCoreIndex].q[CPU_USAGE_SAVE_FIELD];
-		cpu_index_list[nCoreIndex].sq[CPU_USAGE_FRAME_FIELD] = cpu_index_list[nCoreIndex].sq[CPU_USAGE_CURRENT_FIELD] -
-																	cpu_index_list[nCoreIndex].sq[CPU_USAGE_SAVE_FIELD];
-
-		/* Total Frame */
-		cpu_index_list[nCoreIndex].tot_frme = cpu_index_list[nCoreIndex].u[CPU_USAGE_FRAME_FIELD] +
-											 cpu_index_list[nCoreIndex].n[CPU_USAGE_FRAME_FIELD] +
-											 cpu_index_list[nCoreIndex].s[CPU_USAGE_FRAME_FIELD] +
-											 cpu_index_list[nCoreIndex].i[CPU_USAGE_FRAME_FIELD] +
-											 cpu_index_list[nCoreIndex].w[CPU_USAGE_FRAME_FIELD] +
-											 cpu_index_list[nCoreIndex].q[CPU_USAGE_FRAME_FIELD] +
-											 cpu_index_list[nCoreIndex].sq[CPU_USAGE_FRAME_FIELD];
-
-		/* CPU Usage */
-		if (cpu_index_list[nCoreIndex].tot_frme > 0)
-		{
-			cpuloadings[nCoreIndex] = (100-(((int)cpu_index_list[nCoreIndex].i[CPU_USAGE_FRAME_FIELD]*100)/(int)cpu_index_list[nCoreIndex].tot_frme));
-		} else
-		{
-			/* CPU unplug case */
-			cpuloadings[nCoreIndex] = 0;
-		}
-
-		cpu_index_list[nCoreIndex].u[CPU_USAGE_SAVE_FIELD]  = cpu_index_list[nCoreIndex].u[CPU_USAGE_CURRENT_FIELD];
-		cpu_index_list[nCoreIndex].n[CPU_USAGE_SAVE_FIELD]  = cpu_index_list[nCoreIndex].n[CPU_USAGE_CURRENT_FIELD];
-		cpu_index_list[nCoreIndex].s[CPU_USAGE_SAVE_FIELD]  = cpu_index_list[nCoreIndex].s[CPU_USAGE_CURRENT_FIELD];
-		cpu_index_list[nCoreIndex].i[CPU_USAGE_SAVE_FIELD]  = cpu_index_list[nCoreIndex].i[CPU_USAGE_CURRENT_FIELD];
-		cpu_index_list[nCoreIndex].w[CPU_USAGE_SAVE_FIELD]  = cpu_index_list[nCoreIndex].w[CPU_USAGE_CURRENT_FIELD];
-		cpu_index_list[nCoreIndex].q[CPU_USAGE_SAVE_FIELD]  = cpu_index_list[nCoreIndex].q[CPU_USAGE_CURRENT_FIELD];
-		cpu_index_list[nCoreIndex].sq[CPU_USAGE_SAVE_FIELD] = cpu_index_list[nCoreIndex].sq[CPU_USAGE_CURRENT_FIELD];
-
-		THRML_LOG("CPU%d Frame:%d USAGE:%d \n", nCoreIndex, cpu_index_list[nCoreIndex].tot_frme, cpuloadings[nCoreIndex]);
-
-		for (i = 0; i < 3; i++)
-		{
-			THRML_LOG("Index [u:%d] [n:%d] [s:%d] [i:%d] [w:%d] [q:%d] [sq:%d]\n", i, cpu_index_list[nCoreIndex].u[i],
-																  cpu_index_list[nCoreIndex].n[i],
-																  cpu_index_list[nCoreIndex].s[i],
-																  cpu_index_list[nCoreIndex].i[i],
-																  cpu_index_list[nCoreIndex].w[i],
-																  cpu_index_list[nCoreIndex].q[i],
-																  cpu_index_list[nCoreIndex].sq[i]);
-
-		}
-	}/* for */
-
-	return 0;
-
-}
-#endif
 
 #include <linux/kernel_stat.h>
 #include <linux/cpumask.h>
@@ -467,68 +281,17 @@ static int get_sys_cpu_usage_info_ex(void)
 
 }
 
-static int get_sys_cpu_freq_info(char *dev, int nRetryNr)
-{
-	int fd;
-	int nRet = 0;
-	int nReadSize;
-	int nRetryCnt = 0;
-	char *pvalue = NULL;
-	char buf[64];
-
-	oldfs = get_fs();
-	set_fs(KERNEL_DS);
-
-
-	/* If sys_open fail, it will retry three times. */
-	do
-	{
-		fd = sys_open(dev, O_RDONLY, 0);
-		if (nRetryCnt > nRetryNr)
-		{
-			THRML_LOG("[get_sys_cpu_freq_info] open fail dev:%s fd:%d\n", dev, fd);
-			set_fs(oldfs);
-			return fd;
-		}
-		nRetryCnt++;
-	} while (fd < 0);
-
-	if (nRetryCnt > 1)
-	{
-	   THRML_LOG("[get_sys_cpu_freq_info] open fail nRetryCnt:%d\n", nRetryCnt);
-	}
-
-	nReadSize = sys_read(fd, buf, sizeof(buf) - 1);
-	/* THRML_LOG("[get_sys_cpu_freq_info] nReadSize:%d\n", nReadSize); */
-	nRet = simple_strtol(buf, &pvalue, 10);
-
-	set_fs(oldfs);
-	sys_close(fd);
-
-	return nRet;
-}
 
 static int get_sys_all_cpu_freq_info(void)
 {
-	int nCPU_freq_temp, i;
-	char szTempBuf[512];
+	int i;
 
-	for (i = 0; i < NUMBER_OF_CORE; i++)
-	{
-		sprintf(szTempBuf, "/sys/devices/system/cpu/cpu%01d/cpufreq/cpuinfo_cur_freq", i);
-		nCPU_freq_temp = get_sys_cpu_freq_info(szTempBuf, 3);
-		if (nCPU_freq_temp > 0)
-		{
-			cpufreqs[i] = nCPU_freq_temp/1000;
-		} else
-		{
-			/* CPU is unplug now */
-			cpufreqs[i] = nCPU_freq_temp*10;
-		}
-	}
+	for (i=0 ; i<NO_CPU_CORES ; i++)
+		cpufreqs[i] = cpufreq_quick_get(i)/1000; // MHz
 
 	return 0;
 }
+
 
 
 /* Init */
@@ -603,6 +366,8 @@ int mtk_thermal_get_gpu_info(
 
 	return 0;
 }
+extern int read_tbat_value(void);
+extern int battery_meter_get_battery_current(void);
 
 int mtk_thermal_get_batt_info(
 	int *batt_voltage,
@@ -616,7 +381,7 @@ int mtk_thermal_get_batt_info(
 	if (batt_current)
 	{
 		/* from 72, all platforms use mt-battery */
-		*batt_current = get_sys_battery_info("/sys/devices/platform/battery/FG_Battery_CurrentConsumption");
+		*batt_current = battery_meter_get_battery_current();
 		/* the return value is 0.1mA */
 		if (*batt_current%10 < 5)
 			*batt_current /= 10;
@@ -633,10 +398,10 @@ int mtk_thermal_get_batt_info(
 	}
 
 	if (batt_voltage)
-		*batt_voltage = get_sys_battery_info("/sys/class/power_supply/battery/batt_vol");
+		*batt_voltage = 0;
 
 	if (batt_temp)
-		*batt_temp = get_sys_battery_info("/sys/class/power_supply/battery/batt_temp");
+		*batt_temp = 0;
 
 	return 0;
 }
@@ -652,35 +417,21 @@ int mtk_thermal_get_extra_info(
 	int **attr_values,
 	char ***attr_units)
 {
-	int size, i = 0;
+	int i = 0;
 
 	if (no_extra_attr)
 		*no_extra_attr = NO_EXTRA_THERMAL_ATTR;
 
 	/* ****************** */
-	/* Modem Index */
-	/* ****************** */
-	#if 0
-	{
-		struct md_info *p_info;
-		mtk_mdm_get_md_info(&p_info, &size);
-		if (size <= NO_EXTRA_THERMAL_ATTR-1)
-		{
-			for (i = 0; i < size; i++)
-			{
-				extra_attr_names[i] = p_info[i].attribute;
-				extra_attr_values[i] = p_info[i].value;
-				extra_attr_units[i] = p_info[i].unit;
-			}
-		}
-	}
-	#endif
-	/* ****************** */
 	/* Wifi Index */
 	/* ****************** */
 	/* Get Wi-Fi Tx throughput */
 	extra_attr_names[i] = "WiFi_TP";
-	extra_attr_values[i] = get_sys_wifi_throughput("/proc/driver/thermal/wifi_tx_thro", 3);
+#ifdef CONFIG_MTK_COMBO_CHIP
+	extra_attr_values[i] = wmt_wifi_tx_throughput();
+#else
+	extra_attr_values[i] = 0;
+#endif
 	extra_attr_units[i] = "Kbps";
 
 	if (attr_names)

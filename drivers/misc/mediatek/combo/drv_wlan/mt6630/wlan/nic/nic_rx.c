@@ -1033,6 +1033,11 @@ Add per station flow control when STA is in PS
 #include <linux/limits.h>
 #endif
 
+#if (ARP_MONITER_ENABLE==1)
+extern UINT_16 arpMoniter;
+extern UINT_8 apIp[];
+#endif
+
 #if CFG_SUPPORT_SCN_PSCN
 #include "gl_os.h"
 #include "debug.h"
@@ -2391,6 +2396,28 @@ VOID nicRxProcessDataPacket(IN P_ADAPTER_T prAdapter, IN OUT P_SW_RFB_T prSwRfb)
 		prRxCtrl->u4QueuedCnt++;
 #endif
 		nicRxFillRFB(prAdapter, prSwRfb);
+#if (ARP_MONITER_ENABLE==1)
+    if (prSwRfb->u2PacketLen > 14) {
+		PUINT_8 pc = (PUINT_8) prSwRfb->pvHeader;
+		UINT_16 u2Etype = 0;
+
+		u2Etype = (pc[ETHER_TYPE_LEN_OFFSET] << 8) | (pc[ETHER_TYPE_LEN_OFFSET + 1]);
+		if (u2Etype == ETH_P_ARP) {
+			int opCode = (pc[ETHER_TYPE_LEN_OFFSET + 8] << 8) | (pc[ETHER_TYPE_LEN_OFFSET + 8 + 1]);
+			if (opCode == 0x0002) {
+				arpMoniter = 0;
+				/* This if is necessary, bcz it may play a AP or GO role*/
+				if(prAdapter->prAisBssInfo
+					&& prAdapter->prAisBssInfo->prStaRecOfAP
+					&& prAdapter->prAisBssInfo->prStaRecOfAP->aucMacAddr) {
+					if(EQUAL_MAC_ADDR(&(pc[ETHER_TYPE_LEN_OFFSET + 10]), prAdapter->prAisBssInfo->prStaRecOfAP->aucMacAddr)) {
+						memcpy(apIp, &(pc[ETHER_TYPE_LEN_OFFSET + 16]), 4);
+					}
+				}
+			}
+		}
+    }
+#endif
 		GLUE_SET_PKT_BSS_IDX(prSwRfb->pvPacket, secGetBssIdxByWlanIdx(prAdapter, prSwRfb->ucWlanIdx));
 
 		prRetSwRfb = qmHandleRxPackets(prAdapter, prSwRfb);

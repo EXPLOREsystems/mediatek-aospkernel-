@@ -859,6 +859,10 @@
 int allocatedMemSize = 0;
 #endif
 
+#if (ARP_MONITER_ENABLE==1)
+UINT_16 arpMoniter = 0;
+UINT_8 apIp[4];
+#endif
 /*******************************************************************************
 *                           P R I V A T E   D A T A
 ********************************************************************************
@@ -2506,16 +2510,33 @@ kalQoSFrameClassifierAndPacketInfo(IN P_GLUE_INFO_T prGlueInfo,
 			UINT_16 u2ArpOp;
 
 			WLAN_GET_FIELD_BE16(&pucNextProtocol[ARP_OPERATION_OFFSET], &u2ArpOp);
-
-			DBGLOG(SW4, INFO, "ARP %s PKT[0x%p] TAR MAC/IP[" MACSTR "]/[" IPV4STR "]\n",
-					   u2ArpOp == ARP_OPERATION_REQUEST ? "REQ" : "RSP",
-					   prPacket, MAC2STR(&pucNextProtocol[ARP_TARGET_MAC_OFFSET]),
-					   IPV4TOSTR(&pucNextProtocol[ARP_TARGET_IP_OFFSET]));
+            
+			DBGLOG(SW4, INFO, "ARP %s PKT[0x%p] TAR MAC/IP["MACSTR"]/["IPV4STR"]\n", 
+				u2ArpOp == ARP_OPERATION_REQUEST?"REQ":"RSP", 
+				prPacket, MAC2STR(&pucNextProtocol[ARP_TARGET_MAC_OFFSET]),
+				IPV4TOSTR(&pucNextProtocol[ARP_TARGET_IP_OFFSET]));
 
 			prTxPktInfo->u2Flag |= BIT(ENUM_PKT_ARP);
+#if (ARP_MONITER_ENABLE==1)
+			UINT_16 arpOpCode = 0;
+			WLAN_GET_FIELD_BE16(&aucLookAheadBuf[ucEthTypeLenOffset + 8], &arpOpCode);
+
+			if (!strncmp(apIp, &aucLookAheadBuf[ucEthTypeLenOffset + 26], 4) &&
+				arpOpCode == 0x0001) {
+				arpMoniter++;
+
+				if(arpMoniter > 20) {
+					DBGLOG(INIT, WARN, "IOT Critical issue, arp no resp, check AP!\n");
+					aisBssBeaconTimeout(prGlueInfo->prAdapter);
+					arpMoniter = 0;
+					kalMemZero(apIp, sizeof(apIp));
+					return FALSE;
+				}
+			}
+#endif
 		}
 		break;
-
+        
 	case ETH_P_1X:
 	case ETH_P_PRE_1X:
 #if CFG_SUPPORT_WAPI

@@ -965,6 +965,20 @@ VOID saaFsmRunEventRxRespTimeOut(IN P_ADAPTER_T prAdapter, IN ULONG ulParamPtr)
 	return;
 }				/* end of saaFsmRunEventRxRespTimeOut() */
 
+#if (CFG_AIS_SUPPORT_REJ_CNT_AVOID == 1)
+VOID
+saaFsmRunEventErrCountInc(
+	IN P_ADAPTER_T prAdapter,
+	IN P_STA_RECORD_T prStaRec,
+	IN BOOLEAN fgCountReset)
+{
+	if (!IS_STA_IN_AIS(prStaRec))
+		return; /* only for AIS now */
+
+	aisFsmRunEventErrCountInc(prAdapter, prStaRec, fgCountReset);
+}
+#endif /* CFG_AIS_SUPPORT_REJ_CNT_AVOID */
+
 /*----------------------------------------------------------------------------*/
 /*!
 * @brief This function will process the Rx Auth Response Frame and then
@@ -1016,12 +1030,21 @@ VOID saaFsmRunEventRxAuth(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwRfb)
 
 					eNextState = SAA_STATE_SEND_ASSOC1;
 				}
+#if (CFG_AIS_SUPPORT_REJ_CNT_AVOID == 1)
+				/* reset error count for the BSS due to successful authentication */
+				saaFsmRunEventErrCountInc(prAdapter, prStaRec, TRUE);
+#endif /* CFG_AIS_SUPPORT_REJ_CNT_AVOID */
 			} else {
 				DBGLOG(SAA, INFO,
 				       "Auth Req was rejected by [" MACSTR "], Status Code = %d\n",
 					MAC2STR(prStaRec->aucMacAddr), u2StatusCode);
 
 				eNextState = AA_STATE_IDLE;
+#if (CFG_AIS_SUPPORT_REJ_CNT_AVOID == 1)
+				/* accumulate error count for the BSS */
+				if (u2StatusCode == STATUS_CODE_ASSOC_DENIED_AP_OVERLOAD)
+					saaFsmRunEventErrCountInc(prAdapter, prStaRec, FALSE);
+#endif /* CFG_AIS_SUPPORT_REJ_CNT_AVOID */
 			}
 
 			/* Reset Send Auth/(Re)Assoc Frame Count */
@@ -1172,9 +1195,10 @@ WLAN_STATUS saaFsmRunEventRxDeauth(IN P_ADAPTER_T prAdapter, IN P_SW_RFB_T prSwR
 	prStaRec = cnmGetStaRecByIndex(prAdapter, prSwRfb->ucStaRecIdx);
 	prDeauthFrame = (P_WLAN_DEAUTH_FRAME_T) prSwRfb->pvHeader;
 
-	DBGLOG(SAA, INFO, "Rx Deauth frame ,DA[" MACSTR "] SA[" MACSTR "] BSSID[" MACSTR "] ReasonCode[0x%x]\n",
-			   MAC2STR(prDeauthFrame->aucDestAddr), MAC2STR(prDeauthFrame->aucSrcAddr),
-			   MAC2STR(prDeauthFrame->aucBSSID), prDeauthFrame->u2ReasonCode);
+	DBGLOG(SAA, INFO, "Rx Deauth frame ,DA["MACSTR"] SA["MACSTR"] "
+		"BSSID["MACSTR"] ReasonCode[0x%x] StaRecIdx[0x%x]\n",
+		MAC2STR(prDeauthFrame->aucDestAddr), MAC2STR(prDeauthFrame->aucSrcAddr),
+		MAC2STR(prDeauthFrame->aucBSSID), prDeauthFrame->u2ReasonCode, prSwRfb->ucStaRecIdx);
 
 	do {
 

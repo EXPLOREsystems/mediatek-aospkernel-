@@ -466,7 +466,11 @@ static void hw_bc11_dump_register(void)
 	mt_set_gpio_mode(wireless_charger_gpio_number, 0);
 	mt_set_gpio_dir(wireless_charger_gpio_number, 0);
 #endif
+#ifdef CONFIG_CHARGING_ON_SUSPEND_SUPPORT
+	upmu_set_rg_chrwdt_td(0x3);		/* CHRWDT_TD, 32s */
+#else
 	upmu_set_rg_chrwdt_td(0x0);           /* CHRWDT_TD, 4s */
+#endif
 	upmu_set_rg_chrwdt_int_en(1);         /* CHRWDT_INT_EN */
 	upmu_set_rg_chrwdt_en(1);             /* CHRWDT_EN */
 	upmu_set_rg_chrwdt_wr(1);             /* CHRWDT_WR */
@@ -615,7 +619,11 @@ static kal_uint32 charging_reset_watch_dog_timer(void *data)
 {
     kal_uint32 status = STATUS_OK;
 
+#ifdef CONFIG_CHARGING_ON_SUSPEND_SUPPORT
+    upmu_set_rg_chrwdt_td(0x3);           /* CHRWDT_TD, 32s */
+#else
     upmu_set_rg_chrwdt_td(0x0);           /* CHRWDT_TD, 4s */
+#endif
     upmu_set_rg_chrwdt_wr(1);             /* CHRWDT_WR */
     upmu_set_rg_chrwdt_int_en(1);         /* CHRWDT_INT_EN */
     upmu_set_rg_chrwdt_en(1);             /* CHRWDT_EN */

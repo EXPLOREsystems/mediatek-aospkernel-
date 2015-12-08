@@ -37,7 +37,7 @@
 
 /* Precise Tunning */
 #define BATTERY_AVERAGE_DATA_NUMBER	3
-#define BATTERY_AVERAGE_SIZE	30
+#define BATTERY_AVERAGE_SIZE	20
 
 /* charger error check */
 /* #define BAT_TEMP_PROTECT_ENABLE         // stop charging if temp < MIN_CHARGE_TEMPERATURE */
@@ -48,7 +48,7 @@
 /* Tracking TIME */
 #define ONEHUNDRED_PERCENT_TRACKING_TIME	10	/* 10 second */
 #define NPERCENT_TRACKING_TIME				20	/* 20 second */
-#define SYNC_TO_REAL_TRACKING_TIME		60	/* 60 second */
+#define SYNC_TO_REAL_TRACKING_TIME		20	/* 60 second */
 #define V_0PERCENT_TRACKING							3450	/* 3450mV */
 
 /* Battery Notify */
@@ -108,6 +108,13 @@
 
 #ifdef CONFIG_MTK_FAN5405_SUPPORT
 #define FAN5405_BUSNUM 1
+#endif
+
+/* Charging on suspend support*/
+#define CONFIG_CHARGING_ON_SUSPEND_SUPPORT
+#ifdef CONFIG_CHARGING_ON_SUSPEND_SUPPORT
+#undef CHARGING_FULL_CURRENT
+#define CHARGING_FULL_CURRENT    120	//mA
 #endif
 
 #endif				/* _CUST_BAT_H_ */

@@ -558,11 +558,11 @@ static int cyttsp5_setup_input_device(struct device *dev)
 
 	/* get maximum values from the sysinfo data */
 	if (md->pdata->flags & CY_MT_FLAG_FLIP) {
-		max_x = max_y_tmp - 1;
-		max_y = max_x_tmp - 1;
+		max_x = max_y_tmp;
+		max_y = max_x_tmp;
 	} else {
-		max_x = max_x_tmp - 1;
-		max_y = max_y_tmp - 1;
+		max_x = max_x_tmp;
+		max_y = max_y_tmp;
 	}
 	max_p = md->si->sensing_conf_data.max_z;
 

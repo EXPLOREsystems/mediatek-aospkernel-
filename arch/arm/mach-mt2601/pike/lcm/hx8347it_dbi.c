@@ -427,20 +427,20 @@ static void lcm_resume(void)
 	set_lcm_register(0x19, 0x01);
 	/* Power Control 3 register (1Ch) */
 	/* AP=011b */
-	set_lcm_register(0x1C, 0x06);
+	set_lcm_register(0x1C, 0x03);
 
 	/* Power Control 6 register (1Fh) */
-	/* STB=0 */
-	set_lcm_register(0x1F, 0x08);
+	/* GASEN=1 & DK=1 */
+	set_lcm_register(0x1F, 0x88);
 	/* Power Control 6 register (1Fh) */
-	/* DK=0 */
-	set_lcm_register(0x1F, 0x00);
+	/* GASEN=1 */
+	set_lcm_register(0x1F, 0x80);
 	/* Power Control 6 register (1Fh) */
-	/* PON=1 */
-	set_lcm_register(0x1F, 0x10);
+	/* GASEN=1 & PON=1 */
+	set_lcm_register(0x1F, 0x90);
 	/* Power Control 6 register (1Fh) */
-	/* PON=1 & VCOMG=1 */
-	set_lcm_register(0x1F, 0x50);
+	/* GASEN=1 & VCOMG=1 & PON=1 */
+	set_lcm_register(0x1F, 0xD4);
 
 	MDELAY(5);
 

@@ -94,6 +94,12 @@ typedef enum {
 	USB_CONFIGURED
 } usb_state_enum;
 
+typedef enum {
+	BATTERY_AVG_CURRENT = 0,
+	BATTERY_AVG_VOLT = 1,
+	BATTERY_AVG_TEMP = 2,
+	BATTERY_AVG_MAX
+} BATTERY_AVG_ENUM;
 /*****************************************************************************
 *   JEITA battery temperature standard
     charging info ,like temperatue, charging current, re-charging voltage, CV threshold would be reconfigurated.

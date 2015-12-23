@@ -3344,7 +3344,7 @@ typedef enum _ENUM_CFG_DATA_OPT_T {
 	do { \
 		if ((aucDebugModule[DBG_##_Module##_IDX] & DBG_CLASS_##_Class) == 0) \
 			break; \
-		pr_debug(WLAN_TAG"%s:(" #_Module " " #_Class ")"_Fmt, __func__, ##__VA_ARGS__); \
+		pr_warn(WLAN_TAG"%s:(" #_Module " " #_Class ")"_Fmt, __func__, ##__VA_ARGS__); \
 	} while (0)
 
 #define DBGLOG1(_Module, _Class, _Fmt) \

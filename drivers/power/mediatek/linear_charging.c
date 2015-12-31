@@ -420,6 +420,8 @@ static void charging_current_calibration_linear(void)
 
 static void pchr_turn_on_charging_linear(void)
 {
+	int curr_temp;
+	CHR_CURRENT_ENUM g_temp_CC_value;
 	BATTERY_VOLTAGE_ENUM cv_voltage;
 	kal_uint32 charging_enable = KAL_TRUE;
 
@@ -452,6 +454,21 @@ static void pchr_turn_on_charging_linear(void)
 				battery_xlog_printk(BAT_LOG_FULL, "[BATTERY] select_charging_current !\n");
 				select_charging_curret_linear();
 			}
+		}
+
+		/* Limit charging current based on battery temperature */
+		curr_temp = battery_meter_get_battery_temperature();
+
+		if (curr_temp > MAX_CHARGE_TEMPERATURE || curr_temp < MIN_CHARGE_TEMPERATURE) {
+			g_temp_CC_value = CHARGE_CURRENT_0_00_MA;
+		} else if(curr_temp >= MAX_LIMITED_CHARGING_TEMPERATURE) {
+			g_temp_CC_value = CHARGE_CURRENT_750_00_MA;
+		} else {
+			g_temp_CC_value = CHARGE_CURRENT_200_00_MA;
+		}
+
+		if ( g_temp_CC_value < g_temp_CC_value_linear ) {
+			g_temp_CC_value_linear = g_temp_CC_value;
 		}
 
 		if (g_temp_CC_value_linear == CHARGE_CURRENT_0_00_MA) {

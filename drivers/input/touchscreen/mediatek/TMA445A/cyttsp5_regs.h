@@ -30,12 +30,9 @@
 #define TTHE_TUNER_SUPPORT
 
 #include <linux/device.h>
-#ifdef CONFIG_HAS_EARLYSUSPEND
 #include <linux/earlysuspend.h>
-#elif defined(CONFIG_FB)
 #include <linux/notifier.h>
 #include <linux/fb.h>
-#endif
 #include <asm/unaligned.h>
 #include <linux/debugfs.h>
 #include <linux/delay.h>
@@ -952,9 +949,9 @@ struct cyttsp5_core_data {
 	u8 cmd_buf[CYTTSP5_PREALLOCATED_CMD_BUFFER];
 	u8 input_buf[CY_MAX_INPUT];
 	u8 response_buf[CY_MAX_INPUT];
-#ifdef CONFIG_HAS_EARLYSUSPEND
+#if !defined(CONFIG_FB) && defined(CONFIG_HAS_EARLYSUSPEND)
 	struct early_suspend es;
-#elif defined(CONFIG_FB)
+#else
 	struct notifier_block fb_notifier;
 	enum cyttsp5_fb_state fb_state;
 #endif

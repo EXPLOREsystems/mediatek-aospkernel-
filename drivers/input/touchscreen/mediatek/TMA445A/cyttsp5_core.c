@@ -5589,7 +5589,7 @@ void *cyttsp5_get_module_data(struct device *dev, struct cyttsp5_module *module)
 }
 EXPORT_SYMBOL(cyttsp5_get_module_data);
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
+#if !defined(CONFIG_FB) && defined(CONFIG_HAS_EARLYSUSPEND)
 static void cyttsp5_early_suspend(struct early_suspend *h)
 {
 	struct cyttsp5_core_data *cd =
@@ -5614,7 +5614,7 @@ static void cyttsp5_setup_early_suspend(struct cyttsp5_core_data *cd)
 
 	register_early_suspend(&cd->es);
 }
-#elif defined(CONFIG_FB)
+#else
 static int fb_notifier_callback(struct notifier_block *self,
 		unsigned long event, void *data)
 {
@@ -5888,9 +5888,9 @@ int cyttsp5_probe(const struct cyttsp5_bus_ops *ops, struct device *dev,
 	/* Probe registered modules */
 	cyttsp5_probe_modules(cd);
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
+#if !defined(CONFIG_FB) && defined(CONFIG_HAS_EARLYSUSPEND)
 	cyttsp5_setup_early_suspend(cd);
-#elif defined(CONFIG_FB)
+#else
 	cyttsp5_setup_fb_notifier(cd);
 #endif
 
@@ -5943,9 +5943,9 @@ int cyttsp5_release(struct cyttsp5_core_data *cd)
 	cyttsp5_btn_release(dev);
 	cyttsp5_mt_release(dev);
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
+#if !defined(CONFIG_FB) && defined(CONFIG_HAS_EARLYSUSPEND)
 	unregister_early_suspend(&cd->es);
-#elif defined(CONFIG_FB)
+#else
 	fb_unregister_client(&cd->fb_notifier);
 #endif
 

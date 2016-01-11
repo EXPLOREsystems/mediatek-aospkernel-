@@ -469,6 +469,7 @@ typedef struct {
 	unsigned int physical_height;
 	unsigned int od_table_size;
 	void *od_table;
+	unsigned int idle_awake_time;
 } LCM_PARAMS;
 
 

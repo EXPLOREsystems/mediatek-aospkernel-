@@ -39,6 +39,7 @@
 #include <linux/sched.h>
 #include <linux/delay.h>
 #include <linux/completion.h>
+#include <linux/wakelock.h>
 
 #include "stp_exp.h"
 #include "hif_sdio.h"
@@ -141,6 +142,8 @@ static const MTK_WCN_HIF_SDIO_FUNCINFO mtk_stp_sdio_id_tbl[] = {
 wait_queue_head_t g_ownback_done;
 int is_wait_ownback = 0;
 /* static void (*cmb_bgf_eirq_cb)(void) = NULL; */
+
+struct wake_lock stp_sdio_suspend_lock;
 
 /* STP SDIO client information for hif sdio driver registration */
 const MTK_WCN_HIF_SDIO_CLTINFO g_stp_sdio_cltinfo = {
@@ -1986,10 +1989,15 @@ static void stp_sdio_rx_wkr(struct work_struct *work)
 }
 
 #if STP_SDIO_NEW_IRQ_HANDLER
+void stp_sdio_acquire_wakelock(unsigned long unused)
+{
+        wake_lock_timeout(&stp_sdio_suspend_lock, HZ / 2);
+}
+
+DECLARE_TASKLET(stp_sdio_tasklet, stp_sdio_acquire_wakelock, 0);
 
 static INT32 stp_sdio_irq(const MTK_WCN_HIF_SDIO_CLTCTX clt_ctx)
 {
-
 	INT32 iRet = 0;
 	UINT32 chlcpr_value = 0;
 	MTK_WCN_STP_SDIO_HIF_INFO *p_info = gp_info;
@@ -2013,10 +2021,11 @@ using CMD52 write instead of CMD53 write for CCIR, CHLPCR, CSDIOCSR */
 			if (!(chlcpr_value & C_FW_INT_EN_SET)) {
 				STPSDIO_DBG_FUNC("disable COM IRQ okay (0x%x)\n", chlcpr_value);
 				p_info->irq_pending = 1;
-		mtk_wcn_stp_wmt_sdio_host_awake();
+				mtk_wcn_stp_wmt_sdio_host_awake();
 				/*inform stp_sdio thread to to rx/tx job */
 				STPSDIO_DBG_FUNC("signal stp_tx_rx\n");
 				osal_trigger_event(&gp_info->tx_rx_event);
+				tasklet_schedule(&stp_sdio_tasklet);
 			} else {
 				STPSDIO_ERR_FUNC
 				    ("**********disable COM IRQ fail, don't signal stp-sdio thread******\n");
@@ -2025,7 +2034,6 @@ using CMD52 write instead of CMD53 write for CCIR, CHLPCR, CSDIOCSR */
 
 	}
 	return 0;
-
 }
 
 #else
@@ -3109,6 +3117,8 @@ static int stp_sdio_init(void)
 #if STP_SDIO_DBG_SUPPORT && STP_SDIO_OWNBACKDBG
 	stp_sdio_owndbg_setup();
 #endif
+
+	wake_lock_init(&stp_sdio_suspend_lock, WAKE_LOCK_SUSPEND, "stp sdio wakelock");
 
 	STPSDIO_INFO_FUNC
 	    ("blk_size(%ld), tx_buf_cnt(%ld), fifo tx(%ld) rx(%ld), buf tx(%ld) rx(%ld)\n",

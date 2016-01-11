@@ -92,7 +92,6 @@ typedef enum {
  */
 static const unsigned int EINT_IRQ = MT_EINT_IRQ_ID;
 static eint_func EINT_FUNC;
-struct wake_lock EINT_suspend_lock;
 
 static const struct
 {
@@ -603,17 +602,6 @@ void mt_eint_set_hw_debounce(unsigned int eint_num, unsigned int ms)
 }
 
 /*
- * eint_do_tasklet: EINT tasklet function.
- * @unused: not use.
- */
-void eint_do_tasklet(unsigned long unused)
-{
-	wake_lock_timeout(&EINT_suspend_lock, HZ / 2);
-}
-
-DECLARE_TASKLET(eint_tasklet, eint_do_tasklet, 0);
-
-/*
  * mt_eint_timer_event_handler: EINT sw debounce handler
  * @eint_num: the EINT number and use unsigned long to prevent
  *            compile warning of timer usage.
@@ -678,15 +666,6 @@ static irqreturn_t mt_eint_demux(unsigned irq, struct irq_desc *desc)
 	struct irq_chip *chip = irq_get_chip(irq);
 	chained_irq_enter(chip, desc);
 
-
-	/*
-	 * NoteXXX: Need to get the wake up for 0.5 seconds when an EINT intr tirggers.
-	 *          This is used to prevent system from suspend such that other drivers
-	 *          or applications can have enough time to obtain their own wake lock.
-	 *          (This information is gotten from the power management owner.)
-	 */
-
-	tasklet_schedule(&eint_tasklet);
 	dbgmsg("EINT Module - %s ISR Start\n", __func__);
 	/* printk("EINT acitve: %s, acitve status: %d\n", mt_irq_is_active(EINT_IRQ) ? "yes" : "no", mt_irq_is_active(EINT_IRQ)); */
 
@@ -1446,8 +1425,6 @@ static int __init mt_eint_init(void)
 
 	/* assign to domain 0 for AP */
 	mt_eint_setdomain0();
-
-	wake_lock_init(&EINT_suspend_lock, WAKE_LOCK_SUSPEND, "EINT wakelock");
 
 #ifdef MD_EINT
 	setup_MD_eint();

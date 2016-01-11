@@ -62,7 +62,7 @@ extern unsigned int EnableVSyncLog;
 #define LCM_ESD_CHECK_MAX_COUNT 5
 
 #define DISP_POWERMGR_TIMEOUT_NORMAL (HZ)
-#define DISP_POWERMGR_TIMEOUT_SUSPEND (HZ / 3)
+#define DISP_POWERMGR_TIMEOUT_SUSPEND (HZ / 10)
 
 /* --------------------------------------------------------------------------- */
 /* Local Variables */
@@ -99,6 +99,7 @@ static DECLARE_WAIT_QUEUE_HEAD(disp_powermgr_wq);
 static int disp_powermgr_task_wakeup;
 struct task_struct *disp_powermgr_task = NULL;
 static long disp_powermgr_timeout = DISP_POWERMGR_TIMEOUT_NORMAL;
+static long dispsys_idle_awake_timeout = DISP_POWERMGR_TIMEOUT_SUSPEND;
 
 /* detect alive thread related */
 static struct task_struct *detect_alive_task;
@@ -934,6 +935,9 @@ DISP_STATUS DISP_Init(UINT32 fbVA, UINT32 fbPA, BOOL isLcmInited)
 		layer_is_yuv[i] = 0;
 
 	wake_lock_init(&dispsys_wakelock, WAKE_LOCK_SUSPEND, "dispsys_wakelock");
+
+	if (lcm_params->idle_awake_time)
+		dispsys_idle_awake_timeout = lcm_params->idle_awake_time * HZ / 1000;
 
 	return r;
 }
@@ -2923,7 +2927,7 @@ DISP_STATUS DISP_DispsysCheckPowerDown(void)
 
 	if (lcm_idle_state == 0) {
 		is_early_suspended = TRUE;
-		disp_powermgr_timeout = DISP_POWERMGR_TIMEOUT_SUSPEND;
+		disp_powermgr_timeout = dispsys_idle_awake_timeout;
 		DISP_DispsysPowerEnable(TRUE);
 		DISP_CHECK_RET(DISP_PanelSetIdle(TRUE));
 		lcm_idle_state++;
@@ -3022,10 +3026,12 @@ void DISP_EarlySuspend(void)
 #endif
 	DISP_LOG_PRINT("[FB] lcm always on : %d\n", is_lcm_always_on);
 	DISP_DispsysPowerEnable(TRUE);
-	if (is_lcm_always_on)
+	if (is_lcm_always_on) {
 		DISP_CHECK_RET(DISP_PanelSetIdlePrepare());
-	else
+	} else {
 		DISP_CHECK_RET(DISP_PanelEnable(FALSE));
+		disp_powermgr_timeout = 0;
+	}
 
 	disp_powermgr_task_wakeup = 1;
 	wake_up_interruptible(&disp_powermgr_wq);

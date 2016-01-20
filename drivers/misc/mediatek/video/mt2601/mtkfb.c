@@ -2060,6 +2060,8 @@ unsigned int mtkfb_fm_auto_test(void)
 	struct fb_var_screeninfo var;
 	extern bool needStartEngine;
 
+	mtkfb_pan_display_impl(&mtkfb_fbi->var, mtkfb_fbi);
+
 	fbVirAddr = (UINT32) fbdev->fb_va_base;
 	fb_buffer = (unsigned int *)fbVirAddr;
 

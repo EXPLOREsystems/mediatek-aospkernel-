@@ -1805,6 +1805,9 @@ static int mtkfb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg
 		if (is_early_suspended) {
 			if (!is_lcm_always_on) {
 				int i = 0;
+
+				disp_sync_present_fence_inc(disp_config.session_id);
+
 				for (i = 0; i < HW_OVERLAY_COUNT; i++) {
 					disp_sync_release(disp_config.session_id, i);
 					if (!((i == DISP_DEFAULT_UI_LAYER_ID) && isAEEEnabled)) {
@@ -2864,6 +2867,11 @@ bool mtkfb_is_suspend(void)
 static void mtkfb_shutdown(struct device *pdev)
 {
 	if (dispsys_dynamic_cg_control_enable) {
+		if (is_lcm_always_on) {
+			DISP_LateResume();
+			is_lcm_always_on = FALSE;
+		}
+
 		DISP_EarlySuspend();
 		return;
 	}

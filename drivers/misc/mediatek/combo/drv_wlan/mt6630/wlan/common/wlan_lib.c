@@ -2695,7 +2695,9 @@ VOID wlanReleaseCommand(IN P_ADAPTER_T prAdapter, IN P_CMD_INFO_T prCmdInfo, IN 
 		if (prMsduInfo->pfTxDoneHandler != NULL)
 			prMsduInfo->pfTxDoneHandler(prAdapter, prMsduInfo, rTxDoneStatus);
 
-		GLUE_DEC_REF_CNT(prTxCtrl->i4TxMgmtPendingNum);
+		if (prCmdInfo->eCmdType == COMMAND_TYPE_MANAGEMENT_FRAME)
+			GLUE_DEC_REF_CNT(prTxCtrl->i4TxMgmtPendingNum);
+
 		cnmMgtPktFree(prAdapter, prMsduInfo);
 		break;
 
@@ -6086,6 +6088,7 @@ VOID wlanInitFeatureOption(IN P_ADAPTER_T prAdapter)
 
 	prWifiVar->ucStaHtBfee = (UINT_8) wlanCfgGetUint32(prAdapter, "StaHTBfee", FEATURE_DISABLED);
 	prWifiVar->ucStaVhtBfee = (UINT_8) wlanCfgGetUint32(prAdapter, "StaVHTBfee", FEATURE_ENABLED);
+	prWifiVar->ucStaVhtMuBfee = (UINT_8)wlanCfgGetUint32(prAdapter, "StaVHTMuBfee", FEATURE_DISABLED);
 	prWifiVar->ucStaBfer = (UINT_8) wlanCfgGetUint32(prAdapter, "StaBfer", FEATURE_DISABLED);
 
 	prWifiVar->ucApWpsMode = (UINT_8) wlanCfgGetUint32(prAdapter, "ApWpsMode", 0);

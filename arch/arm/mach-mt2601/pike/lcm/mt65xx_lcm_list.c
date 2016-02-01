@@ -15,10 +15,14 @@
 #include <lcm_drv.h>
 
 extern LCM_DRIVER hx8347it_dbi_lcm_drv;
+extern LCM_DRIVER st7789v_dbi_lcm_drv;
 
 LCM_DRIVER *lcm_driver_list[] = {
 #if defined(HX8347IT_DBI)
 	&hx8347it_dbi_lcm_drv,
+#endif
+#if defined(ST7789V_DBI)
+	&st7789v_dbi_lcm_drv,
 #endif
 };
 

@@ -95,6 +95,7 @@
 ** layer info structure.
  */
 typedef struct _GL_HIF_INFO_T {
+	VOID	*Dev; /* struct device */
 #if MTK_WCN_HIF_SDIO
 	MTK_WCN_HIF_SDIO_CLTCTX cltCtx;
 	const MTK_WCN_HIF_SDIO_FUNCINFO *prFuncInfo;

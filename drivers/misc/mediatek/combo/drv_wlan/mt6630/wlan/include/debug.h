@@ -3244,6 +3244,14 @@ typedef enum _ENUM_DBG_MODULE_T {
 	DBG_MODULE_NUM		/* Notice the XLOG check */
 } ENUM_DBG_MODULE_T;
 
+typedef enum _ENUM_CFG_DATA_OPT_T {
+	OPT_SET_NVRAM = 0,
+	OPT_SET_CFG_LEN,
+	OPT_SET_CFG_DATA,
+	OPT_CLR_CFG,
+	OPT_CFG_MAX
+} ENUM_CFG_DATA_OPT_T;
+
 /*******************************************************************************
 *                            P U B L I C   D A T A
 ********************************************************************************

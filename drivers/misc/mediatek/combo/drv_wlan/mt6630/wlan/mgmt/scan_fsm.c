@@ -1319,7 +1319,7 @@ scnFsmSchedScanRequest(IN P_ADAPTER_T prAdapter,
 	/* 1. load parameters */
 	prScanParam->ucSeqNum++;
 	prScanParam->ucBssIndex = prAdapter->prAisBssInfo->ucBssIndex;
-	prNloParam->fgStopAfterIndication = TRUE;
+	prNloParam->fgStopAfterIndication = FALSE;
 	prNloParam->ucFastScanIteration = 0;
 
 	if (u2Interval < SCAN_NLO_DEFAULT_INTERVAL) {
@@ -1339,12 +1339,12 @@ scnFsmSchedScanRequest(IN P_ADAPTER_T prAdapter,
 	prNloParam->u2FastScanPeriod = u2Interval;
 	prNloParam->u2SlowScanPeriod = u2Interval;
 
-	if (prScanParam->ucSSIDNum > CFG_SCAN_SSID_MAX_NUM)
+	if (ucSsidNum > CFG_SCAN_SSID_MAX_NUM)
 		prScanParam->ucSSIDNum = CFG_SCAN_SSID_MAX_NUM;
 	else
 		prScanParam->ucSSIDNum = ucSsidNum;
 
-	if (prNloParam->ucMatchSSIDNum > CFG_SCAN_SSID_MATCH_MAX_NUM)
+	if (ucSsidNum > CFG_SCAN_SSID_MATCH_MAX_NUM)
 		prNloParam->ucMatchSSIDNum = CFG_SCAN_SSID_MATCH_MAX_NUM;
 	else
 		prNloParam->ucMatchSSIDNum = ucSsidNum;
@@ -1367,7 +1367,7 @@ scnFsmSchedScanRequest(IN P_ADAPTER_T prAdapter,
 	}
 
 	/* 2. prepare command for sending */
-	prCmdNloReq = (P_CMD_NLO_REQ) cnmMemAlloc(prAdapter, RAM_TYPE_BUF, sizeof(CMD_NLO_REQ) + prScanParam->u2IELen);
+	prCmdNloReq = (P_CMD_NLO_REQ) cnmMemAlloc(prAdapter, RAM_TYPE_BUF, sizeof(CMD_NLO_REQ) + u4IeLength);
 
 	if (!prCmdNloReq) {
 		ASSERT(0);	/* Can't initiate NLO operation */
@@ -1408,13 +1408,13 @@ scnFsmSchedScanRequest(IN P_ADAPTER_T prAdapter,
 			prCmdNloReq->arNetworkList[i].ucNumChannelHint[j] = prNloParam->aucChannelHint[i][j];
 	}
 
-	if (prScanParam->u2IELen <= MAX_IE_LENGTH)
-		prCmdNloReq->u2IELen = prScanParam->u2IELen;
+	if (u4IeLength <= MAX_IE_LENGTH)
+		prCmdNloReq->u2IELen = (UINT_16)u4IeLength;
 	else
 		prCmdNloReq->u2IELen = MAX_IE_LENGTH;
 
-	if (prScanParam->u2IELen)
-		kalMemCopy(prCmdNloReq->aucIE, prScanParam->aucIE, sizeof(UINT_8) * prCmdNloReq->u2IELen);
+	if (u4IeLength)
+		kalMemCopy(prCmdNloReq->aucIE, pucIe, prCmdNloReq->u2IELen);
 #if !CFG_SUPPORT_SCN_PSCN
 	if (wlanSendSetQueryCmd(prAdapter,
 				CMD_ID_SET_NLO_REQ,
@@ -1476,6 +1476,7 @@ BOOLEAN scnFsmSchedScanStopRequest(IN P_ADAPTER_T prAdapter)
 	rCmdNloCancel.ucSeqNum = prScanParam->ucSeqNum;
 
 #if !CFG_SUPPORT_SCN_PSCN
+	prScanInfo->fgNloScanning = FALSE;
 
 	if (wlanSendSetQueryCmd(prAdapter,
 				CMD_ID_SET_NLO_CANCEL,

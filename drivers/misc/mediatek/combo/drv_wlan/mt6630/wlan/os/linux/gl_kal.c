@@ -4813,6 +4813,8 @@ VOID kalSchedScanResults(IN P_GLUE_INFO_T prGlueInfo)
 {
 	ASSERT(prGlueInfo);
 
+	scanReportBss2Cfg80211(prGlueInfo->prAdapter, BSS_TYPE_INFRASTRUCTURE, NULL);
+
 	cfg80211_sched_scan_results(priv_to_wiphy(prGlueInfo));
 
 	return;

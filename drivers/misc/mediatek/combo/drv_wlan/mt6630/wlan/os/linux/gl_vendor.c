@@ -120,6 +120,7 @@ nla_put_failure:
 	return i4Status;
 }
 
+#if CFG_SUPPORT_SCN_PSCN
 int mtk_cfg80211_vendor_set_config(struct wiphy *wiphy, struct wireless_dev *wdev, const void *data, int data_len)
 {
 	WLAN_STATUS rStatus;
@@ -312,6 +313,107 @@ int mtk_cfg80211_vendor_set_scan_config(struct wiphy *wiphy, struct wireless_dev
 nla_put_failure:
 	return -1;
 }
+
+int mtk_cfg80211_vendor_enable_scan(struct wiphy *wiphy, struct wireless_dev *wdev, const void *data, int data_len)
+{
+	WLAN_STATUS rStatus;
+	UINT_32 u4BufLen;
+	P_GLUE_INFO_T prGlueInfo = NULL;
+	PARAM_WIFI_GSCAN_ACTION_CMD_PARAMS rWifiScanActionCmd;
+
+	struct nlattr *attr;
+	UINT_8 gGScanEn = 0;
+
+	ASSERT(wiphy);
+	ASSERT(wdev);
+	if ((data == NULL) || !data_len)
+		goto nla_put_failure;
+
+	DBGLOG(SCN, INFO, "%s for vendor command: data_len=%d, data=0x%x 0x%x\r\n",
+	       __func__, data_len, *((UINT_32 *) data), *((UINT_32 *) data + 1));
+
+	attr = (struct nlattr *)data;
+	if (attr->nla_type == GSCAN_ATTRIBUTE_ENABLE_FEATURE)
+		gGScanEn = nla_get_u32(attr);
+	DBGLOG(SCN, INFO, "gGScanEn=%d, \r\n", gGScanEn);
+
+	prGlueInfo = (P_GLUE_INFO_T) wiphy_priv(wiphy);
+	ASSERT(prGlueInfo);
+	if (gGScanEn == TRUE)
+		rWifiScanActionCmd.ucPscanAct = ENABLE;
+	else
+		rWifiScanActionCmd.ucPscanAct = DISABLE;
+
+	rStatus = kalIoctl(prGlueInfo,
+			   wlanoidSetGSCNAction,
+			   &rWifiScanActionCmd,
+			   sizeof(PARAM_WIFI_GSCAN_ACTION_CMD_PARAMS), FALSE, FALSE, TRUE, &u4BufLen);
+
+	return 0;
+
+nla_put_failure:
+	return -1;
+}
+
+int mtk_cfg80211_vendor_get_scan_results(struct wiphy *wiphy, struct wireless_dev *wdev, const void *data, int data_len)
+{
+	UINT_32 u4BufLen;
+	P_GLUE_INFO_T prGlueInfo = NULL;
+	PARAM_WIFI_GSCAN_GET_RESULT_PARAMS rGSscnResultParm;
+
+	struct nlattr *attr;
+	UINT_32 get_num, real_num;
+	UINT_8 flush = 0;
+	int i;
+
+	ASSERT(wiphy);
+	ASSERT(wdev);
+	get_num = 0;
+	real_num = 0;
+	if ((data == NULL) || !data_len)
+		goto nla_put_failure;
+
+	DBGLOG(SCN, INFO, "%s for vendor command: data_len=%d \r\n", __func__, data_len);
+	for (i = 0; i < 2; i++)
+		DBGLOG(SCN, INFO, "0x%x 0x%x 0x%x 0x%x \r\n", *((UINT_32 *) data + i * 4),
+		       *((UINT_32 *) data + i * 4 + 1), *((UINT_32 *) data + i * 4 + 2),
+		       *((UINT_32 *) data + i * 4 + 3));
+
+	attr = (struct nlattr *)data;
+	if (attr->nla_type == GSCAN_ATTRIBUTE_NUM_OF_RESULTS) {
+		get_num = nla_get_u32(attr);
+		attr = (struct nlattr *)((UINT_8 *) attr + attr->nla_len);
+	}
+	if (attr->nla_type == GSCAN_ATTRIBUTE_FLUSH_RESULTS) {
+		flush = nla_get_u8(attr);
+		attr = (struct nlattr *)((UINT_8 *) attr + attr->nla_len);
+	}
+	DBGLOG(SCN, INFO, "number=%d, flush=%d \r\n", get_num, flush);
+
+	prGlueInfo = (P_GLUE_INFO_T) wiphy_priv(wiphy);
+	ASSERT(prGlueInfo);
+
+	real_num = (get_num < PSCAN_MAX_SCAN_CACHE_SIZE) ? get_num : PSCAN_MAX_SCAN_CACHE_SIZE;
+	get_num = real_num;
+
+	rGSscnResultParm.get_num = get_num;
+	rGSscnResultParm.flush = flush;
+
+	DBGLOG(SCN, INFO, "no buffered gscn results, ask form FW\n");
+	kalIoctl(prGlueInfo,
+		wlanoidGetGSCNResult,
+		&rGSscnResultParm, sizeof(PARAM_WIFI_GSCAN_GET_RESULT_PARAMS), FALSE, FALSE, TRUE, &u4BufLen);
+
+	DBGLOG(SCN, INFO, "%s for vendor command done\r\n", __func__);
+
+	scnGscnGetResultReplyCheck(prGlueInfo->prAdapter);
+
+	return 0;
+
+nla_put_failure:
+	return -1;
+}
+#endif
 
 int mtk_cfg80211_vendor_set_significant_change(struct wiphy *wiphy, struct wireless_dev *wdev,
 					       const void *data, int data_len)
@@ -526,49 +628,6 @@ nla_put_failure:
 	return -1;
 }
 
-int mtk_cfg80211_vendor_enable_scan(struct wiphy *wiphy, struct wireless_dev *wdev, const void *data, int data_len)
-{
-	WLAN_STATUS rStatus;
-	UINT_32 u4BufLen;
-	P_GLUE_INFO_T prGlueInfo = NULL;
-	PARAM_WIFI_GSCAN_ACTION_CMD_PARAMS rWifiScanActionCmd;
-
-	struct nlattr *attr;
-	UINT_8 gGScanEn = 0;
-
-	ASSERT(wiphy);
-	ASSERT(wdev);
-	if ((data == NULL) || !data_len)
-		goto nla_put_failure;
-
-	DBGLOG(SCN, INFO, "%s for vendor command: data_len=%d, data=0x%x 0x%x\r\n",
-	       __func__, data_len, *((UINT_32 *) data), *((UINT_32 *) data + 1));
-
-	attr = (struct nlattr *)data;
-	if (attr->nla_type == GSCAN_ATTRIBUTE_ENABLE_FEATURE)
-		gGScanEn = nla_get_u32(attr);
-	DBGLOG(SCN, INFO, "gGScanEn=%d, \r\n", gGScanEn);
-
-	prGlueInfo = (P_GLUE_INFO_T) wiphy_priv(wiphy);
-	ASSERT(prGlueInfo);
-	if (gGScanEn == TRUE)
-		rWifiScanActionCmd.ucPscanAct = ENABLE;
-	else
-		rWifiScanActionCmd.ucPscanAct = DISABLE;
-
-	rStatus = kalIoctl(prGlueInfo,
-			   wlanoidSetGSCNAction,
-			   &rWifiScanActionCmd,
-			   sizeof(PARAM_WIFI_GSCAN_ACTION_CMD_PARAMS), FALSE, FALSE, TRUE, &u4BufLen);
-
-	/* mtk_cfg80211_vendor_get_scan_results(wiphy, wdev, data, data_len ); */
-
-	return 0;
-
-nla_put_failure:
-	return -1;
-}
-
 int mtk_cfg80211_vendor_enable_full_scan_results(struct wiphy *wiphy, struct wireless_dev *wdev,
 						 const void *data, int data_len)
 {
@@ -587,65 +646,6 @@ int mtk_cfg80211_vendor_enable_full_scan_results(struct wiphy *wiphy, struct wir
 	if (attr->nla_type == GSCAN_ENABLE_FULL_SCAN_RESULTS)
 		gFullScanResultsEn = nla_get_u32(attr);
 	DBGLOG(SCN, INFO, "gFullScanResultsEn=%d, \r\n", gFullScanResultsEn);
-
-	return 0;
-
-nla_put_failure:
-	return -1;
-}
-
-int mtk_cfg80211_vendor_get_scan_results(struct wiphy *wiphy, struct wireless_dev *wdev, const void *data, int data_len)
-{
-	UINT_32 u4BufLen;
-	P_GLUE_INFO_T prGlueInfo = NULL;
-	PARAM_WIFI_GSCAN_GET_RESULT_PARAMS rGSscnResultParm;
-
-	struct nlattr *attr;
-	UINT_32 get_num, real_num;
-	UINT_8 flush = 0;
-	int i;
-
-	ASSERT(wiphy);
-	ASSERT(wdev);
-	get_num = 0;
-	real_num = 0;
-	if ((data == NULL) || !data_len)
-		goto nla_put_failure;
-
-	DBGLOG(SCN, INFO, "%s for vendor command: data_len=%d \r\n", __func__, data_len);
-	for (i = 0; i < 2; i++)
-		DBGLOG(SCN, INFO, "0x%x 0x%x 0x%x 0x%x \r\n", *((UINT_32 *) data + i * 4),
-		       *((UINT_32 *) data + i * 4 + 1), *((UINT_32 *) data + i * 4 + 2),
-		       *((UINT_32 *) data + i * 4 + 3));
-
-	attr = (struct nlattr *)data;
-	if (attr->nla_type == GSCAN_ATTRIBUTE_NUM_OF_RESULTS) {
-		get_num = nla_get_u32(attr);
-		attr = (struct nlattr *)((UINT_8 *) attr + attr->nla_len);
-	}
-	if (attr->nla_type == GSCAN_ATTRIBUTE_FLUSH_RESULTS) {
-		flush = nla_get_u8(attr);
-		attr = (struct nlattr *)((UINT_8 *) attr + attr->nla_len);
-	}
-	DBGLOG(SCN, INFO, "number=%d, flush=%d \r\n", get_num, flush);
-
-	prGlueInfo = (P_GLUE_INFO_T) wiphy_priv(wiphy);
-	ASSERT(prGlueInfo);
-
-	real_num = (get_num < PSCAN_MAX_SCAN_CACHE_SIZE) ? get_num : PSCAN_MAX_SCAN_CACHE_SIZE;
-	get_num = real_num;
-
-	rGSscnResultParm.get_num = get_num;
-	rGSscnResultParm.flush = flush;
-
-	DBGLOG(SCN, INFO, "no buffered gscn results, ask form FW\n");
-	kalIoctl(prGlueInfo,
-		wlanoidGetGSCNResult,
-		&rGSscnResultParm, sizeof(PARAM_WIFI_GSCAN_GET_RESULT_PARAMS), FALSE, FALSE, TRUE, &u4BufLen);
-
-	DBGLOG(SCN, INFO, "%s for vendor command done\r\n", __func__);
-
-	scnGscnGetResultReplyCheck(prGlueInfo->prAdapter);
 
 	return 0;
 

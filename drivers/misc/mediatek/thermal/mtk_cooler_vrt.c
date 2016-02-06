@@ -48,11 +48,17 @@ static ssize_t _cl_vrt_write(struct file *filp, const char __user *buf, size_t l
 {
 	int ret = 0;
 	char tmp[MAX_LEN] = { 0 };
+	int count;
+
+	count = (len < (MAX_LEN - 1)) ? len : (MAX_LEN - 1);
 
 	/* write data to the buffer */
-	if (copy_from_user(tmp, buf, len)) {
+	if (copy_from_user(tmp, buf, count)) {
 		return -EFAULT;
 	}
+
+	tmp[count] = '\0';
+
 
 	ret = kstrtouint(tmp, 10, &_cl_vrt);
 	if (ret)

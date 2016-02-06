@@ -77,11 +77,16 @@ static ssize_t _mtk_cl_sd_rst_write(struct file *filp, const char __user *buf, s
 {
 	int ret = 0;
 	char tmp[MAX_LEN] = { 0 };
+	int count;
+
+	count = (len < (MAX_LEN - 1)) ? len : (MAX_LEN - 1);
 
 	/* write data to the buffer */
-	if (copy_from_user(tmp, buf, len)) {
+	if (copy_from_user(tmp, buf, count)) {
 		return -EFAULT;
 	}
+
+	tmp[count] = '\0';
 
 	ret = kstrtouint(tmp, 10, &mtk_cl_sd_rst);
 	if (ret)
@@ -131,11 +136,17 @@ static ssize_t _mtk_cl_sd_pid_write(struct file *filp, const char __user *buf, s
 {
 	int ret = 0;
 	char tmp[MAX_LEN] = { 0 };
+	int count;
+
+	count = (len < (MAX_LEN - 1)) ? len : (MAX_LEN - 1);
 
 	/* write data to the buffer */
-	if (copy_from_user(tmp, buf, len)) {
+	if (copy_from_user(tmp, buf, count)) {
 		return -EFAULT;
 	}
+
+	tmp[count] = '\0';
+
 
 	ret = kstrtouint(tmp, 10, &tm_input_pid);
 	if (ret)
@@ -176,11 +187,17 @@ static ssize_t _mtk_cl_sd_debouncet_write(struct file *filp, const char __user *
 {
 	char desc[MAX_LEN] = {0};
 	int tmp_dbt = -1;
+	int count;
+
+	count = (len < (MAX_LEN - 1)) ? len : (MAX_LEN - 1);
 
 	/* write data to the buffer */
-	if (copy_from_user(desc, buf, len)) {
+	if (copy_from_user(desc, buf, count)) {
 		return -EFAULT;
 	}
+
+	desc[count] = '\0';
+
 
 	if (sscanf(desc, "%d", &tmp_dbt) == 1)
 	{

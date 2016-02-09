@@ -256,118 +256,101 @@ static void lcm_get_params(LCM_PARAMS *params)
 
 static void init_lcm_registers(void)
 {
-	/* Partial area */
-	send_ctrl_cmd(0x30);
-	send_data_cmd(0x00);
-	send_data_cmd(0x00);
-	send_data_cmd(0x00);
-	send_data_cmd(0xEF);
+	send_ctrl_cmd(0x11); /* Sleep out */
 
-	/* Partial mode on */
-	send_ctrl_cmd(0x12);
-
-	/* Tearing effect line on */
-	send_ctrl_cmd(0x35);
-	send_data_cmd(0x00);
-
-	/* Memory data access control */
-	send_ctrl_cmd(0x36);
-	send_data_cmd(0x00);
-
-	/* Interface pixel format */
-	send_ctrl_cmd(0x3A);
-	send_data_cmd(0x66);
-
-	/* Porch setting */
-	send_ctrl_cmd(0xB2);
-	send_data_cmd(0x1C);
-	send_data_cmd(0x1C);
-	send_data_cmd(0x01);
-	send_data_cmd(0xFF);
-	send_data_cmd(0x33);
-
-	/* Frame rate (in partial mode / idle colors) */
-	send_ctrl_cmd(0xB3);
-	send_data_cmd(0x10);
-	send_data_cmd(0xFF);
-	send_data_cmd(0x0F);
-
-	/* Gate control */
-	send_ctrl_cmd(0xB7);
-	send_data_cmd(0x35);
-
-	/* VCOM setting */
-	send_ctrl_cmd(0xBB);
-	send_data_cmd(0x28);
-
-	/* LCM control */
-	send_ctrl_cmd(0xC0);
-	send_data_cmd(0x2C);
-
-	/* VDV and VRH command enable */
-	send_ctrl_cmd(0xC2);
-	send_data_cmd(0x01);
-	send_data_cmd(0xff);
-
-	/* VRH set */
-	send_ctrl_cmd(0xC3);
-	send_data_cmd(0x1E);
-
-	/* VDV set */
-	send_ctrl_cmd(0xC4);
-	send_data_cmd(0x20);
-
-	/* Frame rate control (in normal mode) */
-	send_ctrl_cmd(0xC6);
-	send_data_cmd(0x0F);
-
-	/* Power control 1 */
-	send_ctrl_cmd(0xD0);
-	send_data_cmd(0xA4);
-	send_data_cmd(0xA1);
-
-	/* Positive voltage gamma control */
-	send_ctrl_cmd(0xE0);
-	send_data_cmd(0xD0);
-	send_data_cmd(0x00);
-	send_data_cmd(0x00);
-	send_data_cmd(0x08);
-	send_data_cmd(0x07);
-	send_data_cmd(0x05);
-	send_data_cmd(0x29);
-	send_data_cmd(0x54);
-	send_data_cmd(0x41);
-	send_data_cmd(0x3C);
-	send_data_cmd(0x17);
-	send_data_cmd(0x15);
-	send_data_cmd(0x1A);
-	send_data_cmd(0x20);
-
-	/* Negative voltage gamma control */
-	send_ctrl_cmd(0xE1);
-	send_data_cmd(0xD0);
-	send_data_cmd(0x00);
-	send_data_cmd(0x00);
-	send_data_cmd(0x08);
-	send_data_cmd(0x07);
-	send_data_cmd(0x04);
-	send_data_cmd(0x29);
-	send_data_cmd(0x44);
-	send_data_cmd(0x42);
-	send_data_cmd(0x3B);
-	send_data_cmd(0x16);
-	send_data_cmd(0x15);
-	send_data_cmd(0x1B);
-	send_data_cmd(0x1F);
-
-	/* Display inversion on */
-	send_ctrl_cmd(0x21);
-
-	/* Sleep out */
-	send_ctrl_cmd(0x11);
 	MDELAY(120);
 
-	send_ctrl_cmd(0x29);
+	send_ctrl_cmd(0x36); /* Memory data access control */
+	send_data_cmd(0x00);
+
+	send_ctrl_cmd(0x35); /* Tearing effect */
+	send_data_cmd(0x00); /* V-Blanking Only */
+
+	send_ctrl_cmd(0x2a); /* Column address set */
+	send_data_cmd(0x00);
+	send_data_cmd(0x00);
+	send_data_cmd(0x00);
+	send_data_cmd(0xef);
+
+	send_ctrl_cmd(0x2b); /* Row Address Set */
+	send_data_cmd(0x00);
+	send_data_cmd(0x00);
+	send_data_cmd(0x00);
+	send_data_cmd(0xce);
+
+	send_ctrl_cmd(0x3A); /* Interface pixel format */
+	send_data_cmd(0x06); /* MCU-18bit */
+
+	send_ctrl_cmd(0xb2); /* Porch setting */
+	send_data_cmd(0x46); /* Normal BP */
+	send_data_cmd(0x4a); /* Normal FP */
+	send_data_cmd(0x01); /* Enable seperate */
+	send_data_cmd(0xde); /* Idle, BP[7:4], FP[3:0] */
+	send_data_cmd(0x33); /* Partial, BP[7:4], FP[3:0] */
+
+	send_ctrl_cmd(0xb3); /* Frame rate control 1 */
+	send_data_cmd(0x10); /* Enable seperate */
+	send_data_cmd(0x05); /* Idle, dot inversion, RTNB=5 */
+	send_data_cmd(0x0f); /* Partial, dot inversion, RTNC=15 */
+
+	send_ctrl_cmd(0xb7); /* Gate control */
+	send_data_cmd(0x35); /* VGH=13.26V, VGL=-10.43 */
+
+	send_ctrl_cmd(0xbb); /* VCOM setting */
+	send_data_cmd(0x1E); /* 0.85V */
+
+	send_ctrl_cmd(0xbc); /* Power Save */
+	send_data_cmd(0xec); /* FR=15Hz in idle mode */
+
+	send_ctrl_cmd(0xc3); /* VRH Set */
+	send_data_cmd(0x23); /* VAP=5.3V */
+
+	send_ctrl_cmd(0xc6); /* Frame rate control in normal mode */
+	send_data_cmd(0x0c); /* Dot inversion, 49Hz */
+
+	send_ctrl_cmd(0xd0); /* Power control 1 */
+	send_data_cmd(0xa4);
+	send_data_cmd(0xa1); /* AVDD=6.8V, AVCL=-4.8V, VDS=2.3V */
+
+	send_ctrl_cmd(0x21); /* Display inversion on */
+
+	send_ctrl_cmd(0xe0); /* Positive voltage gamma control */
+	send_data_cmd(0xd0);
+	send_data_cmd(0x00);
+	send_data_cmd(0x03);
+	send_data_cmd(0x07);
+	send_data_cmd(0x06);
+	send_data_cmd(0x05);
+	send_data_cmd(0x2F);
+	send_data_cmd(0x55);
+	send_data_cmd(0x47);
+	send_data_cmd(0x3c);
+	send_data_cmd(0x18);
+	send_data_cmd(0x16);
+	send_data_cmd(0x1C);
+	send_data_cmd(0x20);
+
+	send_ctrl_cmd(0xe1); /* Negative voltage gamma control */
+	send_data_cmd(0xd0);
+	send_data_cmd(0x00);
+	send_data_cmd(0x02);
+	send_data_cmd(0x06);
+	send_data_cmd(0x05);
+	send_data_cmd(0x05);
+	send_data_cmd(0x2F);
+	send_data_cmd(0x44);
+	send_data_cmd(0x48);
+	send_data_cmd(0x3b);
+	send_data_cmd(0x18);
+	send_data_cmd(0x16);
+	send_data_cmd(0x1C);
+	send_data_cmd(0x20);
+
+	MDELAY(120);
+
+	send_ctrl_cmd(0x29); /* Display on */
+
+	MDELAY(120);
 }
 
 static void lcm_init(void)
@@ -439,13 +422,6 @@ static void lcm_update(unsigned int x, unsigned int y, unsigned int width, unsig
 
 static void lcm_setbacklight(unsigned int level)
 {
-	LCM_PRINT("lcm_setbacklight = %d\n", level);
-
-	if (level > 255)
-		level = 255;
-
-	send_ctrl_cmd(0x51);
-	send_data_cmd(level);
 }
 
 static unsigned int lcm_compare_id(void)
@@ -519,35 +495,6 @@ static void lcm_exit_idle(void)
 
 static void lcm_change_fps(unsigned int mode)
 {
-	if (mode == 0) {	/* slowdown frame rate in idle mode */
-		/* Porch setting */
-		send_ctrl_cmd(0xB2);
-		send_data_cmd(0x1C);
-		send_data_cmd(0x1C);
-		send_data_cmd(0x01);
-		send_data_cmd(0xFF);
-		send_data_cmd(0x33);
-
-		/* Frame rate (in partial mode / idle colors) */
-		send_ctrl_cmd(0xB3);
-		send_data_cmd(0x10);
-		send_data_cmd(0xFF);
-		send_data_cmd(0x0F);
-	} else {		/* normal frame rate in idle mode */
-		/* Porch setting */
-		send_ctrl_cmd(0xB2);
-		send_data_cmd(0x1C);
-		send_data_cmd(0x1C);
-		send_data_cmd(0x01);
-		send_data_cmd(0x33);
-		send_data_cmd(0x33);
-
-		/* Frame rate (in partial mode / idle colors) */
-		send_ctrl_cmd(0xB3);
-		send_data_cmd(0x10);
-		send_data_cmd(0x0F);
-		send_data_cmd(0x0F);
-	}
 }
 
 static void lcm_read_fb(unsigned char *buffer)

@@ -31,6 +31,7 @@
 #include <linux/rtc.h>
 #include <linux/time.h>
 #include <linux/slab.h>
+#include <linux/thermal.h>
 
 #include <asm/uaccess.h>
 #include <mach/mt_typedefs.h>
@@ -48,6 +49,7 @@
 /* define */
 /* ============================================================ // */
 #define PROFILE_SIZE 4
+#define TBAT_MAX_CORRECTION 6
 
 static DEFINE_MUTEX(FGADC_mutex);
 
@@ -275,7 +277,7 @@ void fgauge_get_profile_id(void)
 /* ============================================================ // */
 /* function prototype */
 /* ============================================================ // */
-
+static int cpu_temp_compensation(int bat_temp);
 /* ============================================================ // */
 /* extern variable */
 /* ============================================================ // */
@@ -579,6 +581,7 @@ int force_get_tbat(void)
 	kal_bool fg_current_state = KAL_FALSE;
 	int bat_temperature_volt_temp = 0;
 	int ret = 0;
+	int compensation;
 
 	/* Get V_BAT_Temperature */
 	bat_temperature_volt = 2;
@@ -606,15 +609,45 @@ int force_get_tbat(void)
 
 		bat_temperature_val = BattVoltToTemp(bat_temperature_volt);
 	}
+	compensation = cpu_temp_compensation(bat_temperature_val);
+	bat_temperature_val -= compensation;
 
 	bm_print(BM_LOG_CRTI, "[force_get_tbat] %d,%d,%d,%d,%d,%d\n",
-		 bat_temperature_volt_temp, bat_temperature_volt, fg_current_state, fg_current_temp,
-		 fg_r_value, bat_temperature_val);
+		bat_temperature_volt_temp, bat_temperature_volt, fg_current_state, fg_current_temp,
+		fg_r_value, bat_temperature_val);
 
 	return bat_temperature_val;
 #endif
 }
 EXPORT_SYMBOL(force_get_tbat);
+
+static int cpu_temp_compensation(int bat_temp)
+{
+	struct thermal_zone_device * mtktsabb_thermal_device = NULL;
+	long current_cpu_temp = 0;
+	int compensation = 0;
+
+	mtktsabb_thermal_device = thermal_zone_get_zone_by_name("mtktsabb");
+
+	if(mtktsabb_thermal_device != NULL) {
+		if(thermal_zone_get_temp(mtktsabb_thermal_device, &current_cpu_temp))
+			return 0;
+		else
+			current_cpu_temp /= 1000;
+	} else {
+		return 0;
+	}
+
+	/* Cut out the CPU temp over measured battery temp. */
+	if(current_cpu_temp > bat_temp) {
+		compensation = (int)(current_cpu_temp - (long)bat_temp);
+		if(compensation > TBAT_MAX_CORRECTION)
+			compensation = TBAT_MAX_CORRECTION;
+		if(compensation < 0)
+			compensation = 0;
+	}
+	return compensation;
+}
 
 #ifdef MTK_MULTI_BAT_PROFILE_SUPPORT
 int fgauge_get_saddles(void)

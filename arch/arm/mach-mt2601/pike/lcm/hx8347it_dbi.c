@@ -281,7 +281,7 @@ static void init_lcm_registers(void)
 	set_lcm_register(0x23, 0x85); /* VCOM control 1 */
 	set_lcm_register(0xE2, 0x04); /* ??? */
 
-	set_lcm_register(0x19, 0x01); /* OSC Control 1 */
+	set_lcm_register(0x19, 0x01); /* OSC Control 2 */
 	set_lcm_register(0x1C, 0x03); /* Power control 3 */
 	set_lcm_register(0x01, 0x00); /* Display mode control */
 
@@ -293,7 +293,7 @@ static void init_lcm_registers(void)
 	MDELAY(5);
 	set_lcm_register(0x1F, 0xD4); /* Power control 6 */
 	MDELAY(5);
-	set_lcm_register(0x18, 0x06); /* OSC Control 2 */
+	set_lcm_register(0x18, 0x36); /* OSC Control 1, Display Frame rate: Idle mode = 45Hz and Normal mode = 60Hz */
 
 	set_lcm_register(0x1A, 0x02); /* Power control 1 */
 	set_lcm_register(0x17, 0x06); /* COLMODE = RGB666 */

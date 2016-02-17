@@ -266,18 +266,6 @@ static void init_lcm_registers(void)
 	send_ctrl_cmd(0x35); /* Tearing effect */
 	send_data_cmd(0x00); /* V-Blanking Only */
 
-	send_ctrl_cmd(0x2a); /* Column address set */
-	send_data_cmd(0x00);
-	send_data_cmd(0x00);
-	send_data_cmd(0x00);
-	send_data_cmd(0xef);
-
-	send_ctrl_cmd(0x2b); /* Row Address Set */
-	send_data_cmd(0x00);
-	send_data_cmd(0x00);
-	send_data_cmd(0x00);
-	send_data_cmd(0xce);
-
 	send_ctrl_cmd(0x3A); /* Interface pixel format */
 	send_data_cmd(0x06); /* MCU-18bit */
 

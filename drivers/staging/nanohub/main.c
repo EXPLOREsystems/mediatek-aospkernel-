@@ -68,12 +68,14 @@ int request_wakeup(struct nanohub_data *data)
 	int ret = 0, lock;
 	DEFINE_WAIT(wait);
 
+	spin_lock(&data->wakeup_lock);
 	if (atomic_inc_return(&data->wakeup_cnt) == 1)
 		gpio_direction_output(pdata->wakeup_gpio, 0);
+	spin_unlock(&data->wakeup_lock);
 
 	/* if the interrupt line is low, just try and grab the lock */
 	if (!gpio_get_value(data->pdata->irq1_gpio))
-		lock = atomic_cmpxchg(&data->wakeup_lock, 0, 1);
+		lock = atomic_cmpxchg(&data->wakeup_aquired, 0, 1);
 	else
 		lock = 1;
 
@@ -82,7 +84,7 @@ int request_wakeup(struct nanohub_data *data)
 			prepare_to_wait_exclusive(&data->wakeup_wait, &wait,
 						  TASK_INTERRUPTIBLE);
 			if (!gpio_get_value(data->pdata->irq1_gpio)) {
-				lock = atomic_cmpxchg(&data->wakeup_lock, 0, 1);
+				lock = atomic_cmpxchg(&data->wakeup_aquired, 0, 1);
 				if (!lock) {
 					finish_wait(&data->wakeup_wait, &wait);
 					break;
@@ -100,8 +102,10 @@ int request_wakeup(struct nanohub_data *data)
 	}
 
 	if (ret) {
+		spin_lock(&data->wakeup_lock);
 		if (atomic_dec_and_test(&data->wakeup_cnt))
 			gpio_direction_output(pdata->wakeup_gpio, 1);
+		spin_unlock(&data->wakeup_lock);
 	}
 
 	return ret;
@@ -113,12 +117,14 @@ int request_wakeup_timeout(struct nanohub_data *data, long timeout)
 	int lock;
 	DEFINE_WAIT(wait);
 
+	spin_lock(&data->wakeup_lock);
 	if (atomic_inc_return(&data->wakeup_cnt) == 1)
 		gpio_direction_output(pdata->wakeup_gpio, 0);
+	spin_unlock(&data->wakeup_lock);
 
 	/* if the interrupt line is low, just try and grab the lock */
 	if (!gpio_get_value(data->pdata->irq1_gpio))
-		lock = atomic_cmpxchg(&data->wakeup_lock, 0, 1);
+		lock = atomic_cmpxchg(&data->wakeup_aquired, 0, 1);
 	else
 		lock = 1;
 
@@ -127,7 +133,7 @@ int request_wakeup_timeout(struct nanohub_data *data, long timeout)
 			prepare_to_wait_exclusive(&data->wakeup_wait, &wait,
 						  TASK_INTERRUPTIBLE);
 			if (!gpio_get_value(data->pdata->irq1_gpio)) {
-				lock = atomic_cmpxchg(&data->wakeup_lock, 0, 1);
+				lock = atomic_cmpxchg(&data->wakeup_aquired, 0, 1);
 				if (!lock) {
 					finish_wait(&data->wakeup_wait, &wait);
 					break;
@@ -150,7 +156,7 @@ int request_wakeup_timeout(struct nanohub_data *data, long timeout)
 		if (!timeout
 		    && (!lock || !gpio_get_value(data->pdata->irq1_gpio))) {
 			if (lock)
-				lock = atomic_cmpxchg(&data->wakeup_lock, 0, 1);
+				lock = atomic_cmpxchg(&data->wakeup_aquired, 0, 1);
 			if (!lock)
 				timeout = 1;
 		}
@@ -159,8 +165,10 @@ int request_wakeup_timeout(struct nanohub_data *data, long timeout)
 	}
 
 	if (timeout <= 0) {
+		spin_lock(&data->wakeup_lock);
 		if (atomic_dec_and_test(&data->wakeup_cnt))
 			gpio_direction_output(pdata->wakeup_gpio, 1);
+		spin_unlock(&data->wakeup_lock);
 
 		if (timeout == 0)
 			timeout = -ETIME;
@@ -175,14 +183,17 @@ void release_wakeup(struct nanohub_data *data)
 {
 	const struct nanohub_platform_data *pdata = data->pdata;
 
+	spin_lock(&data->wakeup_lock);
 	if (!atomic_dec_and_test(&data->wakeup_cnt)) {
 		gpio_direction_output(pdata->wakeup_gpio, 0);
-		atomic_dec(&data->wakeup_lock);
+		spin_unlock(&data->wakeup_lock);
+		atomic_dec(&data->wakeup_aquired);
 		if (!gpio_get_value(data->pdata->irq1_gpio))
 			wake_up_interruptible_sync(&data->wakeup_wait);
 	} else {
 		gpio_direction_output(pdata->wakeup_gpio, 1);
-		atomic_dec(&data->wakeup_lock);
+		spin_unlock(&data->wakeup_lock);
+		atomic_dec(&data->wakeup_aquired);
 		if (!gpio_get_value(data->pdata->irq1_gpio) ||
 		    (gpio_is_valid(data->pdata->irq2_gpio)
 		     && !gpio_get_value(data->pdata->irq2_gpio))) {
@@ -330,7 +341,7 @@ static ssize_t nanohub_hw_reset(struct device *dev,
 	struct nanohub_data *data = dev_get_drvdata(dev);
 	const struct nanohub_platform_data *pdata = data->pdata;
 
-	atomic_inc(&data->wakeup_lock);
+	atomic_inc(&data->wakeup_aquired);
 
 	if (gpio_is_valid(pdata->irq1_gpio))
 		disable_irq(data->irq1);
@@ -351,7 +362,7 @@ static ssize_t nanohub_hw_reset(struct device *dev,
 	if (gpio_is_valid(pdata->irq2_gpio))
 		enable_irq(data->irq2);
 
-	atomic_dec(&data->wakeup_lock);
+	atomic_dec(&data->wakeup_aquired);
 
 	if (atomic_read(&data->wakeup_cnt) > 0
 	    && gpio_is_valid(pdata->wakeup_gpio))
@@ -370,7 +381,7 @@ static ssize_t nanohub_erase_shared(struct device *dev,
 	const struct nanohub_platform_data *pdata = data->pdata;
 	uint8_t status = CMD_ACK;
 
-	atomic_inc(&data->wakeup_lock);
+	atomic_inc(&data->wakeup_aquired);
 
 	nanohub_bl_open(data);
 	if (gpio_is_valid(pdata->irq1_gpio))
@@ -408,7 +419,7 @@ static ssize_t nanohub_erase_shared(struct device *dev,
 	if (gpio_is_valid(pdata->irq2_gpio))
 		enable_irq(data->irq2);
 
-	atomic_dec(&data->wakeup_lock);
+	atomic_dec(&data->wakeup_aquired);
 
 	if (atomic_read(&data->wakeup_cnt) > 0
 	    && gpio_is_valid(pdata->wakeup_gpio))
@@ -429,7 +440,7 @@ static ssize_t nanohub_download_bl(struct device *dev,
 	int ret;
 	uint8_t status = CMD_ACK;
 
-	atomic_inc(&data->wakeup_lock);
+	atomic_inc(&data->wakeup_aquired);
 
 	nanohub_bl_open(data);
 	if (gpio_is_valid(pdata->irq1_gpio))
@@ -475,7 +486,7 @@ static ssize_t nanohub_download_bl(struct device *dev,
 	if (gpio_is_valid(pdata->irq2_gpio))
 		enable_irq(data->irq2);
 
-	atomic_dec(&data->wakeup_lock);
+	atomic_dec(&data->wakeup_aquired);
 
 	if (atomic_read(&data->wakeup_cnt) > 0
 	    && gpio_is_valid(pdata->wakeup_gpio))
@@ -663,6 +674,8 @@ static int create_sysfs(struct nanohub_data *data)
 static int nanohub_open(struct inode *inode, struct file *file)
 {
 	struct nanohub_data *data;
+
+	nonseekable_open(inode, file);
 
 	data = container_of(inode->i_cdev, struct nanohub_data, cdev);
 
@@ -1123,6 +1136,7 @@ struct iio_dev *nanohub_probe(struct device *dev, struct iio_dev *iio_dev)
 	atomic_set(&data->kthread_run, 0);
 
 	spin_lock_init(&data->read_lock);
+	spin_lock_init(&data->wakeup_lock);
 	init_waitqueue_head(&data->read_wait);
 	INIT_LIST_HEAD(&data->read_data);
 	INIT_LIST_HEAD(&data->read_free);
@@ -1134,7 +1148,7 @@ struct iio_dev *nanohub_probe(struct device *dev, struct iio_dev *iio_dev)
 		       "nanohub_wakelock_read");
 
 	atomic_set(&data->wakeup_cnt, 0);
-	atomic_set(&data->wakeup_lock, 0);
+	atomic_set(&data->wakeup_aquired, 0);
 	init_waitqueue_head(&data->wakeup_wait);
 
 	pdata = dev_get_platdata(dev);

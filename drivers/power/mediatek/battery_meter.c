@@ -1323,6 +1323,15 @@ void oam_init(void)
 			gFG_capacity_by_v = vbat_capacity;
 		}
 	}
+	else {
+		if (abs(gFG_capacity_by_v - vbat_capacity) > poweron_sw_percent_diff) {
+			bm_print(BM_LOG_CRTI,
+				"[oam_init] fg_vbat=(%d), vbat=(%d), set fg_voltage as booting_vbat\n",
+				gFG_voltage, g_booting_vbat);
+			gFG_voltage = g_booting_vbat;
+			gFG_capacity_by_v = vbat_capacity;
+		}
+	}
 
 	gFG_capacity_by_v_init = gFG_capacity_by_v;
 
@@ -3298,11 +3307,11 @@ static int battery_meter_suspend(struct platform_device *dev, pm_message_t state
 #endif
 
 		get_xtime_and_monotonic_and_sleep_offset(&xts, &tom, &g_rtc_time_before_sleep);
+		battery_meter_ctrl(BATTERY_METER_CMD_GET_HW_OCV, &g_hw_ocv_before_sleep);
 		if (_g_bat_sleep_total_time < g_spm_timer) {
 			return 0;
 		}
 		_g_bat_sleep_total_time = 0;
-		battery_meter_ctrl(BATTERY_METER_CMD_GET_HW_OCV, &g_hw_ocv_before_sleep);
 	}
 
 	bm_print(BM_LOG_CRTI, "[battery_meter_suspend]\n");

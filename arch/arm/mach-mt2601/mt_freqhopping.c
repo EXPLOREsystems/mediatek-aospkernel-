@@ -914,7 +914,7 @@ void mt_freqhop_init(void)
 		fhctl_create_proc(help);
 	}
 
-#if (defined(MT_FREQHOP_DEFAULT_ON) && defined(CONFIG_MTK_LDVT))
+#if defined(MT_FREQHOP_DEFAULT_ON)
 	freqhop_init(FHCTL_MAINPLL_SSC_ON);
 #else
 	freqhop_init(0);

@@ -8,6 +8,9 @@
 #ifndef _OSAL_TYPEDEF_H_
 #define _OSAL_TYPEDEF_H_
 
+
+#include <linux/firmware.h>
+
 typedef void VOID;
 typedef void *PVOID;
 

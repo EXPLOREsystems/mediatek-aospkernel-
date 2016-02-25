@@ -993,7 +993,7 @@ static struct cfg80211_ops mtk_wlan_ops = {
 #ifdef CONFIG_NL80211_TESTMODE
 	.testmode_cmd = mtk_cfg80211_testmode_cmd,
 #endif
-#if 0				/* Remove schedule_scan because we need more verification for NLO */
+#if CFG_SUPPORT_SCN_PNO				/* Remove schedule_scan because we need more verification for NLO */
 	.sched_scan_start = mtk_cfg80211_sched_scan_start,
 	.sched_scan_stop = mtk_cfg80211_sched_scan_stop,
 #endif
@@ -1010,6 +1010,7 @@ static struct wiphy_vendor_command mtk_wlan_vendor_ops[] = {
 	  .subcmd = GSCAN_SUBCMD_GET_CAPABILITIES},
 	 .flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
 	 .doit = mtk_cfg80211_vendor_get_capabilities},
+#if CFG_SUPPORT_SCN_PSCN
 	{
 	 {
 	  .vendor_id = GOOGLE_OUI,
@@ -1031,15 +1032,16 @@ static struct wiphy_vendor_command mtk_wlan_vendor_ops[] = {
 	{
 	 {
 	  .vendor_id = GOOGLE_OUI,
-	  .subcmd = GSCAN_SUBCMD_ENABLE_FULL_SCAN_RESULTS},
-	 .flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
-	 .doit = mtk_cfg80211_vendor_enable_full_scan_results},
-	{
-	 {
-	  .vendor_id = GOOGLE_OUI,
 	  .subcmd = GSCAN_SUBCMD_GET_SCAN_RESULTS},
 	 .flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
 	 .doit = mtk_cfg80211_vendor_get_scan_results},
+#endif
+	{
+	 {
+	  .vendor_id = GOOGLE_OUI,
+	  .subcmd = GSCAN_SUBCMD_ENABLE_FULL_SCAN_RESULTS},
+	 .flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
+	 .doit = mtk_cfg80211_vendor_enable_full_scan_results},
 	{
 	 {
 	  .vendor_id = GOOGLE_OUI,
@@ -2093,8 +2095,8 @@ static void createWirelessDevice(void)
 	}
 	/* 4 <1.3> configure wireless_dev & wiphy */
 	prWdev->iftype = NL80211_IFTYPE_STATION;
-	prWiphy->max_scan_ssids = 1;	/* FIXME: for combo scan */
-	prWiphy->max_scan_ie_len = 512;
+	prWiphy->max_scan_ssids = 1;//CFG_SCAN_SSID_MAX_NUM;	/* FIXME: for combo scan */
+	prWiphy->max_scan_ie_len = CFG_CFG80211_IE_BUF_LEN;
 	prWiphy->interface_modes = BIT(NL80211_IFTYPE_STATION) | BIT(NL80211_IFTYPE_ADHOC);
 	prWiphy->bands[IEEE80211_BAND_2GHZ] = &mtk_band_2ghz;
 	/* always assign 5Ghz bands here, if the chip is not support 5Ghz,
@@ -2114,6 +2116,12 @@ static void createWirelessDevice(void)
 	prWiphy->flags |=
 	    WIPHY_FLAG_CUSTOM_REGULATORY | WIPHY_FLAG_SUPPORTS_FW_ROAM |
 	    WIPHY_FLAG_TDLS_EXTERNAL_SETUP | WIPHY_FLAG_SUPPORTS_TDLS;
+#endif
+#if CFG_SUPPORT_SCN_PNO
+	prWiphy->flags |= WIPHY_FLAG_SUPPORTS_SCHED_SCAN;
+	prWiphy->max_match_sets = 4;//CFG_SCAN_SSID_MATCH_MAX_NUM;
+	prWiphy->max_sched_scan_ssids = 4;//CFG_SCAN_SSID_MAX_NUM;
+	prWiphy->max_sched_scan_ie_len = CFG_CFG80211_IE_BUF_LEN;
 #endif
 	prWiphy->vendor_commands = &mtk_wlan_vendor_ops;
 	prWiphy->n_vendor_commands = sizeof(mtk_wlan_vendor_ops) / sizeof(struct wiphy_vendor_command);

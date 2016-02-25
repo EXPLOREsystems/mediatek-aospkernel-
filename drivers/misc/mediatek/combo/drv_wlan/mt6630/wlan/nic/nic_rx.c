@@ -2472,7 +2472,7 @@ VOID nicRxProcessDataPacket(IN P_ADAPTER_T prAdapter, IN OUT P_SW_RFB_T prSwRfb)
 *
 */
 /*----------------------------------------------------------------------------*/
-
+#if CFG_SUPPORT_SCN_PSCN
 UINT_8 nicRxProcessGSCNEvent(IN P_ADAPTER_T prAdapter, IN OUT P_SW_RFB_T prSwRfb)
 {
 
@@ -2697,6 +2697,7 @@ nla_put_failure:
 
 	return 0;
 }
+#endif
 
 /*----------------------------------------------------------------------------*/
 /*!

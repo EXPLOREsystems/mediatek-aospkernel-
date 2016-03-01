@@ -814,6 +814,15 @@ MODULE_LICENSE("GPL");
 UINT_8 aucDebugModule[DBG_MODULE_NUM];
 UINT_32 u4DebugModule = 0;
 
+/* read cfg data while power on, save the 512 bytes nvram data */
+UINT_8 auiNvram[512];
+PUINT_8 *puiCfgData;
+static UINT_32 gl_uiCfgLen = 0;
+static struct semaphore data_buf_mtx;
+
+BOOLEAN bCfgDataValid = FALSE;
+BOOLEAN bNvramDataValid = FALSE;
+
 /* 4 2007/06/26, mikewu, now we don't use this, we just fix the number of wlan device to 1 */
 static WLANDEV_INFO_T arWlanDevInfo[CFG_MAX_WLAN_DEVICES] = { {0} };
 
@@ -1206,130 +1215,172 @@ UINT_16 wlanSelectQueue(struct net_device *dev, struct sk_buff *skb)
 /*----------------------------------------------------------------------------*/
 static void glLoadNvram(IN P_GLUE_INFO_T prGlueInfo, OUT P_REG_INFO_T prRegInfo)
 {
-	UINT_32 i, j;
-	UINT_8 aucTmp[2];
-	PUINT_8 pucDest;
+	int i = 0;
+	WIFI_CFG_PARAM_STRUCT *pstNvram = NULL;
 
 	ASSERT(prGlueInfo);
 	ASSERT(prRegInfo);
 
-	if ((!prGlueInfo) || (!prRegInfo))
+	if((!prGlueInfo) || (!prRegInfo)) {
 		return;
+	}
 
-	if (kalCfgDataRead16(prGlueInfo, sizeof(WIFI_CFG_PARAM_STRUCT) - sizeof(UINT_16), (PUINT_16) aucTmp) == TRUE) {
+	down(&data_buf_mtx);
+	if (auiNvram && bNvramDataValid) {
+		/* init the stNvram structure */
 		prGlueInfo->fgNvramAvailable = TRUE;
+		pstNvram = auiNvram;
 
-		/* load MAC Address */
-		for (i = 0; i < PARAM_MAC_ADDR_LEN; i += sizeof(UINT_16)) {
-			kalCfgDataRead16(prGlueInfo,
-					 OFFSET_OF(WIFI_CFG_PARAM_STRUCT, aucMacAddress) + i,
-					 (PUINT_16) (((PUINT_8) prRegInfo->aucMacAddr) + i));
-		}
+		// load MAC Address
+		kalMemCopy((PUINT_8) prRegInfo->aucMacAddr, (PUINT_8)pstNvram->aucMacAddress, PARAM_MAC_ADDR_LEN);
 
-		/* load country code */
-		kalCfgDataRead16(prGlueInfo, OFFSET_OF(WIFI_CFG_PARAM_STRUCT, aucCountryCode[0]), (PUINT_16) aucTmp);
+		// load country code
+		kalMemCopy(prRegInfo->au2CountryCode, pstNvram->aucCountryCode, 2);
 
-		/* cast to wide characters */
-		prRegInfo->au2CountryCode[0] = (UINT_16) aucTmp[0];
-		prRegInfo->au2CountryCode[1] = (UINT_16) aucTmp[1];
+		// load default normal TX power
+		kalMemCopy((PUINT_8) &(prRegInfo->rTxPwr), (PUINT_8) &(pstNvram->rTxPwr), sizeof(TX_PWR_PARAM_T));
 
-		/* load default normal TX power */
-		for (i = 0; i < sizeof(TX_PWR_PARAM_T); i += sizeof(UINT_16)) {
-			kalCfgDataRead16(prGlueInfo,
-					 OFFSET_OF(WIFI_CFG_PARAM_STRUCT, rTxPwr) + i,
-					 (PUINT_16) (((PUINT_8) &(prRegInfo->rTxPwr)) + i));
-		}
+		// load feature flags
+		prRegInfo->ucTxPwrValid 	= pstNvram->ucTxPwrValid;;
+		prRegInfo->ucSupport5GBand	= pstNvram->ucSupport5GBand;
+		printk("ucSupport5GBand is %d \n", (int)(pstNvram->ucSupport5GBand));
 
-		/* load feature flags */
-		kalCfgDataRead16(prGlueInfo, OFFSET_OF(WIFI_CFG_PARAM_STRUCT, ucTxPwrValid), (PUINT_16) aucTmp);
-		prRegInfo->ucTxPwrValid = aucTmp[0];
-		prRegInfo->ucSupport5GBand = aucTmp[1];
+		prRegInfo->uc2G4BwFixed20M	= pstNvram->uc2G4BwFixed20M;
+		prRegInfo->uc5GBwFixed20M	= pstNvram->uc5GBwFixed20M;
 
-		kalCfgDataRead16(prGlueInfo, OFFSET_OF(WIFI_CFG_PARAM_STRUCT, uc2G4BwFixed20M), (PUINT_16) aucTmp);
-		prRegInfo->uc2G4BwFixed20M = aucTmp[0];
-		prRegInfo->uc5GBwFixed20M = aucTmp[1];
+		prRegInfo->ucSupport5GBand	= pstNvram->ucSupport5GBand;
+		prRegInfo->ucRxDiversity = pstNvram->ucRxDiversity;
 
-		kalCfgDataRead16(prGlueInfo, OFFSET_OF(WIFI_CFG_PARAM_STRUCT, ucEnable5GBand), (PUINT_16) aucTmp);
-		prRegInfo->ucEnable5GBand = aucTmp[0];
-		prRegInfo->ucRxDiversity = aucTmp[1];
-
-		kalCfgDataRead16(prGlueInfo,
-				 OFFSET_OF(WIFI_CFG_PARAM_STRUCT, fgRssiCompensationVaildbit), (PUINT_16) aucTmp);
-		prRegInfo->ucRssiPathCompasationUsed = aucTmp[0];
-		prRegInfo->ucGpsDesense = aucTmp[1];
+		prRegInfo->ucRssiPathCompasationUsed = pstNvram->fgRssiCompensationVaildbit;
+		prRegInfo->ucGpsDesense = pstNvram->ucGpsDesense;
 
 #if CFG_SUPPORT_NVRAM_5G
 		/* load EFUSE overriding part */
-		for (i = 0; i < sizeof(prRegInfo->aucEFUSE); i += sizeof(UINT_16)) {
-			kalCfgDataRead16(prGlueInfo,
-					 OFFSET_OF(WIFI_CFG_PARAM_STRUCT, EfuseMapping) + i,
-					 (PUINT_16) (((PUINT_8) &(prRegInfo->aucEFUSE)) + i));
-		}
-
+		kalMemCopy((PUINT_8) &(prRegInfo->aucEFUSE), (PUINT_8) &(pstNvram->EfuseMapping), sizeof(pstNvram->EfuseMapping));
 		prRegInfo->prOldEfuseMapping = (P_NEW_EFUSE_MAPPING2NVRAM_T) & prRegInfo->aucEFUSE;
 #else
-
-/* load EFUSE overriding part */
-		for (i = 0; i < sizeof(prRegInfo->aucEFUSE); i += sizeof(UINT_16)) {
-			kalCfgDataRead16(prGlueInfo,
-					 OFFSET_OF(WIFI_CFG_PARAM_STRUCT, aucEFUSE) + i,
-					 (PUINT_16) (((PUINT_8) &(prRegInfo->aucEFUSE)) + i));
-		}
+		/* load EFUSE overriding part */
+		kalMemCopy((PUINT_8) &(prRegInfo->aucEFUSE), (PUINT_8) &(pstNvram->aucEFUSE), sizeof(pstNvram->aucEFUSE));
 #endif
 
 		/* load band edge tx power control */
-		kalCfgDataRead16(prGlueInfo, OFFSET_OF(WIFI_CFG_PARAM_STRUCT, fg2G4BandEdgePwrUsed), (PUINT_16) aucTmp);
-		prRegInfo->fg2G4BandEdgePwrUsed = (BOOLEAN) aucTmp[0];
-		if (aucTmp[0]) {
-			prRegInfo->cBandEdgeMaxPwrCCK = (INT_8) aucTmp[1];
-
-			kalCfgDataRead16(prGlueInfo,
-					 OFFSET_OF(WIFI_CFG_PARAM_STRUCT, cBandEdgeMaxPwrOFDM20), (PUINT_16) aucTmp);
-			prRegInfo->cBandEdgeMaxPwrOFDM20 = (INT_8) aucTmp[0];
-			prRegInfo->cBandEdgeMaxPwrOFDM40 = (INT_8) aucTmp[1];
+		prRegInfo->fg2G4BandEdgePwrUsed = pstNvram->fg2G4BandEdgePwrUsed;
+		if (prRegInfo->fg2G4BandEdgePwrUsed) {
+			prRegInfo->cBandEdgeMaxPwrCCK	= pstNvram->cBandEdgeMaxPwrCCK;
+			prRegInfo->cBandEdgeMaxPwrOFDM20	= pstNvram->cBandEdgeMaxPwrOFDM20;
+			prRegInfo->cBandEdgeMaxPwrOFDM40	= pstNvram->cBandEdgeMaxPwrOFDM40;
 		}
 
 		/* load regulation subbands */
-		kalCfgDataRead16(prGlueInfo, OFFSET_OF(WIFI_CFG_PARAM_STRUCT, ucRegChannelListMap), (PUINT_16) aucTmp);
-		prRegInfo->eRegChannelListMap = (ENUM_REG_CH_MAP_T) aucTmp[0];
-		prRegInfo->ucRegChannelListIndex = aucTmp[1];
+		prRegInfo->eRegChannelListMap = pstNvram->ucRegChannelListMap;
+		prRegInfo->ucRegChannelListIndex = pstNvram->ucRegChannelListIndex;
 
 		if (prRegInfo->eRegChannelListMap == REG_CH_MAP_CUSTOMIZED) {
 			for (i = 0; i < MAX_SUBBAND_NUM; i++) {
-				pucDest = (PUINT_8) &prRegInfo->rDomainInfo.rSubBand[i];
-				for (j = 0; j < 6; j += sizeof(UINT_16)) {
-					kalCfgDataRead16(prGlueInfo, OFFSET_OF(WIFI_CFG_PARAM_STRUCT, aucRegSubbandInfo)
-							 + (i * 6 + j), (PUINT_16) aucTmp);
-
-					*pucDest++ = aucTmp[0];
-					*pucDest++ = aucTmp[1];
-				}
+			kalMemCopy((PUINT_8) &(prRegInfo->rDomainInfo.rSubBand[i]),
+						(PUINT_8) &(pstNvram->aucRegSubbandInfo),
+						sizeof(prRegInfo->rDomainInfo.rSubBand[i]));
 			}
 		}
+		/* load RSSI compensation */
+		prRegInfo->rRssiPathCompasation.c2GRssiCompensation = pstNvram->rRssiPathCompensation.c2GRssiCompensation;
+		prRegInfo->rRssiPathCompasation.c5GRssiCompensation = pstNvram->rRssiPathCompensation.c5GRssiCompensation;
 
-		/* load rssiPathCompensation */
-		for (i = 0; i < sizeof(RSSI_PATH_COMPASATION_T); i += sizeof(UINT_16)) {
-			kalCfgDataRead16(prGlueInfo,
-					 OFFSET_OF(WIFI_CFG_PARAM_STRUCT,
-						   rRssiPathCompensation) + i,
-					 (PUINT_16) (((PUINT_8) &(prRegInfo->rRssiPathCompasation))
-						     + i));
-		}
-#if 1
-		/* load full NVRAM */
-		for (i = 0; i < sizeof(WIFI_CFG_PARAM_STRUCT); i += sizeof(UINT_16)) {
-			kalCfgDataRead16(prGlueInfo,
-					 OFFSET_OF(WIFI_CFG_PARAM_STRUCT, u2Part1OwnVersion) + i,
-					 (PUINT_16) (((PUINT_8) &(prRegInfo->aucNvram)) + i));
-		}
+		kalMemCopy((PUINT_8) &(prRegInfo->aucNvram), (PUINT_8) &(pstNvram->u2Part1OwnVersion), sizeof(pstNvram->u2Part1OwnVersion));
 		prRegInfo->prNvramSettings = (P_WIFI_CFG_PARAM_STRUCT) & prRegInfo->aucNvram;
-#endif
-	} else {
-		DBGLOG(INIT, INFO, "glLoadNvram fail\n");
+	}
+	else {
 		prGlueInfo->fgNvramAvailable = FALSE;
 	}
-
+	up(&data_buf_mtx);
 	return;
+}
+
+/*----------------------------------------------------------------------------*/
+/*!
+* \brief Utility function for reading data from files on NVRAM-FS
+*
+* \param[in]	len		The length to read
+*           	offset	The offset of the nvram data buffer
+* \param[out]	buf		Pointer to nvram data[offset]
+* \return	Actual length of data being read
+*/
+/*----------------------------------------------------------------------------*/
+static int
+nvram_read(
+	OUT	char	*buf,
+	IN	ssize_t	len,
+	IN	int		offset
+	)
+{
+#if CFG_SUPPORT_NVRAM
+	int readlen = 0;
+	if (len+offset >= 512)
+		return -EIO;
+
+	down(&data_buf_mtx);
+	if (bNvramDataValid && buf) {
+		kalMemCopy(buf, auiNvram+offset, len);
+		readlen = len;
+	}
+	up(&data_buf_mtx);
+	return readlen;
+#else
+	return -EIO;
+#endif
+}
+
+/*----------------------------------------------------------------------------*/
+/*!
+* \brief API for reading data on NVRAM
+*
+* \param[in]
+*           prGlueInfo
+*           u4Offset
+* \param[out]
+*           pu2Data
+* \return
+*           TRUE
+*           FALSE
+*/
+/*----------------------------------------------------------------------------*/
+BOOLEAN
+kalCfgDataRead16(
+    IN P_GLUE_INFO_T    prGlueInfo,
+    IN UINT_32          u4Offset,
+    OUT PUINT_16        pu2Data
+    )
+{
+	if (pu2Data	&& nvram_read((char *)pu2Data,
+			sizeof(unsigned short),
+			u4Offset) != sizeof(unsigned short)) {
+		return FALSE;
+    }
+
+	return TRUE;
+}
+
+/*----------------------------------------------------------------------------*/
+/*!
+* \brief API for writing data on NVRAM
+*
+* \param[in]
+*           prGlueInfo
+*           u4Offset
+*           u2Data
+* \return
+*           TRUE
+*           FALSE
+*/
+/*----------------------------------------------------------------------------*/
+BOOLEAN
+kalCfgDataWrite16(
+	IN P_GLUE_INFO_T	prGlueInfo,
+	UINT_32				u4Offset,
+	UINT_16				u2Data
+	)
+{
+	return FALSE;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -2326,6 +2377,8 @@ static struct wireless_dev *wlanNetCreate(PVOID pvData)
 	prGlueInfo->u4HifThreadPid = 0xffffffff;
 #endif
 
+	prGlueInfo->rHifInfo.Dev = prDev;
+
 	/* 4 <4> Create Adapter structure */
 	prAdapter = (P_ADAPTER_T) wlanAdapterCreate(prGlueInfo);
 
@@ -2478,6 +2531,9 @@ static void wlan_late_resume(struct early_suspend *h)
 }
 #endif
 
+typedef int (*get_cfg_data) (UINT_8 *pucdata, ENUM_CFG_DATA_OPT_T eflag);
+extern void register_get_cfg_data_handler(get_cfg_data handler);
+
 #if (MTK_WCN_HIF_SDIO && CFG_SUPPORT_MTK_ANDROID_KK)
 
 int set_p2p_mode_handler(struct net_device *netdev, PARAM_CUSTOM_P2P_SET_STRUC_T p2pmode)
@@ -2520,6 +2576,69 @@ void set_dbg_level_handler(unsigned char dbg_lvl[DBG_MODULE_NUM])
 	/* kalMemCopy(aucDebugModule, dbg_lvl, sizeof(aucDebugModule)); */
 }
 #endif
+
+int get_cfg_data_handler(UINT_8 *pucdata, ENUM_CFG_DATA_OPT_T eflag)
+{
+	int ret = 0;
+
+	if (!pucdata)
+		return -1;
+
+	down(&data_buf_mtx);
+	switch(eflag) {
+	case OPT_SET_NVRAM:
+		printk("set nvram data \n");
+		bNvramDataValid = TRUE;
+		kalMemCopy(auiNvram, pucdata, 512);
+		vfree(pucdata);
+		break;
+
+	case OPT_SET_CFG_LEN:
+		gl_uiCfgLen = *pucdata;
+		break;
+
+	case OPT_SET_CFG_DATA:
+		printk("set cfg data \n");
+		if (puiCfgData) {
+			vfree(puiCfgData);
+			puiCfgData = NULL;
+		}
+		if (gl_uiCfgLen==0){
+			vfree(pucdata);
+			bCfgDataValid = FALSE;
+		} else {
+			puiCfgData = pucdata;
+			bCfgDataValid = TRUE;
+		}
+		break;
+
+	case OPT_CLR_CFG:
+		if (puiCfgData)
+			vfree(puiCfgData);
+		puiCfgData = NULL;
+		bCfgDataValid = FALSE;
+		gl_uiCfgLen = *pucdata;
+		break;
+
+	default:
+		printk("error handler \n");
+		break;
+	}
+	up(&data_buf_mtx);
+	return ret;
+}
+
+void clear_cfg_data()
+{
+	printk("clear cfg data \n");
+	if (puiCfgData)
+		vfree(puiCfgData);
+	puiCfgData = NULL;
+	gl_uiCfgLen = 0;
+	bNvramDataValid = FALSE;
+	bCfgDataValid = FALSE;
+	return 0;
+}
 
 /*----------------------------------------------------------------------------*/
 /*!
@@ -3002,6 +3121,9 @@ static int initWlan(void)
 #if (CFG_CHIP_RESET_SUPPORT)
 	glResetInit();
 #endif
+	sema_init(&data_buf_mtx, 1);
+	register_get_cfg_data_handler(get_cfg_data_handler);
+
 	return ret;
 }				/* end of initWlan() */
 

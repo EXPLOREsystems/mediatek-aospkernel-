@@ -522,10 +522,9 @@ int mtkfb_get_backlight_pwm(int div, unsigned int *freq)
 void mtkfb_waitVsync(void)
 {
 	if (is_early_suspended) {
-		if (!is_lcm_always_on) {
+		if (!is_lcm_always_on)
 			MTKFB_WRAN("[MTKFB_VSYNC]:mtkfb has suspend, return directly\n");
-			msleep(20);
-		}
+		msleep(10);
 		return;
 	}
 	vsync_cnt++;

@@ -1725,6 +1725,8 @@ __init int mt_board_init(void)
 	mt_set_gpio_pull_enable(GPIO140, GPIO140_PULLEN);
 	mt_set_gpio_pull_select(GPIO87, GPIO87_PULL);
 	mt_set_gpio_pull_enable(GPIO87, GPIO87_PULLEN);
+	mt_set_gpio_pull_select(GPIO_SPI_MISO_PIN, GPIO100_PULL);
+	mt_set_gpio_pull_enable(GPIO_SPI_MISO_PIN, GPIO100_PULLEN);
 
 
 

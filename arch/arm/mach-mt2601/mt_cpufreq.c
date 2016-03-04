@@ -1297,12 +1297,6 @@ static struct cpufreq_driver mt_cpufreq_driver = {
 **********************************/
 void mt_cpufreq_early_suspend(struct early_suspend *h)
 {
-#ifndef MT_DVFS_RANDOM_TEST
-
-	mt_cpufreq_state_set(0);
-
-#endif
-
 	return;
 }
 
@@ -1311,12 +1305,6 @@ void mt_cpufreq_early_suspend(struct early_suspend *h)
 ********************************/
 void mt_cpufreq_late_resume(struct early_suspend *h)
 {
-#ifndef MT_DVFS_RANDOM_TEST
-
-	mt_cpufreq_state_set(1);
-
-#endif
-
 	return;
 }
 

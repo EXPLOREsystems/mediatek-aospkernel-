@@ -2170,8 +2170,8 @@ static void createWirelessDevice(void)
 #endif
 #if CFG_SUPPORT_SCN_PNO
 	prWiphy->flags |= WIPHY_FLAG_SUPPORTS_SCHED_SCAN;
-	prWiphy->max_match_sets = 4;//CFG_SCAN_SSID_MATCH_MAX_NUM;
-	prWiphy->max_sched_scan_ssids = 4;//CFG_SCAN_SSID_MAX_NUM;
+	prWiphy->max_match_sets = CFG_SCAN_SSID_MATCH_MAX_NUM;
+	prWiphy->max_sched_scan_ssids = CFG_SCAN_SSID_MAX_NUM;
 	prWiphy->max_sched_scan_ie_len = CFG_CFG80211_IE_BUF_LEN;
 #endif
 	prWiphy->vendor_commands = &mtk_wlan_vendor_ops;

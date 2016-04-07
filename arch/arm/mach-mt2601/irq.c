@@ -186,6 +186,7 @@ static struct irq_chip mt_irq_chip = {
 	.irq_mask = mt_irq_mask,
 	.irq_unmask = mt_irq_unmask,
 	.irq_set_type = mt_irq_set_type,
+	.flags = IRQCHIP_SKIP_SET_WAKE
 };
 
 static void mt_gic_dist_init(void)

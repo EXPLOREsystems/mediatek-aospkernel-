@@ -1372,6 +1372,7 @@ static struct irq_chip mt_irq_eint = {
 	.irq_set_type = mt_eint_irq_set_type,
 	.irq_request_resources = mtk_pinctrl_irq_request_resources,
 	.irq_release_resources = mtk_pinctrl_irq_release_resources,
+	.flags = IRQCHIP_SKIP_SET_WAKE
 };
 
 static unsigned int mt_eint_get_count(unsigned int eint_num)

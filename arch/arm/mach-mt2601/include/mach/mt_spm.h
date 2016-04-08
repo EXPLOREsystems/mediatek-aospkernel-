@@ -152,7 +152,7 @@
 #define spm_warning(fmt, args...)   printk(KERN_WARNING "[SPM] " fmt, ##args)
 #define spm_notice(fmt, args...)    printk(KERN_NOTICE "[SPM] " fmt, ##args)
 #define spm_info(fmt, args...)      printk(KERN_INFO "[SPM] " fmt, ##args)
-#define spm_debug(fmt, args...)     printk(KERN_DEBUG "[SPM] " fmt, ##args)
+#define spm_debug(fmt, args...)     pr_debug("[SPM] " fmt, ##args)
 
 #define wfi_with_sync()                         \
 do {                                            \

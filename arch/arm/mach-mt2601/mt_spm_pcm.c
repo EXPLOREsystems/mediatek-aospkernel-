@@ -432,11 +432,11 @@ bool spm_init_pcm(SPM_PCM_CONFIG *pcm_config)
 	pcm_config_curr = pcm_config;
 
 	if (pcm_config->scenario == SPM_PCM_DEEP_IDLE)
-		spm_crit2("%s with cpu_pdn=%d, pwr_level=%d, infra_pdn=%d\n",
+		spm_debug("%s with cpu_pdn=%d, pwr_level=%d, infra_pdn=%d\n",
 			  pcm_scenario[pcm_config->scenario], pcm_config->cpu_pdn,
 			  pcm_config->pcm_pwrlevel, pcm_config->infra_pdn);
 	else
-		spm_crit2("%s with cpu_pdn=%d, infra_pdn=%d\n", pcm_scenario[pcm_config->scenario],
+		spm_debug("%s with cpu_pdn=%d, infra_pdn=%d\n", pcm_scenario[pcm_config->scenario],
 			  pcm_config->cpu_pdn, pcm_config->infra_pdn);
 	/* spm_crit2("spm_init_pcm():%s, timer_val: %d, wake_src:0x%X\n",pcm_scenario[pcm_config->scenario],pcm_config->timer_val_sec,pcm_config->wake_src); */
 

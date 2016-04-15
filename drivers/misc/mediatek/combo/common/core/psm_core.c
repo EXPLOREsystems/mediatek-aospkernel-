@@ -997,11 +997,7 @@ static inline INT32 _stp_psm_notify_stp(MTKSTP_PSM_T *stp_psm, const MTKSTP_PSM_
 			osal_trigger_event(&stp_psm->wait_wmt_q);
 		} else {
 			if (action < STP_PSM_MAX_ACTION) {
-				STP_PSM_ERR_FUNC
-				    ("Action = %s, ACT_INACT state, the case should not happens\n\r",
-				     g_psm_action[action]);
-				STP_PSM_ERR_FUNC("state = %d, flag = %ld\n", stp_psm->work_state,
-						 stp_psm->flag.data);
+				/* FIXME: Apparently this should never happen but it often does! */
 			} else {
 				STP_PSM_ERR_FUNC("Invalid Action!!\n\r");
 			}
@@ -1035,11 +1031,7 @@ static inline INT32 _stp_psm_notify_stp(MTKSTP_PSM_T *stp_psm, const MTKSTP_PSM_
 			osal_trigger_event(&stp_psm->wait_wmt_q);
 		} else {
 			if (action < STP_PSM_MAX_ACTION) {
-				STP_PSM_ERR_FUNC
-				    ("Action = %s, INACT_ACT state, the case should not happens\n\r",
-				     g_psm_action[action]);
-				STP_PSM_ERR_FUNC("state = %d, flag = %ld\n", stp_psm->work_state,
-						 stp_psm->flag.data);
+				/* FIXME: Apparently this should never happen but it often does! */
 			} else {
 				STP_PSM_ERR_FUNC("Invalid Action!!\n\r");
 			}
@@ -1050,11 +1042,7 @@ static inline INT32 _stp_psm_notify_stp(MTKSTP_PSM_T *stp_psm, const MTKSTP_PSM_
 	case INACT:
 
 		if (action < STP_PSM_MAX_ACTION) {
-			STP_PSM_ERR_FUNC
-			    ("Action = %s, INACT state, the case should not happens\n\r",
-			     g_psm_action[action]);
-			STP_PSM_ERR_FUNC("state = %d, flag = %ld\n", stp_psm->work_state,
-					 stp_psm->flag.data);
+			/* FIXME: Apparently this should never happen but it often does! */
 		} else {
 			STP_PSM_ERR_FUNC("Invalid Action!!\n\r");
 		}
@@ -1066,10 +1054,7 @@ static inline INT32 _stp_psm_notify_stp(MTKSTP_PSM_T *stp_psm, const MTKSTP_PSM_
 	case ACT:
 
 		if (action < STP_PSM_MAX_ACTION) {
-			STP_PSM_ERR_FUNC("Action = %s, ACT state, the case should not happens\n\r",
-					 g_psm_action[action]);
-			STP_PSM_ERR_FUNC("state = %d, flag = %ld\n", stp_psm->work_state,
-					 stp_psm->flag.data);
+			/* FIXME: Apparently this should never happen but it often does! */
 		} else {
 			STP_PSM_ERR_FUNC("Invalid Action!!\n\r");
 		}
@@ -1082,11 +1067,7 @@ static inline INT32 _stp_psm_notify_stp(MTKSTP_PSM_T *stp_psm, const MTKSTP_PSM_
 
 		/*invalid */
 		if (action < STP_PSM_MAX_ACTION) {
-			STP_PSM_ERR_FUNC
-			    ("Action = %s, Invalid state, the case should not happens\n\r",
-			     g_psm_action[action]);
-			STP_PSM_ERR_FUNC("state = %d, flag = %ld\n", stp_psm->work_state,
-					 stp_psm->flag.data);
+			/* FIXME: Apparently this should never happen but it often does! */
 		} else {
 			STP_PSM_ERR_FUNC("Invalid Action!!\n\r");
 		}

@@ -66,7 +66,7 @@ struct wake_lock leds_suspend_lock;
 /****************************************************************************
  * DEBUG MACROS
  ***************************************************************************/
-static int debug_enable_led_hal = 1;
+static int debug_enable_led_hal = 0;
 #define LEDS_DEBUG(format, args...) do { \
 	if (debug_enable_led_hal) \
 	{\

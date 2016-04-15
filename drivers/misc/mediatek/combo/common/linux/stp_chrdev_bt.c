@@ -58,7 +58,6 @@ do { if (gDbgLevel >= BT_LOG_DBG)	\
 } while (0)
 
 #define VERSION "1.0"
-#define BT_NVRAM_CUSTOM_NAME "/data/BT_Addr"
 
 static int BT_devs = 1;		/* device count */
 static int BT_major = BT_DEV_MAJOR;	/* dynamic allocation */
@@ -72,61 +71,6 @@ static wait_queue_head_t inq;	/* read queues */
 static DECLARE_WAIT_QUEUE_HEAD(BT_wq);
 static int flag;
 static volatile int retflag;
-
-/*static unsigned char g_bt_bd_addr[10]={0x01,0x1a,0xfc,0x06,0x00,0x55,0x66,0x77,0x88,0x00};*/
-static unsigned char g_nvram_btdata[8];
-
-static int nvram_read(char *filename, char *buf, ssize_t len, int offset)
-{
-	struct file *fd;
-	/* ssize_t ret; */
-	int retLen = -1;
-
-	mm_segment_t old_fs = get_fs();
-	set_fs(KERNEL_DS);
-
-	fd = filp_open(filename, O_WRONLY | O_CREAT, 0644);
-
-	if (IS_ERR(fd)) {
-		BT_ERR_FUNC("failed to open!!\n");
-		return -1;
-	}
-	do {
-		if ((fd->f_op == NULL) || (fd->f_op->read == NULL)) {
-			BT_ERR_FUNC("file can not be read!!\n");
-			break;
-		}
-
-		if (fd->f_pos != offset) {
-			if (fd->f_op->llseek) {
-				if (fd->f_op->llseek(fd, offset, 0) != offset) {
-					BT_ERR_FUNC("[nvram_read] : failed to seek!!\n");
-					break;
-				}
-			} else {
-				fd->f_pos = offset;
-			}
-		}
-
-		retLen = fd->f_op->read(fd, buf, len, &fd->f_pos);
-
-	} while (false);
-
-	filp_close(fd, NULL);
-
-	set_fs(old_fs);
-
-	return retLen;
-}
-
-
-int platform_load_nvram_data(char *filename, char *buf, int len)
-{
-	/* int ret; */
-	BT_INFO_FUNC("platform_load_nvram_data ++ BDADDR\n");
-
-	return nvram_read(filename, buf, len, 0);
-}
 
 static void bt_cdev_rst_cb(ENUM_WMTDRV_TYPE_T src,
 			   ENUM_WMTDRV_TYPE_T dst,
@@ -398,13 +342,6 @@ static int BT_open(struct inode *inode, struct file *file)
 		BT_INFO_FUNC("Now it's in MTK Bluetooth Mode\n");
 		BT_INFO_FUNC("WMT turn on BT OK!\n");
 		BT_INFO_FUNC("STP is ready!\n");
-		platform_load_nvram_data(BT_NVRAM_CUSTOM_NAME,
-					 (char *)&g_nvram_btdata, sizeof(g_nvram_btdata));
-
-		BT_INFO_FUNC
-		    ("Read NVRAM : BD address %02x%02x%02x%02x%02x%02x Cap 0x%02x Codec 0x%02x\n",
-		     g_nvram_btdata[0], g_nvram_btdata[1], g_nvram_btdata[2], g_nvram_btdata[3],
-		     g_nvram_btdata[4], g_nvram_btdata[5], g_nvram_btdata[6], g_nvram_btdata[7]);
 
 		mtk_wcn_stp_register_event_cb(BT_TASK_INDX, BT_event_cb);
 		BT_INFO_FUNC("mtk_wcn_stp_register_event_cb finish\n");

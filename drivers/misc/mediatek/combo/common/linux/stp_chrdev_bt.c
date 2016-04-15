@@ -135,7 +135,7 @@ unsigned int BT_poll(struct file *filp, poll_table *wait)
 		poll_wait(filp, &inq, wait);
 
 		/* empty let select sleep */
-		if ((!mtk_wcn_stp_is_rxqueue_empty(BT_TASK_INDX)) || retflag) {
+		if (!mtk_wcn_stp_is_rxqueue_empty(BT_TASK_INDX)) {
 			mask |= POLLIN | POLLRDNORM;	/* readable */
 		}
 	} else {

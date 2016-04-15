@@ -718,7 +718,7 @@ out:
 }
 
 static DEVICE_ATTR(spi, 440, spi_show, spi_store);
-static DEVICE_ATTR(spi_msg, 440, NULL, spi_msg_store);
+static DEVICE_ATTR(spi_msg, S_IWUSR | S_IWGRP, NULL, spi_msg_store);
 
 
 

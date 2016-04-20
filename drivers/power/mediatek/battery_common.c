@@ -1487,6 +1487,9 @@ static void mt_battery_update_EM(struct battery_data *bat_data)
 	if ((BMT_status.UI_SOC == 100) && (BMT_status.charger_exist == KAL_TRUE))
 		bat_data->BAT_STATUS = POWER_SUPPLY_STATUS_FULL;
 
+	if (BMT_status.bat_charging_state == CHR_ERROR)
+		bat_data->BAT_STATUS = POWER_SUPPLY_STATUS_DISCHARGING;
+
 #ifdef CONFIG_MTK_DISABLE_POWER_ON_OFF_VOLTAGE_LIMITATION
 	if (bat_data->BAT_CAPACITY <= 0)
 		bat_data->BAT_CAPACITY = 1;

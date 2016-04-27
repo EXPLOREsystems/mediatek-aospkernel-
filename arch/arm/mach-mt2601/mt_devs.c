@@ -580,31 +580,31 @@ static struct nanohub_flash_bank nanohub_flash_banks[] = {
 		.length = 0x04000,
 	},
 	[1] = {
-		.bank = 3,
-		.address = 0x0800C000,
-		.length = 0x04000,
-	},
-	[2] = {
-		.bank = 4,
-		.address = 0x08010000,
-		.length = 0x10000,
+		.bank = 7,
+		.address = 0x08060000,
+		.length = 0x20000,
 	}
 };
 
 static struct nanohub_flash_bank nanohub_shared_flash_banks[] = {
 	[0] = {
+		.bank = 3,
+		.address = 0x0800C000,
+		.length = 0x04000,
+	},
+	[1] = {
+		.bank = 4,
+		.address = 0x08010000,
+		.length = 0x10000,
+	},
+	[2] = {
 		.bank = 5,
 		.address = 0x08020000,
 		.length = 0x20000,
 	},
-	[1] = {
+	[3] = {
 		.bank = 6,
 		.address = 0x08040000,
-		.length = 0x20000,
-	},
-	[2] = {
-		.bank = 7,
-		.address = 0x08060000,
 		.length = 0x20000,
 	}
 };

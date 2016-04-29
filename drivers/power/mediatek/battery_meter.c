@@ -42,6 +42,7 @@
 #include <mach/battery_meter_hal.h>
 #include <mach/battery_ssb.h>
 #include "cust_battery_meter.h"
+#include "cust_charging.h"
 //#include "cust_battery_meter_table.h"
 #include "mach/mtk_rtc.h"
 
@@ -1481,7 +1482,7 @@ void oam_run(void)
 	else
 		gFG_Is_Charging = KAL_FALSE;
 
-		d5_count_time = 60;
+	d5_count_time = 40;
 
 	d5_count = d5_count + delta_time;
 	if (bat_spm_timeout) {
@@ -3266,7 +3267,7 @@ static int battery_meter_probe(struct platform_device *dev)
 	/* LOG System Set */
 	init_proc_log_fg();
 
-	parsing_battery_init_para(NULL);
+	parsing_battery_init_para((U32)NULL);
 	/* last_oam_run_time = rtc_read_hw_time(); */
 	get_monotonic_boottime(&last_oam_run_time);
 	/* Create File For FG UI DEBUG */
@@ -3510,6 +3511,10 @@ static int battery_meter_resume(struct platform_device *dev)
 
 #endif
 	kal_int32 hw_ocv_after_sleep;
+	kal_int32 delta_d_by_time;
+	kal_int32 delta_d_by_zcv;
+	kal_int32 last_capacity_d;
+	static kal_int32 sleep_time;
 	struct timespec xts, tom, rtc_time_after_sleep;
 #ifdef MTK_POWER_EXT_DETECT
 	if (KAL_TRUE == bat_is_ext_power())
@@ -3524,20 +3529,19 @@ static int battery_meter_resume(struct platform_device *dev)
 
 	get_xtime_and_monotonic_and_sleep_offset(&xts, &tom, &rtc_time_after_sleep);
 	_g_bat_sleep_total_time += rtc_time_after_sleep.tv_sec - g_rtc_time_before_sleep.tv_sec;
+	sleep_time += rtc_time_after_sleep.tv_sec - g_rtc_time_before_sleep.tv_sec;
 	battery_xlog_printk(BAT_LOG_CRTI,
 			    "[battery_meter_resume] sleep time = %d, g_spm_timer = %d\n",
 			    _g_bat_sleep_total_time, g_spm_timer);
 
 #if defined(SOC_BY_SW_FG)
 	battery_meter_ctrl(BATTERY_METER_CMD_GET_HW_OCV, &hw_ocv_after_sleep);
+	last_capacity_d = 100 - battery_meter_get_battery_percentage();
+	delta_d_by_zcv = fgauge_read_d_by_v(hw_ocv_after_sleep) - last_capacity_d;
+	delta_d_by_time = sleep_time / 60;
+	sleep_time = sleep_time % 60;
 #endif
 
-	if (_g_bat_sleep_total_time < g_spm_timer && hw_ocv_after_sleep > VBAT_NORMAL_WAKEUP) {
-		oam_car_1 = oam_car_1 + (40* (rtc_time_after_sleep.tv_sec - g_rtc_time_before_sleep.tv_sec)/3600); //0.1mAh
-		oam_car_2 = oam_car_2 + (40* (rtc_time_after_sleep.tv_sec - g_rtc_time_before_sleep.tv_sec)/3600); //0.1mAh
-		get_monotonic_boottime(&last_oam_run_time);
-		return 0;
-	}
 	bat_spm_timeout = true;
 
 	if (fg_soc_method == SOC_BY_HW_FG) {
@@ -3549,27 +3553,31 @@ static int battery_meter_resume(struct platform_device *dev)
 #endif
 	}
 	if (fg_soc_method == SOC_BY_SW_FG) {
-		if (_g_bat_sleep_total_time > 3600)	/* 1hr */
+		if (hw_ocv_after_sleep < g_hw_ocv_before_sleep)
 		{
-			if (hw_ocv_after_sleep < g_hw_ocv_before_sleep) {
-				oam_d0 = fgauge_read_d_by_v(hw_ocv_after_sleep);
-				oam_v_ocv_2 = oam_v_ocv_1 = hw_ocv_after_sleep;
-				oam_car_1 = 0;
-				oam_car_2 = 0;
-			} else {
-				oam_car_1 = oam_car_1 + (40 * (rtc_time_after_sleep.tv_sec - g_rtc_time_before_sleep.tv_sec) / 3600);	/* 0.1mAh */
-				oam_car_2 = oam_car_2 + (40 * (rtc_time_after_sleep.tv_sec - g_rtc_time_before_sleep.tv_sec) / 3600);	/* 0.1mAh */
-			}
-			get_monotonic_boottime(&last_oam_run_time);
-		} else {
-			oam_car_1 = oam_car_1 + (20 * (rtc_time_after_sleep.tv_sec - g_rtc_time_before_sleep.tv_sec) / 3600);	/* 0.1mAh */
-			oam_car_2 = oam_car_2 + (20 * (rtc_time_after_sleep.tv_sec - g_rtc_time_before_sleep.tv_sec) / 3600);	/* 0.1mAh */
-			get_monotonic_boottime(&last_oam_run_time);
+		    if (delta_d_by_time == 0) {
 		}
-		bm_print(BM_LOG_CRTI,
-			 "sleeptime=(%d)s, be_ocv=(%d), af_ocv=(%d), D0=(%d), car1=(%d), car2=(%d)\n",
-			 _g_bat_sleep_total_time,
-			 g_hw_ocv_before_sleep, hw_ocv_after_sleep, oam_d0, oam_car_1, oam_car_2);
+		else if (delta_d_by_zcv > delta_d_by_time)
+		{
+			/* Fine tune d0 variation depend on sleep time */
+			oam_d0 = last_capacity_d + delta_d_by_time;
+			oam_v_ocv_2 = oam_v_ocv_1 = fgauge_read_v_by_d(oam_d0);
+			oam_car_1 = 0;
+			oam_car_2 = 0;
+		}
+		else {
+			oam_d0 = fgauge_read_d_by_v(hw_ocv_after_sleep);
+			oam_v_ocv_2 = oam_v_ocv_1 = hw_ocv_after_sleep;
+			oam_car_1 = 0;
+			oam_car_2 = 0;
+		}
+	}
+	get_monotonic_boottime(&last_oam_run_time);
+	bm_print(BM_LOG_CRTI,
+		 "sleeptime=(%d)s, be_ocv=(%d), af_ocv=(%d), D0=(%d), car1=(%d), car2=(%d), last_d=%d, d_zcv=%d, d_time=%d, slp_time=%d\n",
+		 _g_bat_sleep_total_time,
+		 g_hw_ocv_before_sleep, hw_ocv_after_sleep, oam_d0, oam_car_1, oam_car_2,
+		 last_capacity_d, delta_d_by_zcv, delta_d_by_time, sleep_time);
 	}
 	bm_print(BM_LOG_CRTI, "[battery_meter_resume]\n");
 	return 0;

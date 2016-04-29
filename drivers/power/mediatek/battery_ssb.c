@@ -197,7 +197,11 @@ kal_uint32 low_temperature_protect_enable = 0;
 kal_uint32 temperature_recharge_enable = 1;
 kal_uint32 low_charge_volt_protect_enable = 0;
 kal_uint32 jeita_enable = 0;
+#ifdef HIGH_BATTERY_VOLTAGE_SUPPORT
 kal_uint32 high_battery_volt_enable = 1;
+#else
+kal_uint32 high_battery_volt_enable = 0;
+#endif
 kal_uint32 notify_chr_volt_high_enable = 1;
 kal_uint32 notify_temperature_high_enable = 1;
 kal_uint32 notify_current_high_enable = 0;
@@ -591,7 +595,7 @@ int parsing_battery_init_para(U32 label_code)
 			label = battery_cust_buf[i*2+1];
 			index = battery_cust_buf[i*2+2] / 4;
 			printk("[parsing_battery_init_para] label = %d, len = %d\n", label, index);
-			if (label_code == NULL || label == label_code) {
+			if (label_code == (U32)NULL || label == label_code) {
 				switch (label) {
 				case FEATURE_LABEL_CODE:
 					parse_sub_para_buf( battery_cust_data.feature_enable_para, NULL, NULL, battery_cust_buf + index, 0, FEATURE_LABEL_CODE, 1);

@@ -316,9 +316,9 @@ void charger_hv_detection_on_suspend(void);
 int set_bat_charging_current_limit(int current_limit)
 {
 	if (ext_chr_ic_id == 0) {
-		set_bat_charging_current_limit_linear(current_limit);
+		return set_bat_charging_current_limit_linear(current_limit);
 	} else {
-		set_bat_charging_current_limit_switch(current_limit);
+		return set_bat_charging_current_limit_switch(current_limit);
 	}
 }
 
@@ -3397,6 +3397,8 @@ static int battery_suspend(struct device *device)
 	}
 	g_battery_suspend_flag = 1;
 #endif
+	battery_xlog_printk(BAT_LOG_CRTI, "@bs=1@\n");
+
 	if (mutex_trylock(&bat_mutex) != 1) {
 		return 1;	/* skip this suspend operation */
 	}
@@ -3409,7 +3411,6 @@ static int battery_suspend(struct device *device)
 	battery_suspended = KAL_TRUE;
 	mutex_unlock(&bat_mutex);
 
-	battery_xlog_printk(BAT_LOG_CRTI, "@bs=1@\n");
 #endif
 
 	get_xtime_and_monotonic_and_sleep_offset(&xts, &tom, &g_bat_time_before_sleep);
@@ -3437,6 +3438,8 @@ static int battery_resume(struct device *device)
 	}
 	g_battery_suspend_flag = 0;
 #endif
+
+	battery_xlog_printk(BAT_LOG_CRTI, "@bs=0@\n");
 
 	ktime = ktime_set(BAT_TASK_PERIOD, 0);	/* 10s, 10* 1000 ms */
 	hvtime = ktime_set(0, BAT_MS_TO_NS(2000));
@@ -3467,7 +3470,6 @@ static int battery_resume(struct device *device)
 	hrtimer_start(&charger_hv_detect_timer, hvtime, HRTIMER_MODE_REL);
 #endif
 	battery_suspended = KAL_FALSE;
-	battery_xlog_printk(BAT_LOG_CRTI, "@bs=0@\n");
 	mutex_unlock(&bat_mutex);
 
 #endif

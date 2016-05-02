@@ -9,6 +9,7 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 #include <linux/sched_clock.h>
+#include <asm/mach/time.h>
 
 #include <mach/mt_reg_base.h>
 #include <mach/mt_gpt.h>
@@ -87,6 +88,7 @@
 
 #define GPT_FEAT_64_BIT     (0x0001)
 
+#define LOOP_MAX            (4)
 
 struct gpt_device {
 	unsigned int id;
@@ -100,6 +102,11 @@ struct gpt_device {
 	unsigned int base_addr;
 };
 static struct gpt_device gpt_devs[NR_GPTS];
+
+static struct timespec persistent_ts;
+static cycle_t cycles;
+static unsigned int persistent_mult, persistent_shift;
+
 
 /************************return GPT4 count(before init clear) to record kernel start time between LK and kernel****************************/
 static unsigned int boot_time_value;
@@ -824,6 +831,115 @@ static inline void start_syscnt_assist(void)
 }
 #endif
 
+/*
+ * Use two GPTs running in phase with different dividers to create a 38 bit counter
+ *
+ * 512 Hz: --------------------------------------------------------------^----
+ * 32 kHz: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ *
+ * There are 26 bits of overlap between the two counters.  For example:
+ *
+ * GPT 3 counter (512 Hz):     01 1010 1001 0010 0010 1010 1001 1110 01
+ * GPT 5 counter (32 kHz):             1001 0010 0010 1010 1001 1110 0111 1010
+ *
+ * Combined counter (32 kHz):  01 1010 1001 0010 0010 1010 1001 1110 0111 1010
+ */
+
+static void mt_read_persistent_clock(struct timespec *ts)
+{
+	unsigned long long nsecs;
+	cycle_t last_cycles, delta_cycles;
+	unsigned long save_flags;
+	unsigned int sc1, fc, sc2;
+	int loops = 0;
+
+	/* Take spinlock for gpt_devs[] */
+	gpt_update_lock(save_flags);
+
+	last_cycles = cycles;
+
+	/* This should never have to loop more than once */
+	do {
+		/* Read 512 Hz counter value */
+		__gpt_get_cnt(id_to_dev(GPT3), &sc1);
+
+		/* Read 32768 Hz counter value */
+		__gpt_get_cnt(id_to_dev(GPT5), &fc);
+
+		/* Read 512 Hz counter value */
+		__gpt_get_cnt(id_to_dev(GPT3), &sc2);
+
+		loops++;
+		BUG_ON(loops > LOOP_MAX);
+
+	} while (sc1 != sc2);
+
+	pr_debug("%s: Slow counter = 0x%08x\n", __func__, sc1);
+	pr_debug("%s: Fast counter = 0x%08x\n", __func__, fc);
+
+	WARN_ON((fc >> 6) != (0x03FFFFFF & sc1));
+
+	/* Combine the slow and fast counters to get a 38 bit counter */
+	cycles = (((cycle_t) sc1) << 6) | (0x3F & fc);
+
+	/* Compute delta and explicitly handle wraps beyond 38 bits */
+	if (cycles < last_cycles)
+		delta_cycles = 0x4000000000ull + cycles - last_cycles;
+	else
+		delta_cycles = cycles - last_cycles;
+
+	/* Find the nanosecond delta, and update the persistent clock */
+	nsecs = clocksource_cyc2ns(delta_cycles, persistent_mult, persistent_shift);
+	timespec_add_ns(&persistent_ts, nsecs);
+	*ts = persistent_ts;
+
+	/* Give up spinlock */
+	gpt_update_unlock(save_flags);
+}
+
+static void mt_setup_persistent_clock(void)
+{
+	unsigned int fc;
+	int loops = 0;
+
+	/* Configure GPT5 to run at 32768 Hz */
+	setup_gpt_dev_locked(id_to_dev(GPT5), GPT_FREE_RUN, GPT_CLK_SRC_RTC, GPT_CLK_DIV_1, 0, NULL, GPT_NOAUTOEN);
+
+	/* Configure GPT3 to run at 512 Hz */
+	setup_gpt_dev_locked(id_to_dev(GPT3), GPT_FREE_RUN, GPT_CLK_SRC_RTC, GPT_CLK_DIV_64, 0, NULL, GPT_NOAUTOEN);
+
+	while (1) {
+		/* Start both counters*/
+		__gpt_start(id_to_dev(GPT5));
+		__gpt_start(id_to_dev(GPT3));
+
+		/* If GPT5 has incremented, GPT3 may have missed a pulse.  Otherwise we're good! */
+		__gpt_get_cnt(id_to_dev(GPT5), &fc);
+		if (fc == 0)
+			break;
+
+		loops++;
+		BUG_ON(loops > LOOP_MAX);
+
+		pr_info("%s: Fast counter already incremented, trying again\n", __func__);
+
+		/* Stop the counters */
+		__gpt_stop(id_to_dev(GPT5));
+		__gpt_stop(id_to_dev(GPT3));
+
+		/* Clear the counters */
+		__gpt_clrcnt(id_to_dev(GPT5));
+		__gpt_clrcnt(id_to_dev(GPT3));
+	}
+
+	/* Determine values for tick conversion to nanoseconds */
+	clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
+			32768, NSEC_PER_SEC, 120000);
+
+	/* Register function with timekeeping */
+	register_persistent_clock(NULL, mt_read_persistent_clock);
+}
+
 static void mt_gpt_init(void)
 {
 	int i;
@@ -853,6 +969,8 @@ static void mt_gpt_init(void)
 	if (CHIP_SW_VER_01 <= mt_get_chip_sw_ver()) {
 		start_syscnt_assist();
 	}
+
+	mt_setup_persistent_clock();
 
 	gpt_update_unlock(save_flags);
 }

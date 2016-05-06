@@ -18,7 +18,7 @@
 /* Linear Charging Threshold */
 #define V_PRE2CC_THRES			3400	/* mV */
 #define V_CC2TOPOFF_THRES		4050
-#define RECHARGING_VOLTAGE      4110
+#define RECHARGING_VOLTAGE      4250
 #define CHARGING_FULL_CURRENT    80	/* mA */
 
 /* Charging Current Setting */
@@ -102,7 +102,7 @@
 
 
 /* High battery support */
-/* #define HIGH_BATTERY_VOLTAGE_SUPPORT */
+#define HIGH_BATTERY_VOLTAGE_SUPPORT
 
 /* Disable Battery check for HQA */
 #ifdef CONFIG_MTK_DISABLE_POWER_ON_OFF_VOLTAGE_LIMITATION

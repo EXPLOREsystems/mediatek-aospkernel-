@@ -461,7 +461,7 @@ static void pchr_turn_on_charging_linear(void)
 
 		if (curr_temp > MAX_CHARGE_TEMPERATURE || curr_temp < MIN_CHARGE_TEMPERATURE) {
 			g_temp_CC_value = CHARGE_CURRENT_0_00_MA;
-		} else if(curr_temp >= MAX_LIMITED_CHARGING_TEMPERATURE) {
+		} else if(curr_temp > MAX_LIMITED_CHARGING_TEMPERATURE) {
 			g_temp_CC_value = CHARGE_CURRENT_750_00_MA;
 		} else {
 			g_temp_CC_value = CHARGE_CURRENT_150_00_MA;

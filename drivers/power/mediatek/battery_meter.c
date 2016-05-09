@@ -300,6 +300,7 @@ int BattThermistorConverTemp(int Res)
 	int RES1 = 0, RES2 = 0;
 	int TBatt_Value = -200, TMP1 = 0, TMP2 = 0;
 
+
 	BATT_TEMPERATURE *batt_temperature_table = &Batt_Temperature_Table[g_fg_battery_id];
 	if (Res >= batt_temperature_table[0].TemperatureR) {
 		TBatt_Value = -20;
@@ -427,7 +428,7 @@ int BattThermistorConverTemp(int Res)
 	if (Res >= batt_temperature_table[0].TemperatureR) {
 		TBatt_Value = -20;
 	} else if (Res <= batt_temperature_table[temperature_table_len-1].TemperatureR) {
-		TBatt_Value = 60;
+		TBatt_Value = 70;
 	} else {
 		RES1 = batt_temperature_table[0].TemperatureR;
 		TMP1 = batt_temperature_table[0].BatteryTemp;
@@ -609,9 +610,9 @@ int force_get_tbat(void)
 	compensation = cpu_temp_compensation(bat_temperature_val);
 	bat_temperature_val -= compensation;
 
-	bm_print(BM_LOG_CRTI, "[force_get_tbat] %d,%d,%d,%d,%d,%d\n",
+	bm_print(BM_LOG_CRTI, "[force_get_tbat] %d,%d,%d,%d,%d,%d,%d\n",
 		bat_temperature_volt_temp, bat_temperature_volt, fg_current_state, fg_current_temp,
-		fg_r_value, bat_temperature_val);
+		fg_r_value, bat_temperature_val, compensation);
 
 	return bat_temperature_val;
 #endif

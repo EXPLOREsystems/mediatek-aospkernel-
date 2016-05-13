@@ -3537,7 +3537,7 @@ static int battery_meter_resume(struct platform_device *dev)
 
 #if defined(SOC_BY_SW_FG)
 	battery_meter_ctrl(BATTERY_METER_CMD_GET_HW_OCV, &hw_ocv_after_sleep);
-	last_capacity_d = 100 - battery_meter_get_battery_percentage();
+	last_capacity_d = oam_d_5;
 	delta_d_by_zcv = fgauge_read_d_by_v(hw_ocv_after_sleep) - last_capacity_d;
 	delta_d_by_time = sleep_time / 60;
 	sleep_time = sleep_time % 60;

@@ -2050,7 +2050,7 @@ void mt_battery_GetBatteryData(void)
 	if (bat_meter_timeout == KAL_TRUE || bat_spm_timeout == TRUE) {
 		SOC = battery_meter_get_battery_percentage();
 		if (bat_spm_timeout == true)
-			BMT_status.UI_SOC = battery_meter_get_battery_percentage();
+			BMT_status.UI_SOC = SOC;
 
 		bat_meter_timeout = KAL_FALSE;
 	} else {

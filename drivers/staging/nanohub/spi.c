@@ -22,7 +22,8 @@
 #include "bl.h"
 #include "comms.h"
 
-#define SPI_TIMEOUT		65535
+#define ACK_TIMEOUT		131071
+#define SYNC_TIMEOUT		16383
 #define SPI_MIN_DMA		1
 
 struct nanohub_spi_data {
@@ -124,7 +125,7 @@ static uint8_t spi_bl_read_ack(const void *data)
 {
 	const struct nanohub_spi_data *spi_data = data;
 	const struct nanohub_bl *bl = &spi_data->data.bl;
-	int32_t timeout = SPI_TIMEOUT;
+	int32_t timeout = ACK_TIMEOUT;
 	uint8_t ret;
 	struct spi_message msg;
 	struct spi_transfer xfer = {
@@ -190,7 +191,7 @@ static uint8_t spi_bl_sync(const void *data)
 {
 	const struct nanohub_spi_data *spi_data = data;
 	const struct nanohub_bl *bl = &spi_data->data.bl;
-	int32_t timeout = SPI_TIMEOUT;
+	int32_t timeout = SYNC_TIMEOUT;
 	struct spi_message msg;
 	struct spi_transfer xfer = {
 		.len = 1,

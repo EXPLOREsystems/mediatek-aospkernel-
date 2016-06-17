@@ -623,6 +623,9 @@ UINT_16 rlmDomainPwrLimitDefaultTableDecision(P_ADAPTER_T prAdapter, UINT_16 u2C
 VOID rlmDomainSendPwrLimitCmd(P_ADAPTER_T prAdapter);
 #endif
 
+BOOLEAN rlmDomainGetHostCountryCode(PUINT_16 countrycode);
+VOID rlmDomainSetHostCountryCode(UINT_16 countrycode);
+
 /*******************************************************************************
 *                              F U N C T I O N S
 ********************************************************************************

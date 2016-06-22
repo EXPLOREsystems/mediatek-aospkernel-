@@ -672,6 +672,8 @@ extern BOOLEAN fgIsBusAccessFailed;
 /* #define GLUE_BOW_DEVICE_NAME        "MT6620 802.11 AMP" */
 #define GLUE_BOW_DEVICE_NAME        "ampc0"
 
+#define GLUE_INFO_WSCIE_LENGTH		500
+
 #define NLA_PUT(skb, attrtype, attrlen, data) \
 	do { \
 		if (unlikely(nla_put(skb, attrtype, attrlen, data) < 0)) \
@@ -933,7 +935,7 @@ struct _GLUE_INFO_T {
 #endif
 #endif
 	BOOLEAN fgWpsActive;
-	UINT_8 aucWSCIE[500];	/*for probe req */
+	UINT_8 aucWSCIE[GLUE_INFO_WSCIE_LENGTH];	/*for probe req */
 	UINT_16 u2WSCIELen;
 	UINT_8 aucWSCAssocInfoIE[200];	/*for Assoc req */
 	UINT_16 u2WSCAssocInfoIELen;

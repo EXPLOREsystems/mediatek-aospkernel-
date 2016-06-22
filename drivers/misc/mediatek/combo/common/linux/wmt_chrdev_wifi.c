@@ -307,6 +307,7 @@ ssize_t WIFI_write(struct file *filp, const char __user *buf, size_t count, loff
 	struct net_device *netdev = NULL;
 	PARAM_CUSTOM_P2P_SET_STRUC_T p2pmode;
 	int wait_cnt = 0;
+	int copy_size = 0;
 
 	down(&wr_mtx);
 	if (count <= 0) {
@@ -314,7 +315,8 @@ ssize_t WIFI_write(struct file *filp, const char __user *buf, size_t count, loff
 		goto done;
 	}
 
-	if (0 == copy_from_user(local, buf, (count > sizeof(local)) ? sizeof(local) : count)) {
+	copy_size = count > (sizeof(local) - 1) ? (sizeof(local) - 1) : count;
+	if (0 == copy_from_user(local, buf, copy_size)) {
 		local[11] = 0;
 		WIFI_INFO_FUNC("WIFI_write %s\n", local);
 

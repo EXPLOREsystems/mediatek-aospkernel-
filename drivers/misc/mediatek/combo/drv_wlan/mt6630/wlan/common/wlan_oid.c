@@ -9976,6 +9976,7 @@ wlanoidSetCountryCode(IN P_ADAPTER_T prAdapter,
 	pucCountry = pvSetBuffer;
 
 	prAdapter->rWifiVar.rConnSettings.u2CountryCode = (((UINT_16) pucCountry[0]) << 8) | ((UINT_16) pucCountry[1]);
+	rlmDomainSetHostCountryCode(prAdapter->rWifiVar.rConnSettings.u2CountryCode);
 
 	prAdapter->prDomainInfo = NULL;	/* Force to re-search country code */
 	rlmDomainSendCmd(prAdapter, TRUE);

@@ -1716,8 +1716,12 @@ wlanAdapterStart(IN P_ADAPTER_T prAdapter,
 		/* load manufacture data */
 		if (kalIsConfigurationExist(prAdapter->prGlueInfo) == TRUE)
 			wlanLoadManufactureData(prAdapter, prRegInfo);
-		else
-			DBGLOG(INIT, WARN, "%s: load manufacture data fail\n", __func__);
+		else {
+			DBGLOG(INIT, WARN, "%s: load manufacture data fail, just restore countrycode\n", __func__);
+			if (rlmDomainGetHostCountryCode(&(prAdapter->rWifiVar.rConnSettings.u2CountryCode))) {
+				rlmDomainSendCmd(prAdapter, TRUE);
+			}
+		}
 #endif
 
 #if 0
@@ -4951,9 +4955,10 @@ WLAN_STATUS wlanLoadManufactureData(IN P_ADAPTER_T prAdapter, IN P_REG_INFO_T pr
 #endif
 
 	/* 5. Get 16-bits Country Code and Bandwidth */
-	prAdapter->rWifiVar.rConnSettings.u2CountryCode =
+	if (!rlmDomainGetHostCountryCode(&(prAdapter->rWifiVar.rConnSettings.u2CountryCode))) {
+		prAdapter->rWifiVar.rConnSettings.u2CountryCode =
 	    (((UINT_16) prRegInfo->au2CountryCode[0]) << 8) | (((UINT_16) prRegInfo->au2CountryCode[1]) & BITS(0, 7));
-
+	}
 #if 0				/* Bandwidth control will be controlled by GUI. 20110930
 				 * So ignore the setting from registry/NVRAM
 				 */

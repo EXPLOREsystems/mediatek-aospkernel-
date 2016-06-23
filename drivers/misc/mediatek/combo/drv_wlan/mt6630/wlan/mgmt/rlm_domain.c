@@ -758,6 +758,8 @@ SUBBAND_CHANNEL_T g_rRlmSubBand[] = {
 
 };
 
+static UINT_16 g_u2HostCountryCode = COUNTRY_CODE_NULL;
+
 /*******************************************************************************
 *                           P R I V A T E   D A T A
 ********************************************************************************
@@ -940,12 +942,20 @@ VOID rlmDomainSendCmd(P_ADAPTER_T prAdapter, BOOLEAN fgIsOid)
 		prSubBand = &prDomainInfo->rSubBand[i];
 
 		prCmd->rSubBand[i].ucRegClass = prSubBand->ucRegClass;
-		prCmd->rSubBand[i].ucBand = prSubBand->ucBand;
 
-		if (prSubBand->ucBand != BAND_NULL && prSubBand->ucBand < BAND_NUM) {
-			prCmd->rSubBand[i].ucChannelSpan = prSubBand->ucChannelSpan;
-			prCmd->rSubBand[i].ucFirstChannelNum = prSubBand->ucFirstChannelNum;
-			prCmd->rSubBand[i].ucNumChannels = prSubBand->ucNumChannels;
+		if (prSubBand->ucBand == BAND_5G &&
+			(prAdapter->fgIsHw5GBandDisabled || !prAdapter->fgEnable5GBand)) {
+			prCmd->rSubBand[i].ucBand = BAND_NULL;
+			prCmd->rSubBand[i].ucChannelSpan = 0;
+			prCmd->rSubBand[i].ucFirstChannelNum = 0;
+			prCmd->rSubBand[i].ucNumChannels = 0;
+		} else {
+			prCmd->rSubBand[i].ucBand = prSubBand->ucBand;
+			if (prSubBand->ucBand != BAND_NULL && prSubBand->ucBand < BAND_NUM) {
+				prCmd->rSubBand[i].ucChannelSpan = prSubBand->ucChannelSpan;
+				prCmd->rSubBand[i].ucFirstChannelNum = prSubBand->ucFirstChannelNum;
+				prCmd->rSubBand[i].ucNumChannels = prSubBand->ucNumChannels;
+			}
 		}
 	}
 
@@ -1022,12 +1032,20 @@ VOID rlmDomainPassiveScanSendCmd(P_ADAPTER_T prAdapter, BOOLEAN fgIsOid)
 		prSubBand = &prDomainInfo->rSubBand[i];
 
 		prCmd->rSubBand[i].ucRegClass = prSubBand->ucRegClass;
-		prCmd->rSubBand[i].ucBand = prSubBand->ucBand;
 
-		if (prSubBand->ucBand != BAND_NULL && prSubBand->ucBand < BAND_NUM) {
-			prCmd->rSubBand[i].ucChannelSpan = prSubBand->ucChannelSpan;
-			prCmd->rSubBand[i].ucFirstChannelNum = prSubBand->ucFirstChannelNum;
-			prCmd->rSubBand[i].ucNumChannels = prSubBand->ucNumChannels;
+		if (prSubBand->ucBand == BAND_5G &&
+			(prAdapter->fgIsHw5GBandDisabled || !prAdapter->fgEnable5GBand)) {
+			prCmd->rSubBand[i].ucBand = BAND_NULL;
+			prCmd->rSubBand[i].ucChannelSpan = 0;
+			prCmd->rSubBand[i].ucFirstChannelNum = 0;
+			prCmd->rSubBand[i].ucNumChannels = 0;
+		} else {
+			prCmd->rSubBand[i].ucBand = prSubBand->ucBand;
+			if (prSubBand->ucBand != BAND_NULL && prSubBand->ucBand < BAND_NUM) {
+				prCmd->rSubBand[i].ucChannelSpan = prSubBand->ucChannelSpan;
+				prCmd->rSubBand[i].ucFirstChannelNum = prSubBand->ucFirstChannelNum;
+				prCmd->rSubBand[i].ucNumChannels = prSubBand->ucNumChannels;
+			}
 		}
 	}
 
@@ -1817,3 +1835,19 @@ VOID rlmDomainSendPwrLimitCmd(P_ADAPTER_T prAdapter)
 
 }
 #endif
+
+BOOLEAN rlmDomainGetHostCountryCode(PUINT_16 countrycode)
+{
+	if(g_u2HostCountryCode == COUNTRY_CODE_NULL)
+		return FALSE;
+
+	DBGLOG(RLM, INFO, "Last Host Country Code = %x\n", g_u2HostCountryCode);
+	*countrycode = g_u2HostCountryCode;
+	return TRUE;
+}
+
+VOID rlmDomainSetHostCountryCode(UINT_16 countrycode)
+{
+	DBGLOG(RLM, INFO, "Store Host Country Code = %x\n", g_u2HostCountryCode);
+	g_u2HostCountryCode = countrycode;
+}

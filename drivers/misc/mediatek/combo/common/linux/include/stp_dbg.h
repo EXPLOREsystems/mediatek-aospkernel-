@@ -26,6 +26,7 @@
 
 #endif
 
+#define CORE_DUMP_TIMEOUT_RET     (32)
 
 typedef enum {
 	STP_DBG_EN = 0,
@@ -261,7 +262,7 @@ extern int stp_dbg_deinit(MTKSTP_DBG_T *stp_dbg);
 extern int stp_dbg_dmp_out_ex(char *buf, int *len);
 extern int stp_dbg_dmp_out(MTKSTP_DBG_T *stp_dbg, char *buf, int *len);
 extern int stp_dbg_dmp_print(MTKSTP_DBG_T *stp_dbg);
-extern char stp_dbg_nl_send(char *aucMsg, unsigned char cmd);
+extern char stp_dbg_nl_send(char *aucMsg, unsigned char cmd, INT32 len);
 
 extern INT32 stp_dbg_aee_send(unsigned char *aucMsg, INT32 len, INT32 cmd);
 

@@ -781,13 +781,13 @@ INT32 wcn_compressor_in(P_WCN_COMPRESSOR_T cprs, PUINT8 buf, INT32 len, INT32 fi
 		if (len > cprs->L1_buf_sz) {
 			STP_DBG_ERR_FUNC("len=%d, too long err!\n", len);
 		} else {
-			STP_DBG_INFO_FUNC("L1 Flushed, and Put %d bytes to L1 buf\n", len);
+			STP_DBG_DBG_FUNC("L1 Flushed, and Put %d bytes to L1 buf\n", len);
 			osal_memcpy(&cprs->L1_buf[cprs->L1_pos], buf, len);
 			cprs->L1_pos += len;
 		}
 	} else {
 		/* put to L1 buffer */
-		STP_DBG_INFO_FUNC("Put %d bytes to L1 buf\n", len);
+		STP_DBG_DBG_FUNC("Put %d bytes to L1 buf\n", len);
 
 		osal_memcpy(&cprs->L1_buf[cprs->L1_pos], buf, len);
 		cprs->L1_pos += len;
@@ -957,15 +957,23 @@ INT32 wcn_core_dump_nl(P_WCN_CORE_DUMP_T dmp, PUINT8 buf, INT32 len)
 
 static void stp_dbg_dump_data(unsigned char *pBuf, char *title, int len)
 {
-	int k = 0;
+	INT32 k = 0;
+	char str[240] = "";
+	INT32 strp = 0;
+	INT32 strlen = 0;
 	pr_warn(" %s-len:%d\n", title, len);
 	/* pr_warn("    ", title, len); */
 	for (k = 0; k < len; k++) {
-		if (k % 16 == 0 && k != 0)
-			pr_warn("\n    ");
-		pr_warn("0x%02x ", pBuf[k]);
+		if (strp < 200) {
+			strlen = osal_sprintf(&str[strp], "0x%02x ", pBuf[k]);
+			strp += strlen;
+		} else {
+			pr_warn("More than 200 of the data is too much\n");
+			break;
+		}
 	}
-	pr_warn("--end\n");
+	osal_sprintf(&str[strp], "--end\n");
+	pr_warn("%s", str);
 }
 
 

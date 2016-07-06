@@ -75,6 +75,7 @@
 
 #define RB_SIZE(prb) ((prb)->size)
 #define RB_MASK(prb) (RB_SIZE(prb) - 1)
+#define RB_LATEST(prb) ((prb)->write - 1)
 #define RB_COUNT(prb) ((prb)->write - (prb)->read)
 #define RB_FULL(prb) (RB_COUNT(prb) >= RB_SIZE(prb))
 #define RB_EMPTY(prb) ((prb)->write == (prb)->read)
@@ -109,7 +110,18 @@
 	value = NULL; \
     } \
 }
-
+#define RB_GET_LATEST(prb, value) \
+{ \
+    if (!RB_EMPTY(prb)) { \
+	value = (prb)->queue[RB_LATEST(prb) & RB_MASK(prb)]; \
+	if (RB_EMPTY(prb)) { \
+	    (prb)->read = (prb)->write = 0; \
+	} \
+    } \
+    else { \
+	value = NULL; \
+    } \
+}
 /*******************************************************************************
 *                    E X T E R N A L   R E F E R E N C E S
 ********************************************************************************

@@ -1827,7 +1827,7 @@ INT32 mtk_wcn_stp_parser_data(UINT8 *buffer, UINT32 length)
 			case MTKSTP_FW_MSG:
 #if 1
 				if (0 == stp_core_ctx.parser.length) {
-					STP_INFO_FUNC("FW Assert len = 0, ignore this pkg\n");
+					STP_DBG_FUNC("FW Assert len = 0, ignore this pkg\n");
 					/*discard CRC */
 					if (i >= 2) {
 						STP_DBG_FUNC("crc discard.. i = %d\n", i);
@@ -1842,7 +1842,7 @@ INT32 mtk_wcn_stp_parser_data(UINT8 *buffer, UINT32 length)
 						/*STP_DBG_FUNC("\n[STP]FW_EVENT========= no padding byte =========\n"); */
 						/*do nothing */
 					} else if (i <= 4) {
-						STP_INFO_FUNC
+						STP_DBG_FUNC
 						    ("\n[STP]FW_EVENT========= block padding %d bytes =========\n",
 						     i);
 						p_data += i;
@@ -1854,7 +1854,7 @@ INT32 mtk_wcn_stp_parser_data(UINT8 *buffer, UINT32 length)
 						       6) & 0x03)) & 0x03;
 						p_data += padding_len;
 						i -= padding_len;
-						STP_INFO_FUNC
+						STP_DBG_FUNC
 						    ("\n[STP]FW_EVENT========= STP Agg padding %d bytes =========\n",
 						     padding_len);
 					}
@@ -1919,7 +1919,6 @@ INT32 mtk_wcn_stp_parser_data(UINT8 *buffer, UINT32 length)
 						static UINT32 counter;
 						if (0 != stp_core_ctx.rx_counter) {
 							STP_SET_READY(stp_core_ctx, 0);
-							mtk_wcn_stp_coredump_start_ctrl(1);
 							stp_psm_set_sleep_disable(stp_core_ctx.psm);
 							stp_dbg_log_pkt(g_mtkstp_dbg,
 									STP_DBG_FW_DMP
@@ -1933,7 +1932,7 @@ INT32 mtk_wcn_stp_parser_data(UINT8 *buffer, UINT32 length)
 							STP_INFO_FUNC
 							    ("only dump 20 packages from the begging\n");
 						} else if (counter < 20) {
-							osal_err_print
+							STP_DBG_FUNC
 							    ("[len=%d][type=%d]counter[%d]\n%s\n",
 							     stp_core_ctx.rx_counter,
 							     stp_core_ctx.parser.type, counter,
@@ -2012,10 +2011,10 @@ INT32 mtk_wcn_stp_parser_data(UINT8 *buffer, UINT32 length)
 					/*STP packet 4-bytes alignment */
 					/*Discard padding bytes , otherwise make parser state machine disorder */
 					if (0 == i) {
-						STP_INFO_FUNC
+						STP_DBG_FUNC
 						    ("\n[STP]FW_EVENT========= no padding byte =========\n");
 					} else if (i <= 4) {
-						STP_INFO_FUNC
+						STP_DBG_FUNC
 						    ("\n[STP]FW_EVENT========= block padding %d bytes =========\n",
 						     i);
 						p_data += i;
@@ -2027,7 +2026,7 @@ INT32 mtk_wcn_stp_parser_data(UINT8 *buffer, UINT32 length)
 						       6) & 0x03)) & 0x03;
 						p_data += padding_len;
 						i -= padding_len;
-						STP_INFO_FUNC
+						STP_DBG_FUNC
 						    ("\n[STP]FW_EVENT========= STP Agg padding %d bytes =========\n",
 						     padding_len);
 					}
@@ -2097,7 +2096,7 @@ INT32 mtk_wcn_stp_parser_data(UINT8 *buffer, UINT32 length)
 					/*STP packet 4-bytes alignment */
 					/*Discard padding bytes , otherwise make parser state machine disorder */
 					if (i <= 4) {
-						STP_INFO_FUNC
+						STP_DBG_FUNC
 						    ("\n[STP]FW_EVENT========= block padding %d bytes =========\n",
 						     i - 1);
 						p_data += (i - 1);
@@ -2109,7 +2108,7 @@ INT32 mtk_wcn_stp_parser_data(UINT8 *buffer, UINT32 length)
 						       6) & 0x03)) & 0x03;
 						p_data += padding_len;
 						i -= padding_len;
-						STP_INFO_FUNC
+						STP_DBG_FUNC
 						    ("\n[STP]FW_EVENT========= STP Agg padding %d bytes =========\n",
 						     padding_len);
 					}
@@ -2416,7 +2415,7 @@ INT32 mtk_wcn_stp_parser_data(UINT8 *buffer, UINT32 length)
 
 			case MTKSTP_FW_MSG:
 				if (0 == stp_core_ctx.parser.length) {
-					STP_INFO_FUNC("FW Assert len = 0, ignore this pkg\n");
+					STP_DBG_FUNC("FW Assert len = 0, ignore this pkg\n");
 					/*discard CRC */
 					if (i >= 2) {
 						STP_DBG_FUNC("crc discard.. i = %d\n", i);

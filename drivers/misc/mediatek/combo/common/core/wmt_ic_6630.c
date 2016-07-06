@@ -991,7 +991,7 @@ static MTK_WCN_BOOL mt6630_quick_sleep_flag_get(VOID)
 
 static MTK_WCN_BOOL mt6630_aee_dump_flag_get(VOID)
 {
-	return MTK_WCN_BOOL_TRUE;
+	return MTK_WCN_BOOL_FALSE;
 }
 
 static MTK_WCN_BOOL mt6630_trigger_stp_assert(VOID)

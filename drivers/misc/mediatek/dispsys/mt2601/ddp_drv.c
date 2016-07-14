@@ -831,24 +831,6 @@ static long disp_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned lo
 #endif
 
 	switch (cmd) {
-	case DISP_IOCTL_WRITE_REG:
-
-		if (copy_from_user(&wParams, (void *)arg, sizeof(DISP_WRITE_REG))) {
-			DDP_DRV_ERR("DISP_IOCTL_WRITE_REG, copy_from_user failed\n");
-			return -EFAULT;
-		}
-
-		DDP_DRV_DBG("write  0x%x = 0x%x (0x%x)\n", wParams.reg, wParams.val, wParams.mask);
-		if (wParams.reg > DISPSYS_REG_ADDR_MAX || wParams.reg < DISPSYS_REG_ADDR_MIN) {
-			DDP_DRV_ERR("reg write, addr invalid, addr min=0x%x, max=0x%x, addr=0x%x\n",
-				DISPSYS_REG_ADDR_MIN, DISPSYS_REG_ADDR_MAX, wParams.reg);
-			return -EFAULT;
-		}
-
-		*(volatile unsigned int *)wParams.reg = (*(volatile unsigned int *)wParams.reg & ~wParams.mask) | (wParams.val & wParams.mask);
-		/* mt65xx_reg_sync_writel(wParams.reg, value); */
-		break;
-
 	case DISP_IOCTL_READ_REG:
 		if (copy_from_user(&rParams, (void *)arg, sizeof(DISP_READ_REG))) {
 			DDP_DRV_ERR("DISP_IOCTL_READ_REG, copy_from_user failed\n");
@@ -1029,26 +1011,6 @@ static long disp_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned lo
 			DDP_DRV_ERR("disp driver : Copy to user error (result)\n");
 			return -EFAULT;
 		}
-		break;
-
-	case DISP_IOCTL_GET_OVL:
-		DDP_DRV_DBG("DISP_IOCTL_GET_OVL!\n");
-		if (copy_from_user(&ovl_info, (void *)arg, sizeof(DISP_OVL_INFO))) {
-			DDP_DRV_ERR("DISP_IOCTL_SET_INTR, copy_from_user failed, %d\n", ret);
-			return -EFAULT;
-		}
-
-		layer = ovl_info.layer;
-
-		spin_lock(&gOvlLock);
-		ovl_info = disp_layer_info[layer];
-		spin_unlock(&gOvlLock);
-
-		if (copy_to_user((void *)arg, &ovl_info, sizeof(DISP_OVL_INFO))) {
-			DDP_DRV_ERR("disp driver : Copy to user error (result)\n");
-			return -EFAULT;
-		}
-
 		break;
 
 	case DISP_IOCTL_AAL_EVENTCTL:

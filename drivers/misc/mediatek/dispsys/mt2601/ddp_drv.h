@@ -182,7 +182,6 @@ typedef enum {
 
 #define DISP_IOCTL_MAGIC        'x'
 
-#define DISP_IOCTL_WRITE_REG       _IOW     (DISP_IOCTL_MAGIC, 1, DISP_WRITE_REG)
 #define DISP_IOCTL_READ_REG        _IOWR    (DISP_IOCTL_MAGIC, 2, DISP_READ_REG)
 #define DISP_IOCTL_WAIT_IRQ        _IOR     (DISP_IOCTL_MAGIC, 3, disp_wait_irq_struct)
 #define DISP_IOCTL_DUMP_REG        _IOR     (DISP_IOCTL_MAGIC, 4, int)
@@ -206,7 +205,6 @@ typedef enum {
 
 #define DISP_IOCTL_RUN_DPF         _IOW     (DISP_IOCTL_MAGIC, 30, int)
 #define DISP_IOCTL_CHECK_OVL       _IOR     (DISP_IOCTL_MAGIC, 31, int)
-#define DISP_IOCTL_GET_OVL         _IOWR    (DISP_IOCTL_MAGIC, 32, DISP_OVL_INFO)
 
 #define DISP_IOCTL_EXEC_COMMAND    _IOW     (DISP_IOCTL_MAGIC, 33, DISP_EXEC_COMMAND)
 #define DISP_IOCTL_RESOURCE_REQUIRE   _IOR     (DISP_IOCTL_MAGIC, 34, int)
@@ -222,14 +220,6 @@ typedef enum {
 /* Update BLS setting */
 #define DISP_IOCTL_SET_PWMLUT      _IOW    (DISP_IOCTL_MAGIC, 22 , DISPLAY_PWM_T)
 
-/* Add for AAL control - E */
-/*-----------------------------------------------------------------------------
-    DDP Kernel Mode API  (for Kernel Trap)
-  -----------------------------------------------------------------------------*/
-/* DDPK Bitblit */
-/* #define DISP_IOCTL_G_WAIT_REQUEST  _IOR     (DISP_IOCTL_MAGIC , 40 , DDPIOCTL_DdpkBitbltConfig) */
-/* #define DISP_IOCTL_T_INFORM_DONE   _IOW     (DISP_IOCTL_MAGIC , 41 , DDPIOCTL_DdpkBitbltInformDone) */
-
 #define DISP_IOCTL_SET_CLKON _IOW (DISP_IOCTL_MAGIC, 50 , DISP_MODULE_ENUM)
 #define DISP_IOCTL_SET_CLKOFF _IOW (DISP_IOCTL_MAGIC, 51 , DISP_MODULE_ENUM)
 
@@ -239,7 +229,6 @@ typedef enum {
 /* PQ setting */
 #define DISP_IOCTL_SET_PQPARAM      _IOW    (DISP_IOCTL_MAGIC, 60 , DISP_PQ_PARAM)
 #define DISP_IOCTL_GET_PQPARAM      _IOR    (DISP_IOCTL_MAGIC, 61 , DISP_PQ_PARAM)
-/* #define DISP_IOCTL_GET_PQINDEX      _IOR    (DISP_IOCTL_MAGIC, 63,  DISPLAY_PQ_T) */
 #define DISP_IOCTL_SET_PQINDEX      _IOW    (DISP_IOCTL_MAGIC, 64 , DISPLAY_PQ_T)
 #define DISP_IOCTL_SET_TDSHPINDEX   _IOW    (DISP_IOCTL_MAGIC, 65 , DISPLAY_TDSHP_T)
 #define DISP_IOCTL_GET_TDSHPINDEX   _IOR    (DISP_IOCTL_MAGIC, 66 , DISPLAY_TDSHP_T)

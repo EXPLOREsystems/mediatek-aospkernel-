@@ -226,6 +226,7 @@ INT32 stp_drv_init(VOID)
 		.stp_parser_data_cb = _mtk_wcn_stp_parser_data,
 		.stp_receive_data_cb = _mtk_wcn_stp_receive_data,
 		.stp_is_rxqueue_empty_cb = _mtk_wcn_stp_is_rxqueue_empty,
+		.stp_inform_hardware_error_cb = _mtk_wcn_stp_inform_hardware_error,
 		.stp_is_ready_cb = _mtk_wcn_stp_is_ready,
 		.stp_set_bluez_cb = _mtk_wcn_stp_set_bluez,
 		.stp_if_tx_cb = _mtk_wcn_stp_register_if_tx,

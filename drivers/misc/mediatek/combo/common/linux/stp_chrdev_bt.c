@@ -97,6 +97,10 @@ static void bt_cdev_rst_cb(ENUM_WMTDRV_TYPE_T src,
 
 			} else if (rst_msg == WMTRSTMSG_RESET_END) {
 				BT_INFO_FUNC("BT restart end!\n");
+
+				//inform hardware error to host (BlueDroid) to reset bt_process
+				mtk_wcn_stp_inform_hardware_error(BT_TASK_INDX);
+
 				retflag = 2;
 				wake_up_interruptible(&inq);
 				/*reset_end message handling */
@@ -211,12 +215,12 @@ ssize_t BT_read(struct file *filp, char __user *buf, size_t count, loff_t *f_pos
 		{
 			retval = -88;
 			BT_INFO_FUNC("MT662x reset Read: start\n");
+			goto OUT;
 		} else if (retflag == 2)	/* reset end */
 		{
-			retval = -99;
+			//after reset end, let host continue to read data for the HCI_HARDWARE_ERROR for reset host
 			BT_INFO_FUNC("MT662x reset Read: end\n");
 		}
-		goto OUT;
 	}
 
 	if (count > MTKSTP_BUFFER_SIZE) {

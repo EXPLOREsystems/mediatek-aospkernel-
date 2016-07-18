@@ -139,6 +139,18 @@ extern MTK_WCN_BOOL mtk_wcn_stp_is_rxqueue_empty(UINT8 type);
 
 /*****************************************************************************
 * FUNCTION
+*  mtk_wcn_stp_inform_hardware_error
+* DESCRIPTION
+*  inform upper layer about the hardware error
+* PARAMETERS
+*  type        [IN]        subfunction type
+* RETURNS
+*  void
+*****************************************************************************/
+extern void mtk_wcn_stp_inform_hardware_error(UINT8 type);
+
+/*****************************************************************************
+* FUNCTION
 *  mtk_wcn_stp_is_enable
 * DESCRIPTION
 *  Is STP ready?
@@ -247,6 +259,7 @@ extern INT32 _mtk_wcn_stp_send_data_raw(const UINT8 *buffer, const UINT32 length
 					const UINT8 type);
 extern INT32 _mtk_wcn_stp_send_data(const UINT8 *buffer, const UINT32 length, const UINT8 type);
 extern MTK_WCN_BOOL _mtk_wcn_stp_is_rxqueue_empty(UINT8 type);
+extern void _mtk_wcn_stp_inform_hardware_error(UINT8 type);
 extern MTK_WCN_BOOL _mtk_wcn_stp_is_ready(void);
 extern INT32 _mtk_wcn_stp_parser_data(UINT8 *buffer, UINT32 length);
 extern void _mtk_wcn_stp_set_bluez(MTK_WCN_BOOL sdio_flag);

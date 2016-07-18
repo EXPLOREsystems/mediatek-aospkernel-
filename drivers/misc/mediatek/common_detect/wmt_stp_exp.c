@@ -39,6 +39,9 @@ MTK_WCN_STP_SEND_DATA mtk_wcn_stp_send_data_raw_f = NULL;
 MTK_WCN_STP_PARSER_DATA mtk_wcn_stp_parser_data_f = NULL;
 MTK_WCN_STP_RECV_DATA mtk_wcn_stp_receive_data_f = NULL;
 MTK_WCN_STP_IS_RXQ_EMPTY mtk_wcn_stp_is_rxqueue_empty_f = NULL;
+
+MTK_WCN_STP_INFORM_HARDWARE_ERROR mtk_wcn_stp_inform_hardware_error_f = NULL;
+
 MTK_WCN_STP_IS_RDY mtk_wcn_stp_is_ready_f = NULL;
 MTK_WCN_STP_SET_BLUEZ mtk_wcn_stp_set_bluez_f = NULL;
 MTK_WCN_STP_REG_IF_TX mtk_wcn_stp_if_tx_f = NULL;
@@ -75,6 +78,7 @@ UINT32 mtk_wcn_stp_exp_cb_reg(P_MTK_WCN_STP_EXP_CB_INFO pStpExpCb)
 	mtk_wcn_stp_parser_data_f = pStpExpCb->stp_parser_data_cb;
 	mtk_wcn_stp_receive_data_f = pStpExpCb->stp_receive_data_cb;
 	mtk_wcn_stp_is_rxqueue_empty_f = pStpExpCb->stp_is_rxqueue_empty_cb;
+	mtk_wcn_stp_inform_hardware_error_f = pStpExpCb->stp_inform_hardware_error_cb;
 	mtk_wcn_stp_is_ready_f = pStpExpCb->stp_is_ready_cb;
 	mtk_wcn_stp_set_bluez_f = pStpExpCb->stp_set_bluez_cb;
 	mtk_wcn_stp_if_tx_f = pStpExpCb->stp_if_tx_cb;
@@ -190,6 +194,23 @@ MTK_WCN_BOOL mtk_wcn_stp_is_rxqueue_empty(UINT8 type)
 	return ret;
 }
 EXPORT_SYMBOL(mtk_wcn_stp_is_rxqueue_empty);
+
+// add send HCI HW Error here
+void mtk_wcn_stp_inform_hardware_error(UINT8 type)
+{
+	if (mtk_wcn_stp_inform_hardware_error_f)
+	{
+		(*mtk_wcn_stp_inform_hardware_error_f) (type);
+	}
+	else
+	{
+		WMT_STP_EXP_ERR_FUNC("mtk_wcn_stp_inform_hardware_error is null\n");
+	}
+
+	return;
+}
+EXPORT_SYMBOL(mtk_wcn_stp_inform_host_after_chip_reset);
+
 
 MTK_WCN_BOOL mtk_wcn_stp_is_ready(void)
 {

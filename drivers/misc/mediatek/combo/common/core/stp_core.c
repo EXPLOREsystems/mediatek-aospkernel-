@@ -3141,6 +3141,33 @@ INT32 mtk_wcn_stp_is_rxqueue_empty(UINT8 type)
 
 /*****************************************************************************
 * FUNCTION
+*  mtk_wcn_stp_inform_hardware_error
+* DESCRIPTION
+*  inform upper layer about the hardware error
+* PARAMETERS
+*  type        [IN]        subfunction type
+* RETURNS
+*  void
+*****************************************************************************/
+#if STP_EXP_HID_API_EXPORT
+void _mtk_wcn_stp_inform_hardware_error(UINT8 type)
+#else
+void mtk_wcn_stp_inform_hardware_error(UINT8 type)
+#endif
+{
+	INT32 ret;
+	UINT8 rx_buf[4] = {0x04,0x10,0x01,0xF0};
+	// 0xF0 HW error code
+
+	ret = stp_add_to_rx_queue(rx_buf,4, BT_TASK_INDX);
+
+	STP_INFO_FUNC("mtk_wcn_stp_inform_hardware_error = %d\n", ret);
+
+	return;
+}
+
+/*****************************************************************************
+* FUNCTION
 *  mtk_wcn_stp_set_sdio_mode
 * DESCRIPTION
 *  Set stp for SDIO mode

@@ -95,6 +95,7 @@ typedef INT32 (*MTK_WCN_STP_SEND_DATA) (const UINT8 *buffer, const UINT32 length
 typedef INT32 (*MTK_WCN_STP_PARSER_DATA)(UINT8 *buffer, UINT32 length);
 typedef INT32 (*MTK_WCN_STP_RECV_DATA)(UINT8 *buffer, UINT32 length, UINT8 type);
 typedef MTK_WCN_BOOL(*MTK_WCN_STP_IS_RXQ_EMPTY)(UINT8 type);
+typedef VOID(*MTK_WCN_STP_INFORM_HARDWARE_ERROR) (UINT8 type);
 typedef MTK_WCN_BOOL(*MTK_WCN_STP_IS_RDY)(VOID);
 typedef VOID(*MTK_WCN_STP_SET_BLUEZ)(MTK_WCN_BOOL flags);
 typedef INT32 (*MTK_WCN_STP_REG_IF_TX)(ENUM_STP_TX_IF_TYPE stp_if, MTK_WCN_STP_IF_TX func);
@@ -109,6 +110,7 @@ typedef struct _MTK_WCN_STP_EXP_CB_INFO_ {
 	MTK_WCN_STP_PARSER_DATA stp_parser_data_cb;
 	MTK_WCN_STP_RECV_DATA stp_receive_data_cb;
 	MTK_WCN_STP_IS_RXQ_EMPTY stp_is_rxqueue_empty_cb;
+	MTK_WCN_STP_INFORM_HARDWARE_ERROR stp_inform_hardware_error_cb;
 	MTK_WCN_STP_IS_RDY stp_is_ready_cb;
 	MTK_WCN_STP_SET_BLUEZ stp_set_bluez_cb;
 	MTK_WCN_STP_REG_IF_TX stp_if_tx_cb;
@@ -354,6 +356,19 @@ extern INT32 mtk_wcn_stp_receive_data(UINT8 *buffer, UINT32 length, UINT8 type);
 *  INT32    0: queue is NOT empyt; !0: queue is empty
 *****************************************************************************/
 extern MTK_WCN_BOOL mtk_wcn_stp_is_rxqueue_empty(UINT8 type);
+
+
+/*****************************************************************************
+* FUNCTION
+*  mtk_wcn_stp_inform_hardware_error
+* DESCRIPTION
+*  inform upper layer about the hardware error
+* PARAMETERS
+*  type        [IN]        subfunction type
+* RETURNS
+*  void
+*****************************************************************************/
+extern void mtk_wcn_stp_inform_hardware_error(UINT8 type);
 
 
 /*****************************************************************************

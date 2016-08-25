@@ -113,6 +113,7 @@ static void stp_sdio_tx_rx_handling(void *pData);
 static INT32 stp_sdio_host_info_deinit(UINT8 **ppTxBuf, UINT8 **ppRxBuf);
 static INT32 stp_sdio_host_info_init(UINT8 **ppTxBuf, UINT8 **ppRxBuf);
 static INT32 stp_sdio_host_info_op(INT32 opId);
+static _osal_inline_ INT32 stp_sdio_issue_fake_coredump(UINT8 *str);
 /*******************************************************************************
 *                           P R I V A T E   D A T A
 ********************************************************************************
@@ -392,7 +393,49 @@ static SDIO_PS_OP stp_sdio_get_own_state(void)
 		ret = OWN_SET;
 	}
 	return ret;
+}
 
+static _osal_inline_ INT32 stp_sdio_issue_fake_coredump(UINT8 *str)
+{
+	#define MAX_STRING_LENGTH 64
+	#define ASSERT_MSG "coredump end"
+
+	UINT8 AssertStr[4 + MAX_STRING_LENGTH + 1 + 2] = { 0 };
+	UINT32 length = strlen(str) >= MAX_STRING_LENGTH ? MAX_STRING_LENGTH : strlen(str);
+	/*pack str into STP SDIO packet format */
+	/*STP header */
+	AssertStr[0] = 0x80;
+	AssertStr[1] = 0x50;
+	AssertStr[2] = (length + 1) & 0xff;
+	AssertStr[3] = 0x0;
+	/*STP content */
+	memcpy(&AssertStr[4], str, length);
+	/*string end character */
+	AssertStr[4 + length] = '\n';
+	/*STP CRC */
+	AssertStr[4 + length + 1] = 0x0;
+	AssertStr[4 + length + 2] = 0x0;
+	/*send to STP layer coredump content */
+	mtk_wcn_stp_parser_data(&AssertStr[0], 4 + length + 1 + 2);
+
+	/*send coredump end content */
+	length = strlen(ASSERT_MSG);
+	AssertStr[0] = 0x80;
+	AssertStr[1] = 0x50;
+	AssertStr[2] = (length + 2) & 0xff;
+	AssertStr[3] = 0x0;
+	memcpy(&AssertStr[4], ASSERT_MSG, length);
+	/*string end character */
+	AssertStr[4 + length] = '\r';
+	AssertStr[4 + length + 1] = '\n';
+	/*STP CRC */
+	AssertStr[4 + length + 2] = 0x0;
+	AssertStr[4 + length + 3] = 0x0;
+	mtk_wcn_stp_parser_data(&AssertStr[0], 4 + length + 2 + 2);
+
+	STPSDIO_ERR_FUNC("trigger fake coredump with str:[%s] finished\n", str);
+
+	return 0;
 }
 
 
@@ -704,6 +747,14 @@ static void stp_sdio_tx_rx_handling(void *pData)
 			STPSDIO_DBG_FUNC("OWN on driver side!\n");
 			pInfo->awake_flag = 1;
 		}
+
+		if ((0 != pInfo->wakeup_flag) && (0 != pInfo->awake_flag)) {
+			while_loop_counter = 0;
+			STPSDIO_DBG_FUNC("clr firmware own! (wakeup) ok\n");
+			pInfo->wakeup_flag = 0;
+			osal_raise_signal(&pInfo->isr_check_complete);
+		}
+
 		if ((0 != pInfo->irq_pending) && (1 == pInfo->awake_flag)) {
 			while_loop_counter = 0;
 
@@ -723,11 +774,32 @@ static void stp_sdio_tx_rx_handling(void *pData)
 
 			if (0x0 == chisr) {
 				STPSDIO_ERR_FUNC("******CHISR == 0*****\n");
+ 				stp_sdio_issue_fake_coredump
+					("ABT: STP-SDIO err: CHISR == 0");
 			}
 
 			if (chisr & FW_OWN_BACK_INT) {
 				STPSDIO_HINT_FUNC("FW_OWN_BACK_INT\n");
 			}
+
+			//<4> handle Tx interrupt
+			if ( (chisr & TX_EMPTY) || (chisr & TX_UNDER_THOLD) ) {
+				while_loop_counter = 0;
+				STPSDIO_DBG_FUNC("Tx interrupt\n");
+				/* get complete count */
+				tx_comp = (chisr & TX_COMPLETE_COUNT) >> 4;
+
+				tx_comp = atomic_add_return(tx_comp, &pInfo->firmware_info.tx_comp_num);
+				if (tx_comp > STP_SDIO_TX_PKT_MAX_CNT) {
+					STPSDIO_ERR_FUNC("Abnormal accumulated comp count(%d) chisr(0x%x)\n",
+					tx_comp, chisr);
+				}
+			}
+			if (1 == pInfo->awake_flag)
+			{
+				stp_sdio_tx_wkr(&pInfo->tx_work);
+			}
+
 			if (chisr & RX_DONE) {
 				/* STPSDIO_INFO_FUNC("RX_DONE_INT\n"); */
 				if (pInfo->rx_pkt_len) {
@@ -757,22 +829,9 @@ static void stp_sdio_tx_rx_handling(void *pData)
 				}
 				/*Rx job */
 				stp_sdio_rx_wkr(&pInfo->rx_work);
+				mtk_wcn_stp_wmt_sdio_host_awake();
 			}
-			/* <4> handle Tx interrupt */
-			if ((chisr & TX_EMPTY) || (chisr & TX_UNDER_THOLD)) {
-				while_loop_counter = 0;
-				STPSDIO_DBG_FUNC("Tx interrupt\n");
-				/* get complete count */
-				tx_comp = (chisr & TX_COMPLETE_COUNT) >> 4;
 
-				tx_comp =
-				    atomic_add_return(tx_comp, &pInfo->firmware_info.tx_comp_num);
-				if (tx_comp > STP_SDIO_TX_PKT_MAX_CNT) {
-					STPSDIO_ERR_FUNC
-					    ("Abnormal accumulated comp count(%d) chisr(0x%x)\n",
-					     tx_comp, chisr);
-				}
-			}
 			/* osal_raise_signal(&pInfo->isr_check_complete); */
 
 		}
@@ -825,12 +884,7 @@ static void stp_sdio_tx_rx_handling(void *pData)
 			}
 
 		}
-		if ((0 != pInfo->wakeup_flag) && (0 != pInfo->awake_flag)) {
-			while_loop_counter = 0;
-			STPSDIO_DBG_FUNC("clr firmware own! (wakeup) ok\n");
-			pInfo->wakeup_flag = 0;
-			osal_raise_signal(&pInfo->isr_check_complete);
-		}
+
 		if ((0 != pInfo->sleep_flag) && (0 == pInfo->wakeup_flag) && mtk_wcn_stp_is_ready()
 		    && (0 == pInfo->irq_pending)
 		    && (0 == pInfo->firmware_info.tx_packet_num)
@@ -2021,7 +2075,6 @@ using CMD52 write instead of CMD53 write for CCIR, CHLPCR, CSDIOCSR */
 			if (!(chlcpr_value & C_FW_INT_EN_SET)) {
 				STPSDIO_DBG_FUNC("disable COM IRQ okay (0x%x)\n", chlcpr_value);
 				p_info->irq_pending = 1;
-				mtk_wcn_stp_wmt_sdio_host_awake();
 				/*inform stp_sdio thread to to rx/tx job */
 				STPSDIO_DBG_FUNC("signal stp_tx_rx\n");
 				osal_trigger_event(&gp_info->tx_rx_event);

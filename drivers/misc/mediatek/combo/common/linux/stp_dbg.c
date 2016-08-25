@@ -997,7 +997,6 @@ static int _stp_dbg_disable(MTKSTP_DBG_T *stp_dbg)
 
 	spin_lock_irqsave(&(stp_dbg->logsys->lock), flags);
 	stp_dbg->pkt_trace_no = 0;
-	memset(stp_dbg->logsys, 0, sizeof(MTKSTP_LOG_SYS_T));
 	stp_dbg->is_enable = 0;
 	spin_unlock_irqrestore(&(stp_dbg->logsys->lock), flags);
 
@@ -1019,8 +1018,6 @@ static int _stp_dbg_dmp_in(MTKSTP_DBG_T *stp_dbg, char *buf, int len)
 	if (internalFlag) {
 		stp_dbg->logsys->queue[stp_dbg->logsys->in].id = 0;
 		stp_dbg->logsys->queue[stp_dbg->logsys->in].len = len;
-		memset(&(stp_dbg->logsys->queue[stp_dbg->logsys->in].buffer[0]),
-		       0, ((len >= STP_DBG_LOG_ENTRY_SZ) ? (STP_DBG_LOG_ENTRY_SZ) : (len)));
 		memcpy(&(stp_dbg->logsys->queue[stp_dbg->logsys->in].buffer[0]),
 		       buf, ((len >= STP_DBG_LOG_ENTRY_SZ) ? (STP_DBG_LOG_ENTRY_SZ) : (len)));
 

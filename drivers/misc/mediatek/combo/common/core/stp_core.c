@@ -2770,6 +2770,11 @@ INT32 mtk_wcn_stp_send_data(const UINT8 *buffer, const UINT32 length, const UINT
 			if (type == WMT_TASK_INDX) {
 				goto DONT_MONITOR;
 			}
+			if (type == BT_TASK_INDX){
+				if (stp_psm_is_to_block_traffic(STP_PSM_CORE(stp_core_ctx)))
+					stp_psm_notify_wmt_wakeup(STP_PSM_CORE(stp_core_ctx));
+				goto DONT_MONITOR;
+			}
 		/*-----------------------------STP_PSM_Lock----------------------------------------*/
 			ret = stp_psm_thread_lock_aquire(STP_PSM_CORE(stp_core_ctx));
 			if (ret) {
@@ -2965,7 +2970,9 @@ INT32 mtk_wcn_stp_send_data(const UINT8 *buffer, const UINT32 length, const UINT
 #ifdef CONFIG_POWER_SAVING_SUPPORT
 
 	if (MTK_WCN_BOOL_TRUE == stp_psm_is_quick_ps_support()) {
-		if (type != WMT_TASK_INDX) {
+		if (type == BT_TASK_INDX){
+			stp_psm_notify_wmt_sleep(STP_PSM_CORE(stp_core_ctx));
+		} else if (type != WMT_TASK_INDX) {
 			stp_psm_notify_wmt_sleep(STP_PSM_CORE(stp_core_ctx));
 			/*-----------------------------STP_PSM_UnLock----------------------------------------*/
 			stp_psm_thread_lock_release(STP_PSM_CORE(stp_core_ctx));

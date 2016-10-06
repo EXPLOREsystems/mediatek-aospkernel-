@@ -1312,7 +1312,7 @@ static int mtkfb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg
 			return -EFAULT;
 		}
 		MTKFB_INFO("%s, display_id=%d\n", __func__, displayid);
-		if (displayid > MTKFB_MAX_DISPLAY_COUNT) {
+		if ((displayid < 0) || (displayid >= MTKFB_MAX_DISPLAY_COUNT)) {
 			MTKFB_WRAN("[FB]: invalid display id:%d\n", displayid);
 			return -EFAULT;
 		}

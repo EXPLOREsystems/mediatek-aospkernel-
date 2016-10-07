@@ -170,7 +170,6 @@ extern unsigned int isAEEEnabled;
 /* local function declarations */
 /* --------------------------------------------------------------------------- */
 
-static int init_framebuffer(struct fb_info *info);
 static int mtkfb_set_overlay_layer(struct fb_info *info,
 				   struct fb_overlay_layer *layerInfo,
 				   unsigned int locked);
@@ -1222,49 +1221,6 @@ void mtkfb_capture_fb_only(bool enable)
 	atomic_set(&capture_ui_layer_only, enable);
 }
 
-static int mtkfb_auto_capture_framebuffer(struct fb_info *info, struct fb_slt_catpure *config)
-{
-	int ret = 0;
-	unsigned int pvbuf = (unsigned int)config->outputBuffer;
-	unsigned int bpp = 32;
-	MTKFB_INFO("mtkfb_auto_capture_framebuffer\n");
-
-	MMProfileLogEx(MTKFB_MMP_Events.CaptureFramebuffer, MMProfileFlagStart, pvbuf, 0);
-	MTKFB_FUNC();
-	if (down_interruptible(&sem_flipping)) {
-		MTKFB_WRAN("[FB Driver] can't get semaphore:%d\n", __LINE__);
-		MMProfileLogEx(MTKFB_MMP_Events.CaptureFramebuffer, MMProfileFlagEnd, 0, 1);
-		return -ERESTARTSYS;
-	}
-	sem_flipping_cnt--;
-	mutex_lock(&ScreenCaptureMutex);
-
-	/* LCD registers can't be R/W when its clock is gated in early suspend */
-	/* mode; power on/off LCD to modify register values before/after func. */
-
-	if (is_early_suspended) {
-		/* Turn on engine clock. */
-		disp_path_clock_on("mtkfb");
-		/* DISP_CHECK_RET(DISP_PowerEnable(TRUE)); */
-	}
-	/* because wdma can't change width and height */
-	/* DISP_Capture_Framebuffer(pvbuf, bpp, is_early_suspended); */
-	DISP_Auto_Capture_FB(pvbuf, config->format, bpp, is_early_suspended, config->wdma_width, config->wdma_height);
-	if (is_early_suspended) {
-		/* Turn off engine clock. */
-		/* DISP_CHECK_RET(DISP_PowerEnable(FALSE)); */
-		disp_path_clock_off("mtkfb");
-	}
-
-	mutex_unlock(&ScreenCaptureMutex);
-	sem_flipping_cnt++;
-	up(&sem_flipping);
-	MSG_FUNC_LEAVE();
-	MMProfileLogEx(MTKFB_MMP_Events.CaptureFramebuffer, MMProfileFlagEnd, 0, 0);
-
-	return ret;
-}
-
 #include <linux/aee.h>
 #define mtkfb_aee_print(string, args...) do { \
 	aee_kernel_warning_api(__FILE__, __LINE__, DB_OPT_MMPROFILE_BUFFER, "sf-mtkfb blocked", string, ##args); \
@@ -1641,20 +1597,6 @@ static int mtkfb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg
 
 	case MTKFB_UNLOCK_FRONT_BUFFER:
 		return 0;
-
-	case MTKFB_SLT_AUTO_CAPTURE:
-	{
-		struct fb_slt_catpure config;
-		MTKFB_INFO("MTKFB_SLT_AUTO_CAPTURE\n");
-		if (copy_from_user(&config, argp, sizeof(config))) {
-			MTKFB_WRAN("[FB]: copy_from_user failed! line:%d\n", __LINE__);
-			r = -EFAULT;
-		} else {
-			MTKFB_INFO("format bit 0x%x buf 0x%x width 0x%x ,height 0x%x\n", config.format, (unsigned int)config.outputBuffer, config.wdma_width, config.wdma_height);
-			mtkfb_auto_capture_framebuffer(info, &config);
-		}
-		return r;
-	}
 
 /* ============================================================================= */
 /* Multiple Display Support */
@@ -2246,17 +2188,6 @@ int m4u_reclaim_mva_callback_ovl(int moduleID, unsigned int va, unsigned int siz
 	 (((x) & 0x7E0) << 5) | (((x) & 0x600) >> 1) | \
 	 (((x) & 0xF800) >> 8) | (((x) & 0xE000) >> 13) | \
 	 (0xFF << 24))
-
-/* Init frame buffer content as 3 R/G/B color bars for debug */
-static int init_framebuffer(struct fb_info *info)
-{
-	void *buffer = info->screen_base + info->var.yoffset * info->fix.line_length;
-
-	/* clean whole frame buffer as black */
-	memset(buffer, 0, info->screen_size);
-
-	return 0;
-}
 
 /* Free driver resources. Can be called to rollback an aborted initialization
  * sequence.

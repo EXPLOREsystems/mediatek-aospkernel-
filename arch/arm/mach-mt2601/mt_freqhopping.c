@@ -715,6 +715,11 @@ static INT32 freqhop_proc_dbg_write(struct file *file, const char *buffer, size_
 		}
 		break;
 	case 2:{		/* - config hopping => 2   x   pll_id   dds   hop_dds   0   0 */
+			if (p3 >= NUM_OF_PLL_ID) {
+				fhctl_err("pll_id index out of range %x\n",p3);
+				count = -1;
+				break;
+			}
 			/* - disable FIRST */
 			freqhop_fhctlx_disable(p3, FHCTL_HOPPING, 1);
 			if (p2 == 0) {	/* - disable */
@@ -727,6 +732,11 @@ static INT32 freqhop_proc_dbg_write(struct file *file, const char *buffer, size_
 		}
 		break;
 	case 3:{		/* - config SSC => 3    x   pll_id   dds   ssc_df   ssc_dt   uplmt   dnlmt */
+			if (p3 >= NUM_OF_PLL_ID) {
+				fhctl_err("pll_id index out of range %x\n",p3);
+				count = -1;
+				break;
+			}
 			if (p2 == 0) {	/* - disable FIRST */
 				freqhop_fhctlx_disable(p3, FHCTL_SSC, 1);
 			} else if (p2 == 1) {	/* - enable, but disable FIRST */
